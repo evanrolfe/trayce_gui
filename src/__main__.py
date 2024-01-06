@@ -2,15 +2,18 @@ import sys
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QApplication
 from main_window import MainWindow
+from utils import get_app_path
 
 
 def main():
     app = QApplication(sys.argv)
 
-    # Load assets & styles
-    QtCore.QDir.addSearchPath("assets", "src/assets")
+    root_path = get_app_path()
+    assets_path = root_path.joinpath("assets")
+    print("root_path=", root_path)
+    QtCore.QDir.addSearchPath("assets", str(assets_path))
 
-    window = MainWindow()
+    window = MainWindow(assets_path)
     window.show()
     sys.exit(app.exec())
 

@@ -1,0 +1,9 @@
+Package: trayce
+Version: 1.0
+Section: custom
+Priority: optional
+Architecture: all
+Essential: no
+Installed-Size: 1024
+Maintainer: Evan Rolfe
+Description: backend web development software

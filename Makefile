@@ -12,7 +12,7 @@ installdev:
 	pip install -r dev-requirements.txt
 
 run:
-	python src
+	TRAYCE_ENV=development python src
 
 build:
 	rm -rf build/*
@@ -20,18 +20,28 @@ build:
 	pyinstaller trayce.spec
 
 # Builds a .dmg file from dist/trayce.app
-package-dmg:
-# If the DMG already exists, delete it.
-	test -f "dist/trayce.dmg" && rm "dist/trayce.dmg"
-# TODO: Make this multi line command work with makefile...
-# create-dmg \
-# 	--volname "Trayce" \
-# 	--volicon "./icon.icns" \
-# 	--window-pos 200 120 \
-# 	--window-size 600 300 \
-# 	--icon-size 100 \
-# 	--icon "./icon.icns" 175 120 \
-# 	--hide-extension "trayce.app" \
-# 	--app-drop-link 425 120 \
-# 	"dist/trayce.dmg" \
-# 	"dist/trayce.app/"
+pkg-dmg:
+	rm -f dist/trayce.dmg; \
+	create-dmg \
+		--volname "Trayce" \
+		--volicon "./icon.icns" \
+		--window-pos 200 120 \
+		--window-size 600 300 \
+		--icon-size 100 \
+		--icon "./icon.icns" 175 120 \
+		--hide-extension "trayce.app" \
+		--app-drop-link 425 120 \
+		"dist/trayce.dmg" \
+		"dist/trayce.app/"
+
+pkg-deb:
+	rm -f dist/trayce.deb; \
+	cd dist; \
+	mv trayce trayce2; \
+	mkdir -p trayce/DEBIAN; \
+	mkdir -p trayce/usr/local/lib; \
+	mkdir -p trayce/usr/share/applications; \
+	mv trayce2 trayce/usr/local/lib/trayce; \
+	cp ../include/DEBIAN/* ./trayce/DEBIAN/; \
+	cp trayce/DEBIAN/trayce.desktop trayce/usr/share/applications/; \
+	dpkg-deb --build trayce

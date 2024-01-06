@@ -2,10 +2,13 @@
 import platform
 
 a = Analysis(
-    ['src/__main__.py'],
+    ["src/__main__.py"],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ("include/icon_128x128.png", "include/"),
+        ("assets", "assets/"),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -20,7 +23,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='trayce',
+    name="trayce",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -39,17 +42,15 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='trayce',
+    name="trayce",
 )
 
 # Mac OS X Bundle
-if platform.system() == 'Darwin':
+if platform.system() == "Darwin":
     app = BUNDLE(
         coll,
-        name='trayce.app',
-        icon='icon.icns',
-        bundle_identifier='trayce.trayce',
-        info_plist={
-            'LSBackgroundOnly': False
-        }
+        name="trayce.app",
+        icon="icon.icns",
+        bundle_identifier="trayce.trayce",
+        info_plist={"LSBackgroundOnly": False},
     )

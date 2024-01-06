@@ -9,7 +9,7 @@ class HoverableTableDelegate(QtWidgets.QStyledItemDelegate):
     hovered_index: QtCore.QModelIndex
     parentTable: QtWidgets.QTableView
 
-    def __init__(self, parent: QtCore.QObject):
+    def __init__(self, parent: QtWidgets.QTableView):
         super(HoverableTableDelegate, self).__init__(parent)
         self.parentTable = parent
         self.hovered_index = QtCore.QModelIndex()

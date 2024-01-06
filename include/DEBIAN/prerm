@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Clean up files that have been added by trayce while running
+rm /usr/local/bin/trayce 2> /dev/null || true
+rm /usr/local/lib/trayce/include/* 2> /dev/null || true

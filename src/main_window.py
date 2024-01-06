@@ -1,5 +1,5 @@
+import pathlib
 import signal
-import typing
 
 from PyQt6 import QtWidgets, QtGui, QtCore
 from ui_main_window import Ui_MainWindow
@@ -12,10 +12,12 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 class MainWindow(QtWidgets.QMainWindow):
     # reload_style = QtCore.Signal()
+    assets_path: pathlib.Path
 
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
-        super(MainWindow, self).__init__(*args, **kwargs)
+    def __init__(self, assets_path: pathlib.Path):
+        super(MainWindow, self).__init__()
 
+        self.assets_path = assets_path
         self.setWindowTitle("PnTest")
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -46,7 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.stackedWidget.setCurrentWidget(self.editor_page)
 
     def load_style(self):
-        style_loader = StyleheetLoader("style")
+        style_loader = StyleheetLoader(self.assets_path)
         stylesheet = style_loader.load_theme("dark")
         if stylesheet != "":
             self.setStyleSheet(stylesheet)
