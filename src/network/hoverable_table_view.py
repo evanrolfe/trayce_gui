@@ -1,5 +1,6 @@
 import typing
-from PyQt6 import QtCore, QtWidgets, QtGui
+
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from network.hoverable_table_delegate import HoverableTableDelegate
 
