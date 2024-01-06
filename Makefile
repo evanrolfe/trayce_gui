@@ -15,8 +15,8 @@ run:
 	TRAYCE_ENV=development python src
 
 build:
-	rm -rf build/*
-	rm -rf dist/*
+	rm -rf build
+	rm -rf dist
 	pyinstaller trayce.spec
 
 # Builds a .dmg file from dist/trayce.app

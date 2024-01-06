@@ -1,5 +1,6 @@
 import os
 import pathlib
+import platform
 
 
 def pntest_env() -> str:
@@ -19,7 +20,11 @@ def is_production_env() -> bool:
 
 
 def get_app_path() -> pathlib.Path:
-    if is_production_env():
-        return pathlib.Path(__file__).parent.parent.absolute().joinpath("_internal")
+    app_path = pathlib.Path(__file__).parent.parent.absolute()
+    if not is_production_env():
+        return app_path
+
+    if platform.system() == "Darwin":
+        return app_path.joinpath("Resources")
     else:
-        return pathlib.Path(__file__).parent.parent.absolute()
+        return app_path.joinpath("_internal")
