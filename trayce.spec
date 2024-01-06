@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+import platform
 
 a = Analysis(
     ['src/__main__.py'],
@@ -41,3 +41,15 @@ coll = COLLECT(
     upx_exclude=[],
     name='trayce',
 )
+
+# Mac OS X Bundle
+if platform.system() == 'Darwin':
+    app = BUNDLE(
+        coll,
+        name='trayce.app',
+        icon='icon.icns',
+        bundle_identifier='trayce.trayce',
+        info_plist={
+            'LSBackgroundOnly': False
+        }
+    )
