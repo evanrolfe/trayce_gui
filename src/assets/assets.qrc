@@ -1,0 +1,54 @@
+<RCC>
+  <qresource prefix="/">
+    <file>icons/icons8-add-folder-80.png</file>
+    <file>icons/icons8-add-property-80.png</file>
+    <file>icons/icons8-advertisement-page-80.png</file>
+    <file>icons/icons8-new-copy-80.png</file>
+    <file>icons/icons8-open-in-browser-80.png</file>
+    <file>icons/icons8-opened-folder-80.png</file>
+    <file>icons/icons8-chrome.svg</file>
+    <file>icons/icons8-chromium.svg</file>
+    <file>icons/icons8-firefox.svg</file>
+    <file>icons/icons-terminal.svg</file>
+    <file>icons/icons8-docker.svg</file>
+    <file>icons/icons8-question-mark.png</file>
+
+    <file>icons/light/icons8-add-new-50.png</file>
+    <file>icons/light/icons8-browse-page-50.png</file>
+    <file>icons/light/icons8-cloud-backup-restore-50.png</file>
+    <file>icons/light/icons8-compose-50.png</file>
+    <file>icons/light/icons8-data-transfer-50.png</file>
+    <file>icons/light/icons8-plus-math-50.png</file>
+    <file>icons/light/icons8-rich-text-converter-50.png</file>
+    <file>icons/light/icons8-spider-50.png</file>
+    <file>icons/light/icons8-spiderweb-50.png</file>
+    <file>icons/light/icons8-document-50.png</file>
+    <file>icons/light/icons8-upload-link-document-50.png</file>
+    <file>icons/light/icons8-sort-down-24.png</file>
+    <file>icons/light/loader.gif</file>
+
+    <file>icons/dark/icons8-add-new-50.png</file>
+    <file>icons/dark/icons8-browse-page-50.png</file>
+    <file>icons/dark/icons8-cloud-backup-restore-50.png</file>
+    <file>icons/dark/icons8-compose-50.png</file>
+    <file>icons/dark/icons8-data-transfer-50.png</file>
+    <file>icons/dark/icons8-plus-math-50.png</file>
+    <file>icons/dark/icons8-rich-text-converter-50.png</file>
+    <file>icons/dark/icons8-spider-50.png</file>
+    <file>icons/dark/icons8-spiderweb-50.png</file>
+    <file>icons/dark/icons8-document-50.png</file>
+    <file>icons/dark/icons8-upload-link-document-50.png</file>
+    <file>icons/dark/icons8-sort-down-18.png</file>
+
+    <file>icons/dark/loader.gif</file>
+    <file>icons/dark/methods/get.png</file>
+    <file>icons/dark/methods/post.png</file>
+    <file>icons/dark/methods/put.png</file>
+    <file>icons/dark/methods/patch.png</file>
+    <file>icons/dark/methods/delete.png</file>
+    <file>icons/dark/methods/options.png</file>
+    <file>icons/dark/methods/head.png</file>
+    <file>icons/dark/methods/other.png</file>
+    <file>icons/dark/methods/fuzz.png</file>
+  </qresource>
+</RCC>
