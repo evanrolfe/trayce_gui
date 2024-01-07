@@ -5,6 +5,9 @@ generate:
 	pyqt6rc src/editor -o src/editor
 	pyqt6rc src/network -o src/network
 
+generate-grpc:
+	python -m grpc_tools.protoc -I./src/myserver --python_out=./src/myserver --grpc_python_out=./src/myserver ./src/myserver/api.proto
+
 install:
 	pip install -r requirements.txt
 

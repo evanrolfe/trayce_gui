@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option go_package = "github.com/evanrolfe/trayce_agent/api";
+
+package api;
+
+service TrayceAgent {
+    rpc SendFlowsObserved (Flows) returns (Reply);
+    rpc SendAgentStarted (AgentStarted) returns (Reply);
+    rpc OpenCommandStream (stream NooP) returns (stream Command);
+}
+
+message Flow {
+    string local_addr = 1;
+    string remote_addr = 2;
+    string l4_protocol = 3;
+    string l7_protocol = 4;
+	bytes request = 5;
+	bytes response = 6;
+}
+
+message Flows {
+    repeated Flow flows = 1;
+}
+
+message Reply {
+    string status = 1;
+}
+
+message AgentStarted {}
+message NooP {}
+
+message Command {
+    string type = 1;
+    Settings settings = 2;
+}
+
+message Settings {
+    repeated string container_ids = 1;
+}
+
+message Request {
+    int32 num = 1;
+}
+
+message Response {
+    int32 result = 1;
+}
