@@ -13,8 +13,10 @@ def main():
     print("root_path=", root_path)
     QtCore.QDir.addSearchPath("assets", str(assets_path))
 
-    window = MainWindow(assets_path)
-    window.show()
+    main_window = MainWindow(assets_path)
+    main_window.show()
+    app.aboutToQuit.connect(main_window.about_to_quit)
+
     sys.exit(app.exec())
 
 

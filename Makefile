@@ -5,8 +5,10 @@ generate:
 	pyqt6rc src/editor -o src/editor
 	pyqt6rc src/network -o src/network
 
+# Incorrect import paths are generated, hence the sed, see https://github.com/protocolbuffers/protobuf/issues/1491
 generate-grpc:
-	python -m grpc_tools.protoc -I./src/myserver --python_out=./src/myserver --grpc_python_out=./src/myserver ./src/myserver/api.proto
+	python -m grpc_tools.protoc -I./src/agent --python_out=./src/agent --grpc_python_out=./src/agent ./src/agent/api.proto
+	sed -i 's/import api_pb2/from . import api_pb2/' src/agent/api_pb2_grpc.py
 
 install:
 	pip install -r requirements.txt

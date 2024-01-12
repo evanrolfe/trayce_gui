@@ -1,15 +1,24 @@
+from time import sleep
 import typing
 from PyQt6 import QtCore, QtWidgets, QtGui, Qsci
 
 from network.ui_network_page import Ui_NetworkPage
+from agent.grpc_worker import GRPCWorker
+
+
+def saysomething(x: typing.Any):
+    sleep(2)
+    print("hello world!")
 
 
 class NetworkPage(QtWidgets.QWidget):
     send_flow_to_editor = QtCore.pyqtSignal(object)
     send_flow_to_fuzzer = QtCore.pyqtSignal(object)
+    thread_pool: QtCore.QThreadPool
+    grpc_worker: GRPCWorker
 
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any):
-        super(NetworkPage, self).__init__(*args, **kwargs)
+    def __init__(self, parent: QtWidgets.QWidget):
+        super(NetworkPage, self).__init__(parent)
 
         self.ui = Ui_NetworkPage()
         self.ui.setupUi(self)
@@ -51,3 +60,13 @@ class NetworkPage(QtWidgets.QWidget):
         self.ui.requestText.setMarginWidth(0, 0)
         self.ui.requestText.setBraceMatching(Qsci.QsciScintilla.BraceMatch.SloppyBraceMatch)
         # ui.requestText->setMarginLineNumbers(0, true);
+
+        # Start the GRPC server
+        self.thread_pool = QtCore.QThreadPool()
+        self.grpc_worker = GRPCWorker()
+        self.grpc_worker.signals.error.connect(lambda x: print("error:", x))  # type:ignore
+        self.grpc_worker.signals.finished.connect(lambda: print("done"))
+        self.thread_pool.start(self.grpc_worker)
+
+    def about_to_quit(self):
+        self.grpc_worker.stop()

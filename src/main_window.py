@@ -22,8 +22,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.network_page = NetworkPage()
-        self.editor_page = EditorPage()
+        self.network_page = NetworkPage(self)
+        self.editor_page = EditorPage(self)
 
         layout = self.ui.centralWidget.layout()
         if layout:
@@ -52,3 +52,7 @@ class MainWindow(QtWidgets.QMainWindow):
         stylesheet = style_loader.load_theme("dark")
         if stylesheet != "":
             self.setStyleSheet(stylesheet)
+
+    def about_to_quit(self):
+        self.network_page.about_to_quit()
+        self.editor_page.about_to_quit()

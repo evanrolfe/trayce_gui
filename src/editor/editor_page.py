@@ -13,3 +13,6 @@ class EditorPage(QtWidgets.QWidget):
 
         self.ui = Ui_EditorPage()
         self.ui.setupUi(self)
+
+    def about_to_quit(self):
+        pass
