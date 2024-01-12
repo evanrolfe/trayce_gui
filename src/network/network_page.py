@@ -3,7 +3,7 @@ import typing
 from PyQt6 import QtCore, QtWidgets, QtGui, Qsci
 
 from network.ui_network_page import Ui_NetworkPage
-from agent.grpc_worker import GRPCWorker
+from agent.agent_thread import AgentThread
 
 
 def saysomething(x: typing.Any):
@@ -15,7 +15,7 @@ class NetworkPage(QtWidgets.QWidget):
     send_flow_to_editor = QtCore.pyqtSignal(object)
     send_flow_to_fuzzer = QtCore.pyqtSignal(object)
     thread_pool: QtCore.QThreadPool
-    grpc_worker: GRPCWorker
+    grpc_worker: AgentThread
 
     def __init__(self, parent: QtWidgets.QWidget):
         super(NetworkPage, self).__init__(parent)
@@ -63,10 +63,16 @@ class NetworkPage(QtWidgets.QWidget):
 
         # Start the GRPC server
         self.thread_pool = QtCore.QThreadPool()
-        self.grpc_worker = GRPCWorker()
+        self.grpc_worker = AgentThread()
         self.grpc_worker.signals.error.connect(lambda x: print("error:", x))  # type:ignore
         self.grpc_worker.signals.finished.connect(lambda: print("done"))
         self.thread_pool.start(self.grpc_worker)
+
+        keyseq_ctrl_e = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+E"), self)
+        keyseq_ctrl_e.activated.connect(self.send_settings)
+
+    def send_settings(self):
+        self.grpc_worker.agent.send_settings()
 
     def about_to_quit(self):
         self.grpc_worker.stop()

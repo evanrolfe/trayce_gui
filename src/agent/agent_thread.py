@@ -17,19 +17,22 @@ def get_local_ip_addr() -> str:
     return str(local_ip_addr)
 
 
-class GRPCWorker(QtCore.QRunnable):
+class AgentThread(QtCore.QRunnable):
     server: grpc.aio.Server
+    agent: Agent
 
     def __init__(self):
-        super(GRPCWorker, self).__init__()
+        super(AgentThread, self).__init__()
 
         # Store constructor arguments (re-used for processing)
         self.signals = WorkerSignals()
         self.alive = True
+        self.agent = Agent()
 
     def stop(self):
         print("GRPC server stopping")
-        _ = self.server.stop(1.0)
+        _ = self.server.stop(0.0)
+        # TODO: This should close all connections
 
     def run(self):
         # Retrieve args/kwargs here; and fire processing using them
@@ -38,7 +41,7 @@ class GRPCWorker(QtCore.QRunnable):
             port = "50051"
 
             self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))  # type:ignore
-            api_pb2_grpc.add_TrayceAgentServicer_to_server(Agent(), self.server)
+            api_pb2_grpc.add_TrayceAgentServicer_to_server(self.agent, self.server)
             self.server.add_insecure_port("[::]:" + port)
             self.server.start()
             print("GRPC server starting, listening on " + ip + ":" + port)
