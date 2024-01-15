@@ -1,14 +1,9 @@
-from time import sleep
-import typing
 from PyQt6 import QtCore, QtWidgets, QtGui, Qsci
 
 from network.ui_network_page import Ui_NetworkPage
 from agent.agent_thread import AgentThread
-
-
-def saysomething(x: typing.Any):
-    sleep(2)
-    print("hello world!")
+from agent.api_pb2 import Settings
+from network.containers_dialog import ContainersDialog
 
 
 class NetworkPage(QtWidgets.QWidget):
@@ -22,6 +17,8 @@ class NetworkPage(QtWidgets.QWidget):
 
         self.ui = Ui_NetworkPage()
         self.ui.setupUi(self)
+
+        self.containers_dialog = ContainersDialog(self)
 
         # Theme colours
         default_bg = "#1E1E1E"
@@ -68,11 +65,13 @@ class NetworkPage(QtWidgets.QWidget):
         self.grpc_worker.signals.finished.connect(lambda: print("done"))
         self.thread_pool.start(self.grpc_worker)
 
+        self.ui.flowTableContainer.ui.containersBtn.clicked.connect(self.containers_dialog.show)
+
         keyseq_ctrl_e = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+E"), self)
         keyseq_ctrl_e.activated.connect(self.send_settings)
 
     def send_settings(self):
-        self.grpc_worker.agent.send_settings()
+        self.grpc_worker.agent.send_settings(Settings(container_ids=[]))
 
     def about_to_quit(self):
         self.grpc_worker.stop()

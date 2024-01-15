@@ -96,6 +96,17 @@ QTableView::item:selected {
   background-color: #04395E;
 }
 
+QTableView::indicator {
+    background-color: $bg-sidebar;
+}
+QTableView::indicator:checked {
+    background-color: $item-bright;
+}
+QTableView::indicator:unchecked {
+    background-color: $bg-sidebar;
+}
+
+
 QHeaderView::section {
   background-color: $bg-sidebar;
   color: $text;
@@ -320,7 +331,7 @@ QPushButton#toggleExamplesButton {
 }
 
 /* Containers Button */
-QPushButton#containersBtn {
+QPushButton#containersBtn, #saveButton {
   background-color: $button-bright;
 }
 
