@@ -13,3 +13,6 @@ class Container:
     host_name: str
     ip: str
     intercepted: bool
+
+    def is_trayce_agent(self) -> bool:
+        return self.image == "pntest/trayce_agent"

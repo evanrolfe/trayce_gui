@@ -15,16 +15,36 @@ class ContainersTableModel(QtCore.QAbstractTableModel):
         if index.row() > len(self.containers):
             return None
 
-        if index.column() == 5:
-            container = self.containers[index.row()]
+        container = self.containers[index.row()]
+
+        if index.column() == 5 and not container.is_trayce_agent():
             container.intercepted = not container.intercepted
             self.dataChanged.emit(index, index)
 
     def set_containers(self, containers: list[Container]):
         self.containers = containers
+        self.layoutChanged.emit()
+
+    def merge_containers(self, new_containers: list[Container]):
+        # Add new containers
+        for new_container in new_containers:
+            if new_container.short_id not in [c.short_id for c in self.containers]:
+                print("New container", new_container.short_id)
+                self.containers.append(new_container)
+
+        # Remove deleted ones
+        for old_container in self.containers:
+            if old_container.short_id not in [c.short_id for c in new_containers]:
+                print("Removed container", old_container.short_id)
+                self.containers.remove(old_container)
+
+        self.layoutChanged.emit()
 
     def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlag:
         flags = super().flags(index)
+
+        if index.row() > len(self.containers):
+            return flags
 
         if index.column() == 5:
             flags |= QtCore.Qt.ItemFlag.ItemIsUserCheckable
@@ -54,7 +74,7 @@ class ContainersTableModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.ItemDataRole.CheckStateRole:
             if index.column() == 5:
-                if container.intercepted:
+                if container.intercepted and not container.is_trayce_agent():
                     return QtCore.Qt.CheckState.Checked
                 else:
                     return QtCore.Qt.CheckState.Unchecked

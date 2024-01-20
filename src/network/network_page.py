@@ -61,8 +61,8 @@ class NetworkPage(QtWidgets.QWidget):
         # Start the GRPC server
         self.thread_pool = QtCore.QThreadPool()
         self.grpc_worker = AgentThread()
-        self.grpc_worker.signals.error.connect(lambda x: print("error:", x))  # type:ignore
-        self.grpc_worker.signals.finished.connect(lambda: print("done"))
+        # self.grpc_worker.signals.error.connect(lambda x: print("error:", x))  # type:ignore
+        # self.grpc_worker.signals.finished.connect(lambda: print("done"))
         self.thread_pool.start(self.grpc_worker)
 
         self.ui.flowTableContainer.ui.containersBtn.clicked.connect(self.containers_dialog.show)
@@ -71,7 +71,9 @@ class NetworkPage(QtWidgets.QWidget):
         keyseq_ctrl_e.activated.connect(self.send_settings)
 
     def send_settings(self):
+        pass
         self.grpc_worker.agent.send_settings(Settings(container_ids=[]))
 
     def about_to_quit(self):
         self.grpc_worker.stop()
+        self.containers_dialog.about_to_quit()

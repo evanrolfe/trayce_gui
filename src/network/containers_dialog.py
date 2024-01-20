@@ -1,12 +1,17 @@
+from time import sleep
 import typing
 from PyQt6 import QtCore, QtWidgets
 from network.ui_containers_dialog import Ui_ContainersDialog
 from network.containers_table_model import ContainersTableModel
 from network.container_repo import ContainerRepo
+from async_proc import AsyncProc, AsyncSignals
 
 
 class ContainersDialog(QtWidgets.QDialog):
     proxify_containers = QtCore.pyqtSignal(list)
+    app_running: bool
+    table_model: ContainersTableModel
+    __reload = QtCore.pyqtSignal()
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(ContainersDialog, self).__init__(*args, **kwargs)
@@ -15,8 +20,8 @@ class ContainersDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.setModal(True)
 
-        model = ContainersTableModel()
-        self.ui.containersTable.setModel(model)
+        self.table_model = ContainersTableModel()
+        self.ui.containersTable.setModel(self.table_model)
 
         self.ui.cancelButton.clicked.connect(self.close)
 
@@ -45,8 +50,27 @@ class ContainersDialog(QtWidgets.QDialog):
         self.ui.containersTable.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
         self.ui.containersTable.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
 
+        self.ui.containersTable.clicked.connect(self.table_model.table_cell_clicked)
+
+        containers = ContainerRepo().get_all()
+        self.table_model.set_containers(containers)
+
+        self.__reload.connect(self.load_containers)
+
+        self.app_running = True
+        self.reload_proc = AsyncProc(self.load_containers_periodically)
+        self.threadpool = QtCore.QThreadPool()
+        self.threadpool.start(self.reload_proc)
+
+    def load_containers(self):
         # Load docker containers to table
         containers = ContainerRepo().get_all()
-        model.set_containers(containers)
+        self.table_model.merge_containers(containers)
 
-        self.ui.containersTable.clicked.connect(model.table_cell_clicked)
+    def load_containers_periodically(self, signals: AsyncSignals):
+        while self.app_running:
+            self.__reload.emit()
+            sleep(0.5)
+
+    def about_to_quit(self):
+        self.app_running = False
