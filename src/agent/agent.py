@@ -11,10 +11,12 @@ CommandStreamContext = grpc.aio.ServicerContext[NooP, Command]
 
 class Agent(api_pb2_grpc.TrayceAgentServicer):
     stream_queue: queue.SimpleQueue[Command]
+    settings: Settings
 
     def __init__(self):
         super().__init__()
         self.stream_queue = queue.SimpleQueue()
+        self.settings = Settings(container_ids=[])
 
     def SendFlowsObserved(self, request: Request, context: FlowObservedContext):
         print("[GRPC] FlowsObserved:", request)
@@ -28,12 +30,17 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
         self, request_iterator: typing.Iterator[NooP], context: CommandStreamContext
     ) -> typing.Iterable[Command]:
         print("[GRPC] OpenCommandStream")
+        self.send_settings()
 
         for cmd in iter(self.stream_queue.get, None):
             print("[GRPC] sending settings")
             yield cmd
 
-    def send_settings(self, settings: Settings):
-        cmd = Command(type="set_settings", settings=settings)
-        print("queueing settings")
+    def set_settings(self, container_ids: list[str]):
+        self.settings = Settings(container_ids=container_ids)
+        self.send_settings()
+
+    def send_settings(self):
+        cmd = Command(type="set_settings", settings=self.settings)
+        print("queueing settings:", self.settings.container_ids)
         self.stream_queue.put(cmd)

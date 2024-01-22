@@ -12,6 +12,7 @@ class ContainersDialog(QtWidgets.QDialog):
     app_running: bool
     table_model: ContainersTableModel
     __reload = QtCore.pyqtSignal()
+    intercept_containers = QtCore.pyqtSignal(list)
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(ContainersDialog, self).__init__(*args, **kwargs)
@@ -23,6 +24,7 @@ class ContainersDialog(QtWidgets.QDialog):
         self.table_model = ContainersTableModel()
         self.ui.containersTable.setModel(self.table_model)
 
+        self.ui.saveButton.clicked.connect(self.save_clicked)
         self.ui.cancelButton.clicked.connect(self.close)
 
         # Configure horizontal header
@@ -71,6 +73,11 @@ class ContainersDialog(QtWidgets.QDialog):
         while self.app_running:
             self.__reload.emit()
             sleep(0.5)
+
+    def save_clicked(self):
+        container_ids = [c.short_id for c in self.table_model.containers if c.intercepted]
+        self.intercept_containers.emit(container_ids)
+        self.close()
 
     def about_to_quit(self):
         self.app_running = False
