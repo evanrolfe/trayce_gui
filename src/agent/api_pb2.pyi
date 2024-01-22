@@ -1,39 +1,27 @@
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import (
-    ClassVar as _ClassVar,
-    Iterable as _Iterable,
-    Mapping as _Mapping,
-    Optional as _Optional,
-    Union as _Union,
-)
+from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class Flow(_message.Message):
-    __slots__ = ("local_addr", "remote_addr", "l4_protocol", "l7_protocol", "request", "response")
+    __slots__ = ("uuid", "local_addr", "remote_addr", "l4_protocol", "l7_protocol", "request", "response")
+    UUID_FIELD_NUMBER: _ClassVar[int]
     LOCAL_ADDR_FIELD_NUMBER: _ClassVar[int]
     REMOTE_ADDR_FIELD_NUMBER: _ClassVar[int]
     L4_PROTOCOL_FIELD_NUMBER: _ClassVar[int]
     L7_PROTOCOL_FIELD_NUMBER: _ClassVar[int]
     REQUEST_FIELD_NUMBER: _ClassVar[int]
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    uuid: str
     local_addr: str
     remote_addr: str
     l4_protocol: str
     l7_protocol: str
     request: bytes
     response: bytes
-    def __init__(
-        self,
-        local_addr: _Optional[str] = ...,
-        remote_addr: _Optional[str] = ...,
-        l4_protocol: _Optional[str] = ...,
-        l7_protocol: _Optional[str] = ...,
-        request: _Optional[bytes] = ...,
-        response: _Optional[bytes] = ...,
-    ) -> None: ...
+    def __init__(self, uuid: _Optional[str] = ..., local_addr: _Optional[str] = ..., remote_addr: _Optional[str] = ..., l4_protocol: _Optional[str] = ..., l7_protocol: _Optional[str] = ..., request: _Optional[bytes] = ..., response: _Optional[bytes] = ...) -> None: ...
 
 class Flows(_message.Message):
     __slots__ = ("flows",)

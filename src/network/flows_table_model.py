@@ -16,8 +16,18 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
         self.layoutChanged.emit()
 
     def add_flows(self, flows: list[Flow]):
-        self.flows.extend(flows)
+        for flow in flows:
+            self.__add_flow(flow)
         self.layoutChanged.emit()
+
+    def __add_flow(self, flow: Flow):
+        if flow.is_request():
+            self.flows.append(flow)
+            return
+
+        matching_request_flows = [f for f in self.flows if f.uuid == flow.uuid]
+        if len(matching_request_flows) > 0:
+            matching_request_flows[0].add_response(flow)
 
     def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()):
         return len(self.flows)
@@ -42,7 +52,7 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
             if index.column() == 0:
-                return str(flow.id)
+                return str(flow.uuid)
             elif index.column() == 1:
                 return flow.l7_protocol
             elif index.column() == 2:

@@ -5,18 +5,19 @@ option go_package = "github.com/evanrolfe/trayce_agent/api";
 package api;
 
 service TrayceAgent {
-    rpc SendFlowsObserved (Flows) returns (Reply);
-    rpc SendAgentStarted (AgentStarted) returns (Reply);
-    rpc OpenCommandStream (stream NooP) returns (stream Command);
+    rpc SendFlowsObserved (Flows) returns (Reply) {}
+    rpc SendAgentStarted (AgentStarted) returns (Reply) {}
+    rpc OpenCommandStream (stream NooP) returns (stream Command) {}
 }
 
 message Flow {
-    string local_addr = 1;
-    string remote_addr = 2;
-    string l4_protocol = 3;
-    string l7_protocol = 4;
-	bytes request = 5;
-	bytes response = 6;
+	string uuid = 1;
+    string local_addr = 2;
+    string remote_addr = 3;
+    string l4_protocol = 4;
+    string l7_protocol = 5;
+	bytes request = 6;
+	bytes response = 7;
 }
 
 message Flows {
