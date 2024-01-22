@@ -3,11 +3,15 @@ from PyQt6 import QtCore, QtWidgets
 
 from network.ui_flow_table_container import Ui_FlowTableContainer
 from network.flows_table_model import FlowsTableModel
+from agent.api_pb2 import Flow as AgentFlow
+from network.flow import Flow
 
 
 class FlowTableContainer(QtWidgets.QWidget):
     send_flow_to_editor = QtCore.pyqtSignal(object)
     send_flow_to_fuzzer = QtCore.pyqtSignal(object)
+
+    table_model: FlowsTableModel
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(FlowTableContainer, self).__init__(*args, **kwargs)
@@ -15,8 +19,8 @@ class FlowTableContainer(QtWidgets.QWidget):
         self.ui = Ui_FlowTableContainer()
         self.ui.setupUi(self)
 
-        model = FlowsTableModel()
-        self.ui.tableView.setModel(model)
+        self.table_model = FlowsTableModel()
+        self.ui.tableView.setModel(self.table_model)
 
         # Set selection behavior
         self.ui.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
@@ -50,3 +54,7 @@ class FlowTableContainer(QtWidgets.QWidget):
         self.ui.tableView.setColumnWidth(3, 150)  # Destination
         self.ui.tableView.setColumnWidth(4, 150)  # Operation
         self.ui.tableView.setColumnWidth(5, 75)  # Response
+
+    def flows_received(self, agent_flows: list[AgentFlow]):
+        flows = [Flow.from_agent_flow(af) for af in agent_flows]
+        self.table_model.add_flows(flows)

@@ -65,6 +65,7 @@ class NetworkPage(QtWidgets.QWidget):
 
         self.containers_dialog.intercept_containers.connect(self.grpc_worker.agent.set_settings)
         self.ui.flowTableContainer.ui.containersBtn.clicked.connect(self.containers_dialog.show)
+        self.grpc_worker.signals.result.connect(self.ui.flowTableContainer.flows_received)
 
     def about_to_quit(self):
         self.grpc_worker.stop()

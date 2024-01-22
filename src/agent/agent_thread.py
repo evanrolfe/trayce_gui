@@ -6,6 +6,7 @@ from concurrent import futures
 from PyQt6 import QtCore
 from async_proc import AsyncSignals
 from . import api_pb2_grpc
+from agent.api_pb2 import Flow
 from agent.agent import Agent
 
 
@@ -21,6 +22,7 @@ class AgentThread(QtCore.QRunnable):
     agent: Agent
     executor: futures.ThreadPoolExecutor
     server: grpc.aio.Server
+    signals: AsyncSignals
 
     def __init__(self):
         super(AgentThread, self).__init__()
@@ -28,7 +30,7 @@ class AgentThread(QtCore.QRunnable):
         # Store constructor arguments (re-used for processing)
         self.signals = AsyncSignals()
         self.alive = True
-        self.agent = Agent()
+        self.agent = Agent(self.flows_received)
 
         port = "50051"
 
@@ -52,3 +54,6 @@ class AgentThread(QtCore.QRunnable):
         except:  # noqa: E722
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
+
+    def flows_received(self, flows: list[Flow]):
+        self.signals.result.emit(flows)
