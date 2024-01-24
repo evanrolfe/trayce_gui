@@ -5,3 +5,4 @@ grpcio-tools
 pytest
 pytest-qt
 pytest-describe
+faker

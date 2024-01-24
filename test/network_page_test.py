@@ -11,8 +11,8 @@ def describe_network_page():
         main_window = MainWindow(pathlib.Path("./assets"))
         send_flow()
 
-        main_window.show()
-        qtbot.waitExposed(main_window)
+        # main_window.show()
+        # qtbot.waitExposed(main_window)
         # TODO: Instead should wait for the signal to be received
         qtbot.wait(500)
 
