@@ -1,6 +1,6 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from network.containers_table_model import IndexArg
+from network.widgets.containers_table_model import IndexArg
 
 
 class HoverableTableDelegate(QtWidgets.QStyledItemDelegate):

@@ -1,7 +1,7 @@
 import typing
 from PySide6 import QtCore
-from network.containers_table_model import IndexArg
-from network.flow import Flow
+from network.widgets.containers_table_model import IndexArg
+from network.models.flow import Flow
 
 
 class FlowsTableModel(QtCore.QAbstractTableModel):

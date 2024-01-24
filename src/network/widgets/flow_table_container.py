@@ -1,10 +1,10 @@
 import typing
 from PySide6 import QtCore, QtWidgets
 
-from network.ui_flow_table_container import Ui_FlowTableContainer
-from network.flows_table_model import FlowsTableModel
+from network.ui.ui_flow_table_container import Ui_FlowTableContainer
+from network.widgets.flows_table_model import FlowsTableModel
 from agent.api_pb2 import Flow as AgentFlow
-from network.flow import Flow
+from network.models.flow import Flow
 
 
 class FlowTableContainer(QtWidgets.QWidget):

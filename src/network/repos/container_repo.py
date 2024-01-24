@@ -1,6 +1,6 @@
 import docker
 from docker import DockerClient
-from network.container import Container
+from network.models.container import Container
 
 
 class ContainerRepo:

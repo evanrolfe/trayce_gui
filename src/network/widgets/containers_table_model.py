@@ -1,6 +1,6 @@
 import typing
 from PySide6 import QtCore
-from network.container import Container
+from network.models.container import Container
 
 IndexArg = QtCore.QModelIndex | QtCore.QPersistentModelIndex
 

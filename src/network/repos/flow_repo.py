@@ -1,4 +1,4 @@
-from network.flow import Flow
+from network.models.flow import Flow
 
 
 class FlowRepo:

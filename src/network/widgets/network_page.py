@@ -1,8 +1,8 @@
 from PySide6 import QtCore, QtWidgets
 
-from network.ui_network_page import Ui_NetworkPage
+from network.ui.ui_network_page import Ui_NetworkPage
 from agent.agent_thread import AgentThread
-from network.containers_dialog import ContainersDialog
+from network.widgets.containers_dialog import ContainersDialog
 
 
 class NetworkPage(QtWidgets.QWidget):

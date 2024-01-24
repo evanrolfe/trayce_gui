@@ -1,9 +1,9 @@
 from time import sleep
 import typing
 from PySide6 import QtCore, QtWidgets
-from network.ui_containers_dialog import Ui_ContainersDialog
-from network.containers_table_model import ContainersTableModel
-from network.container_repo import ContainerRepo
+from network.ui.ui_containers_dialog import Ui_ContainersDialog
+from network.widgets.containers_table_model import ContainersTableModel
+from network.repos.container_repo import ContainerRepo
 from async_proc import AsyncProc, AsyncSignals
 
 

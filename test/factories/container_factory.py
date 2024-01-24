@@ -1,7 +1,7 @@
 import typing
 import random
 from faker import Faker
-from network.container import Container
+from network.models.container import Container
 
 
 class ContainerFactory:

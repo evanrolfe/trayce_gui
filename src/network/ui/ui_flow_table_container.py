@@ -18,7 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QLineEdit,
     QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
-from network.hoverable_table_view import HoverableTableView
+from network.widgets.hoverable_table_view import HoverableTableView
 
 class Ui_FlowTableContainer(object):
     def setupUi(self, FlowTableContainer):

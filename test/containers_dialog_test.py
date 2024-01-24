@@ -2,13 +2,13 @@ from PySide6 import QtCore
 from unittest.mock import patch
 from pytestqt.qtbot import QtBot
 
-from network.containers_dialog import ContainersDialog
+from network.widgets.containers_dialog import ContainersDialog
 from factories.container_factory import ContainerFactory
 
 
 def describe_containers_dialog():
     def it_displays_the_containers(qtbot: QtBot):  # type: ignore
-        with patch("network.containers_dialog.ContainerRepo") as MockContainerRepo:
+        with patch("network.widgets.containers_dialog.ContainerRepo") as MockContainerRepo:
             container1 = ContainerFactory.build()
             container2 = ContainerFactory.build(intercepted=True)
 

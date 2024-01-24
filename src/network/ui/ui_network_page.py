@@ -18,7 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QPlainTextEdit, QSizePolicy, QSplitter,
     QTabWidget, QVBoxLayout, QWidget)
 
-from network.flow_table_container import FlowTableContainer
+from network.widgets.flow_table_container import FlowTableContainer
 
 class Ui_NetworkPage(object):
     def setupUi(self, NetworkPage):

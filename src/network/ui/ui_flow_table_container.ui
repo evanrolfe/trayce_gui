@@ -81,7 +81,7 @@
   <customwidget>
    <class>HoverableTableView</class>
    <extends>QTableView</extends>
-   <header>network/hoverable_table_view.h</header>
+   <header>network/widgets/hoverable_table_view.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

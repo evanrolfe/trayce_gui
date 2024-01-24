@@ -72,7 +72,7 @@
   <customwidget>
    <class>FlowTableContainer</class>
    <extends>QWidget</extends>
-   <header>network/flow_table_container.h</header>
+   <header>network/widgets/flow_table_container.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -3,7 +3,7 @@ import signal
 
 from PySide6 import QtWidgets, QtGui, QtCore
 from ui_main_window import Ui_MainWindow
-from network.network_page import NetworkPage
+from network.widgets.network_page import NetworkPage
 from editor.editor_page import EditorPage
 from stylesheet_loader import StyleheetLoader
 

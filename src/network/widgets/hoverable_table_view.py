@@ -2,7 +2,7 @@ import typing
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from network.hoverable_table_delegate import HoverableTableDelegate
+from network.widgets.hoverable_table_delegate import HoverableTableDelegate
 
 
 class HoverableTableView(QtWidgets.QTableView):
