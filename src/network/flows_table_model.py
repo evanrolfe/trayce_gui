@@ -1,5 +1,6 @@
 import typing
-from PyQt6 import QtCore
+from PySide6 import QtCore
+from network.containers_table_model import IndexArg
 from network.flow import Flow
 
 
@@ -29,19 +30,17 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
         if len(matching_request_flows) > 0:
             matching_request_flows[0].add_response(flow)
 
-    def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()):
+    def rowCount(self, parent: IndexArg = QtCore.QModelIndex()):
         return len(self.flows)
 
-    def columnCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()):
+    def columnCount(self, parent: IndexArg = QtCore.QModelIndex()):
         return len(self.columns)
 
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = 0) -> typing.Any:
         if role == QtCore.Qt.ItemDataRole.DisplayRole and orientation == QtCore.Qt.Orientation.Horizontal:
             return self.columns[section]
 
-        return QtCore.QVariant()
-
-    def data(self, index: QtCore.QModelIndex, role: int = 0) -> typing.Any:
+    def data(self, index: IndexArg, role: int = 0) -> typing.Any:
         if not index.isValid():
             return None
 
@@ -63,5 +62,3 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
                 return "TODO"
             elif index.column() == 5:
                 return "TODO"
-
-        return QtCore.QVariant()

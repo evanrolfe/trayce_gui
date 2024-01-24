@@ -1,5 +1,5 @@
 from typing import Optional
-from PyQt6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui
 
 
 class Sidebar(QtWidgets.QListWidget):
@@ -29,9 +29,7 @@ class Sidebar(QtWidgets.QListWidget):
         self.addItem(network_item)
 
         # Editor Item
-        editor_item = QtWidgets.QListWidgetItem(
-            QtGui.QIcon("assets:icons/dark/icons8-compose-50.png"), "Editor", None
-        )
+        editor_item = QtWidgets.QListWidgetItem(QtGui.QIcon("assets:icons/dark/icons8-compose-50.png"), "Editor", None)
         editor_item.setData(QtCore.Qt.ItemDataRole.UserRole, "editor")
         editor_item.setToolTip("Editor")
         self.addItem(editor_item)

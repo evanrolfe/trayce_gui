@@ -40,7 +40,7 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QTabWidget" name="requestTabs">
-       <widget class="QsciScintilla" name="requestText">
+       <widget class="QPlainTextEdit" name="requestText">
         <attribute name="title">
          <string>Request</string>
         </attribute>
@@ -52,7 +52,7 @@
        </widget>
       </widget>
       <widget class="QTabWidget" name="responseTabs">
-       <widget class="QsciScintilla" name="responseText">
+       <widget class="QPlainTextEdit" name="responseText">
         <attribute name="title">
          <string>Response</string>
         </attribute>
@@ -73,12 +73,6 @@
    <class>FlowTableContainer</class>
    <extends>QWidget</extends>
    <header>network/flow_table_container.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QsciScintilla</class>
-   <extends>QWidget</extends>
-   <header>Qsci/qsciscintilla.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

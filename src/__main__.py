@@ -1,6 +1,6 @@
 import sys
-from PyQt6 import QtCore
-from PyQt6.QtWidgets import QApplication
+from PySide6 import QtCore
+from PySide6.QtWidgets import QApplication
 from main_window import MainWindow
 from utils import get_app_path
 

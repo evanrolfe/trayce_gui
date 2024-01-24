@@ -1,4 +1,4 @@
-from PyQt6 import QtCore
+from PySide6 import QtCore
 from unittest.mock import patch
 from pytestqt.qtbot import QtBot
 

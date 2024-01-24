@@ -1,6 +1,6 @@
 from time import sleep
 import typing
-from PyQt6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 from network.ui_containers_dialog import Ui_ContainersDialog
 from network.containers_table_model import ContainersTableModel
 from network.container_repo import ContainerRepo
@@ -8,11 +8,11 @@ from async_proc import AsyncProc, AsyncSignals
 
 
 class ContainersDialog(QtWidgets.QDialog):
-    proxify_containers = QtCore.pyqtSignal(list)
+    proxify_containers = QtCore.Signal(list)
     app_running: bool
     table_model: ContainersTableModel
-    __reload = QtCore.pyqtSignal()
-    intercept_containers = QtCore.pyqtSignal(list)
+    __reload = QtCore.Signal()
+    intercept_containers = QtCore.Signal(list)
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(ContainersDialog, self).__init__(*args, **kwargs)

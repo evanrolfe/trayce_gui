@@ -3,7 +3,7 @@ import grpc
 import sys
 import traceback
 from concurrent import futures
-from PyQt6 import QtCore
+from PySide6 import QtCore
 from async_proc import AsyncSignals
 from . import api_pb2_grpc
 from agent.api_pb2 import Flow

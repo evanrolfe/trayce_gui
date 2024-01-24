@@ -1,9 +1,11 @@
 .PHONY: build test
 
 generate:
-	pyqt6rc src/ -o src/
-	pyqt6rc src/editor -o src/editor
-	pyqt6rc src/network -o src/network
+	pyside6-uic src/ui_main_window.ui -o src/ui_main_window.py
+	pyside6-uic src/network/ui_network_page.ui -o src/network/ui_network_page.py
+	pyside6-uic src/network/ui_flow_table_container.ui -o src/network/ui_flow_table_container.py
+	pyside6-uic src/network/ui_containers_dialog.ui -o src/network/ui_containers_dialog.py
+	pyside6-uic src/editor/ui_editor_page.ui -o src/editor/ui_editor_page.py
 
 # Incorrect import paths are generated, hence the sed, see https://github.com/protocolbuffers/protobuf/issues/1491
 generate-grpc:

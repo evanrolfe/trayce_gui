@@ -1,6 +1,8 @@
 import typing
-from PyQt6 import QtCore
+from PySide6 import QtCore
 from network.container import Container
+
+IndexArg = QtCore.QModelIndex | QtCore.QPersistentModelIndex
 
 
 class ContainersTableModel(QtCore.QAbstractTableModel):
@@ -40,7 +42,7 @@ class ContainersTableModel(QtCore.QAbstractTableModel):
 
         self.layoutChanged.emit()
 
-    def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlag:
+    def flags(self, index: IndexArg) -> QtCore.Qt.ItemFlag:
         flags = super().flags(index)
 
         if index.row() > len(self.containers):
@@ -51,19 +53,17 @@ class ContainersTableModel(QtCore.QAbstractTableModel):
 
         return flags
 
-    def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()):
+    def rowCount(self, parent: IndexArg = QtCore.QModelIndex()):
         return len(self.containers)
 
-    def columnCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()):
+    def columnCount(self, parent: IndexArg = QtCore.QModelIndex()):
         return len(self.columns)
 
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = 0) -> typing.Any:
         if role == QtCore.Qt.ItemDataRole.DisplayRole and orientation == QtCore.Qt.Orientation.Horizontal:
             return self.columns[section]
 
-        return QtCore.QVariant()
-
-    def data(self, index: QtCore.QModelIndex, role: int = 0) -> typing.Any:
+    def data(self, index: IndexArg, role: int = 0) -> typing.Any:
         if not index.isValid():
             return None
 
@@ -92,8 +92,6 @@ class ContainersTableModel(QtCore.QAbstractTableModel):
                 return str(container.status)
             elif index.column() == 5:
                 return "yes" if container.intercepted else "no"
-
-        return QtCore.QVariant()
 
     # def setData(
     #     self,

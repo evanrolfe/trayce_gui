@@ -2,13 +2,13 @@ import typing
 
 # import sys
 # import traceback
-from PyQt6 import QtCore
+from PySide6 import QtCore
 
 
 class AsyncSignals(QtCore.QObject):
-    finished = QtCore.pyqtSignal()
-    error = QtCore.pyqtSignal(tuple)
-    result = QtCore.pyqtSignal(object)
+    finished = QtCore.Signal()
+    error = QtCore.Signal(tuple)
+    result = QtCore.Signal(object)
 
 
 AsyncFunc = typing.Callable[[AsyncSignals], None]

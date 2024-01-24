@@ -1,5 +1,5 @@
 import typing
-from PyQt6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 
 from network.ui_flow_table_container import Ui_FlowTableContainer
 from network.flows_table_model import FlowsTableModel
@@ -8,8 +8,8 @@ from network.flow import Flow
 
 
 class FlowTableContainer(QtWidgets.QWidget):
-    send_flow_to_editor = QtCore.pyqtSignal(object)
-    send_flow_to_fuzzer = QtCore.pyqtSignal(object)
+    send_flow_to_editor = QtCore.Signal(object)
+    send_flow_to_fuzzer = QtCore.Signal(object)
 
     table_model: FlowsTableModel
 

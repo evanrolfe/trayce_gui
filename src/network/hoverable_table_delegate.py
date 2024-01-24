@@ -1,6 +1,6 @@
-import typing
+from PySide6 import QtCore, QtGui, QtWidgets
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from network.containers_table_model import IndexArg
 
 
 class HoverableTableDelegate(QtWidgets.QStyledItemDelegate):
@@ -20,7 +20,7 @@ class HoverableTableDelegate(QtWidgets.QStyledItemDelegate):
         if viewport:
             viewport.update()
 
-    def initStyleOption(self, option: typing.Optional[QtWidgets.QStyleOptionViewItem], index: QtCore.QModelIndex):
+    def initStyleOption(self, option: QtWidgets.QStyleOptionViewItem, index: IndexArg):
         super().initStyleOption(option, index)
         if option and self.hovered_index.row() == index.row():
-            option.backgroundBrush = QtGui.QBrush(QtGui.QColor(self.HOVER_COLOUR))
+            option.backgroundBrush = QtGui.QBrush(QtGui.QColor(self.HOVER_COLOUR))  # type:ignore

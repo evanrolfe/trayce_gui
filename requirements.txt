@@ -1,6 +1,3 @@
-PyQt6==6.6.1
-PyQt6-Qt6==6.6.1
-PyQt6-sip==13.6.0
-PyQt6-QScintilla==2.14.1
+PySide6
 grpcio
 docker

@@ -3,7 +3,7 @@ import pathlib
 import re
 
 import typing
-from PyQt6 import QtCore
+from PySide6 import QtCore
 
 
 class StyleheetLoader:
