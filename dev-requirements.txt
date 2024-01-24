@@ -2,3 +2,5 @@ pyinstaller
 pyqt6rc
 black
 grpcio-tools
+pytest
+pytest-qt

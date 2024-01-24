@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: build test
 
 generate:
 	pyqt6rc src/ -o src/
@@ -23,6 +23,9 @@ build:
 	rm -rf build
 	rm -rf dist
 	pyinstaller trayce.spec
+
+test:
+	PYTHONPATH="./src:./test" pytest -s ./test
 
 # Builds a .dmg file from dist/trayce.app
 pkg-dmg:

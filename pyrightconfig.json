@@ -3,5 +3,6 @@
         "src/**/ui_*.py",
         "src/**/api_pb2*.py*",
         "./venv"
-    ]
+    ],
+    "reportMissingTypeStubs": false
 }
