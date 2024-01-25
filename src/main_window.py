@@ -11,7 +11,6 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    # reload_style = QtCore.Signal()
     assets_path: pathlib.Path
 
     def __init__(self, assets_path: pathlib.Path):

@@ -6,14 +6,13 @@ from network.widgets.containers_dialog import ContainersDialog
 
 
 class NetworkPage(QtWidgets.QWidget):
-    send_flow_to_editor = QtCore.Signal(object)
-    send_flow_to_fuzzer = QtCore.Signal(object)
     thread_pool: QtCore.QThreadPool
     grpc_worker: AgentThread
 
     def __init__(self, parent: QtWidgets.QWidget):
         super(NetworkPage, self).__init__(parent)
 
+        # Call the constructor to setup this singleton class
         self.ui = Ui_NetworkPage()
         self.ui.setupUi(self)
 
@@ -59,13 +58,7 @@ class NetworkPage(QtWidgets.QWidget):
         # Start the GRPC server
         self.thread_pool = QtCore.QThreadPool()
         self.grpc_worker = AgentThread()
-        # self.grpc_worker.signals.error.connect(lambda x: print("error:", x))  # type:ignore
-        # self.grpc_worker.signals.finished.connect(lambda: print("done"))
         self.thread_pool.start(self.grpc_worker)
-
-        self.containers_dialog.intercept_containers.connect(self.grpc_worker.agent.set_settings)
-        self.ui.flowTableContainer.ui.containersBtn.clicked.connect(self.containers_dialog.show)
-        self.grpc_worker.signals.result.connect(self.ui.flowTableContainer.flows_received)
 
     def about_to_quit(self):
         self.grpc_worker.stop()

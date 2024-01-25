@@ -1,6 +1,7 @@
 from time import sleep
 import typing
 from PySide6 import QtCore, QtWidgets
+from network.event_bus import EventBus
 from network.ui.ui_containers_dialog import Ui_ContainersDialog
 from network.widgets.containers_table_model import ContainersTableModel
 from network.repos.container_repo import ContainerRepo
@@ -8,11 +9,9 @@ from async_proc import AsyncProc, AsyncSignals
 
 
 class ContainersDialog(QtWidgets.QDialog):
-    proxify_containers = QtCore.Signal(list)
     app_running: bool
     table_model: ContainersTableModel
     __reload = QtCore.Signal()
-    intercept_containers = QtCore.Signal(list)
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(ContainersDialog, self).__init__(*args, **kwargs)
@@ -64,6 +63,8 @@ class ContainersDialog(QtWidgets.QDialog):
         self.threadpool = QtCore.QThreadPool()
         self.threadpool.start(self.reload_proc)
 
+        EventBus.get().containers_btn_clicked.connect(self.show)
+
     def load_containers(self):
         # Load docker containers to table
         containers = ContainerRepo().get_all()
@@ -76,7 +77,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
     def save_clicked(self):
         container_ids = [c.short_id for c in self.table_model.containers if c.intercepted]
-        self.intercept_containers.emit(container_ids)
+        EventBus.get().intercept_containers.emit(container_ids)
         self.close()
 
     def about_to_quit(self):

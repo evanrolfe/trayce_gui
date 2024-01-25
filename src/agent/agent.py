@@ -2,6 +2,7 @@ import typing
 import grpc
 import queue
 from agent.api_pb2 import AgentStarted, Request, Reply, NooP, Command, Settings, Flows, Flow
+from network.event_bus import EventBus
 from . import api_pb2_grpc
 
 FlowObservedContext = grpc.aio.ServicerContext[Flows, Reply]
@@ -14,15 +15,16 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
     settings: Settings
     flow_observed_cb: typing.Callable[[list[Flow]], None]
 
-    def __init__(self, flow_observed_cb: typing.Callable[[list[Flow]], None]):
+    def __init__(self):
         super().__init__()
         self.stream_queue = queue.SimpleQueue()
         self.settings = Settings(container_ids=[])
-        self.flow_observed_cb = flow_observed_cb
+
+        EventBus.get().intercept_containers.connect(self.set_settings)
 
     def SendFlowsObserved(self, request: Flows, context: FlowObservedContext):
         print("[GRPC] FlowsObserved:", len(request.flows))
-        self.flow_observed_cb(list(request.flows))
+        EventBus.get().flows_received.emit(list(request.flows))
 
         return Reply(status="success")
 
