@@ -26,8 +26,16 @@ build:
 	rm -rf dist
 	pyinstaller trayce.spec
 
+# Use a special target to capture any additional arguments
+ifneq (,$(filter $(firstword $(MAKECMDGOALS)),test))
+  # use the rest as arguments for "test"
+  TEST_ARGS := $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(TEST_ARGS):;@:)
+endif
+
 test:
-	PYTHONPATH="./src:./test" pytest -s ./test
+	PYTHONPATH="./src:./test" pytest -s ./test $(TEST_ARGS)
 
 # Builds a .dmg file from dist/trayce.app
 pkg-dmg:

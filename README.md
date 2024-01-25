@@ -14,7 +14,13 @@ make run
 ```
 
 ## Test
-TODO
+```
+make test
+```
+Or run specific test(s):
+```
+make test -- -k describe_containers_dialog
+```
 
 ## Develop
 TODO
