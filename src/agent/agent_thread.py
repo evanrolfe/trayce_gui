@@ -48,6 +48,7 @@ class AgentThread(QtCore.QRunnable):
             _ = self.server.start()
             print("GRPC server starting, listening on " + get_local_ip_addr() + ":" + port)
             _ = self.server.wait_for_termination()
+            self.agent.stop()
             self.executor.shutdown(wait=False, cancel_futures=True)
             print("GRPC server stopped")
         except:  # noqa: E722

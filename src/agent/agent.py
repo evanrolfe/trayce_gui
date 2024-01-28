@@ -1,7 +1,9 @@
 import typing
 import grpc
 import queue
-from agent.api_pb2 import AgentStarted, Request, Reply, NooP, Command, Settings, Flows, Flow
+from agent.api_pb2 import AgentStarted, Request, Reply, NooP, Command, Settings, Flows
+
+# TODO: This should use the global eventbus
 from network.event_bus import EventBus
 from . import api_pb2_grpc
 
@@ -13,7 +15,6 @@ CommandStreamContext = grpc.aio.ServicerContext[NooP, Command]
 class Agent(api_pb2_grpc.TrayceAgentServicer):
     stream_queue: queue.SimpleQueue[Command]
     settings: Settings
-    flow_observed_cb: typing.Callable[[list[Flow]], None]
 
     def __init__(self):
         super().__init__()
@@ -50,3 +51,7 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
         cmd = Command(type="set_settings", settings=self.settings)
         print("queueing settings:", self.settings.container_ids)
         self.stream_queue.put(cmd)
+
+    def stop(self):
+        # Otherwise the loop will stay running and the program will not fully exit when you close it
+        self.stream_queue.put(None)  # type:ignore
