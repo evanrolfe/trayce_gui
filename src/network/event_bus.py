@@ -3,8 +3,6 @@ from PySide6 import QtCore
 
 class EventBus(QtCore.QObject):
     # Signals
-    intercept_containers = QtCore.Signal(list)
-    flows_received = QtCore.Signal(list)
 
     # UI interaction signals
     containers_btn_clicked = QtCore.Signal()

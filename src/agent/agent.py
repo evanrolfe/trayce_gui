@@ -2,9 +2,8 @@ import typing
 import grpc
 import queue
 from agent.api_pb2 import AgentStarted, Request, Reply, NooP, Command, Settings, Flows
+from event_bus_global import EventBusGlobal
 
-# TODO: This should use the global eventbus
-from network.event_bus import EventBus
 from . import api_pb2_grpc
 
 FlowObservedContext = grpc.aio.ServicerContext[Flows, Reply]
@@ -21,11 +20,11 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
         self.stream_queue = queue.SimpleQueue()
         self.settings = Settings(container_ids=[])
 
-        EventBus.get().intercept_containers.connect(self.set_settings)
+        EventBusGlobal.get().intercept_containers.connect(self.set_settings)
 
     def SendFlowsObserved(self, request: Flows, context: FlowObservedContext):
         print("[GRPC] FlowsObserved:", len(request.flows))
-        EventBus.get().flows_received.emit(list(request.flows))
+        EventBusGlobal.get().flows_received.emit(list(request.flows))
 
         return Reply(status="success")
 

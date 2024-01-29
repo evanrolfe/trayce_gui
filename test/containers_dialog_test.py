@@ -1,7 +1,7 @@
 from PySide6 import QtCore, QtWidgets
 from unittest.mock import patch
 from pytestqt.qtbot import QtBot
-from network.event_bus import EventBus
+from event_bus_global import EventBusGlobal
 
 from network.widgets.containers_dialog import ContainersDialog
 from factories.container_factory import ContainerFactory
@@ -57,7 +57,7 @@ def describe_containers_dialog():
             def verify_signal(container_ids: list[str]) -> bool:
                 return container_ids == [container2.short_id]
 
-            signal = EventBus.get().intercept_containers
+            signal = EventBusGlobal.get().intercept_containers
             with qtbot.waitSignal(signal, timeout=1000, check_params_cb=verify_signal):
                 button = widget.ui.saveButton
                 qtbot.mouseClick(button, QtCore.Qt.MouseButton.LeftButton, pos=button.rect().center())

@@ -1,6 +1,7 @@
 from time import sleep
 import typing
 from PySide6 import QtCore, QtWidgets
+from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
 from network.ui.ui_containers_dialog import Ui_ContainersDialog
 from network.widgets.containers_table_model import ContainersTableModel
@@ -77,7 +78,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
     def save_clicked(self):
         container_ids = [c.short_id for c in self.table_model.containers if c.intercepted]
-        EventBus.get().intercept_containers.emit(container_ids)
+        EventBusGlobal.get().intercept_containers.emit(container_ids)
         self.close()
 
     def about_to_quit(self):

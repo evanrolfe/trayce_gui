@@ -1,5 +1,6 @@
 import typing
 from PySide6 import QtCore, QtWidgets
+from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
 
 from network.ui.ui_flow_table_container import Ui_FlowTableContainer
@@ -53,9 +54,8 @@ class FlowTableContainer(QtWidgets.QWidget):
         self.ui.tableView.setColumnWidth(4, 150)  # Operation
         self.ui.tableView.setColumnWidth(5, 75)  # Response
 
-        event_bus = EventBus.get()
-        self.ui.containersBtn.clicked.connect(event_bus.containers_btn_clicked)
-        event_bus.flows_received.connect(self.flows_received)
+        self.ui.containersBtn.clicked.connect(EventBus.get().containers_btn_clicked)
+        EventBusGlobal.get().flows_received.connect(self.flows_received)
 
     def flows_received(self, agent_flows: list[AgentFlow]):
         flows = [Flow.from_agent_flow(af) for af in agent_flows]
