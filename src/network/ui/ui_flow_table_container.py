@@ -53,10 +53,10 @@ class Ui_FlowTableContainer(object):
 
         self.verticalLayout.addLayout(self.searchLayout)
 
-        self.tableView = HoverableTableView(FlowTableContainer)
-        self.tableView.setObjectName(u"tableView")
+        self.flowsTable = HoverableTableView(FlowTableContainer)
+        self.flowsTable.setObjectName(u"flowsTable")
 
-        self.verticalLayout.addWidget(self.tableView)
+        self.verticalLayout.addWidget(self.flowsTable)
 
 
         self.retranslateUi(FlowTableContainer)

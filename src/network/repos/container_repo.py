@@ -2,6 +2,11 @@ import docker
 from docker import DockerClient
 from network.models.container import Container
 
+# NOTE: IF you get "too many open files" error, set:
+# DefaultLimitNOFILE=100000
+# in /etc/systemd/system.conf
+# and restart
+
 
 class ContainerRepo:
     docker: DockerClient
@@ -10,7 +15,9 @@ class ContainerRepo:
         self.docker = docker.from_env()
 
     def get_all(self) -> list[Container]:
+        docker_client = docker.from_env()
         raw_containers = self.docker.containers.list()  # type:ignore
+        docker_client.close()  # this is necessary to avoid a "too many file descriptors" error
         containers: list[Container] = [
             self.__raw_container_to_container(raw_container) for raw_container in raw_containers  # type:ignore
         ]

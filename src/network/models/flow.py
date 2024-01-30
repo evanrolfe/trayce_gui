@@ -40,3 +40,9 @@ class Flow(Model):
 
     def add_response(self, flow: Flow):
         self.response = flow.response
+
+    def request_str(self) -> str:
+        return self.request.decode()
+
+    def response_str(self) -> str:
+        return self.response.decode()

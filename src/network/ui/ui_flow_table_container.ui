@@ -73,7 +73,7 @@
     </layout>
    </item>
    <item>
-    <widget class="HoverableTableView" name="tableView"/>
+    <widget class="HoverableTableView" name="flowsTable"/>
    </item>
   </layout>
  </widget>

@@ -14,7 +14,9 @@ def send_flow():
         remote_addr="192.168.0.2",
         l4_protocol="tcp",
         l7_protocol="http",
-        request=b"GET",
+        request=b"""GET /v1.43/containers/cb87bad86a05/json HTTP/1.1
+Host: api.moby.localhost
+User-Agent: Go-http-client/1.1""",
         response=b"",
     )
     flow_message = api_pb2.Flows(flows=[flow])  # Replace with actual fields

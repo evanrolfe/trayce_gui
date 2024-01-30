@@ -23,12 +23,25 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
 
     def __add_flow(self, flow: Flow):
         if flow.is_request():
+            print("Added request flow")
             self.flows.append(flow)
             return
-
+        print("Adding response flow")
         matching_request_flows = [f for f in self.flows if f.uuid == flow.uuid]
         if len(matching_request_flows) > 0:
+            print("Found matching request flow")
             matching_request_flows[0].add_response(flow)
+        else:
+            print("No matching request flow found!")
+
+    def get_flow(self, index: QtCore.QModelIndex) -> typing.Optional[Flow]:
+        if not index.isValid():
+            return None
+
+        if index.row() > len(self.flows):
+            return None
+
+        return self.flows[index.row()]
 
     def rowCount(self, parent: IndexArg = QtCore.QModelIndex()):
         return len(self.flows)

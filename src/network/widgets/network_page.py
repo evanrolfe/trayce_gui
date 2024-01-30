@@ -1,4 +1,6 @@
 from PySide6 import QtCore, QtWidgets
+from network.event_bus import EventBus
+from network.models.flow import Flow
 
 from network.ui.ui_network_page import Ui_NetworkPage
 from agent.agent_thread import AgentThread
@@ -59,6 +61,12 @@ class NetworkPage(QtWidgets.QWidget):
         self.thread_pool = QtCore.QThreadPool()
         self.grpc_worker = AgentThread()
         self.thread_pool.start(self.grpc_worker)
+
+        EventBus.get().flow_selected.connect(self.flow_selected)
+
+    def flow_selected(self, flow: Flow):
+        self.ui.requestText.setPlainText(flow.request_str())
+        self.ui.responseText.setPlainText(flow.response_str())
 
     def about_to_quit(self):
         self.grpc_worker.stop()
