@@ -2,21 +2,25 @@ import pathlib
 from PySide6 import QtCore
 
 from pytestqt.qtbot import QtBot
+from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
-from client import send_flow
+from helpers import send_flow_over_grpc
+from factories.agent_flow_factory import AgentFlowFactory
 
 
 def describe_network_page():
     def it_displays_a_flow_received(qtbot: QtBot):  # type: ignore
+        # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
-        send_flow()
+        flow = AgentFlowFactory.build()
 
-        # main_window.show()
-        # qtbot.waitExposed(main_window)
-        # TODO: Instead should wait for the signal to be received
-        qtbot.wait(500)
+        # Subject
+        signal = EventBusGlobal.get().flows_received
+        with qtbot.waitSignal(signal, timeout=1000):
+            send_flow_over_grpc(flow)
 
+        # Assert
         table_model = main_window.network_page.ui.flowTableContainer.table_model
         assert table_model.rowCount() == 1
         assert table_model.data(table_model.index(0, 0)) == "1234"
@@ -29,22 +33,28 @@ def describe_network_page():
         main_window.about_to_quit()
 
     def it_lets_you_select_a_flow(qtbot: QtBot):  # type: ignore
+        # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
-        send_flow()
-        send_flow()
 
-        # TODO: Instead should wait for the signal to be received
-        qtbot.wait(500)
+        flow = AgentFlowFactory.build()
+        send_flow_over_grpc(flow)
+        flow = AgentFlowFactory.build_response()
+        send_flow_over_grpc(flow)
 
+        signal = EventBusGlobal.get().flows_received
+        with qtbot.waitSignal(signal, timeout=1000):
+            send_flow_over_grpc(flow)
+
+        # Subject
         table_model = main_window.network_page.ui.flowTableContainer.table_model
-        assert table_model.rowCount() == 2
-
         table = main_window.network_page.ui.flowTableContainer.ui.flowsTable
         rect = table.visualRect(table_model.index(1, 0))
         qtbot.mouseClick(table.viewport(), QtCore.Qt.MouseButton.LeftButton, pos=rect.center())
 
-        main_window.show()
-        qtbot.waitExposed(main_window)
-        qtbot.wait(3000)
+        # Assert
+        request_text = main_window.network_page.ui.requestText.toPlainText()
+        response_text = main_window.network_page.ui.responseText.toPlainText()
+        assert "GET / HTTP/1.1" in request_text
+        assert "HTTP/1.1 200 OK" in response_text
 
         main_window.about_to_quit()
