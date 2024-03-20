@@ -12,15 +12,15 @@ CommandStreamContext = grpc.aio.ServicerContext[NooP, Command]
 
 
 class Agent(api_pb2_grpc.TrayceAgentServicer):
-    stream_queue: queue.SimpleQueue[Command]
+    stream_queue: queue.Queue[Command]
     settings: Settings
 
     def __init__(self):
         super().__init__()
-        self.stream_queue = queue.SimpleQueue()
         self.settings = Settings(container_ids=[])
 
         EventBusGlobal.get().intercept_containers.connect(self.set_settings)
+        EventBusGlobal.get().agent_connected.connect(self.send_settings)
 
     def SendFlowsObserved(self, request: Flows, context: FlowObservedContext):
         print("[GRPC] FlowsObserved:", len(request.flows))
@@ -35,12 +35,18 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
     def OpenCommandStream(
         self, request_iterator: typing.Iterator[NooP], context: CommandStreamContext
     ) -> typing.Iterable[Command]:
-        print("[GRPC] OpenCommandStream")
-        self.send_settings()
+        print("[GRPC] OpenCommandStream: agent connected from:", context.peer())
+        self.stream_queue = queue.Queue()
+
+        # Work-around: if you try and call self.send_settings here it causes weirdness with the queue where it doesn't
+        # always receive the settings later on
+        EventBusGlobal.get().agent_connected.emit()
 
         for cmd in iter(self.stream_queue.get, None):
             print("[GRPC] sending settings")
             yield cmd
+
+        print("DONE")
 
     def set_settings(self, container_ids: list[str]):
         self.settings = Settings(container_ids=container_ids)

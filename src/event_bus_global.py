@@ -5,6 +5,7 @@ class EventBusGlobal(QtCore.QObject):
     # Signals
     intercept_containers = QtCore.Signal(list)
     flows_received = QtCore.Signal(list)
+    agent_connected = QtCore.Signal()
 
     # Singleton method stuff:
     __instance = None
