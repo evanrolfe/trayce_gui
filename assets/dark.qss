@@ -7,9 +7,8 @@ QWidget {
   border-image: none;
   border: 0px transparent black;
   outline: 0;
-  font-size: 13px;
+  font-size: 14px;
 }
-
 
 #searchLayout {
     spacing: 5px;
@@ -73,7 +72,6 @@ QTabBar::tab:disabled {
  QTreeView {
   selection-background-color: $item-selected;
   background-color: $bg-extra-dark;
-  font-size: 11px;
 }
 
 QTreeView::item {
@@ -85,7 +83,7 @@ QTreeView::item {
  *------------------------------------------------------------------------------*/
 QTableView {
   background-color: $bg-extra-dark;
-  font-size: 13px;
+  font-size: 14px;
   gridline-color: #191919;
 }
 
@@ -113,7 +111,7 @@ QHeaderView::section {
   border-radius: 0;
   text-align: left;
   font-weight: normal;
-  font-size: 13px;
+  font-size: 14px;
   height: 20px;
 }
 
@@ -174,10 +172,11 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { height: 0px;}
 QListWidget#sideBar {
   background: $bg-sidebar;
   border-right: 1px solid $border-dark;
+  font-size: 14px;
 }
 
 QListWidget::item#sideBar {
-    width: 60px;
+    width: 63px;
     padding: 5px;
     color: $text;
 }
@@ -198,44 +197,45 @@ QListWidget::item::selected#sideBar {
  * StatusBar
  *------------------------------------------------------------------------------*/
 QStatusBar {
-  background: $item-bright;
+  background: $bg-sidebar;
   /*border-top: 1px solid #6CB4AD;*/
   padding: 0;
+  max-height: 25px;
+  border-top: 1px solid $item-bright;
 }
 
 QStatusBar::item {
-  background: $bg-sidebar;
+    background-color: $bg-sidebar;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 0;
+    margin-top: 0;
 }
 
 QStatusBar > QSizeGrip {
   background: $bg-input;
 }
 
-QLabel#proxyStatus {
-  height: 17px;
+QPushButton#agentStatus, QPushButton#containersStatus {
   background-color: $bg-sidebar;
   padding-left: 10px;
   padding-right: 10px;
+  padding-top: 0;
+  margin-top: 0;
 }
 
-QPushButton#networkStatus {
-  height: 17px;
-  background-color: $bg-sidebar;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-QPushButton#interceptStatus   {
-  height: 17px;
-  background-color: $bg-sidebar;
-  padding-left: 10px;
-  padding-right: 10px;
+QPushButton#agentStatus:hover, QPushButton#containersStatus:hover {
+    background-color: $bg-input;
 }
 
 QFrame#statusBarLine {
-  border-right: 1 solid $item-bright-faded;
+  border-right: 1 solid $item-bright;
   width: 1px;
   padding: 0;
+}
+
+#statusLayout {
+    padding: 0;
 }
 
 /*------------------------------------------------------------------------------*
@@ -376,7 +376,7 @@ QPushButton#fuzzButton:pressed {
 }
 
 QPushButton#saveButton, #cancelButton {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   width: 100px;
 }

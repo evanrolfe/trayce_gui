@@ -7,6 +7,7 @@ class EventBus(QtCore.QObject):
     # UI interaction signals
     containers_btn_clicked = QtCore.Signal()
     flow_selected = QtCore.Signal(object)
+    container_state_changed = QtCore.Signal(object)
 
     # Singleton method stuff:
     __instance = None

@@ -43,7 +43,17 @@
     </widget>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <widget class="QLabel" name="dockerStartLabel">
+     <property name="text">
+      <string>Trayce Agent Docker container is not running! Start it by running this command in the terminal:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="dockerCmdInput"/>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="selectContainerLayout">
      <property name="spacing">
       <number>10</number>
      </property>
@@ -51,7 +61,7 @@
       <number>20</number>
      </property>
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="selectContainerLabel">
        <property name="text">
         <string>Select which containers you want to intercept.</string>
        </property>
@@ -64,7 +74,7 @@
       </widget>
      </item>
      <item>
-      <widget class="Line" name="line2">
+      <widget class="Line" name="selectContainerLine">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

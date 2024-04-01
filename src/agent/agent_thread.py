@@ -1,4 +1,3 @@
-import socket
 import grpc
 import sys
 import traceback
@@ -7,14 +6,7 @@ from PySide6 import QtCore
 from async_proc import AsyncSignals
 from . import api_pb2_grpc
 from agent.agent import Agent
-
-
-def get_local_ip_addr() -> str:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 1))
-    local_ip_addr = s.getsockname()[0]
-
-    return str(local_ip_addr)
+from agent.helpers import get_local_ip_addr
 
 
 class AgentThread(QtCore.QRunnable):

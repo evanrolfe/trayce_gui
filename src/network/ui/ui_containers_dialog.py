@@ -16,8 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QDialog, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QPushButton, QSizePolicy,
-    QSpacerItem, QTableView, QVBoxLayout, QWidget)
+    QHeaderView, QLabel, QLineEdit, QPushButton,
+    QSizePolicy, QSpacerItem, QTableView, QVBoxLayout,
+    QWidget)
 
 class Ui_ContainersDialog(object):
     def setupUi(self, ContainersDialog):
@@ -48,26 +49,36 @@ class Ui_ContainersDialog(object):
 
         self.verticalLayout.addWidget(self.line)
 
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setSpacing(10)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(-1, -1, -1, 20)
-        self.label = QLabel(ContainersDialog)
-        self.label.setObjectName(u"label")
-        self.label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignTop)
-        self.label.setWordWrap(True)
+        self.dockerStartLabel = QLabel(ContainersDialog)
+        self.dockerStartLabel.setObjectName(u"dockerStartLabel")
 
-        self.verticalLayout_2.addWidget(self.label)
+        self.verticalLayout.addWidget(self.dockerStartLabel)
 
-        self.line2 = QFrame(ContainersDialog)
-        self.line2.setObjectName(u"line2")
-        self.line2.setFrameShape(QFrame.HLine)
-        self.line2.setFrameShadow(QFrame.Sunken)
+        self.dockerCmdInput = QLineEdit(ContainersDialog)
+        self.dockerCmdInput.setObjectName(u"dockerCmdInput")
 
-        self.verticalLayout_2.addWidget(self.line2)
+        self.verticalLayout.addWidget(self.dockerCmdInput)
+
+        self.selectContainerLayout = QVBoxLayout()
+        self.selectContainerLayout.setSpacing(10)
+        self.selectContainerLayout.setObjectName(u"selectContainerLayout")
+        self.selectContainerLayout.setContentsMargins(-1, -1, -1, 20)
+        self.selectContainerLabel = QLabel(ContainersDialog)
+        self.selectContainerLabel.setObjectName(u"selectContainerLabel")
+        self.selectContainerLabel.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignTop)
+        self.selectContainerLabel.setWordWrap(True)
+
+        self.selectContainerLayout.addWidget(self.selectContainerLabel)
+
+        self.selectContainerLine = QFrame(ContainersDialog)
+        self.selectContainerLine.setObjectName(u"selectContainerLine")
+        self.selectContainerLine.setFrameShape(QFrame.HLine)
+        self.selectContainerLine.setFrameShadow(QFrame.Sunken)
+
+        self.selectContainerLayout.addWidget(self.selectContainerLine)
 
 
-        self.verticalLayout.addLayout(self.verticalLayout_2)
+        self.verticalLayout.addLayout(self.selectContainerLayout)
 
         self.containersTable = QTableView(ContainersDialog)
         self.containersTable.setObjectName(u"containersTable")
@@ -107,7 +118,8 @@ class Ui_ContainersDialog(object):
     def retranslateUi(self, ContainersDialog):
         ContainersDialog.setWindowTitle(QCoreApplication.translate("ContainersDialog", u"Intercept Docker", None))
         self.label_3.setText(QCoreApplication.translate("ContainersDialog", u"Intercept running Docker containers", None))
-        self.label.setText(QCoreApplication.translate("ContainersDialog", u"Select which containers you want to intercept.", None))
+        self.dockerStartLabel.setText(QCoreApplication.translate("ContainersDialog", u"Trayce Agent Docker container is not running! Start it by running this command in the terminal:", None))
+        self.selectContainerLabel.setText(QCoreApplication.translate("ContainersDialog", u"Select which containers you want to intercept.", None))
         self.cancelButton.setText(QCoreApplication.translate("ContainersDialog", u"Cancel", None))
         self.saveButton.setText(QCoreApplication.translate("ContainersDialog", u"Save", None))
     # retranslateUi
