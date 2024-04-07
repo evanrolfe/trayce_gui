@@ -1,4 +1,5 @@
 import re
+import typing
 import grpc
 from agent import api_pb2_grpc
 from agent import api_pb2
@@ -33,6 +34,21 @@ def hex_dump_to_bytes(hex_dump: str) -> bytes:
     decoded = bytes.fromhex(hex_string)
 
     return decoded
+
+
+def generate_http_request(**kwargs: typing.Any) -> bytes:
+    method = kwargs.get("method", "POST")
+    host = kwargs.get("host", "example.com")
+    path = kwargs.get("path", "/")
+    http_version = kwargs.get("http_version", "HTTP/1.1")
+    headers = kwargs.get("headers", {"Host": host, "Connection": "close", "User-Agent": "qtraycetest"})
+    body = kwargs.get("body", "HELLO WORLD")
+
+    request_line = f"{method} {path} {http_version}\r\n"
+    header_lines = "\r\n".join(f"{key}: {value}" for key, value in headers.items())
+    http_request = f"{request_line}{header_lines}\r\n\r\n{body}"
+
+    return http_request.encode("utf-8")
 
 
 # def show():

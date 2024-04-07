@@ -43,9 +43,9 @@ class Ui_NetworkPage(object):
         self.requestText = QPlainTextEdit()
         self.requestText.setObjectName(u"requestText")
         self.requestTabs.addTab(self.requestText, "")
-        self.tab_2 = QWidget()
-        self.tab_2.setObjectName(u"tab_2")
-        self.requestTabs.addTab(self.tab_2, "")
+        self.requestBodyText = QPlainTextEdit()
+        self.requestBodyText.setObjectName(u"requestBodyText")
+        self.requestTabs.addTab(self.requestBodyText, "")
         self.splitter.addWidget(self.requestTabs)
         self.responseTabs = QTabWidget(self.splitter)
         self.responseTabs.setObjectName(u"responseTabs")
@@ -69,7 +69,7 @@ class Ui_NetworkPage(object):
     def retranslateUi(self, NetworkPage):
         NetworkPage.setWindowTitle(QCoreApplication.translate("NetworkPage", u"Form", None))
         self.requestTabs.setTabText(self.requestTabs.indexOf(self.requestText), QCoreApplication.translate("NetworkPage", u"Request", None))
-        self.requestTabs.setTabText(self.requestTabs.indexOf(self.tab_2), QCoreApplication.translate("NetworkPage", u"Body", None))
+        self.requestTabs.setTabText(self.requestTabs.indexOf(self.requestBodyText), QCoreApplication.translate("NetworkPage", u"Body", None))
         self.responseTabs.setTabText(self.responseTabs.indexOf(self.responseText), QCoreApplication.translate("NetworkPage", u"Response", None))
         self.responseTabs.setTabText(self.responseTabs.indexOf(self.responseBodyText), QCoreApplication.translate("NetworkPage", u"Body", None))
     # retranslateUi

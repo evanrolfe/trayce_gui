@@ -18,7 +18,8 @@ response_hex = """00000000  48 54 54 50 2f 31 2e 31  20 32 30 30 20 4f 4b 0d  |H
 00000070  68 74 6d 6c 3b 20 63 68  61 72 73 65 74 3d 75 74  |html; charset=ut|
 00000080  66 2d 38 0d 0a 43 6f 6e  74 65 6e 74 2d 4c 65 6e  |f-8..Content-Len|
 00000090  67 74 68 3a 20 31 32 0d  0a 43 6f 6e 6e 65 63 74  |gth: 12..Connect|
-000000a0  69 6f 6e 3a 20 63 6c 6f  73 65 0d 0a 0d 0a        |ion: close....|"""
+000000a0  69 6f 6e 3a 20 63 6c 6f  73 65 0d 0a 0d 0a 48 65  |ion: close....He|
+000000b0  6c 6c 6f 20 57 6f 72 6c  64 21                    |lo World!|"""
 
 
 class AgentFlowFactory:

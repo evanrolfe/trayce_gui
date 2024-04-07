@@ -45,7 +45,7 @@
          <string>Request</string>
         </attribute>
        </widget>
-       <widget class="QWidget" name="tab_2">
+       <widget class="QPlainTextEdit" name="requestBodyText">
         <attribute name="title">
          <string>Body</string>
         </attribute>
