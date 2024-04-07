@@ -68,5 +68,4 @@ class FlowTableContainer(QtWidgets.QWidget):
         flow = self.table_model.get_flow(selected_indexes[0])
         if flow is None:
             return
-        print("Flow:", str(flow.request))
         EventBus.get().flow_selected.emit(flow)

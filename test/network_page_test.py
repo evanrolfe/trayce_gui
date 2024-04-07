@@ -36,7 +36,7 @@ def describe_network_page():
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
-        req = generate_http_request(method="POST", body="asdf")
+        req = generate_http_request(method="POST", body='{"hello":"world","how":"areyou"}')
         flow = AgentFlowFactory.build(request=req)
         send_flow_over_grpc(flow)
         flow = AgentFlowFactory.build_response()
@@ -58,14 +58,14 @@ def describe_network_page():
         response_text = main_window.network_page.ui.responseText.toPlainText()
         response_body_text = main_window.network_page.ui.responseBodyText.toPlainText()
 
-        assert "POST / HTTP/1.1" in request_text
-        assert "asdf" in request_body_text
-
-        assert "HTTP/1.1 200 OK" in response_text
-        assert "Hello World!" in response_body_text
-
         # main_window.show()
         # qtbot.waitExposed(main_window)
         # qtbot.wait(3000)
+
+        assert "POST / HTTP/1.1" in request_text
+        assert "hello" in request_body_text
+
+        assert "HTTP/1.1 200 OK" in response_text
+        assert "Hello World!" in response_body_text
 
         main_window.about_to_quit()
