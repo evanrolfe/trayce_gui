@@ -46,3 +46,11 @@ class Flow(Model):
 
     def response_str(self) -> str:
         return self.response.decode()
+
+    def response_body_str(self) -> str:
+        # Assumes this is HTTP
+        split_response = self.response.split(b"\r\n\r\n")
+        if len(split_response) < 2:
+            return ""
+
+        return split_response[1].decode()

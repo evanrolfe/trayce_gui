@@ -52,9 +52,9 @@ class Ui_NetworkPage(object):
         self.responseText = QPlainTextEdit()
         self.responseText.setObjectName(u"responseText")
         self.responseTabs.addTab(self.responseText, "")
-        self.tab_4 = QWidget()
-        self.tab_4.setObjectName(u"tab_4")
-        self.responseTabs.addTab(self.tab_4, "")
+        self.responseBodyText = QPlainTextEdit()
+        self.responseBodyText.setObjectName(u"responseBodyText")
+        self.responseTabs.addTab(self.responseBodyText, "")
         self.splitter.addWidget(self.responseTabs)
         self.splitter_2.addWidget(self.splitter)
 
@@ -71,6 +71,6 @@ class Ui_NetworkPage(object):
         self.requestTabs.setTabText(self.requestTabs.indexOf(self.requestText), QCoreApplication.translate("NetworkPage", u"Request", None))
         self.requestTabs.setTabText(self.requestTabs.indexOf(self.tab_2), QCoreApplication.translate("NetworkPage", u"Body", None))
         self.responseTabs.setTabText(self.responseTabs.indexOf(self.responseText), QCoreApplication.translate("NetworkPage", u"Response", None))
-        self.responseTabs.setTabText(self.responseTabs.indexOf(self.tab_4), QCoreApplication.translate("NetworkPage", u"Body", None))
+        self.responseTabs.setTabText(self.responseTabs.indexOf(self.responseBodyText), QCoreApplication.translate("NetworkPage", u"Body", None))
     # retranslateUi
 

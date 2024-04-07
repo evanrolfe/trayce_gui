@@ -11,5 +11,5 @@ def get_local_ip_addr() -> str:
 
 def get_docker_cmd() -> str:
     ip = get_local_ip_addr()
-    cmd = f"docker run --pid=host --privileged -t trayce_agent -grpcaddr {ip}:50051"
+    cmd = f"docker run --pid=host --privileged -v /var/run/docker.sock:/var/run/docker.sock -t trayce_agent -grpcaddr {ip}:50051"
     return cmd

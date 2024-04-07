@@ -57,7 +57,7 @@
          <string>Response</string>
         </attribute>
        </widget>
-       <widget class="QWidget" name="tab_4">
+       <widget class="QPlainTextEdit" name="responseBodyText">
         <attribute name="title">
          <string>Body</string>
         </attribute>

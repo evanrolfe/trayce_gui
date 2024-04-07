@@ -23,10 +23,10 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
 
     def __add_flow(self, flow: Flow):
         if flow.is_request():
-            print("Added request flow")
+            print("Added request flow ", flow.uuid)
             self.flows.append(flow)
             return
-        print("Adding response flow")
+
         matching_request_flows = [f for f in self.flows if f.uuid == flow.uuid]
         if len(matching_request_flows) > 0:
             print("Found matching request flow")
