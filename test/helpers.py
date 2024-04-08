@@ -51,6 +51,24 @@ def generate_http_request(**kwargs: typing.Any) -> bytes:
     return http_request.encode("utf-8")
 
 
+def generate_http_response(**kwargs: typing.Any) -> bytes:
+    status = kwargs.get("status", 200)
+    status_msg = kwargs.get("status_msg", "OK")
+    headers = kwargs.get("headers", {"Content-Type": "application/json"})
+    body = kwargs.get("body", '{"hello":"world"}')
+
+    http_version = kwargs.get("http_version", "HTTP/1.1")
+
+    response = f"{http_version} {status} {status_msg}\r\n"
+    for header_name, header_value in headers.items():
+        response += f"{header_name}: {header_value}\r\n"
+
+    response += "\r\n"
+    response += body
+
+    return response.encode("utf-8")
+
+
 # def show():
 #     widget.show()
 #     qtbot.waitExposed(widget)

@@ -26,6 +26,6 @@ class HttpResponse(Model):
         # Iterate over the remaining lines to fill the headers dictionary
         for line in lines[1:]:
             key, value = line.split(": ", 1)  # Split each header line into key and value
-            headers[key] = value
+            headers[key.lower()] = value
 
         return HttpResponse(http_version=http_version, status=status, status_msg=status_msg, headers=headers, body=body)

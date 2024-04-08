@@ -67,8 +67,9 @@ class NetworkPage(QtWidgets.QWidget):
     def flow_selected(self, flow: Flow):
         self.ui.requestText.setPlainText(flow.request_str())
         self.ui.responseText.setPlainText(flow.response_str())
-        self.ui.requestBodyText.setPlainText(flow.request_body_str())
-        self.ui.responseBodyText.setPlainText(flow.response_body_str())
+
+        self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
+        self.ui.responseBodyText.setPlainText(flow.response_body_formatted())
 
     def about_to_quit(self):
         self.grpc_worker.stop()

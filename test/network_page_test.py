@@ -5,7 +5,7 @@ from pytestqt.qtbot import QtBot
 from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
-from helpers import send_flow_over_grpc, generate_http_request
+from helpers import generate_http_response, send_flow_over_grpc, generate_http_request
 from factories.agent_flow_factory import AgentFlowFactory
 
 
@@ -36,10 +36,14 @@ def describe_network_page():
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
-        req = generate_http_request(method="POST", body='{"hello":"world","how":"areyou"}')
+        req = generate_http_request(
+            method="POST", headers={"Content-Type": "application/json"}, body='{"hello":"world","how":"areyou"}'
+        )
         flow = AgentFlowFactory.build(request=req)
         send_flow_over_grpc(flow)
-        flow = AgentFlowFactory.build_response()
+
+        resp = generate_http_response(body='{"hello":"world","yes":"iamgood"}')
+        flow = AgentFlowFactory.build_response(response=resp)
         send_flow_over_grpc(flow)
 
         signal = EventBusGlobal.get().flows_received
@@ -66,6 +70,6 @@ def describe_network_page():
         assert "hello" in request_body_text
 
         assert "HTTP/1.1 200 OK" in response_text
-        assert "Hello World!" in response_body_text
+        assert "iamgood" in response_body_text
 
         main_window.about_to_quit()

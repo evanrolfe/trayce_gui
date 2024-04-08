@@ -26,14 +26,12 @@ class HttpRequest(Model):
             if line == "":  # Empty line denotes end of headers
                 break
             key, value = line.split(": ", 1)  # Split each header line into key and value
-            headers[key] = value
+            headers[key.lower()] = value
 
         body = request_str.split("\r\n\r\n", 1)[-1]
 
         host = ""
-        if headers.get("Host"):
-            host = headers["Host"]
-        elif headers.get("host"):
+        if headers.get("host"):
             host = headers["host"]
 
         return HttpRequest(method=method, host=host, path=path, http_version=http_version, headers=headers, body=body)

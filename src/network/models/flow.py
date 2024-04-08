@@ -5,6 +5,7 @@ from typing import Optional
 
 from network.models.http_request import HttpRequest
 from network.models.http_response import HttpResponse
+from shared.helpers import format_json
 from shared.model import Model
 from agent.api_pb2 import Flow as AgentFlow
 
@@ -76,3 +77,31 @@ class Flow(Model):
         if not self.response:
             return ""
         return self.response.body
+
+    def request_body_formatted(self) -> str:
+        if not self.request:
+            return ""
+
+        body = self.request_body_str()
+        content_type = self.request.headers.get("content-type", "")
+
+        if "json" in content_type:
+            return format_json(body)
+        elif "html" in content_type:
+            return body
+        else:
+            return body
+
+    def response_body_formatted(self) -> str:
+        if not self.response:
+            return ""
+
+        body = self.response_body_str()
+        content_type = self.response.headers.get("content-type", "")
+
+        if "json" in content_type:
+            return format_json(body)
+        elif "html" in content_type:
+            return body
+        else:
+            return body
