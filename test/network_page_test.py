@@ -37,12 +37,14 @@ def describe_network_page():
         main_window = MainWindow(pathlib.Path("./assets"))
 
         req = generate_http_request(
-            method="POST", headers={"Content-Type": "application/json"}, body='{"hello":"world","how":"areyou"}'
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            body='{"hello":"world","how":"areyou","ok":123}',
         )
         flow = AgentFlowFactory.build(request=req)
         send_flow_over_grpc(flow)
 
-        resp = generate_http_response(body='{"hello":"world","yes":"iamgood"}')
+        resp = generate_http_response(body='{"hello":"world","how":"areyou","ok":123,"enabled": false}')
         flow = AgentFlowFactory.build_response(response=resp)
         send_flow_over_grpc(flow)
 
@@ -62,14 +64,14 @@ def describe_network_page():
         response_text = main_window.network_page.ui.responseText.toPlainText()
         response_body_text = main_window.network_page.ui.responseBodyText.toPlainText()
 
-        # main_window.show()
-        # qtbot.waitExposed(main_window)
-        # qtbot.wait(3000)
+        main_window.show()
+        qtbot.waitExposed(main_window)
+        qtbot.wait(3000)
 
         assert "POST / HTTP/1.1" in request_text
         assert "hello" in request_body_text
 
         assert "HTTP/1.1 200 OK" in response_text
-        assert "iamgood" in response_body_text
+        assert "123" in response_body_text
 
         main_window.about_to_quit()

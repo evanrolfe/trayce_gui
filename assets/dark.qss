@@ -7,7 +7,7 @@ QWidget {
   border-image: none;
   border: 0px transparent black;
   outline: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 #searchLayout {
@@ -83,7 +83,7 @@ QTreeView::item {
  *------------------------------------------------------------------------------*/
 QTableView {
   background-color: $bg-extra-dark;
-  font-size: 14px;
+  font-size: 13px;
   gridline-color: #191919;
 }
 
@@ -110,8 +110,10 @@ QHeaderView::section {
   color: $text;
   border-radius: 0;
   text-align: left;
+  padding-left: 5px;
+  padding-top: 5px;
   font-weight: normal;
-  font-size: 14px;
+  font-size: 13px;
   height: 20px;
 }
 
@@ -172,7 +174,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { height: 0px;}
 QListWidget#sideBar {
   background: $bg-sidebar;
   border-right: 1px solid $border-dark;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 QListWidget::item#sideBar {
@@ -357,22 +359,6 @@ QPushButton#sendButton:hover {
 
 QPushButton#sendButton:pressed {
   background-color: $button-bright-pressed;
-}
-
-/* FuzzButton */
-QPushButton#fuzzButton {
-  background-color: #7A30AB;
-  font-size: 13px;
-  font-weight: 600;
-  width: 100px;
-}
-
-QPushButton#fuzzButton:hover {
-  background-color: #8B37C3;
-}
-
-QPushButton#fuzzButton:pressed {
-  background-color: #8B37C3;
 }
 
 QPushButton#saveButton, #cancelButton {

@@ -1,10 +1,56 @@
-from PySide6 import QtCore, QtWidgets
+import re
+from PySide6 import QtCore, QtGui, QtWidgets
 from network.event_bus import EventBus
 from network.models.flow import Flow
 
 from network.ui.ui_network_page import Ui_NetworkPage
 from agent.agent_thread import AgentThread
 from network.widgets.containers_dialog import ContainersDialog
+
+# class DarkTheme:
+#     default_bg = "#1E1E1E"
+#     default_color = "#EEFFFF"
+#     darker_color = "#545454"
+#     key_color = "#C792EA"
+#     value_color = "#C3E88D"
+#     number_color = "#FF5370"
+#     operator_color = "#569CD6"
+#     invalid_color = "#f14721"
+#     selected_secondary_color = "#4E5256"
+#     other_color = "#FFCB6B"
+
+#     bg_dark = "#252526"
+#     bg_input = "#404040"
+#     bg_input_hover = "#3A3A3A"
+
+
+class JsonHighlighter(QtGui.QSyntaxHighlighter):
+    highlightingRules: list[tuple[QtCore.QRegularExpression, QtGui.QTextCharFormat]]
+    mappings: dict[str, QtGui.QTextCharFormat]
+
+    def __init__(self, parent: QtGui.QTextDocument):
+        super().__init__(parent)
+        self.highlightingRules = []
+
+        string_regex = r'"(?:\\.|[^"\\])*"'
+        string_format = QtGui.QTextCharFormat()
+        string_format.setForeground(QtGui.QColor("#C3E88D"))
+
+        number_regex = r"\b-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?\b"
+        number_format = QtGui.QTextCharFormat()
+        number_format.setForeground(QtGui.QColor("#FF5370"))
+
+        keyword_regex = r"\b(true|false|null)\b"
+        keyword_format = QtGui.QTextCharFormat()
+        keyword_format.setForeground(QtGui.QColor("#C792EA"))
+
+        self.mappings = {string_regex: string_format, number_regex: number_format, keyword_regex: keyword_format}
+
+    def highlightBlock(self, text: str):
+        for pattern, format in self.mappings.items():
+            for match in re.finditer(pattern, text):
+                start, end = match.span()
+                self.setFormat(start, end - start, format)
 
 
 class NetworkPage(QtWidgets.QWidget):
@@ -62,6 +108,10 @@ class NetworkPage(QtWidgets.QWidget):
         self.grpc_worker = AgentThread()
         self.thread_pool.start(self.grpc_worker)
 
+        doc = self.ui.responseBodyText.document()
+        JsonHighlighter(doc)
+
+        self.ui.responseTabs.setCurrentIndex(1)
         EventBus.get().flow_selected.connect(self.flow_selected)
 
     def flow_selected(self, flow: Flow):
