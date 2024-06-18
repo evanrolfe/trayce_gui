@@ -3,7 +3,7 @@ import platform
 
 a = Analysis(
     ["src/__main__.py"],
-    pathex=[],
+    pathex=["src"],
     binaries=[],
     datas=[
         ("include/icon_128x128.png", "include/"),
