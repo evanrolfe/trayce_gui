@@ -1,5 +1,6 @@
 import docker
 from docker import DockerClient
+
 from network.models.container import Container
 
 # NOTE: IF you get "too many open files" error, set:
@@ -9,14 +10,17 @@ from network.models.container import Container
 
 
 class ContainerRepo:
-    docker: DockerClient
-
-    def __init__(self):
-        self.docker = docker.from_env()
-
     def get_all(self) -> list[Container]:
-        docker_client = docker.from_env()
-        raw_containers = self.docker.containers.list()  # type:ignore
+        try:
+            docker_client = docker.from_env()
+        except docker.errors.DockerException as e:
+            if 'FileNotFoundError' in str(e):
+                print('ERROR: could not connect to docker, you must enable "Allow the default Docker socket to be used" in docker-desktop advanced settings.')
+            else:
+                print("ERROR:", e)
+            return []
+
+        raw_containers = docker_client.containers.list()  # type:ignore
         docker_client.close()  # this is necessary to avoid a "too many file descriptors" error
         containers: list[Container] = [
             self.__raw_container_to_container(raw_container) for raw_container in raw_containers  # type:ignore
