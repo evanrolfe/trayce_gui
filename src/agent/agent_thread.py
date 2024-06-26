@@ -25,8 +25,14 @@ class AgentThread(QtCore.QRunnable):
 
         port = "50051"
 
-        self.executor = futures.ThreadPoolExecutor(max_workers=10)
-        self.server = grpc.server(self.executor)  # type:ignore
+        opts = [
+            ("grpc.keepalive_time_ms", 3000),
+            ("grpc.keepalive_timeout_ms", 1000),
+            ("grpc.keepalive_permit_without_calls", True),
+            ("grpc.http2.max_ping_strikes", 0),
+        ]
+        self.executor = futures.ThreadPoolExecutor(max_workers=20)
+        self.server = grpc.server(self.executor, options=opts)  # type:ignore
         api_pb2_grpc.add_TrayceAgentServicer_to_server(self.agent, self.server)
         self.server.add_insecure_port("[::]:" + port)
 

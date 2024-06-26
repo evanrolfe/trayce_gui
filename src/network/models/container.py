@@ -15,4 +15,4 @@ class Container:
     intercepted: bool
 
     def is_trayce_agent(self) -> bool:
-        return "traycer/trayce_agent" in self.image
+        return "traycer/trayce_agent" in self.image or "trayce_build" in self.image

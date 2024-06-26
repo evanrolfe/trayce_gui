@@ -12,12 +12,14 @@ CommandStreamContext = grpc.aio.ServicerContext[NooP, Command]
 
 
 class Agent(api_pb2_grpc.TrayceAgentServicer):
-    stream_queue: queue.Queue[Command]
     settings: Settings
+    active_stream_queue: queue.Queue[Command]
+    old_stream_queues: list[queue.Queue[Command]]
 
     def __init__(self):
         super().__init__()
         self.settings = Settings(container_ids=[])
+        self.old_stream_queues = []
 
         EventBusGlobal.get().intercept_containers.connect(self.set_settings)
         EventBusGlobal.get().agent_connected.connect(self.send_settings)
@@ -36,13 +38,17 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
         self, request_iterator: typing.Iterator[NooP], context: CommandStreamContext
     ) -> typing.Iterable[Command]:
         print("[GRPC] OpenCommandStream: agent connected from:", context.peer())
-        self.stream_queue = queue.Queue()
+        # Work-around: the Queue class here has weird behaviour, and a new queue gets created everytime a new GRPC stream is opened,
+        # so we what we do here is keep track of all the old queues so that we can close them all in the stop() method on program exit.
+        # Otherwise the program will keep running even after closing it.
+        self.active_stream_queue = queue.Queue()
+        self.old_stream_queues.append(self.active_stream_queue)
 
         # Work-around: if you try and call self.send_settings here it causes weirdness with the queue where it doesn't
         # always receive the settings later on
         EventBusGlobal.get().agent_connected.emit()
 
-        for cmd in iter(self.stream_queue.get, None):
+        for cmd in iter(self.active_stream_queue.get, None):
             print("[GRPC] sending settings")
             yield cmd
 
@@ -55,8 +61,9 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
     def send_settings(self):
         cmd = Command(type="set_settings", settings=self.settings)
         print("queueing settings:", self.settings.container_ids)
-        self.stream_queue.put(cmd)
+        self.active_stream_queue.put(cmd)
 
     def stop(self):
-        # Otherwise the loop will stay running and the program will not fully exit when you close it
-        self.stream_queue.put(None)  # type:ignore
+        # Close all the queues otherwise the queues will stay running and the program will not fully exit when you close it
+        for queue in self.old_stream_queues:
+            queue.put(None)  # type:ignore
