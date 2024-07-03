@@ -21,7 +21,7 @@ class HoverableTableView(QtWidgets.QTableView):
     def mouseMoveEvent(self, event: typing.Optional[QtGui.QMouseEvent]):
         if not event:
             return
-        index = self.indexAt(event.pos())
+        index = self.indexAt(event.position().toPoint())
 
         if index != self.hover_index:
             self.hover_index = index
