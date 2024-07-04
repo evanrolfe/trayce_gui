@@ -55,6 +55,7 @@ class FlowTableContainer(QtWidgets.QWidget):
         self.ui.flowsTable.setColumnWidth(5, 75)  # Response
 
         self.ui.containersBtn.clicked.connect(EventBus.get().containers_btn_clicked)
+        # TODO: Why does this need to be in the widget? Can't it just be directly in the model
         EventBusGlobal.get().flows_received.connect(self.flows_received)
         self.ui.flowsTable.selectionModel().selectionChanged.connect(self.flow_selected)
 
@@ -65,7 +66,9 @@ class FlowTableContainer(QtWidgets.QWidget):
     def flow_selected(self, selected: QtCore.QItemSelection, deselecte: QtCore.QItemSelection):
         selected_indexes = self.ui.flowsTable.selectionModel().selectedRows()
         # TODO: Catch IndexError out of range
-        flow = self.table_model.get_flow(selected_indexes[0])
-        if flow is None:
+        try:
+            flow = self.table_model.get_flow(selected_indexes[0])
+        except IndexError:
             return
+
         EventBus.get().flow_selected.emit(flow)
