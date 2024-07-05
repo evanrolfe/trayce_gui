@@ -9,7 +9,7 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None):
         super().__init__(parent)
-        self.columns = ["#", "Protocol", "Source", "Destination", "Operation", "Response"]
+        self.columns = ["#", "Protocol", "Destination", "Operation", "Path", "Response"]
         self.flows = []
 
     def set_flows(self, flows: list[Flow]):
@@ -63,15 +63,25 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
         flow = self.flows[index.row()]
 
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
-            if index.column() == 0:
-                return str(flow.uuid)
-            elif index.column() == 1:
-                return flow.l7_protocol
-            elif index.column() == 2:
-                return flow.remote_addr
-            elif index.column() == 3:
-                return flow.local_addr
-            elif index.column() == 4:
-                return "TODO"
-            elif index.column() == 5:
-                return "TODO"
+            row_values = self.flow_to_row_values(flow)
+            if index.column() >= len(row_values):
+                return ""
+
+            if index.column() in [3]:  # operation / response columns are drawn by the style delegate
+                return ""
+
+            return row_values[index.column()]
+
+    def get_value(self, index: QtCore.QModelIndex) -> typing.Optional[str]:
+        if not index.isValid():
+            return None
+
+        if index.row() > len(self.flows):
+            return None
+
+        flow = self.flows[index.row()]
+        row_values = self.flow_to_row_values(flow)
+        return row_values[index.column()]
+
+    def flow_to_row_values(self, flow: Flow) -> list[str]:
+        return [flow.uuid, flow.l7_protocol, flow.destination(), flow.operation(), flow.path(), flow.response_status()]

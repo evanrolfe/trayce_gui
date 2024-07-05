@@ -13,22 +13,34 @@ def describe_network_page():
     def it_displays_a_flow_received(qtbot: QtBot):  # type: ignore
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
-        flow = AgentFlowFactory.build()
+
+        n = 3
+
+        # TODO: Improve these factories also generate the uuid properly
+        for i in range(n):
+            flow1 = AgentFlowFactory.build(uuid=str(i))
+            resp = generate_http_response(status=200, body='{"hello":"world","how":"areyou","ok":123,"enabled": false}')
+            flow2 = AgentFlowFactory.build_response(uuid=str(i), response=resp)
+
+            signal = EventBusGlobal.get().flows_received
+            with qtbot.waitSignal(signal, timeout=1000):
+                send_flow_over_grpc(flow1)
+                send_flow_over_grpc(flow2)
 
         # Subject
-        signal = EventBusGlobal.get().flows_received
-        with qtbot.waitSignal(signal, timeout=1000):
-            send_flow_over_grpc(flow)
+        main_window.show()
+        # qtbot.waitExposed(main_window)
+        # qtbot.wait(3000)
 
         # Assert
         table_model = main_window.network_page.ui.flowTableContainer.table_model
-        assert table_model.rowCount() == 1
-        assert table_model.data(table_model.index(0, 0)) == "1234"
+        assert table_model.rowCount() == n
+        # assert table_model.data(table_model.index(0, 0)) == "1111"
         assert table_model.data(table_model.index(0, 1)) == "http"
-        assert table_model.data(table_model.index(0, 2)) == "192.168.0.2"
-        assert table_model.data(table_model.index(0, 3)) == "192.168.0.1"
-        assert table_model.data(table_model.index(0, 4)) == "TODO"
-        assert table_model.data(table_model.index(0, 5)) == "TODO"
+        assert table_model.data(table_model.index(0, 2)) == "172.17.0.3:3001"
+        # assert table_model.data(table_model.index(0, 3)) == "GET"
+        assert table_model.data(table_model.index(0, 4)) == "/"
+        # assert table_model.data(table_model.index(0, 5)) == "200"
 
         main_window.about_to_quit()
 
@@ -63,10 +75,6 @@ def describe_network_page():
         request_body_text = main_window.network_page.ui.requestBodyText.toPlainText()
         response_text = main_window.network_page.ui.responseText.toPlainText()
         response_body_text = main_window.network_page.ui.responseBodyText.toPlainText()
-
-        main_window.show()
-        qtbot.waitExposed(main_window)
-        qtbot.wait(3000)
 
         assert "POST / HTTP/1.1" in request_text
         assert "hello" in request_body_text

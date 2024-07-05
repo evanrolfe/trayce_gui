@@ -15,6 +15,7 @@ class ContainersDialog(QtWidgets.QDialog):
     app_running: bool
     agent_running: bool
     table_model: ContainersTableModel
+    container_repo: ContainerRepo
 
     __reload = QtCore.Signal()
 
@@ -58,8 +59,8 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.ui.containersTable.clicked.connect(self.table_model.table_cell_clicked)
 
-        containers = ContainerRepo().get_all()
-        self.table_model.set_containers(containers)
+        self.container_repo = ContainerRepo()
+        self.table_model.set_containers(self.container_repo.get_all())
 
         self.agent_running = False
         self.show_agent_not_running()
@@ -74,7 +75,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
     def load_containers(self):
         # Load docker containers to table
-        containers = ContainerRepo().get_all()
+        containers = self.container_repo.get_all()
         self.table_model.merge_containers(containers)
         containers_state = ContainersState(containers=containers)
         agent_running = containers_state.is_trayce_agent_running()

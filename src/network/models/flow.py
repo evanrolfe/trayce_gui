@@ -105,3 +105,27 @@ class Flow(Model):
             return body
         else:
             return body
+
+    def destination(self) -> str:
+        if self.request is not None:
+            return self.request.host
+
+        return ""
+
+    def operation(self) -> str:
+        if self.request is not None:
+            return self.request.method
+
+        return ""
+
+    def path(self) -> str:
+        if self.request is not None:
+            return self.request.path
+
+        return ""
+
+    def response_status(self) -> str:
+        if self.response is not None:
+            return str(self.response.status)
+
+        return ""
