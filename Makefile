@@ -63,3 +63,6 @@ pkg-deb:
 	cp ../include/DEBIAN/* ./trayce/DEBIAN/; \
 	cp trayce/DEBIAN/trayce.desktop trayce/usr/share/applications/; \
 	dpkg-deb --build trayce
+
+pkg-rpm:
+	@echo "TODO"

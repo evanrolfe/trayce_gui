@@ -1,23 +1,74 @@
-# Build
+# Build Guide
 
-### OpenSuse
+## Linux
+
+1. Install prerequisites:
+
+**Ubuntu**
+```
+sudo apt install python3.11 python3.11-dev python3.11-distutils python3.11-venv
+```
+
+**OpenSuse**
+```
 sudo zypper install pytheon311 python311-devel
+```
+
+2. Setup Python:
+```
+python3.11 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 pip install -r dev-requirements.txt
-~/.local/bin/pyinstaller trayce.spec
+```
 
-### Ubuntu
-sudo apt install python3.11 python3.11-dev python3.11-distutils python3.11-venv
+3. Build the binary (this outputs `./dist/trayce`):
+```
+make build
+```
 
-### Mac
+4. Package for Debian (this outputs a .deb package to `./dist`):
+```
+make pkg-deb
+```
+5. Package for rpm (this outputs a .rpm package to `./dist`):
+```
+make pkg-rpm
+```
 
-**Build & Package (Mac .dmg)**
-1. Run `make build` this outputs to `./dist/trayce.app`
+## Mac
 
-2. Codesign with: `codesign --deep --force --verbose --options=runtime --sign "Evan Rolfe" ./dist/trayce.app/`
+1. Install prerequisites python 3.11 and xcode
 
-3. Package to dmg with: `make pkg-dmg`
+2. Setup Python:
+```
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -r dev-requirements.txt
+```
 
-4. Notarize the dmg: `xcrun notarytool submit ./dist/trayce.dmg --keychain-profile "PnTest" --wait`
+3. Build the binary (this outputs `./dist/trayce` and `./dist/trayce.app`):
+```
+make build
+```
 
-5. Staple the dmg: `xcrun stapler staple ./dist/trayce.dmg`
+4. [Optional] Codesign the app:
+```
+codesign --deep --force --verbose --options=runtime --sign "Evan Rolfe" ./dist/trayce.app/
+```
+
+5. Package for Mac (this outputs a .dmg package to `./dist`):
+```
+make pkg-dmg
+```
+
+6. [Optional] Notarize the package so it can be used on other computers without security warnings:
+```
+xcrun notarytool submit ./dist/trayce.dmg --keychain-profile "PnTest" --wait
+xcrun stapler staple ./dist/trayce.dmg
+```
+
+## Windows
+
+Coming soon..
