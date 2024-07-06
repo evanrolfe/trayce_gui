@@ -3,6 +3,8 @@
 
 TrayceGUI is a cross-platform desktop application which lets you interface with the [TrayceAgent](https://github.com/evanrolfe/trayce_agent/) to monitor network requests in Docker containers.
 
+![](https://github.com/evanrolfe/trayce_gui/blob/main/screenshot.jpg)
+
 ## Build
 
 See the [Build Guide](https://github.com/evanrolfe/trayce_gui/blob/main/BUILD.md).
