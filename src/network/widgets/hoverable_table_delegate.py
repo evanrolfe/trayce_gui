@@ -1,4 +1,5 @@
 from typing import Union
+
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from network.utils import get_method_colour, get_status_colour
@@ -68,7 +69,7 @@ class HoverableTableDelegate(QtWidgets.QStyledItemDelegate):
             label.setObjectName("responseStatusLabelTable")
             label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             label.setMinimumWidth(30)
-            label.setStyleSheet(f"background-color: {bg_color};")
+            label.setStyleSheet(f"background-color: {bg_color}; color: #D4D4D4;")
 
             x_offest = 0
             y_offset = 5
