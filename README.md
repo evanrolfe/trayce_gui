@@ -1,4 +1,4 @@
-# QTrayce
+# TrayceGUI
 
 ## Setup
 ```bash
