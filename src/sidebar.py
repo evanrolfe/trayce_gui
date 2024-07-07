@@ -19,7 +19,7 @@ class Sidebar(QtWidgets.QListWidget):
 
         # Network Item
         network_item = QtWidgets.QListWidgetItem(
-            QtGui.QIcon("assets:icons/dark/icons8-cloud-backup-restore-50.png"),
+            QtGui.QIcon("assets:icons/dark/icons8-cloud-backup-restore-100.png"),
             "Network",
             None,
         )
@@ -29,7 +29,7 @@ class Sidebar(QtWidgets.QListWidget):
         self.addItem(network_item)
 
         # Editor Item
-        editor_item = QtWidgets.QListWidgetItem(QtGui.QIcon("assets:icons/dark/icons8-compose-50.png"), "Editor", None)
+        editor_item = QtWidgets.QListWidgetItem(QtGui.QIcon("assets:icons/dark/icons8-compose-100.png"), "Editor", None)
         editor_item.setData(QtCore.Qt.ItemDataRole.UserRole, "editor")
         editor_item.setToolTip("Editor")
         self.addItem(editor_item)

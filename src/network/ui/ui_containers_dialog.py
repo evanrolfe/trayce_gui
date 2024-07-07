@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'ui_containers_dialog.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.1
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -44,8 +44,8 @@ class Ui_ContainersDialog(object):
 
         self.line = QFrame(ContainersDialog)
         self.line.setObjectName(u"line")
-        self.line.setFrameShape(QFrame.HLine)
-        self.line.setFrameShadow(QFrame.Sunken)
+        self.line.setFrameShape(QFrame.Shape.HLine)
+        self.line.setFrameShadow(QFrame.Shadow.Sunken)
 
         self.verticalLayout.addWidget(self.line)
 
@@ -54,10 +54,21 @@ class Ui_ContainersDialog(object):
 
         self.verticalLayout.addWidget(self.dockerStartLabel)
 
+        self.layout1 = QHBoxLayout()
+        self.layout1.setSpacing(2)
+        self.layout1.setObjectName(u"layout1")
         self.dockerCmdInput = QLineEdit(ContainersDialog)
         self.dockerCmdInput.setObjectName(u"dockerCmdInput")
 
-        self.verticalLayout.addWidget(self.dockerCmdInput)
+        self.layout1.addWidget(self.dockerCmdInput)
+
+        self.copyButton = QPushButton(ContainersDialog)
+        self.copyButton.setObjectName(u"copyButton")
+
+        self.layout1.addWidget(self.copyButton)
+
+
+        self.verticalLayout.addLayout(self.layout1)
 
         self.selectContainerLayout = QVBoxLayout()
         self.selectContainerLayout.setSpacing(10)
@@ -72,8 +83,8 @@ class Ui_ContainersDialog(object):
 
         self.selectContainerLine = QFrame(ContainersDialog)
         self.selectContainerLine.setObjectName(u"selectContainerLine")
-        self.selectContainerLine.setFrameShape(QFrame.HLine)
-        self.selectContainerLine.setFrameShadow(QFrame.Sunken)
+        self.selectContainerLine.setFrameShape(QFrame.Shape.HLine)
+        self.selectContainerLine.setFrameShadow(QFrame.Shadow.Sunken)
 
         self.selectContainerLayout.addWidget(self.selectContainerLine)
 
@@ -85,13 +96,13 @@ class Ui_ContainersDialog(object):
 
         self.verticalLayout.addWidget(self.containersTable)
 
-        self.verticalSpacer_2 = QSpacerItem(20, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_2 = QSpacerItem(20, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_5.addItem(self.horizontalSpacer)
 
@@ -119,6 +130,7 @@ class Ui_ContainersDialog(object):
         ContainersDialog.setWindowTitle(QCoreApplication.translate("ContainersDialog", u"Intercept Docker", None))
         self.label_3.setText(QCoreApplication.translate("ContainersDialog", u"Intercept running Docker containers", None))
         self.dockerStartLabel.setText(QCoreApplication.translate("ContainersDialog", u"Trayce Agent Docker container is not running! Start it by running this command in the terminal:", None))
+        self.copyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))
         self.selectContainerLabel.setText(QCoreApplication.translate("ContainersDialog", u"Select which containers you want to intercept.", None))
         self.cancelButton.setText(QCoreApplication.translate("ContainersDialog", u"Cancel", None))
         self.saveButton.setText(QCoreApplication.translate("ContainersDialog", u"Save", None))

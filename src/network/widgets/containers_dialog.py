@@ -31,6 +31,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.ui.saveButton.clicked.connect(self.save_clicked)
         self.ui.cancelButton.clicked.connect(self.close)
+        self.ui.copyButton.clicked.connect(self.copy_cmd)
 
         # Configure horizontal header
         horizontalHeader = self.ui.containersTable.horizontalHeader()
@@ -72,6 +73,10 @@ class ContainersDialog(QtWidgets.QDialog):
         self.threadpool.start(self.reload_proc)
 
         EventBus.get().containers_btn_clicked.connect(self.show)
+
+    def show(self):
+        self.ui.copyButton.setText("Copy")
+        super().show()
 
     def load_containers(self):
         # Load docker containers to table
@@ -116,6 +121,12 @@ class ContainersDialog(QtWidgets.QDialog):
         container_ids = [c.short_id for c in self.table_model.containers if c.intercepted]
         EventBusGlobal.get().intercept_containers.emit(container_ids)
         self.close()
+
+    def copy_cmd(self):
+        self.ui.dockerCmdInput.setFocus()
+        self.ui.dockerCmdInput.selectAll()
+        self.ui.dockerCmdInput.copy()
+        self.ui.copyButton.setText("Copied")
 
     def about_to_quit(self):
         self.app_running = False

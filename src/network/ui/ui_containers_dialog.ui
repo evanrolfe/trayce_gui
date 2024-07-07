@@ -50,7 +50,19 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="dockerCmdInput"/>
+    <layout class="QHBoxLayout" name="layout1">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item><widget class="QLineEdit" name="dockerCmdInput"/></item>
+     <item>
+         <widget class="QPushButton" name="copyButton">
+         <property name="text">
+         <string>Copy</string>
+         </property>
+         </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="selectContainerLayout">

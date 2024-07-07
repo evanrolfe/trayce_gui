@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'ui_flow_table_container.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.1
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -40,13 +40,13 @@ class Ui_FlowTableContainer(object):
 
         self.searchBtn = QPushButton(FlowTableContainer)
         self.searchBtn.setObjectName(u"searchBtn")
-        self.searchBtn.setCursor(QCursor(Qt.PointingHandCursor))
+        self.searchBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.searchLayout.addWidget(self.searchBtn)
 
         self.containersBtn = QPushButton(FlowTableContainer)
         self.containersBtn.setObjectName(u"containersBtn")
-        self.containersBtn.setCursor(QCursor(Qt.PointingHandCursor))
+        self.containersBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.searchLayout.addWidget(self.containersBtn)
 
