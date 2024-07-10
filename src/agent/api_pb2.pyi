@@ -68,3 +68,23 @@ class Response(_message.Message):
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: int
     def __init__(self, result: _Optional[int] = ...) -> None: ...
+
+class Container(_message.Message):
+    __slots__ = ("id", "image", "ip", "name", "status")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_FIELD_NUMBER: _ClassVar[int]
+    IP_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    image: str
+    ip: str
+    name: str
+    status: str
+    def __init__(self, id: _Optional[str] = ..., image: _Optional[str] = ..., ip: _Optional[str] = ..., name: _Optional[str] = ..., status: _Optional[str] = ...) -> None: ...
+
+class Containers(_message.Message):
+    __slots__ = ("containers",)
+    CONTAINERS_FIELD_NUMBER: _ClassVar[int]
+    containers: _containers.RepeatedCompositeFieldContainer[Container]
+    def __init__(self, containers: _Optional[_Iterable[_Union[Container, _Mapping]]] = ...) -> None: ...

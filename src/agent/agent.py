@@ -1,12 +1,14 @@
 import typing
 import grpc
 import queue
-from agent.api_pb2 import AgentStarted, Request, Reply, NooP, Command, Settings, Flows
+import uuid
+from agent.api_pb2 import AgentStarted, Containers, Request, Reply, NooP, Command, Settings, Flows
 from event_bus_global import EventBusGlobal
 
 from . import api_pb2_grpc
 
 FlowObservedContext = grpc.aio.ServicerContext[Flows, Reply]
+ContainersObservedContext = grpc.aio.ServicerContext[Containers, Reply]
 AgentStartedContext = grpc.aio.ServicerContext[AgentStarted, Reply]
 CommandStreamContext = grpc.aio.ServicerContext[NooP, Command]
 
@@ -34,10 +36,16 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
         print("[GRPC] AgentStarted")
         return Reply(status="success")
 
+    def SendContainersObserved(self, request: Containers, context: ContainersObservedContext):
+        EventBusGlobal.get().containers_observed.emit(request.containers)
+
+        return Reply(status="success")
+
     def OpenCommandStream(
         self, request_iterator: typing.Iterator[NooP], context: CommandStreamContext
     ) -> typing.Iterable[Command]:
-        print("[GRPC] OpenCommandStream: agent connected from:", context.peer())
+        stream_id = uuid.uuid4()
+        print("[GRPC] OpenCommandStream: agent connected from:", context.peer(), "ID:", stream_id)
         # Work-around: the Queue class here has weird behaviour, and a new queue gets created everytime a new GRPC stream is opened,
         # so we what we do here is keep track of all the old queues so that we can close them all in the stop() method on program exit.
         # Otherwise the program will keep running even after closing it.
@@ -52,7 +60,7 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
             print("[GRPC] sending settings")
             yield cmd
 
-        print("DONE")
+        print("[GRPC] command stream closed ID:", stream_id)
 
     def set_settings(self, container_ids: list[str]):
         self.settings = Settings(container_ids=container_ids)

@@ -54,21 +54,21 @@ class Ui_ContainersDialog(object):
 
         self.verticalLayout.addWidget(self.dockerStartLabel)
 
-        self.layout1 = QHBoxLayout()
-        self.layout1.setSpacing(2)
-        self.layout1.setObjectName(u"layout1")
+        self.dockerCmdLayout = QHBoxLayout()
+        self.dockerCmdLayout.setSpacing(2)
+        self.dockerCmdLayout.setObjectName(u"dockerCmdLayout")
         self.dockerCmdInput = QLineEdit(ContainersDialog)
         self.dockerCmdInput.setObjectName(u"dockerCmdInput")
 
-        self.layout1.addWidget(self.dockerCmdInput)
+        self.dockerCmdLayout.addWidget(self.dockerCmdInput)
 
-        self.copyButton = QPushButton(ContainersDialog)
-        self.copyButton.setObjectName(u"copyButton")
+        self.dockerCopyButton = QPushButton(ContainersDialog)
+        self.dockerCopyButton.setObjectName(u"dockerCopyButton")
 
-        self.layout1.addWidget(self.copyButton)
+        self.dockerCmdLayout.addWidget(self.dockerCopyButton)
 
 
-        self.verticalLayout.addLayout(self.layout1)
+        self.verticalLayout.addLayout(self.dockerCmdLayout)
 
         self.selectContainerLayout = QVBoxLayout()
         self.selectContainerLayout.setSpacing(10)
@@ -130,7 +130,7 @@ class Ui_ContainersDialog(object):
         ContainersDialog.setWindowTitle(QCoreApplication.translate("ContainersDialog", u"Intercept Docker", None))
         self.label_3.setText(QCoreApplication.translate("ContainersDialog", u"Intercept running Docker containers", None))
         self.dockerStartLabel.setText(QCoreApplication.translate("ContainersDialog", u"Trayce Agent Docker container is not running! Start it by running this command in the terminal:", None))
-        self.copyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))
+        self.dockerCopyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))
         self.selectContainerLabel.setText(QCoreApplication.translate("ContainersDialog", u"Select which containers you want to intercept.", None))
         self.cancelButton.setText(QCoreApplication.translate("ContainersDialog", u"Cancel", None))
         self.saveButton.setText(QCoreApplication.translate("ContainersDialog", u"Save", None))

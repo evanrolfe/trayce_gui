@@ -1,14 +1,17 @@
 from time import sleep
 import typing
 from PySide6 import QtCore, QtWidgets
+import agent
 from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
+from network.models.container import Container
 from network.models.containers_state import ContainersState
 from network.ui.ui_containers_dialog import Ui_ContainersDialog
 from network.widgets.containers_table_model import ContainersTableModel
 from network.repos.container_repo import ContainerRepo
 from async_proc import AsyncProc, AsyncSignals
 from agent.helpers import get_docker_cmd
+from agent.api_pb2 import Container as AgentContainer
 
 
 class ContainersDialog(QtWidgets.QDialog):
@@ -16,8 +19,6 @@ class ContainersDialog(QtWidgets.QDialog):
     agent_running: bool
     table_model: ContainersTableModel
     container_repo: ContainerRepo
-
-    __reload = QtCore.Signal()
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(ContainersDialog, self).__init__(*args, **kwargs)
@@ -31,7 +32,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.ui.saveButton.clicked.connect(self.save_clicked)
         self.ui.cancelButton.clicked.connect(self.close)
-        self.ui.copyButton.clicked.connect(self.copy_cmd)
+        self.ui.dockerCopyButton.clicked.connect(self.copy_cmd)
 
         # Configure horizontal header
         horizontalHeader = self.ui.containersTable.horizontalHeader()
@@ -65,31 +66,40 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.agent_running = False
         self.show_agent_not_running()
-        self.__reload.connect(self.load_containers)
 
         self.app_running = True
-        self.reload_proc = AsyncProc(self.load_containers_periodically)
-        self.threadpool = QtCore.QThreadPool()
-        self.threadpool.start(self.reload_proc)
-
+        EventBusGlobal.get().containers_observed.connect(self.containers_observed)
         EventBus.get().containers_btn_clicked.connect(self.show)
 
     def show(self):
-        self.ui.copyButton.setText("Copy")
+        self.ui.dockerCopyButton.setText("Copy")
         super().show()
 
-    def load_containers(self):
-        # Load docker containers to table
-        containers = self.container_repo.get_all()
+    def containers_observed(self, agent_containers: list[AgentContainer]):
+        containers = []
+        for agent_container in agent_containers:
+            container = Container(
+                short_id=agent_container.id,
+                name=agent_container.name,
+                status=agent_container.status,
+                ports={},
+                image=agent_container.image,
+                networks=[],
+                host_name=agent_container.name,
+                ip=agent_container.ip,
+                raw_container={},
+                intercepted=False,
+            )
+            containers.append(container)
         self.table_model.merge_containers(containers)
         containers_state = ContainersState(containers=containers)
         agent_running = containers_state.is_trayce_agent_running()
 
-        # TODO: Only publish if it actually changes!!!
-        EventBus.get().container_state_changed.emit(containers_state)
-
         if agent_running == self.agent_running:
             return
+
+        # TODO: Only publish if it actually changes!!!
+        EventBus.get().container_state_changed.emit(containers_state)
 
         self.agent_running = agent_running
         if self.agent_running:
@@ -98,24 +108,23 @@ class ContainersDialog(QtWidgets.QDialog):
             self.show_agent_not_running()
 
     def show_agent_running(self):
-        self.ui.dockerCmdInput.hide()
         self.ui.dockerStartLabel.hide()
+        self.ui.dockerCmdInput.hide()
+        self.ui.dockerCopyButton.hide()
+
         self.ui.selectContainerLabel.show()
         self.ui.selectContainerLine.show()
         self.ui.containersTable.show()
 
     def show_agent_not_running(self):
         self.ui.dockerCmdInput.setText(get_docker_cmd())
-        self.ui.dockerCmdInput.show()
         self.ui.dockerStartLabel.show()
+        self.ui.dockerCmdInput.show()
+        self.ui.dockerCopyButton.show()
+
         self.ui.selectContainerLabel.hide()
         self.ui.selectContainerLine.hide()
         self.ui.containersTable.hide()
-
-    def load_containers_periodically(self, signals: AsyncSignals):
-        while self.app_running:
-            self.__reload.emit()
-            sleep(0.5)
 
     def save_clicked(self):
         container_ids = [c.short_id for c in self.table_model.containers if c.intercepted]
@@ -126,7 +135,7 @@ class ContainersDialog(QtWidgets.QDialog):
         self.ui.dockerCmdInput.setFocus()
         self.ui.dockerCmdInput.selectAll()
         self.ui.dockerCmdInput.copy()
-        self.ui.copyButton.setText("Copied")
+        self.ui.dockerCopyButton.setText("Copied")
 
     def about_to_quit(self):
         self.app_running = False

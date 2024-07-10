@@ -6,6 +6,7 @@ package api;
 
 service TrayceAgent {
     rpc SendFlowsObserved (Flows) returns (Reply) {}
+	rpc SendContainersObserved (Containers) returns (Reply) {}
     rpc SendAgentStarted (AgentStarted) returns (Reply) {}
     rpc OpenCommandStream (stream NooP) returns (stream Command) {}
 }
@@ -46,4 +47,16 @@ message Request {
 
 message Response {
     int32 result = 1;
+}
+
+message Container {
+	string id = 1;
+    string image = 2;
+    string ip = 3;
+    string name = 4;
+    string status = 5;
+}
+
+message Containers {
+    repeated Container containers = 1;
 }

@@ -50,13 +50,13 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="layout1">
+    <layout class="QHBoxLayout" name="dockerCmdLayout">
      <property name="spacing">
       <number>2</number>
      </property>
      <item><widget class="QLineEdit" name="dockerCmdInput"/></item>
      <item>
-         <widget class="QPushButton" name="copyButton">
+         <widget class="QPushButton" name="dockerCopyButton">
          <property name="text">
          <string>Copy</string>
          </property>
