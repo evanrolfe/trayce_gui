@@ -16,6 +16,17 @@ def send_flow_over_grpc(flow: api_pb2.Flow):
     stub.SendFlowsObserved(flow_message)
 
 
+def send_containers_over_grpc(containers: list[api_pb2.Container]):
+    # Set up a channel and a stub
+    channel = grpc.insecure_channel("localhost:50051")  # Adjust the address and port accordingly
+    stub = api_pb2_grpc.TrayceAgentStub(channel)
+
+    containers_message = api_pb2.Containers(containers=containers)  # Replace with actual fields
+
+    # Send the message using the stub
+    stub.SendContainersObserved(containers_message)
+
+
 def hex_dump_to_bytes(hex_dump: str) -> bytes:
     lines = hex_dump.split("\n")
     hex_string = ""

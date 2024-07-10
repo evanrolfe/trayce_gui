@@ -148,54 +148,54 @@ def describe_network_page():
 
         main_window.about_to_quit()
 
-    def it_demo(qtbot: QtBot):  # type: ignore
-        root_path = pathlib.Path("/home/evan/Code/trayce_gui")
-        assets_path = root_path.joinpath("assets")
-        print("root_path=", root_path)
-        QtCore.QDir.addSearchPath("assets", str(assets_path))
+    # def it_demo(qtbot: QtBot):  # type: ignore
+    #     root_path = pathlib.Path("/home/evan/Code/trayce_gui")
+    #     assets_path = root_path.joinpath("assets")
+    #     print("root_path=", root_path)
+    #     QtCore.QDir.addSearchPath("assets", str(assets_path))
 
-        # Setup
-        main_window = MainWindow(pathlib.Path("./assets"))
+    #     # Setup
+    #     main_window = MainWindow(pathlib.Path("./assets"))
 
-        rows = [
-            ["1", "http", "localhost:3000", "GET", "/users.json", 200],
-            ["1", "http", "localhost:3000", "POST", "/login", 401],
-            ["1", "http", "user-service:443", "GET", "/users.json", 200],
-            ["1", "http", "user-service:443", "GET", "/users.json", 200],
-            ["1", "http", "user-service:443", "GET", "/users.json", 401],
-            ["1", "http", "localhost:3000", "GET", "/users.json", 200],
-            ["1", "http", "trayce.dev", "GET", "/index.html", 200],
-            ["1", "http", "trayce.dev", "GET", "/blog.html", 200],
-            ["1", "http", "localhost:3000", "GET", "/notfound", 404],
-            ["1", "http", "localhost:3000", "POST", "/login", 500],
-            ["1", "http", "localhost:3000", "GET", "/users.json", 200],
-            ["1", "http", "localhost:3000", "GET", "/login", 200],
-            ["1", "http", "localhost:3000", "GET", "/blog.html", 200],
-            ["1", "http", "localhost:3000", "GET", "/index.html", 200],
-            ["1", "http", "localhost:3000", "GET", "/index.html", 200],
-        ]
-        # TODO: Improve these factories also generate the uuid properly
-        for i, row in enumerate(rows):
-            req = generate_http_request(row[3], row[4], row[2], default_headers)
-            flow1 = AgentFlowFactory.build(uuid=str(i), request=req)
-            resp = generate_http_response(status=row[5], body=resp_body)
-            flow2 = AgentFlowFactory.build_response(uuid=str(i), response=resp)
+    #     rows = [
+    #         ["1", "http", "localhost:3000", "GET", "/users.json", 200],
+    #         ["1", "http", "localhost:3000", "POST", "/login", 401],
+    #         ["1", "http", "user-service:443", "GET", "/users.json", 200],
+    #         ["1", "http", "user-service:443", "GET", "/users.json", 200],
+    #         ["1", "http", "user-service:443", "GET", "/users.json", 401],
+    #         ["1", "http", "localhost:3000", "GET", "/users.json", 200],
+    #         ["1", "http", "trayce.dev", "GET", "/index.html", 200],
+    #         ["1", "http", "trayce.dev", "GET", "/blog.html", 200],
+    #         ["1", "http", "localhost:3000", "GET", "/notfound", 404],
+    #         ["1", "http", "localhost:3000", "POST", "/login", 500],
+    #         ["1", "http", "localhost:3000", "GET", "/users.json", 200],
+    #         ["1", "http", "localhost:3000", "GET", "/login", 200],
+    #         ["1", "http", "localhost:3000", "GET", "/blog.html", 200],
+    #         ["1", "http", "localhost:3000", "GET", "/index.html", 200],
+    #         ["1", "http", "localhost:3000", "GET", "/index.html", 200],
+    #     ]
+    #     # TODO: Improve these factories also generate the uuid properly
+    #     for i, row in enumerate(rows):
+    #         req = generate_http_request2(str(row[3]), str(row[4]), str(row[2]), default_headers)
+    #         flow1 = AgentFlowFactory.build(uuid=str(i), request=req)
+    #         resp = generate_http_response(status=row[5], body=resp_body)
+    #         flow2 = AgentFlowFactory.build_response(uuid=str(i), response=resp)
 
-            signal = EventBusGlobal.get().flows_received
-            with qtbot.waitSignal(signal, timeout=1000):
-                send_flow_over_grpc(flow1)
-                send_flow_over_grpc(flow2)
+    #         signal = EventBusGlobal.get().flows_received
+    #         with qtbot.waitSignal(signal, timeout=1000):
+    #             send_flow_over_grpc(flow1)
+    #             send_flow_over_grpc(flow2)
 
-        # Subject
-        main_window.show()
-        qtbot.waitExposed(main_window)
-        qtbot.wait(30000)
+    #     # Subject
+    #     main_window.show()
+    #     qtbot.waitExposed(main_window)
+    #     qtbot.wait(30000)
 
-        main_window.about_to_quit()
+    #     main_window.about_to_quit()
 
 
 # TODO: Remove this duplicate function
-def generate_http_request(method: str, path: str, host: str, headers: dict[str, str], body: Optional[str] = None):
+def generate_http_request2(method: str, path: str, host: str, headers: dict[str, str], body: Optional[str] = None):
     # Start with the request line
     request_line = f"{method} {path} HTTP/1.1\r\n"
 

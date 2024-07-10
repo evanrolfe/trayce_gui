@@ -1,15 +1,11 @@
-from time import sleep
 import typing
 from PySide6 import QtCore, QtWidgets
-import agent
 from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
 from network.models.container import Container
 from network.models.containers_state import ContainersState
 from network.ui.ui_containers_dialog import Ui_ContainersDialog
 from network.widgets.containers_table_model import ContainersTableModel
-from network.repos.container_repo import ContainerRepo
-from async_proc import AsyncProc, AsyncSignals
 from agent.helpers import get_docker_cmd
 from agent.api_pb2 import Container as AgentContainer
 
@@ -18,7 +14,6 @@ class ContainersDialog(QtWidgets.QDialog):
     app_running: bool
     agent_running: bool
     table_model: ContainersTableModel
-    container_repo: ContainerRepo
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
         super(ContainersDialog, self).__init__(*args, **kwargs)
@@ -61,9 +56,6 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.ui.containersTable.clicked.connect(self.table_model.table_cell_clicked)
 
-        self.container_repo = ContainerRepo()
-        self.table_model.set_containers(self.container_repo.get_all())
-
         self.agent_running = False
         self.show_agent_not_running()
 
@@ -76,7 +68,7 @@ class ContainersDialog(QtWidgets.QDialog):
         super().show()
 
     def containers_observed(self, agent_containers: list[AgentContainer]):
-        containers = []
+        containers: list[Container] = []
         for agent_container in agent_containers:
             container = Container(
                 short_id=agent_container.id,
