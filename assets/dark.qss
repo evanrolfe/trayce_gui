@@ -540,3 +540,7 @@ QLabel#responseStatusLabel[status="2"] {
 QLabel#responseStatusLabel[status="1"] {
   background-color: #7d69cb;
 }
+
+QLabel#notImplementedLabel {
+    font-size: 20px;
+}

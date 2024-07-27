@@ -59,6 +59,16 @@ class FlowTableContainer(QtWidgets.QWidget):
         EventBusGlobal.get().flows_received.connect(self.flows_received)
         self.ui.flowsTable.selectionModel().selectionChanged.connect(self.flow_selected)
 
+        self.ui.searchBox.returnPressed.connect(self.show_not_implemented)
+
+    def show_not_implemented(self):
+        message_box = QtWidgets.QMessageBox()
+        message_box.setWindowTitle("Not Implemented")
+        message_box.setText("Sorry, feature not yet implemented!")
+        message_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        message_box.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Ok)
+        message_box.exec()
+
     def flows_received(self, agent_flows: list[AgentFlow]):
         flows = [Flow.from_agent_flow(af) for af in agent_flows]
         self.table_model.add_flows(flows)
