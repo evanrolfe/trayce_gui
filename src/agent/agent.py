@@ -2,10 +2,11 @@ import typing
 import grpc
 import queue
 import uuid
+
 from agent.api_pb2 import AgentStarted, Containers, Request, Reply, NooP, Command, Settings, Flows
 from event_bus_global import EventBusGlobal
-
 from . import api_pb2_grpc
+from datetime import datetime
 
 FlowObservedContext = grpc.aio.ServicerContext[Flows, Reply]
 ContainersObservedContext = grpc.aio.ServicerContext[Containers, Reply]
@@ -17,11 +18,15 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
     settings: Settings
     active_stream_queue: queue.Queue[Command]
     old_stream_queues: list[queue.Queue[Command]]
+    last_heartbeat: typing.Optional[datetime]
+    agent_running: bool
 
     def __init__(self):
         super().__init__()
         self.settings = Settings(container_ids=[])
         self.old_stream_queues = []
+        self.agent_running = False
+        self.last_heartbeat = None
 
         EventBusGlobal.get().intercept_containers.connect(self.set_settings)
         EventBusGlobal.get().agent_connected.connect(self.send_settings)
@@ -38,7 +43,11 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
 
     def SendContainersObserved(self, request: Containers, context: ContainersObservedContext):
         EventBusGlobal.get().containers_observed.emit(request.containers)
+        if not self.agent_running:
+            EventBusGlobal.get().agent_running.emit(True)
 
+        self.last_heartbeat = datetime.now()
+        self.agent_running = True
         return Reply(status="success")
 
     def OpenCommandStream(
@@ -75,3 +84,13 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
         # Close all the queues otherwise the queues will stay running and the program will not fully exit when you close it
         for queue in self.old_stream_queues:
             queue.put(None)  # type:ignore
+
+    # This gets called every 250ms by the heartbeat thread
+    def check_heartbeat(self):
+        if self.last_heartbeat:
+            diff = datetime.now() - self.last_heartbeat
+            if diff.total_seconds() >= 1.0 and self.agent_running:
+                print("Agent disconnected!")
+                self.agent_running = False
+                self.last_heartbeat = None
+                EventBusGlobal.get().agent_running.emit(False)

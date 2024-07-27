@@ -19,6 +19,7 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
     def add_flows(self, flows: list[Flow]):
         for flow in flows:
             self.__add_flow(flow)
+        print("Total flows:", len(self.flows))
         self.layoutChanged.emit()
 
     def __add_flow(self, flow: Flow):
@@ -29,10 +30,10 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
 
         matching_request_flows = [f for f in self.flows if f.uuid == flow.uuid]
         if len(matching_request_flows) > 0:
-            print("Found matching request flow")
+            print("Found matching request flow for", flow.uuid)
             matching_request_flows[0].add_response(flow)
         else:
-            print("No matching request flow found!")
+            print("No matching request flow found!", flow.uuid)
 
     def get_flow(self, index: QtCore.QModelIndex) -> typing.Optional[Flow]:
         if not index.isValid():

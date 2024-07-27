@@ -3,7 +3,6 @@ from PySide6 import QtCore, QtWidgets
 from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
 from network.models.container import Container
-from network.models.containers_state import ContainersState
 from network.ui.ui_containers_dialog import Ui_ContainersDialog
 from network.widgets.containers_table_model import ContainersTableModel
 from agent.helpers import get_docker_cmd
@@ -61,6 +60,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.app_running = True
         EventBusGlobal.get().containers_observed.connect(self.containers_observed)
+        EventBusGlobal.get().agent_running.connect(self.agent_running_slot)
         EventBus.get().containers_btn_clicked.connect(self.show)
 
     def show(self):
@@ -84,17 +84,9 @@ class ContainersDialog(QtWidgets.QDialog):
             )
             containers.append(container)
         self.table_model.merge_containers(containers)
-        containers_state = ContainersState(containers=containers)
-        agent_running = containers_state.is_trayce_agent_running()
 
-        if agent_running == self.agent_running:
-            return
-
-        # TODO: Only publish if it actually changes!!!
-        EventBus.get().container_state_changed.emit(containers_state)
-
-        self.agent_running = agent_running
-        if self.agent_running:
+    def agent_running_slot(self, running: bool):
+        if running:
             self.show_agent_running()
         else:
             self.show_agent_not_running()

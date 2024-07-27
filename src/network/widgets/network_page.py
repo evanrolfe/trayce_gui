@@ -1,5 +1,6 @@
 import re
 from PySide6 import QtCore, QtGui, QtWidgets
+from agent.heartbeat_thread import HeartbeatThread
 from network.event_bus import EventBus
 from network.models.flow import Flow
 
@@ -106,7 +107,9 @@ class NetworkPage(QtWidgets.QWidget):
         # Start the GRPC server
         self.thread_pool = QtCore.QThreadPool()
         self.grpc_worker = AgentThread()
+        self.heartbeat_check = HeartbeatThread(self.grpc_worker.agent)
         self.thread_pool.start(self.grpc_worker)
+        self.thread_pool.start(self.heartbeat_check)
 
         doc = self.ui.responseBodyText.document()
         JsonHighlighter(doc)
@@ -123,4 +126,5 @@ class NetworkPage(QtWidgets.QWidget):
 
     def about_to_quit(self):
         self.grpc_worker.stop()
+        self.heartbeat_check.stop()
         self.containers_dialog.about_to_quit()

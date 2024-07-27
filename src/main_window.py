@@ -2,8 +2,8 @@ import pathlib
 import signal
 
 from PySide6 import QtWidgets, QtGui, QtCore
+from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
-from network.models.containers_state import ContainersState
 from ui_main_window import Ui_MainWindow
 from network.widgets.network_page import NetworkPage
 from editor.editor_page import EditorPage
@@ -73,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.statusBar.setSizeGripEnabled(False)
         self.ui.statusBar.insertPermanentWidget(0, c)
 
-        EventBus.get().container_state_changed.connect(self.container_state_changed)
+        EventBusGlobal.get().agent_running.connect(self.agent_running_slot)
 
     def sidebar_item_clicked(self, item: QtWidgets.QListWidgetItem, prev: QtWidgets.QListWidgetItem):
         item_value = item.data(QtCore.Qt.ItemDataRole.UserRole)
@@ -90,9 +90,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if stylesheet != "":
             self.setStyleSheet(stylesheet)
 
-    def container_state_changed(self, state: ContainersState):
-        self.containers_status.setText(f"Containers {len(state.containers)}")
-        if state.is_trayce_agent_running():
+    def agent_running_slot(self, running: bool):
+        # TODO: Set this text
+        # self.containers_status.setText(f"Containers {len(state.containers)}")
+        if running:
             self.agent_status.setText(f"Trayce Agent: running")
         else:
             self.agent_status.setText(f"Trayce Agent: not running")
