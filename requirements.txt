@@ -2,3 +2,4 @@ PySide6
 grpcio
 requests
 protobuf
+sqlalchemy
