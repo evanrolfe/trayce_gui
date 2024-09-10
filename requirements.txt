@@ -1,5 +1,6 @@
-PySide6
 grpcio
 requests
-protobuf
 sqlalchemy
+packaging
+protobuf
+PySide6

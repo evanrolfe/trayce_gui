@@ -49,6 +49,27 @@ class Ui_ContainersDialog(object):
 
         self.verticalLayout.addWidget(self.line)
 
+        self.dockerUpdateLabel = QLabel(ContainersDialog)
+        self.dockerUpdateLabel.setObjectName(u"dockerUpdateLabel")
+
+        self.verticalLayout.addWidget(self.dockerUpdateLabel)
+
+        self.dockerUpdateCmdLayout = QHBoxLayout()
+        self.dockerUpdateCmdLayout.setSpacing(2)
+        self.dockerUpdateCmdLayout.setObjectName(u"dockerUpdateCmdLayout")
+        self.dockerUpdateCmdInput = QLineEdit(ContainersDialog)
+        self.dockerUpdateCmdInput.setObjectName(u"dockerUpdateCmdInput")
+
+        self.dockerUpdateCmdLayout.addWidget(self.dockerUpdateCmdInput)
+
+        self.dockerUpdateCopyButton = QPushButton(ContainersDialog)
+        self.dockerUpdateCopyButton.setObjectName(u"dockerUpdateCopyButton")
+
+        self.dockerUpdateCmdLayout.addWidget(self.dockerUpdateCopyButton)
+
+
+        self.verticalLayout.addLayout(self.dockerUpdateCmdLayout)
+
         self.dockerStartLabel = QLabel(ContainersDialog)
         self.dockerStartLabel.setObjectName(u"dockerStartLabel")
 
@@ -129,6 +150,8 @@ class Ui_ContainersDialog(object):
     def retranslateUi(self, ContainersDialog):
         ContainersDialog.setWindowTitle(QCoreApplication.translate("ContainersDialog", u"Intercept Docker", None))
         self.label_3.setText(QCoreApplication.translate("ContainersDialog", u"Intercept running Docker containers", None))
+        self.dockerUpdateLabel.setText(QCoreApplication.translate("ContainersDialog", u"Please update the docker image with:", None))
+        self.dockerUpdateCopyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))
         self.dockerStartLabel.setText(QCoreApplication.translate("ContainersDialog", u"Trayce Agent Docker container is not running! Start it by running this command in the terminal:", None))
         self.dockerCopyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))
         self.selectContainerLabel.setText(QCoreApplication.translate("ContainersDialog", u"Select which containers you want to intercept.", None))

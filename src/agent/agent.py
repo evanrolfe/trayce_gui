@@ -3,15 +3,16 @@ import grpc
 import queue
 import uuid
 
-from agent.api_pb2 import AgentStarted, Containers, Request, Reply, NooP, Command, Settings, Flows
+from agent.api_pb2 import AgentStarted, Containers, Request, Reply, Command, Settings, Flows
 from event_bus_global import EventBusGlobal
+from shared.agent_details import AgentDetails
 from . import api_pb2_grpc
 from datetime import datetime
 
 FlowObservedContext = grpc.aio.ServicerContext[Flows, Reply]
 ContainersObservedContext = grpc.aio.ServicerContext[Containers, Reply]
 AgentStartedContext = grpc.aio.ServicerContext[AgentStarted, Reply]
-CommandStreamContext = grpc.aio.ServicerContext[NooP, Command]
+CommandStreamContext = grpc.aio.ServicerContext[AgentStarted, Command]
 
 
 class Agent(api_pb2_grpc.TrayceAgentServicer):
@@ -19,13 +20,13 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
     active_stream_queue: queue.Queue[Command]
     old_stream_queues: list[queue.Queue[Command]]
     last_heartbeat: typing.Optional[datetime]
-    agent_running: bool
+    agent_running: AgentDetails
 
     def __init__(self):
         super().__init__()
         self.settings = Settings(container_ids=[])
         self.old_stream_queues = []
-        self.agent_running = False
+        self.agent_running = AgentDetails(False, "")
         self.last_heartbeat = None
 
         EventBusGlobal.get().intercept_containers.connect(self.set_settings)
@@ -43,33 +44,37 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
 
     def SendContainersObserved(self, request: Containers, context: ContainersObservedContext):
         EventBusGlobal.get().containers_observed.emit(request.containers)
-        if not self.agent_running:
-            EventBusGlobal.get().agent_running.emit(True)
+        if not self.agent_running.running:
+            self.agent_running.running = True
+            EventBusGlobal.get().agent_running.emit(self.agent_running)
 
         self.last_heartbeat = datetime.now()
-        self.agent_running = True
         return Reply(status="success")
 
     def OpenCommandStream(
-        self, request_iterator: typing.Iterator[NooP], context: CommandStreamContext
+        self, request_iterator: typing.Iterator[AgentStarted], context: CommandStreamContext
     ) -> typing.Iterable[Command]:
         stream_id = uuid.uuid4()
         print("[GRPC] OpenCommandStream: agent connected from:", context.peer(), "ID:", stream_id)
-        # Work-around: the Queue class here has weird behaviour, and a new queue gets created everytime a new GRPC stream is opened,
-        # so we what we do here is keep track of all the old queues so that we can close them all in the stop() method on program exit.
-        # Otherwise the program will keep running even after closing it.
-        self.active_stream_queue = queue.Queue()
-        self.old_stream_queues.append(self.active_stream_queue)
 
-        # Work-around: if you try and call self.send_settings here it causes weirdness with the queue where it doesn't
-        # always receive the settings later on
-        EventBusGlobal.get().agent_connected.emit()
+        for agent_started in request_iterator:
+            self.agent_running.version = agent_started.version
 
-        for cmd in iter(self.active_stream_queue.get, None):
-            print("[GRPC] sending settings")
-            yield cmd
+            # Work-around: the Queue class here has weird behaviour, and a new queue gets created everytime a new GRPC stream is opened,
+            # so we what we do here is keep track of all the old queues so that we can close them all in the stop() method on program exit.
+            # Otherwise the program will keep running even after closing it.
+            self.active_stream_queue = queue.Queue()
+            self.old_stream_queues.append(self.active_stream_queue)
 
-        print("[GRPC] command stream closed ID:", stream_id)
+            # Work-around: if you try and call self.send_settings here it causes weirdness with the queue where it doesn't
+            # always receive the settings later on
+            EventBusGlobal.get().agent_connected.emit()
+
+            for cmd in iter(self.active_stream_queue.get, None):
+                print("[GRPC] sending settings")
+                yield cmd
+
+            print("[GRPC] command stream closed ID:", stream_id)
 
     def set_settings(self, container_ids: list[str]):
         self.settings = Settings(container_ids=container_ids)
@@ -89,8 +94,8 @@ class Agent(api_pb2_grpc.TrayceAgentServicer):
     def check_heartbeat(self):
         if self.last_heartbeat:
             diff = datetime.now() - self.last_heartbeat
-            if diff.total_seconds() >= 1.0 and self.agent_running:
+            if diff.total_seconds() >= 1.0 and self.agent_running.running:
                 print("Agent disconnected!")
-                self.agent_running = False
+                self.agent_running.running = False
                 self.last_heartbeat = None
-                EventBusGlobal.get().agent_running.emit(False)
+                EventBusGlobal.get().agent_running.emit(self.agent_running)

@@ -43,6 +43,28 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="dockerUpdateLabel">
+     <property name="text">
+      <string>Warning: the trayce_agent docker image is out of date! Please update it with:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="dockerUpdateCmdLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item><widget class="QLineEdit" name="dockerUpdateCmdInput"/></item>
+     <item>
+         <widget class="QPushButton" name="dockerUpdateCopyButton">
+         <property name="text">
+         <string>Copy</string>
+         </property>
+         </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QLabel" name="dockerStartLabel">
      <property name="text">
       <string>Trayce Agent Docker container is not running! Start it by running this command in the terminal:</string>

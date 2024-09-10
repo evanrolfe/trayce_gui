@@ -29,8 +29,8 @@ class AgentFlowFactory:
     def build(cls, **kwargs: typing.Any) -> api_pb2.Flow:
         flow = api_pb2.Flow(
             uuid="1234",
-            local_addr="192.168.0.1",
-            remote_addr="192.168.0.2",
+            source_addr="192.168.0.1",
+            dest_addr="192.168.0.2",
             l4_protocol="tcp",
             l7_protocol="http",
             request=hex_dump_to_bytes(request_hex),
@@ -46,8 +46,8 @@ class AgentFlowFactory:
     def build_response(cls, **kwargs: typing.Any) -> api_pb2.Flow:
         flow = api_pb2.Flow(
             uuid="1234",
-            local_addr="192.168.0.1",
-            remote_addr="192.168.0.2",
+            source_addr="192.168.0.1",
+            dest_addr="192.168.0.2",
             l4_protocol="tcp",
             l7_protocol="http",
             response=hex_dump_to_bytes(response_hex),

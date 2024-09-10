@@ -7,6 +7,7 @@ from network.ui.ui_containers_dialog import Ui_ContainersDialog
 from network.widgets.containers_table_model import ContainersTableModel
 from agent.helpers import get_docker_cmd
 from agent.api_pb2 import Container as AgentContainer
+from shared.agent_details import AgentDetails
 
 
 class ContainersDialog(QtWidgets.QDialog):
@@ -27,6 +28,7 @@ class ContainersDialog(QtWidgets.QDialog):
         self.ui.saveButton.clicked.connect(self.save_clicked)
         self.ui.cancelButton.clicked.connect(self.close)
         self.ui.dockerCopyButton.clicked.connect(self.copy_cmd)
+        self.ui.dockerUpdateCopyButton.clicked.connect(self.copy_update_cmd)
 
         # Configure horizontal header
         horizontalHeader = self.ui.containersTable.horizontalHeader()
@@ -57,6 +59,7 @@ class ContainersDialog(QtWidgets.QDialog):
 
         self.agent_running = False
         self.show_agent_not_running()
+        self.show_agent_version_ok()
 
         self.app_running = True
         EventBusGlobal.get().containers_observed.connect(self.containers_observed)
@@ -85,11 +88,27 @@ class ContainersDialog(QtWidgets.QDialog):
             containers.append(container)
         self.table_model.merge_containers(containers)
 
-    def agent_running_slot(self, running: bool):
-        if running:
+    def agent_running_slot(self, agent_runnig: AgentDetails):
+        self.show_agent_version_ok()
+        self.show_agent_not_running()
+        print("agent version:", agent_runnig.version, "ok?", agent_runnig.version_ok())
+
+        if agent_runnig.running:
             self.show_agent_running()
-        else:
-            self.show_agent_not_running()
+
+        if agent_runnig.running and not agent_runnig.version_ok():
+            self.show_agent_version_not_ok()
+
+    def show_agent_version_ok(self):
+        self.ui.dockerUpdateLabel.hide()
+        self.ui.dockerUpdateCmdInput.hide()
+        self.ui.dockerUpdateCopyButton.hide()
+
+    def show_agent_version_not_ok(self):
+        self.ui.dockerUpdateCmdInput.setText("docker pull traycer/trayce_agent:latest")
+        self.ui.dockerUpdateLabel.show()
+        self.ui.dockerUpdateCmdInput.show()
+        self.ui.dockerUpdateCopyButton.show()
 
     def show_agent_running(self):
         self.ui.dockerStartLabel.hide()
@@ -120,6 +139,12 @@ class ContainersDialog(QtWidgets.QDialog):
         self.ui.dockerCmdInput.selectAll()
         self.ui.dockerCmdInput.copy()
         self.ui.dockerCopyButton.setText("Copied")
+
+    def copy_update_cmd(self):
+        self.ui.dockerUpdateCmdInput.setFocus()
+        self.ui.dockerUpdateCmdInput.selectAll()
+        self.ui.dockerUpdateCmdInput.copy()
+        self.ui.dockerUpdateCopyButton.setText("Copied")
 
     def about_to_quit(self):
         self.app_running = False

@@ -6,22 +6,22 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class Flow(_message.Message):
-    __slots__ = ("uuid", "local_addr", "remote_addr", "l4_protocol", "l7_protocol", "request", "response")
+    __slots__ = ("uuid", "source_addr", "dest_addr", "l4_protocol", "l7_protocol", "request", "response")
     UUID_FIELD_NUMBER: _ClassVar[int]
-    LOCAL_ADDR_FIELD_NUMBER: _ClassVar[int]
-    REMOTE_ADDR_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_ADDR_FIELD_NUMBER: _ClassVar[int]
+    DEST_ADDR_FIELD_NUMBER: _ClassVar[int]
     L4_PROTOCOL_FIELD_NUMBER: _ClassVar[int]
     L7_PROTOCOL_FIELD_NUMBER: _ClassVar[int]
     REQUEST_FIELD_NUMBER: _ClassVar[int]
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     uuid: str
-    local_addr: str
-    remote_addr: str
+    source_addr: str
+    dest_addr: str
     l4_protocol: str
     l7_protocol: str
     request: bytes
     response: bytes
-    def __init__(self, uuid: _Optional[str] = ..., local_addr: _Optional[str] = ..., remote_addr: _Optional[str] = ..., l4_protocol: _Optional[str] = ..., l7_protocol: _Optional[str] = ..., request: _Optional[bytes] = ..., response: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, uuid: _Optional[str] = ..., source_addr: _Optional[str] = ..., dest_addr: _Optional[str] = ..., l4_protocol: _Optional[str] = ..., l7_protocol: _Optional[str] = ..., request: _Optional[bytes] = ..., response: _Optional[bytes] = ...) -> None: ...
 
 class Flows(_message.Message):
     __slots__ = ("flows",)
@@ -36,12 +36,10 @@ class Reply(_message.Message):
     def __init__(self, status: _Optional[str] = ...) -> None: ...
 
 class AgentStarted(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
-class NooP(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("version",)
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    version: str
+    def __init__(self, version: _Optional[str] = ...) -> None: ...
 
 class Command(_message.Message):
     __slots__ = ("type", "settings")

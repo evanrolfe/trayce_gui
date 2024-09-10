@@ -8,13 +8,13 @@ service TrayceAgent {
     rpc SendFlowsObserved (Flows) returns (Reply) {}
 	rpc SendContainersObserved (Containers) returns (Reply) {}
     rpc SendAgentStarted (AgentStarted) returns (Reply) {}
-    rpc OpenCommandStream (stream NooP) returns (stream Command) {}
+    rpc OpenCommandStream (stream AgentStarted) returns (stream Command) {}
 }
 
 message Flow {
 	string uuid = 1;
-    string local_addr = 2;
-    string remote_addr = 3;
+    string source_addr = 2;
+    string dest_addr = 3;
     string l4_protocol = 4;
     string l7_protocol = 5;
 	bytes request = 6;
@@ -29,8 +29,9 @@ message Reply {
     string status = 1;
 }
 
-message AgentStarted {}
-message NooP {}
+message AgentStarted {
+	string version = 1;
+}
 
 message Command {
     string type = 1;

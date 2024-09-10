@@ -30,8 +30,8 @@ class Flow(Model):
     def from_agent_flow(cls, agent_flow: AgentFlow) -> Flow:
         flow = Flow(
             uuid=agent_flow.uuid,
-            local_addr=agent_flow.local_addr,
-            remote_addr=agent_flow.remote_addr,
+            local_addr=agent_flow.source_addr,
+            remote_addr=agent_flow.dest_addr,
             l4_protocol=agent_flow.l4_protocol,
             l7_protocol=agent_flow.l7_protocol,
             request_raw=agent_flow.request,

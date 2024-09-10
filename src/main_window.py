@@ -4,6 +4,7 @@ import signal
 from PySide6 import QtWidgets, QtGui, QtCore
 from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
+from shared.agent_details import AgentDetails
 from ui_main_window import Ui_MainWindow
 from network.widgets.network_page import NetworkPage
 from editor.editor_page import EditorPage
@@ -90,10 +91,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if stylesheet != "":
             self.setStyleSheet(stylesheet)
 
-    def agent_running_slot(self, running: bool):
+    def agent_running_slot(self, agent_running: AgentDetails):
         # TODO: Set this text
         # self.containers_status.setText(f"Containers {len(state.containers)}")
-        if running:
+        if agent_running.running:
             self.agent_status.setText(f"Trayce Agent: running")
         else:
             self.agent_status.setText(f"Trayce Agent: not running")
