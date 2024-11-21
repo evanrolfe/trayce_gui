@@ -26,15 +26,14 @@ class AgentFlowFactory:
     IMAGES = ["ubuntu", "alpine", "scratch", "debian"]
 
     @classmethod
-    def build(cls, **kwargs: typing.Any) -> api_pb2.Flow:
+    def build_request(cls, request: api_pb2.HTTPRequest, **kwargs: typing.Any) -> api_pb2.Flow:
         flow = api_pb2.Flow(
             uuid="1234",
             source_addr="192.168.0.1",
             dest_addr="192.168.0.2",
             l4_protocol="tcp",
             l7_protocol="http",
-            request=hex_dump_to_bytes(request_hex),
-            response=b"",
+            http_request=request,
         )
 
         for key, value in kwargs.items():
@@ -43,14 +42,14 @@ class AgentFlowFactory:
         return flow
 
     @classmethod
-    def build_response(cls, **kwargs: typing.Any) -> api_pb2.Flow:
+    def build_response(cls, response: api_pb2.HTTPResponse, **kwargs: typing.Any) -> api_pb2.Flow:
         flow = api_pb2.Flow(
             uuid="1234",
             source_addr="192.168.0.1",
             dest_addr="192.168.0.2",
             l4_protocol="tcp",
             l7_protocol="http",
-            response=hex_dump_to_bytes(response_hex),
+            http_response=response,
         )
 
         for key, value in kwargs.items():

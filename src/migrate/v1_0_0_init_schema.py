@@ -9,3 +9,5 @@ def migrate_v1_0_0_init_schema(conn: Connection):
     """
     for statmt in sql.split(";"):
         conn.execute(text(statmt))
+    conn.commit()
+

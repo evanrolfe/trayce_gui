@@ -2,6 +2,8 @@ import pathlib
 import signal
 
 from PySide6 import QtWidgets, QtGui, QtCore
+from sqlalchemy import text
+from db import Database
 from event_bus_global import EventBusGlobal
 from network.event_bus import EventBus
 from shared.agent_details import AgentDetails
@@ -75,6 +77,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.statusBar.insertPermanentWidget(0, c)
 
         EventBusGlobal.get().agent_running.connect(self.agent_running_slot)
+
+        # conn = Database.get_instance().conn
+        # result = conn.execute(text("SELECT * FROM app_version;"))
 
     def sidebar_item_clicked(self, item: QtWidgets.QListWidgetItem, prev: QtWidgets.QListWidgetItem):
         item_value = item.data(QtCore.Qt.ItemDataRole.UserRole)

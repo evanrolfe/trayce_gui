@@ -6,28 +6,116 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class Flow(_message.Message):
-    __slots__ = ("uuid", "source_addr", "dest_addr", "l4_protocol", "l7_protocol", "request", "response")
+    __slots__ = ("uuid", "source_addr", "dest_addr", "l4_protocol", "l7_protocol", "response_raw", "http_request", "grpc_request", "http_response", "grpc_response")
     UUID_FIELD_NUMBER: _ClassVar[int]
     SOURCE_ADDR_FIELD_NUMBER: _ClassVar[int]
     DEST_ADDR_FIELD_NUMBER: _ClassVar[int]
     L4_PROTOCOL_FIELD_NUMBER: _ClassVar[int]
     L7_PROTOCOL_FIELD_NUMBER: _ClassVar[int]
-    REQUEST_FIELD_NUMBER: _ClassVar[int]
-    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    RESPONSE_RAW_FIELD_NUMBER: _ClassVar[int]
+    HTTP_REQUEST_FIELD_NUMBER: _ClassVar[int]
+    GRPC_REQUEST_FIELD_NUMBER: _ClassVar[int]
+    HTTP_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    GRPC_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     uuid: str
     source_addr: str
     dest_addr: str
     l4_protocol: str
     l7_protocol: str
-    request: bytes
-    response: bytes
-    def __init__(self, uuid: _Optional[str] = ..., source_addr: _Optional[str] = ..., dest_addr: _Optional[str] = ..., l4_protocol: _Optional[str] = ..., l7_protocol: _Optional[str] = ..., request: _Optional[bytes] = ..., response: _Optional[bytes] = ...) -> None: ...
+    response_raw: bytes
+    http_request: HTTPRequest
+    grpc_request: GRPCRequest
+    http_response: HTTPResponse
+    grpc_response: GRPCResponse
+    def __init__(self, uuid: _Optional[str] = ..., source_addr: _Optional[str] = ..., dest_addr: _Optional[str] = ..., l4_protocol: _Optional[str] = ..., l7_protocol: _Optional[str] = ..., response_raw: _Optional[bytes] = ..., http_request: _Optional[_Union[HTTPRequest, _Mapping]] = ..., grpc_request: _Optional[_Union[GRPCRequest, _Mapping]] = ..., http_response: _Optional[_Union[HTTPResponse, _Mapping]] = ..., grpc_response: _Optional[_Union[GRPCResponse, _Mapping]] = ...) -> None: ...
 
 class Flows(_message.Message):
     __slots__ = ("flows",)
     FLOWS_FIELD_NUMBER: _ClassVar[int]
     flows: _containers.RepeatedCompositeFieldContainer[Flow]
     def __init__(self, flows: _Optional[_Iterable[_Union[Flow, _Mapping]]] = ...) -> None: ...
+
+class StringList(_message.Message):
+    __slots__ = ("values",)
+    VALUES_FIELD_NUMBER: _ClassVar[int]
+    values: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, values: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class HTTPRequest(_message.Message):
+    __slots__ = ("method", "host", "path", "http_version", "headers", "payload")
+    class HeadersEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: StringList
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[StringList, _Mapping]] = ...) -> None: ...
+    METHOD_FIELD_NUMBER: _ClassVar[int]
+    HOST_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    HTTP_VERSION_FIELD_NUMBER: _ClassVar[int]
+    HEADERS_FIELD_NUMBER: _ClassVar[int]
+    PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+    method: str
+    host: str
+    path: str
+    http_version: str
+    headers: _containers.MessageMap[str, StringList]
+    payload: bytes
+    def __init__(self, method: _Optional[str] = ..., host: _Optional[str] = ..., path: _Optional[str] = ..., http_version: _Optional[str] = ..., headers: _Optional[_Mapping[str, StringList]] = ..., payload: _Optional[bytes] = ...) -> None: ...
+
+class HTTPResponse(_message.Message):
+    __slots__ = ("http_version", "status", "status_msg", "headers", "payload")
+    class HeadersEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: StringList
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[StringList, _Mapping]] = ...) -> None: ...
+    HTTP_VERSION_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    STATUS_MSG_FIELD_NUMBER: _ClassVar[int]
+    HEADERS_FIELD_NUMBER: _ClassVar[int]
+    PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+    http_version: str
+    status: int
+    status_msg: str
+    headers: _containers.MessageMap[str, StringList]
+    payload: bytes
+    def __init__(self, http_version: _Optional[str] = ..., status: _Optional[int] = ..., status_msg: _Optional[str] = ..., headers: _Optional[_Mapping[str, StringList]] = ..., payload: _Optional[bytes] = ...) -> None: ...
+
+class GRPCRequest(_message.Message):
+    __slots__ = ("path", "headers", "payload")
+    class HeadersEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    HEADERS_FIELD_NUMBER: _ClassVar[int]
+    PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+    path: str
+    headers: _containers.ScalarMap[str, str]
+    payload: bytes
+    def __init__(self, path: _Optional[str] = ..., headers: _Optional[_Mapping[str, str]] = ..., payload: _Optional[bytes] = ...) -> None: ...
+
+class GRPCResponse(_message.Message):
+    __slots__ = ("headers", "payload")
+    class HeadersEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    HEADERS_FIELD_NUMBER: _ClassVar[int]
+    PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+    headers: _containers.ScalarMap[str, str]
+    payload: bytes
+    def __init__(self, headers: _Optional[_Mapping[str, str]] = ..., payload: _Optional[bytes] = ...) -> None: ...
 
 class Reply(_message.Message):
     __slots__ = ("status",)

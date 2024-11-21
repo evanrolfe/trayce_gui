@@ -3,6 +3,7 @@ from typing import Optional
 from PySide6 import QtCore
 
 from pytestqt.qtbot import QtBot
+from agent import api_pb2
 from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
@@ -82,9 +83,27 @@ def describe_network_page():
 
         # TODO: Improve these factories also generate the uuid properly
         for i in range(n):
-            flow1 = AgentFlowFactory.build(uuid=str(i))
-            resp = generate_http_response(status=200, body='{"hello":"world","how":"areyou","ok":123,"enabled": false}')
-            flow2 = AgentFlowFactory.build_response(uuid=str(i), response=resp)
+            flow1 = AgentFlowFactory.build_request(
+                api_pb2.HTTPRequest(
+                    method="GET",
+                    path="/",
+                    host="172.17.0.3:3001",
+                    http_version="1.1",
+                    headers={},
+                    payload=bytes(),
+                ),
+                uuid=str(i),
+            )
+            flow2 = AgentFlowFactory.build_response(
+                api_pb2.HTTPResponse(
+                    status=200,
+                    status_msg="OK",
+                    http_version="1.1",
+                    headers={},
+                    payload='{"hello":"world","how":"areyou","ok":123,"enabled": false}'.encode(),
+                ),
+                uuid=str(i),
+            )
 
             signal = EventBusGlobal.get().flows_received
             with qtbot.waitSignal(signal, timeout=1000):
@@ -112,16 +131,27 @@ def describe_network_page():
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
-        req = generate_http_request(
-            method="POST",
-            headers={"Content-Type": "application/json"},
-            body='{"hello":"world","how":"areyou","ok":123}',
+        flow = AgentFlowFactory.build_request(
+            api_pb2.HTTPRequest(
+                method="POST",
+                path="/",
+                host="172.17.0.3:3001",
+                http_version="1.1",
+                headers={},
+                payload='{"hello":"world","how":"areyou","ok":123}'.encode(),
+            )
         )
-        flow = AgentFlowFactory.build(request=req)
         send_flow_over_grpc(flow)
 
-        resp = generate_http_response(body='{"hello":"world","how":"areyou","ok":123,"enabled": false}')
-        flow = AgentFlowFactory.build_response(response=resp)
+        flow = AgentFlowFactory.build_response(
+            api_pb2.HTTPResponse(
+                status=200,
+                status_msg="OK",
+                http_version="1.1",
+                headers={},
+                payload='{"hello":"world","how":"areyou","ok":123,"enabled": false}'.encode(),
+            )
+        )
         send_flow_over_grpc(flow)
 
         signal = EventBusGlobal.get().flows_received

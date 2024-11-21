@@ -9,23 +9,17 @@ class HttpResponse(Model):
     http_version: str
     status: int
     status_msg: str
-    headers: dict[str, str]
+    headers: dict[str, list[str]]
     body: str
 
-    @classmethod
-    def from_raw(cls, raw_response: bytes) -> HttpResponse:
-        response_str = raw_response.decode("utf-8")
+    def __str__(self):
+        out = f"HTTP/{self.http_version} {self.status} {self.status_msg}\n"
+        for key, value in self.headers.items():
+            v = ",".join(value)
+            out += f"{key}: {v}\n"
 
-        header_part, body = response_str.split("\r\n\r\n", 1)
-        lines = header_part.split("\r\n")
-        status_line = lines[0].split(" ")
-        http_version, status, status_msg = status_line[0], int(status_line[1]), " ".join(status_line[2:])
+        out += "\r\n"
+        if len(self.body) > 0:
+            out += self.body
 
-        # Initialize headers dictionary
-        headers: dict[str, str] = {}
-        # Iterate over the remaining lines to fill the headers dictionary
-        for line in lines[1:]:
-            key, value = line.split(": ", 1)  # Split each header line into key and value
-            headers[key.lower()] = value
-
-        return HttpResponse(http_version=http_version, status=status, status_msg=status_msg, headers=headers, body=body)
+        return out
