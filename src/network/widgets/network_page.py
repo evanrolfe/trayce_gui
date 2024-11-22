@@ -118,8 +118,8 @@ class NetworkPage(QtWidgets.QWidget):
         EventBus.get().flow_selected.connect(self.flow_selected)
 
     def flow_selected(self, flow: Flow):
-        self.ui.requestText.setPlainText(flow.request_str())
-        self.ui.responseText.setPlainText(flow.response_str())
+        self.ui.requestText.setPlainText(str(flow.request))
+        self.ui.responseText.setPlainText(str(flow.response))
 
         self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
         self.ui.responseBodyText.setPlainText(flow.response_body_formatted())

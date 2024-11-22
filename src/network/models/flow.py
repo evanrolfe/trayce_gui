@@ -103,12 +103,6 @@ class Flow(Model):
     def add_response(self, flow: Flow):
         self.response = flow.response
 
-    def request_str(self) -> str:
-        return str(self.request)
-
-    def response_str(self) -> str:
-        return str(self.response)
-
     def request_body_str(self) -> str:
         if not self.request:
             return ""
