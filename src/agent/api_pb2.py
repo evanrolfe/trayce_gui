@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapi.proto\x12\x03\x61pi\"\xbf\x02\n\x04\x46low\x12\x0c\n\x04uuid\x18\x01 \x01(\t\x12\x13\n\x0bsource_addr\x18\x02 \x01(\t\x12\x11\n\tdest_addr\x18\x03 \x01(\t\x12\x13\n\x0bl4_protocol\x18\x04 \x01(\t\x12\x13\n\x0bl7_protocol\x18\x05 \x01(\t\x12\x14\n\x0cresponse_raw\x18\x07 \x01(\x0c\x12(\n\x0chttp_request\x18\x08 \x01(\x0b\x32\x10.api.HTTPRequestH\x00\x12(\n\x0cgrpc_request\x18\t \x01(\x0b\x32\x10.api.GRPCRequestH\x00\x12*\n\rhttp_response\x18\n \x01(\x0b\x32\x11.api.HTTPResponseH\x01\x12*\n\rgrpc_response\x18\x0b \x01(\x0b\x32\x11.api.GRPCResponseH\x01\x42\t\n\x07requestB\n\n\x08response\"!\n\x05\x46lows\x12\x18\n\x05\x66lows\x18\x01 \x03(\x0b\x32\t.api.Flow\"\x1c\n\nStringList\x12\x0e\n\x06values\x18\x01 \x03(\t\"\xd1\x01\n\x0bHTTPRequest\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x14\n\x0chttp_version\x18\x04 \x01(\t\x12.\n\x07headers\x18\x05 \x03(\x0b\x32\x1d.api.HTTPRequest.HeadersEntry\x12\x0f\n\x07payload\x18\x06 \x01(\x0c\x1a?\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.api.StringList:\x02\x38\x01\"\xcb\x01\n\x0cHTTPResponse\x12\x14\n\x0chttp_version\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\x05\x12\x12\n\nstatus_msg\x18\x03 \x01(\t\x12/\n\x07headers\x18\x04 \x03(\x0b\x32\x1e.api.HTTPResponse.HeadersEntry\x12\x0f\n\x07payload\x18\x05 \x01(\x0c\x1a?\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.api.StringList:\x02\x38\x01\"\x8c\x01\n\x0bGRPCRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12.\n\x07headers\x18\x02 \x03(\x0b\x32\x1d.api.GRPCRequest.HeadersEntry\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x80\x01\n\x0cGRPCResponse\x12/\n\x07headers\x18\x01 \x03(\x0b\x32\x1e.api.GRPCResponse.HeadersEntry\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\x1a.\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x17\n\x05Reply\x12\x0e\n\x06status\x18\x01 \x01(\t\"\x1f\n\x0c\x41gentStarted\x12\x0f\n\x07version\x18\x01 \x01(\t\"8\n\x07\x43ommand\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x1f\n\x08settings\x18\x02 \x01(\x0b\x32\r.api.Settings\"!\n\x08Settings\x12\x15\n\rcontainer_ids\x18\x01 \x03(\t\"\x16\n\x07Request\x12\x0b\n\x03num\x18\x01 \x01(\x05\"\x1a\n\x08Response\x12\x0e\n\x06result\x18\x01 \x01(\x05\"P\n\tContainer\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05image\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04name\x18\x04 \x01(\t\x12\x0e\n\x06status\x18\x05 \x01(\t\"0\n\nContainers\x12\"\n\ncontainers\x18\x01 \x03(\x0b\x32\x0e.api.Container2\xe6\x01\n\x0bTrayceAgent\x12-\n\x11SendFlowsObserved\x12\n.api.Flows\x1a\n.api.Reply\"\x00\x12\x37\n\x16SendContainersObserved\x12\x0f.api.Containers\x1a\n.api.Reply\"\x00\x12\x33\n\x10SendAgentStarted\x12\x11.api.AgentStarted\x1a\n.api.Reply\"\x00\x12:\n\x11OpenCommandStream\x12\x11.api.AgentStarted\x1a\x0c.api.Command\"\x00(\x01\x30\x01\x42\'Z%github.com/evanrolfe/trayce_agent/apib\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapi.proto\x12\x03\x61pi\"\xbf\x02\n\x04\x46low\x12\x0c\n\x04uuid\x18\x01 \x01(\t\x12\x13\n\x0bsource_addr\x18\x02 \x01(\t\x12\x11\n\tdest_addr\x18\x03 \x01(\t\x12\x13\n\x0bl4_protocol\x18\x04 \x01(\t\x12\x13\n\x0bl7_protocol\x18\x05 \x01(\t\x12\x14\n\x0cresponse_raw\x18\x07 \x01(\x0c\x12(\n\x0chttp_request\x18\x08 \x01(\x0b\x32\x10.api.HTTPRequestH\x00\x12(\n\x0cgrpc_request\x18\t \x01(\x0b\x32\x10.api.GRPCRequestH\x00\x12*\n\rhttp_response\x18\n \x01(\x0b\x32\x11.api.HTTPResponseH\x01\x12*\n\rgrpc_response\x18\x0b \x01(\x0b\x32\x11.api.GRPCResponseH\x01\x42\t\n\x07requestB\n\n\x08response\"!\n\x05\x46lows\x12\x18\n\x05\x66lows\x18\x01 \x03(\x0b\x32\t.api.Flow\"\x1c\n\nStringList\x12\x0e\n\x06values\x18\x01 \x03(\t\"\xd1\x01\n\x0bHTTPRequest\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x14\n\x0chttp_version\x18\x04 \x01(\t\x12.\n\x07headers\x18\x05 \x03(\x0b\x32\x1d.api.HTTPRequest.HeadersEntry\x12\x0f\n\x07payload\x18\x06 \x01(\x0c\x1a?\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.api.StringList:\x02\x38\x01\"\xcb\x01\n\x0cHTTPResponse\x12\x14\n\x0chttp_version\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\x05\x12\x12\n\nstatus_msg\x18\x03 \x01(\t\x12/\n\x07headers\x18\x04 \x03(\x0b\x32\x1e.api.HTTPResponse.HeadersEntry\x12\x0f\n\x07payload\x18\x05 \x01(\x0c\x1a?\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.api.StringList:\x02\x38\x01\"\x9d\x01\n\x0bGRPCRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12.\n\x07headers\x18\x02 \x03(\x0b\x32\x1d.api.GRPCRequest.HeadersEntry\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\x1a?\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.api.StringList:\x02\x38\x01\"\x91\x01\n\x0cGRPCResponse\x12/\n\x07headers\x18\x01 \x03(\x0b\x32\x1e.api.GRPCResponse.HeadersEntry\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\x1a?\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.api.StringList:\x02\x38\x01\"\x17\n\x05Reply\x12\x0e\n\x06status\x18\x01 \x01(\t\"\x1f\n\x0c\x41gentStarted\x12\x0f\n\x07version\x18\x01 \x01(\t\"8\n\x07\x43ommand\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x1f\n\x08settings\x18\x02 \x01(\x0b\x32\r.api.Settings\"!\n\x08Settings\x12\x15\n\rcontainer_ids\x18\x01 \x03(\t\"\x16\n\x07Request\x12\x0b\n\x03num\x18\x01 \x01(\x05\"\x1a\n\x08Response\x12\x0e\n\x06result\x18\x01 \x01(\x05\"P\n\tContainer\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05image\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04name\x18\x04 \x01(\t\x12\x0e\n\x06status\x18\x05 \x01(\t\"0\n\nContainers\x12\"\n\ncontainers\x18\x01 \x03(\x0b\x32\x0e.api.Container2\xe6\x01\n\x0bTrayceAgent\x12-\n\x11SendFlowsObserved\x12\n.api.Flows\x1a\n.api.Reply\"\x00\x12\x37\n\x16SendContainersObserved\x12\x0f.api.Containers\x1a\n.api.Reply\"\x00\x12\x33\n\x10SendAgentStarted\x12\x11.api.AgentStarted\x1a\n.api.Reply\"\x00\x12:\n\x11OpenCommandStream\x12\x11.api.AgentStarted\x1a\x0c.api.Command\"\x00(\x01\x30\x01\x42\'Z%github.com/evanrolfe/trayce_agent/apib\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -55,29 +55,29 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_HTTPRESPONSE_HEADERSENTRY']._serialized_start=552
   _globals['_HTTPRESPONSE_HEADERSENTRY']._serialized_end=615
   _globals['_GRPCREQUEST']._serialized_start=824
-  _globals['_GRPCREQUEST']._serialized_end=964
-  _globals['_GRPCREQUEST_HEADERSENTRY']._serialized_start=918
-  _globals['_GRPCREQUEST_HEADERSENTRY']._serialized_end=964
-  _globals['_GRPCRESPONSE']._serialized_start=967
-  _globals['_GRPCRESPONSE']._serialized_end=1095
-  _globals['_GRPCRESPONSE_HEADERSENTRY']._serialized_start=918
-  _globals['_GRPCRESPONSE_HEADERSENTRY']._serialized_end=964
-  _globals['_REPLY']._serialized_start=1097
-  _globals['_REPLY']._serialized_end=1120
-  _globals['_AGENTSTARTED']._serialized_start=1122
-  _globals['_AGENTSTARTED']._serialized_end=1153
-  _globals['_COMMAND']._serialized_start=1155
-  _globals['_COMMAND']._serialized_end=1211
-  _globals['_SETTINGS']._serialized_start=1213
-  _globals['_SETTINGS']._serialized_end=1246
-  _globals['_REQUEST']._serialized_start=1248
-  _globals['_REQUEST']._serialized_end=1270
-  _globals['_RESPONSE']._serialized_start=1272
-  _globals['_RESPONSE']._serialized_end=1298
-  _globals['_CONTAINER']._serialized_start=1300
-  _globals['_CONTAINER']._serialized_end=1380
-  _globals['_CONTAINERS']._serialized_start=1382
-  _globals['_CONTAINERS']._serialized_end=1430
-  _globals['_TRAYCEAGENT']._serialized_start=1433
-  _globals['_TRAYCEAGENT']._serialized_end=1663
+  _globals['_GRPCREQUEST']._serialized_end=981
+  _globals['_GRPCREQUEST_HEADERSENTRY']._serialized_start=552
+  _globals['_GRPCREQUEST_HEADERSENTRY']._serialized_end=615
+  _globals['_GRPCRESPONSE']._serialized_start=984
+  _globals['_GRPCRESPONSE']._serialized_end=1129
+  _globals['_GRPCRESPONSE_HEADERSENTRY']._serialized_start=552
+  _globals['_GRPCRESPONSE_HEADERSENTRY']._serialized_end=615
+  _globals['_REPLY']._serialized_start=1131
+  _globals['_REPLY']._serialized_end=1154
+  _globals['_AGENTSTARTED']._serialized_start=1156
+  _globals['_AGENTSTARTED']._serialized_end=1187
+  _globals['_COMMAND']._serialized_start=1189
+  _globals['_COMMAND']._serialized_end=1245
+  _globals['_SETTINGS']._serialized_start=1247
+  _globals['_SETTINGS']._serialized_end=1280
+  _globals['_REQUEST']._serialized_start=1282
+  _globals['_REQUEST']._serialized_end=1304
+  _globals['_RESPONSE']._serialized_start=1306
+  _globals['_RESPONSE']._serialized_end=1332
+  _globals['_CONTAINER']._serialized_start=1334
+  _globals['_CONTAINER']._serialized_end=1414
+  _globals['_CONTAINERS']._serialized_start=1416
+  _globals['_CONTAINERS']._serialized_end=1464
+  _globals['_TRAYCEAGENT']._serialized_start=1467
+  _globals['_TRAYCEAGENT']._serialized_end=1697
 # @@protoc_insertion_point(module_scope)

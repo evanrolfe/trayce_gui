@@ -1,19 +1,17 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from network.models.flow_response import FlowResponse
+from network.models.flow_request import FlowRequest
 
 
 @dataclass(kw_only=True)
-class HttpResponse(FlowResponse):
-    http_version: str
-    status: int
-    status_msg: str
+class GrpcRequest(FlowRequest):
+    path: str
     headers: dict[str, list[str]]
     body: str
 
     def __str__(self):
-        out = f"HTTP/{self.http_version} {self.status} {self.status_msg}\n"
+        out = f"GRPC {self.path}\n"
         for key, value in self.headers.items():
             v = ",".join(value)
             out += f"{key}: {v}\n"

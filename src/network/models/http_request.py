@@ -1,11 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
+from network.models.flow_request import FlowRequest
 from shared.model import Model
 
 
 @dataclass(kw_only=True)
-class HttpRequest(Model):
+class HttpRequest(FlowRequest):
     method: str
     host: str
     path: str

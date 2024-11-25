@@ -75,7 +75,7 @@ resp_body = """{
 
 
 def describe_network_page():
-    def it_displays_a_flow_received(qtbot: QtBot):  # type: ignore
+    def it_displays_an_http_flow_received(qtbot: QtBot):  # type: ignore
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
@@ -126,6 +126,55 @@ def describe_network_page():
         # assert table_model.data(table_model.index(0, 5)) == "200"
 
         main_window.about_to_quit()
+
+    def it_displays_a_grpc_flow_received(qtbot: QtBot):  # type: ignore
+        # Setup
+        main_window = MainWindow(pathlib.Path("./assets"))
+
+        n = 3
+
+        # TODO: Improve these factories also generate the uuid properly
+        for i in range(n):
+            headers: dict[str, api_pb2.StringList] = {}
+            flow1 = AgentFlowFactory.build_grpc_request(
+                api_pb2.GRPCRequest(
+                    path="/trayce.api/SendFlows",
+                    headers=headers,
+                    payload=bytes(),
+                ),
+                uuid=str(i),
+            )
+
+            flow2 = AgentFlowFactory.build_grpc_response(
+                api_pb2.GRPCResponse(
+                    headers=headers,
+                    payload=bytes([0x00, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x08, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x20]),
+                ),
+                uuid=str(i),
+            )
+
+            signal = EventBusGlobal.get().flows_received
+            with qtbot.waitSignal(signal, timeout=1000):
+                send_flow_over_grpc(flow1)
+                send_flow_over_grpc(flow2)
+
+        # Subject
+        # main_window.show()
+        # qtbot.waitExposed(main_window)
+        # qtbot.wait(3000)
+
+        # Assert
+        table_model = main_window.network_page.ui.flowTableContainer.table_model
+        assert table_model.rowCount() == n
+        # assert table_model.data(table_model.index(0, 0)) == "1111"
+        assert table_model.data(table_model.index(0, 1)) == "grpc"
+        assert table_model.data(table_model.index(0, 2)) == "192.168.0.2:50051"
+        # assert table_model.data(table_model.index(0, 3)) == "GET"
+        assert table_model.data(table_model.index(0, 4)) == "/trayce.api/SendFlows"
+        # assert table_model.data(table_model.index(0, 5)) == "200"
+
+        main_window.about_to_quit()
+
 
     def it_lets_you_select_a_flow(qtbot: QtBot):  # type: ignore
         # Setup

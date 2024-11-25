@@ -92,15 +92,15 @@ class GRPCRequest(_message.Message):
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
-        value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        value: StringList
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[StringList, _Mapping]] = ...) -> None: ...
     PATH_FIELD_NUMBER: _ClassVar[int]
     HEADERS_FIELD_NUMBER: _ClassVar[int]
     PAYLOAD_FIELD_NUMBER: _ClassVar[int]
     path: str
-    headers: _containers.ScalarMap[str, str]
+    headers: _containers.MessageMap[str, StringList]
     payload: bytes
-    def __init__(self, path: _Optional[str] = ..., headers: _Optional[_Mapping[str, str]] = ..., payload: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, path: _Optional[str] = ..., headers: _Optional[_Mapping[str, StringList]] = ..., payload: _Optional[bytes] = ...) -> None: ...
 
 class GRPCResponse(_message.Message):
     __slots__ = ("headers", "payload")
@@ -109,13 +109,13 @@ class GRPCResponse(_message.Message):
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
-        value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        value: StringList
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[StringList, _Mapping]] = ...) -> None: ...
     HEADERS_FIELD_NUMBER: _ClassVar[int]
     PAYLOAD_FIELD_NUMBER: _ClassVar[int]
-    headers: _containers.ScalarMap[str, str]
+    headers: _containers.MessageMap[str, StringList]
     payload: bytes
-    def __init__(self, headers: _Optional[_Mapping[str, str]] = ..., payload: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, headers: _Optional[_Mapping[str, StringList]] = ..., payload: _Optional[bytes] = ...) -> None: ...
 
 class Reply(_message.Message):
     __slots__ = ("status",)

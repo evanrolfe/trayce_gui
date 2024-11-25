@@ -42,6 +42,22 @@ class AgentFlowFactory:
         return flow
 
     @classmethod
+    def build_grpc_request(cls, request: api_pb2.GRPCRequest, **kwargs: typing.Any) -> api_pb2.Flow:
+        flow = api_pb2.Flow(
+            uuid="1234",
+            source_addr="192.168.0.1",
+            dest_addr="192.168.0.2:50051",
+            l4_protocol="tcp",
+            l7_protocol="grpc",
+            grpc_request=request,
+        )
+
+        for key, value in kwargs.items():
+            setattr(flow, key, value)
+
+        return flow
+
+    @classmethod
     def build_response(cls, response: api_pb2.HTTPResponse, **kwargs: typing.Any) -> api_pb2.Flow:
         flow = api_pb2.Flow(
             uuid="1234",
@@ -50,6 +66,22 @@ class AgentFlowFactory:
             l4_protocol="tcp",
             l7_protocol="http",
             http_response=response,
+        )
+
+        for key, value in kwargs.items():
+            setattr(flow, key, value)
+
+        return flow
+
+    @classmethod
+    def build_grpc_response(cls, response: api_pb2.GRPCResponse, **kwargs: typing.Any) -> api_pb2.Flow:
+        flow = api_pb2.Flow(
+            uuid="1234",
+            source_addr="192.168.0.1",
+            dest_addr="192.168.0.2",
+            l4_protocol="tcp",
+            l7_protocol="http",
+            grpc_response=response,
         )
 
         for key, value in kwargs.items():

@@ -15,6 +15,7 @@ def database():
 def cleanup_database():
     conn = Database.get_instance().conn
     conn.execute(text("DELETE FROM 'flows'"))
+    conn.execute(text("DELETE FROM 'proto_defs'"))
     conn.commit()
 
     yield

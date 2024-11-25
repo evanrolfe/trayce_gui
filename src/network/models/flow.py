@@ -3,6 +3,10 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
+from network.models.flow_request import FlowRequest
+from network.models.flow_response import FlowResponse
+from network.models.grpc_request import GrpcRequest
+from network.models.grpc_response import GrpcResponse
 from network.models.http_request import HttpRequest
 from network.models.http_response import HttpResponse
 from shared.helpers import format_json
@@ -23,8 +27,8 @@ class Flow(Model):
     l7_protocol: str
     request_raw: bytes
     response_raw: bytes
-    request: Optional[HttpRequest]
-    response: Optional[HttpResponse]
+    request: Optional[FlowRequest]
+    response: Optional[FlowResponse]
 
     meta = {
         "relationship_keys": [
@@ -49,6 +53,7 @@ class Flow(Model):
             response=None,
         )
 
+        # HTTP Request
         if len(agent_flow.http_request.method) > 0:
             req = agent_flow.http_request
 
@@ -71,6 +76,27 @@ class Flow(Model):
                 body=body,
             )
 
+        # GRPC Request
+        if len(agent_flow.grpc_request.path) > 0:
+            req = agent_flow.grpc_request
+
+            # Convert headers
+            headers: dict[str, list[str]] = {}
+            for key, values in req.headers.items():
+                headers[key] = [str(value) for value in values.values]
+
+            # Convert body
+            body = ""
+            if len(req.payload) > 0:
+                body = req.payload.decode('utf-8')
+
+            flow.request = GrpcRequest(
+                path=req.path,
+                headers=headers,
+                body=body,
+            )
+
+        # HTTP Response
         if agent_flow.http_response.status > 0:
             resp = agent_flow.http_response
 
@@ -92,6 +118,25 @@ class Flow(Model):
                 body=body,
             )
 
+        # GRPC Response
+        if len(agent_flow.grpc_response.payload) > 0:
+            req = agent_flow.grpc_response
+
+            # Convert headers
+            headers: dict[str, list[str]] = {}
+            for key, values in req.headers.items():
+                headers[key] = [str(value) for value in values.values]
+
+            # Convert body
+            body = ""
+            if len(req.payload) > 0:
+                body = req.payload.decode('utf-8')
+
+            flow.response = GrpcResponse(
+                headers=headers,
+                body=body,
+            )
+
         return flow
 
     def is_request(self) -> bool:
@@ -106,19 +151,40 @@ class Flow(Model):
     def request_body_str(self) -> str:
         if not self.request:
             return ""
-        return self.request.body
+
+        if isinstance(self.request, HttpRequest):
+            return self.request.body
+
+        if isinstance(self.request, GrpcRequest):
+            return self.request.body
+
+        return ""
 
     def response_body_str(self) -> str:
         if not self.response:
             return ""
-        return self.response.body
+
+        if isinstance(self.response, HttpResponse):
+            return self.response.body
+
+        if isinstance(self.response, GrpcResponse):
+
+            return self.response.decode_body(file_descriptor, "")
+
+        return ""
 
     def request_body_formatted(self) -> str:
         if not self.request:
             return ""
 
+        content_type = ""
+        if isinstance(self.request, HttpRequest):
+            content_type = self.request.headers.get("content-type", "")
+
+        if isinstance(self.request, GrpcRequest):
+            content_type = self.request.headers.get("content-type", "")
+
         body = self.request_body_str()
-        content_type = self.request.headers.get("content-type", "")
 
         if "json" in content_type:
             return format_json(body)
@@ -131,8 +197,14 @@ class Flow(Model):
         if not self.response:
             return ""
 
+        content_type = ""
+        if isinstance(self.response, HttpResponse):
+            content_type = self.response.headers.get("content-type", "")
+
+        if isinstance(self.response, GrpcResponse):
+            content_type = self.response.headers.get("content-type", "")
+
         body = self.response_body_str()
-        content_type = self.response.headers.get("content-type", "")
 
         if "json" in content_type:
             return format_json(body)
@@ -142,25 +214,40 @@ class Flow(Model):
             return body
 
     def destination(self) -> str:
-        if self.request is not None:
+        if self.request is None:
+            return ""
+
+        if isinstance(self.request, HttpRequest):
             return self.request.host
+
+        if isinstance(self.request, GrpcRequest):
+            return self.dest_addr
 
         return ""
 
     def operation(self) -> str:
-        if self.request is not None:
+        if isinstance(self.request, HttpRequest):
             return self.request.method
+
+        if isinstance(self.request, GrpcRequest):
+            return ""
 
         return ""
 
     def path(self) -> str:
-        if self.request is not None:
+        if isinstance(self.request, HttpRequest):
+            return self.request.path
+
+        if isinstance(self.request, GrpcRequest):
             return self.request.path
 
         return ""
 
     def response_status(self) -> str:
-        if self.response is not None:
+        if self.response is None:
+            return ""
+
+        if isinstance(self.response, HttpResponse):
             return str(self.response.status)
 
         return ""

@@ -5,10 +5,11 @@ from sqlalchemy import create_engine, Connection, text
 from db_migrate import run_migrations
 from migrate.v1_0_0_create_flows import migrate_v1_0_0_create_flows
 from migrate.v1_0_0_init_schema import migrate_v1_0_0_init_schema
+from migrate.v1_0_0_create_proto_defs import migrate_v1_0_0_create_proto_defs
 from db_migrate import MigrationSet, run_migrations
 
 migrations: MigrationSet = OrderedDict()
-migrations['1.0.0'] = [migrate_v1_0_0_init_schema, migrate_v1_0_0_create_flows]
+migrations['1.0.0'] = [migrate_v1_0_0_init_schema, migrate_v1_0_0_create_flows, migrate_v1_0_0_create_proto_defs]
 
 class Database:
     # Singleton method stuff:
