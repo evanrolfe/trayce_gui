@@ -4,6 +4,9 @@ from agent.heartbeat_thread import HeartbeatThread
 from network.event_bus import EventBus
 from network.models.flow import Flow
 
+from network.models.grpc_request import GrpcRequest
+from network.models.grpc_response import GrpcResponse
+from network.repos.proto_def_repo import ProtoDefRepo
 from network.ui.ui_network_page import Ui_NetworkPage
 from agent.agent_thread import AgentThread
 from network.widgets.containers_dialog import ContainersDialog
@@ -117,12 +120,31 @@ class NetworkPage(QtWidgets.QWidget):
         self.ui.responseTabs.setCurrentIndex(1)
         EventBus.get().flow_selected.connect(self.flow_selected)
 
+    # TODO: Tidy up this method
     def flow_selected(self, flow: Flow):
         self.ui.requestText.setPlainText(str(flow.request))
-        self.ui.responseText.setPlainText(str(flow.response))
-
         self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
-        self.ui.responseBodyText.setPlainText(flow.response_body_formatted())
+
+        if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse):
+            proto_defs = ProtoDefRepo().find_all()
+            if len(proto_defs) > 0:
+                # TODO: This uses the first ProtoDef one found, it should let the user select via the GUI!!!
+                proto_def = proto_defs[0]
+
+                req_decoded = flow.request.decode_body(proto_def.file_descriptor(), flow.request.path)
+                resp_decoded = flow.response.decode_body(proto_def.file_descriptor(), flow.request.path)
+
+                self.ui.requestText.setPlainText(str(flow.request))
+                self.ui.requestBodyText.setPlainText(req_decoded)
+
+                self.ui.responseText.setPlainText(str(flow.response))
+                self.ui.responseBodyText.setPlainText(resp_decoded)
+        else:
+            self.ui.requestText.setPlainText(str(flow.request))
+            self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
+
+            self.ui.responseText.setPlainText(str(flow.response))
+            self.ui.responseBodyText.setPlainText(flow.response_body_formatted())
 
     def about_to_quit(self):
         self.grpc_worker.stop()

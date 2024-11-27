@@ -9,6 +9,7 @@ from event_bus_global import EventBusGlobal
 from main_window import MainWindow
 from helpers import generate_http_response, send_flow_over_grpc, generate_http_request
 from factories.agent_flow_factory import AgentFlowFactory
+from network.repos.proto_def_repo import ProtoDefRepo
 
 default_headers = headers = {
     "User-Agent": "Python HTTP Client",
@@ -175,8 +176,7 @@ def describe_network_page():
 
         main_window.about_to_quit()
 
-
-    def it_lets_you_select_a_flow(qtbot: QtBot):  # type: ignore
+    def it_lets_you_select_an_http_flow(qtbot: QtBot):
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
@@ -219,11 +219,67 @@ def describe_network_page():
         response_text = main_window.network_page.ui.responseText.toPlainText()
         response_body_text = main_window.network_page.ui.responseBodyText.toPlainText()
 
+        # main_window.show()
+        # qtbot.waitExposed(main_window)
+        # qtbot.wait(3000)
+
         assert "POST / HTTP/1.1" in request_text
         assert "hello" in request_body_text
 
         assert "HTTP/1.1 200 OK" in response_text
         assert "123" in response_body_text
+
+        main_window.about_to_quit()
+
+    def it_lets_you_select_a_grpc_flow(database, cleanup_database, qtbot: QtBot):
+        # Setup
+        main_window = MainWindow(pathlib.Path("./assets"))
+
+        # Create proto def
+        proto_def = ProtoDefRepo().upload("api.TrayceAgent", "src/agent/api.proto")
+
+        # Create flows
+        headers: dict[str, api_pb2.StringList] = {}
+        flow1 = AgentFlowFactory.build_grpc_request(
+            api_pb2.GRPCRequest(
+                path="/api.TrayceAgent/SendContainersObserved",
+                headers=headers,
+                payload=bytes([0x0a,0x29,0x0a,0x04,0x31,0x32,0x33,0x34,0x12,0x06,0x75,0x62,0x75,0x6e,0x74,0x75,0x1a,0x0a,0x31,0x37,0x32,0x2e,0x30,0x2e,0x31,0x2e,0x31,0x39,0x22,0x04,0x65,0x76,0x61,0x6e,0x2a,0x07,0x72,0x75,0x6e,0x6e,0x69,0x6e,0x67]),
+            ),
+            uuid="1234-abcd",
+        )
+
+        flow2 = AgentFlowFactory.build_grpc_response(
+            api_pb2.GRPCResponse(
+                headers=headers,
+                payload=bytes([0x0a, 0x08, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x20]),
+            ),
+            uuid="1234-abcd",
+        )
+
+        signal = EventBusGlobal.get().flows_received
+        with qtbot.waitSignal(signal, timeout=1000):
+            send_flow_over_grpc(flow1)
+            send_flow_over_grpc(flow2)
+
+        # Subject
+        table_model = main_window.network_page.ui.flowTableContainer.table_model
+        table = main_window.network_page.ui.flowTableContainer.ui.flowsTable
+        rect = table.visualRect(table_model.index(1, 0))
+        qtbot.mouseClick(table.viewport(), QtCore.Qt.MouseButton.LeftButton, pos=rect.center())
+
+        # Assert
+        request_text = main_window.network_page.ui.requestText.toPlainText()
+        request_body_text = main_window.network_page.ui.requestBodyText.toPlainText()
+        response_text = main_window.network_page.ui.responseText.toPlainText()
+        response_body_text = main_window.network_page.ui.responseBodyText.toPlainText()
+
+        assert "GRPC /api.TrayceAgent/SendContainersObserved" in request_text
+        assert "containers {" in request_body_text
+        assert 'id: "1234"' in request_body_text
+
+        assert "success" in response_text
+        assert 'status: "success "' in response_body_text
 
         main_window.about_to_quit()
 

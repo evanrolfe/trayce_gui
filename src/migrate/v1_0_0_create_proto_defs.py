@@ -5,6 +5,7 @@ def migrate_v1_0_0_create_proto_defs(conn: Connection):
     CREATE TABLE IF NOT EXISTS proto_defs(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
         raw BLOB NOT NULL,
         created_at TEXT NOT NULL
     );

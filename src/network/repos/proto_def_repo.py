@@ -15,8 +15,22 @@ class ProtoDefRepo(BaseRepo):
         MetaData(),
         Column('id', Integer, primary_key=True),
         Column('name', String()),
+        Column('file_path', String()),
         Column('raw', LargeBinary()),
+        Column('created_at', String()),
     )
+
+    def find_all(self) -> list[ProtoDef]:
+        select_stmt = select(self.table).order_by(self.table.c.name)
+        results = self.conn.execute(select_stmt).fetchall()
+
+        proto_defs = []
+        for row in results:
+            proto_def = ProtoDef(name=row[1], file_path=row[2], raw=row[3])
+            proto_def.id = row[0]
+            proto_defs.append(proto_def)
+
+        return proto_defs
 
     def find_by_id(self, id: int) -> Optional[ProtoDef]:
         select_stmt = select(self.table).where(self.table.c.id == id)
@@ -24,7 +38,7 @@ class ProtoDefRepo(BaseRepo):
         if result is None:
             return
 
-        proto_def = ProtoDef(name=result[1], raw=result[2])
+        proto_def = ProtoDef(name=result[1], file_path=result[2], raw=result[3])
         proto_def.id = result[0]
         return proto_def
 
@@ -51,7 +65,7 @@ class ProtoDefRepo(BaseRepo):
             print(e.stderr.decode())  # Print error output if the command fails
 
         # Step 1: Load the descriptor file (descriptor.pb) into a FileDescriptorSet
-        proto_def = ProtoDef(name=name, raw=bytes())
+        proto_def = ProtoDef(name=name, file_path=proto_file_path, raw=bytes())
         with open(descriptor_file_path, "rb") as f:
             proto_def.raw = f.read()
 

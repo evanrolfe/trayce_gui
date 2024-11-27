@@ -1,4 +1,5 @@
 from dataclasses import field
+import datetime
 import json
 from typing import Any, TypedDict
 import typing
@@ -35,5 +36,7 @@ class Model:
                 raw_table_values[key] = json.dumps(value)
             elif key not in self.meta['relationship_keys']+ self.meta['do_not_save_keys']:
                 raw_table_values[key] = value
+
+        raw_table_values['created_at'] = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
 
         return raw_table_values

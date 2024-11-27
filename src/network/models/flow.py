@@ -85,15 +85,10 @@ class Flow(Model):
             for key, values in req.headers.items():
                 headers[key] = [str(value) for value in values.values]
 
-            # Convert body
-            body = ""
-            if len(req.payload) > 0:
-                body = req.payload.decode('utf-8')
-
             flow.request = GrpcRequest(
                 path=req.path,
                 headers=headers,
-                body=body,
+                body=req.payload,
             )
 
         # HTTP Response
@@ -127,14 +122,9 @@ class Flow(Model):
             for key, values in req.headers.items():
                 headers[key] = [str(value) for value in values.values]
 
-            # Convert body
-            body = ""
-            if len(req.payload) > 0:
-                body = req.payload.decode('utf-8')
-
             flow.response = GrpcResponse(
                 headers=headers,
-                body=body,
+                body=req.payload,
             )
 
         return flow
@@ -156,7 +146,7 @@ class Flow(Model):
             return self.request.body
 
         if isinstance(self.request, GrpcRequest):
-            return self.request.body
+            return self.request.body.decode()
 
         return ""
 
@@ -168,8 +158,7 @@ class Flow(Model):
             return self.response.body
 
         if isinstance(self.response, GrpcResponse):
-
-            return self.response.decode_body(file_descriptor, "")
+            return self.response.body.decode() # decode_body(file_descriptor, "")
 
         return ""
 
