@@ -30,9 +30,11 @@ class ProtoDef(Model):
         # 2. Register the descriptor in a DescriptorPool
         pool: DescriptorPool = descriptor_pool.DescriptorPool()
         for file_descriptor_proto in file_descriptor_set.file:
+            # override the name here because otherwise it uses the relative file path which gets complicated when trying to retrieve this
+            file_descriptor_proto.name = "trayce"
             pool.Add(file_descriptor_proto)
 
-        file_descriptor = pool.FindFileByName(self.file_path)
+        file_descriptor = pool.FindFileByName("trayce")
 
         return file_descriptor
         #     message_descriptor = file_descriptor.message_types_by_name[message_name]

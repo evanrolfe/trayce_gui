@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from typing import Any, Optional
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, LargeBinary, insert, select
@@ -51,10 +52,11 @@ class ProtoDefRepo(BaseRepo):
         proto_def.id = result.lastrowid
 
     def upload(self, name: str, proto_file_path: str) -> ProtoDef:
-        # TODO: Use an absolute path to a tmp location
-        descriptor_file_path = "/Users/evan/Code/trayce/gui/descriptor.pb"
-        cmd = ["protoc",f"--descriptor_set_out={descriptor_file_path}","--include_imports", proto_file_path]
+        descriptor_file_path = "descriptor.pb"
+        proto_path = os.path.dirname(proto_file_path)
+        cmd = ["protoc",f"--descriptor_set_out={descriptor_file_path}","--proto_path", proto_path,"--include_imports", proto_file_path]
 
+        print(' '.join(cmd))
         try:
             # Run the command
             result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -396,6 +396,12 @@ QMessageBox QPushButton {
   background-color: $bg-input;
 }
 
+QComboBox#protoFileDropdown {
+    margin: 2px;
+    border-width: 1;
+    background-color: $bg-input;
+}
+
 QComboBox#methodInput {
   padding-left: 10px;
   min-width: 50px;

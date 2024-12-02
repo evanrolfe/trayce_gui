@@ -150,7 +150,7 @@ class Ui_ContainersDialog(object):
     def retranslateUi(self, ContainersDialog):
         ContainersDialog.setWindowTitle(QCoreApplication.translate("ContainersDialog", u"Intercept Docker", None))
         self.label_3.setText(QCoreApplication.translate("ContainersDialog", u"Intercept running Docker containers", None))
-        self.dockerUpdateLabel.setText(QCoreApplication.translate("ContainersDialog", u"Please update the docker image with:", None))
+        self.dockerUpdateLabel.setText(QCoreApplication.translate("ContainersDialog", u"Warning: the trayce_agent docker image is out of date! Please update it with:", None))
         self.dockerUpdateCopyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))
         self.dockerStartLabel.setText(QCoreApplication.translate("ContainersDialog", u"Trayce Agent Docker container is not running! Start it by running this command in the terminal:", None))
         self.dockerCopyButton.setText(QCoreApplication.translate("ContainersDialog", u"Copy", None))

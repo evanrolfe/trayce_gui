@@ -76,7 +76,7 @@ resp_body = """{
 
 
 def describe_network_page():
-    def it_displays_an_http_flow_received(qtbot: QtBot):  # type: ignore
+    def it_displays_an_http_flow_received(database, cleanup_database, qtbot: QtBot):  # type: ignore
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
@@ -128,7 +128,7 @@ def describe_network_page():
 
         main_window.about_to_quit()
 
-    def it_displays_a_grpc_flow_received(qtbot: QtBot):  # type: ignore
+    def it_displays_a_grpc_flow_received(database, cleanup_database, qtbot: QtBot):  # type: ignore
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
@@ -176,7 +176,7 @@ def describe_network_page():
 
         main_window.about_to_quit()
 
-    def it_lets_you_select_an_http_flow(qtbot: QtBot):
+    def it_lets_you_select_an_http_flow(database, cleanup_database, qtbot: QtBot):
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
@@ -232,11 +232,15 @@ def describe_network_page():
         main_window.about_to_quit()
 
     def it_lets_you_select_a_grpc_flow(database, cleanup_database, qtbot: QtBot):
+        # Create proto def
+        proto_def = ProtoDefRepo().upload("api.TrayceAgent", "src/agent/api.proto")
+
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
-        # Create proto def
-        proto_def = ProtoDefRepo().upload("api.TrayceAgent", "src/agent/api.proto")
+        # Selecte the .proto file
+        assert main_window.network_page.proto_file_dropdown.count() == 3
+        main_window.network_page.proto_file_dropdown.setCurrentIndex(1)
 
         # Create flows
         headers: dict[str, api_pb2.StringList] = {}

@@ -5,6 +5,7 @@ generate:
 	pyside6-uic src/network/ui/ui_network_page.ui -o src/network/ui/ui_network_page.py
 	pyside6-uic src/network/ui/ui_flow_table_container.ui -o src/network/ui/ui_flow_table_container.py
 	pyside6-uic src/network/ui/ui_containers_dialog.ui -o src/network/ui/ui_containers_dialog.py
+	pyside6-uic src/network/ui/ui_proto_defs_dialog.ui -o src/network/ui/ui_proto_defs_dialog.py
 	pyside6-uic src/editor/ui_editor_page.ui -o src/editor/ui_editor_page.py
 
 # Incorrect import paths are generated, hence the sed, see https://github.com/protocolbuffers/protobuf/issues/1491

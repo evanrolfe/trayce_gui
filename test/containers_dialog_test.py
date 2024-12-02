@@ -9,7 +9,7 @@ from agent.api_pb2 import Container as AgentContainer
 
 
 def describe_containers_dialog():
-    def it_displays_the_containers(qtbot: QtBot):  # type: ignore
+    def it_displays_the_containers(database, cleanup_database, qtbot: QtBot):  # type: ignore
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 

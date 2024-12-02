@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from PySide6 import QtCore, QtGui, QtWidgets
 from agent.heartbeat_thread import HeartbeatThread
 from network.event_bus import EventBus
@@ -6,27 +7,12 @@ from network.models.flow import Flow
 
 from network.models.grpc_request import GrpcRequest
 from network.models.grpc_response import GrpcResponse
+from network.models.proto_def import ProtoDef
 from network.repos.proto_def_repo import ProtoDefRepo
 from network.ui.ui_network_page import Ui_NetworkPage
 from agent.agent_thread import AgentThread
 from network.widgets.containers_dialog import ContainersDialog
-
-# class DarkTheme:
-#     default_bg = "#1E1E1E"
-#     default_color = "#EEFFFF"
-#     darker_color = "#545454"
-#     key_color = "#C792EA"
-#     value_color = "#C3E88D"
-#     number_color = "#FF5370"
-#     operator_color = "#569CD6"
-#     invalid_color = "#f14721"
-#     selected_secondary_color = "#4E5256"
-#     other_color = "#FFCB6B"
-
-#     bg_dark = "#252526"
-#     bg_input = "#404040"
-#     bg_input_hover = "#3A3A3A"
-
+from network.widgets.proto_defs_dialog import ProtoDefsDialog
 
 class JsonHighlighter(QtGui.QSyntaxHighlighter):
     highlightingRules: list[tuple[QtCore.QRegularExpression, QtGui.QTextCharFormat]]
@@ -60,6 +46,9 @@ class JsonHighlighter(QtGui.QSyntaxHighlighter):
 class NetworkPage(QtWidgets.QWidget):
     thread_pool: QtCore.QThreadPool
     grpc_worker: AgentThread
+    selected_proto_def: Optional[ProtoDef]
+    selected_flow: Optional[Flow]
+    proto_file_dropdown_prev_index: int
 
     def __init__(self, parent: QtWidgets.QWidget):
         super(NetworkPage, self).__init__(parent)
@@ -69,43 +58,9 @@ class NetworkPage(QtWidgets.QWidget):
         self.ui.setupUi(self)
 
         self.containers_dialog = ContainersDialog(self)
-        # Theme colours
-        # default_bg = "#1E1E1E"
-        # default_color = "#EEFFFF"
-        # darker_color = "#545454"
-        # key_color = "#C792EA"
-        # value_color = "#C3E88D"
-        # number_color = "#FF5370"
-        # operator_color = "#569CD6"
-        # invalid_color = "#f14721"
-        # selected_secondary_color = "#4E5256"
-        # other_color = "#FFCB6B"
-        # bg_dark = "#252526"
-        # bg_input = "#404040"
-        # bg_input_hover = "#3A3A3A"
-
-        # self.ui.requestText.setPaper(QtGui.QColor(default_bg))
-        # self.ui.requestText.setColor(QtGui.QColor(default_color))
-        # self.ui.requestText.setCaretForegroundColor(QtGui.QColor(default_color))
-        # self.ui.requestText.setMarginsForegroundColor(QtGui.QColor(default_color))
-        # self.ui.requestText.setMarginsBackgroundColor(QtGui.QColor(default_bg))
-
-        # self.ui.responseText.setPaper(QtGui.QColor(default_bg))
-        # self.ui.responseText.setColor(QtGui.QColor(default_color))
-        # self.ui.responseText.setCaretForegroundColor(QtGui.QColor(default_color))
-        # self.ui.responseText.setMarginsForegroundColor(QtGui.QColor(default_color))
-        # self.ui.responseText.setMarginsBackgroundColor(QtGui.QColor(default_bg))
-
-        # self.ui.requestText.setUtf8(True)
-        # self.ui.requestText.setAutoIndent(True)
-        # self.ui.requestText.setIndentationsUseTabs(False)
-        # self.ui.requestText.setIndentationWidth(4)
-        # self.ui.requestText.setIndentationGuides(True)
-        # self.ui.requestText.setBackspaceUnindents(True)
-        # self.ui.requestText.setEdgeColumn(79)
-        # self.ui.requestText.setMarginWidth(0, 0)
-        # self.ui.requestText.setBraceMatching(Qsci.QsciScintilla.BraceMatch.SloppyBraceMatch)
-        # ui.requestText->setMarginLineNumbers(0, true);
+        self.proto_defs_dialog = ProtoDefsDialog(self)
+        self.selected_proto_def = None
+        self.selected_flow = None
 
         # Start the GRPC server
         self.thread_pool = QtCore.QThreadPool()
@@ -119,32 +74,75 @@ class NetworkPage(QtWidgets.QWidget):
 
         self.ui.responseTabs.setCurrentIndex(1)
         EventBus.get().flow_selected.connect(self.flow_selected)
+        EventBus.get().proto_defs_changed.connect(self.load_proto_defs)
 
-    # TODO: Tidy up this method
+        # GRPC dropdown
+        self.proto_file_dropdown = QtWidgets.QComboBox()
+        self.proto_file_dropdown.setContentsMargins(10, 10, 10, 10)
+        self.proto_file_dropdown.setObjectName('protoFileDropdown')
+        self.proto_file_dropdown_prev_index = 0
+        self.load_proto_defs()
+
+        self.proto_file_dropdown.currentIndexChanged.connect(self.proto_file_dropdown_changed)
+
+        self.ui.requestTabs.setCornerWidget(self.proto_file_dropdown)
+
     def flow_selected(self, flow: Flow):
+        self.selected_flow = flow
+        self.reload_flow()
+
+    def reload_flow(self):
+        flow = self.selected_flow
+        if not flow:
+            return
+
         self.ui.requestText.setPlainText(str(flow.request))
         self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
 
-        if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse):
-            proto_defs = ProtoDefRepo().find_all()
-            if len(proto_defs) > 0:
-                # TODO: This uses the first ProtoDef one found, it should let the user select via the GUI!!!
-                proto_def = proto_defs[0]
+        # TODO: Tidy up this method
+        if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse) and self.selected_proto_def:
+            proto_file = self.selected_proto_def.file_descriptor()
+            req_decoded = flow.request.decode_body(proto_file, flow.request.path)
+            resp_decoded = flow.response.decode_body(proto_file, flow.request.path)
 
-                req_decoded = flow.request.decode_body(proto_def.file_descriptor(), flow.request.path)
-                resp_decoded = flow.response.decode_body(proto_def.file_descriptor(), flow.request.path)
+            self.ui.requestText.setPlainText(str(flow.request))
+            self.ui.requestBodyText.setPlainText(req_decoded)
 
-                self.ui.requestText.setPlainText(str(flow.request))
-                self.ui.requestBodyText.setPlainText(req_decoded)
+            self.ui.responseText.setPlainText(str(flow.response))
+            self.ui.responseBodyText.setPlainText(resp_decoded)
 
-                self.ui.responseText.setPlainText(str(flow.response))
-                self.ui.responseBodyText.setPlainText(resp_decoded)
         else:
             self.ui.requestText.setPlainText(str(flow.request))
             self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
 
             self.ui.responseText.setPlainText(str(flow.response))
             self.ui.responseBodyText.setPlainText(flow.response_body_formatted())
+
+    def load_proto_defs(self):
+        proto_defs = ProtoDefRepo().find_all()
+
+        self.proto_file_dropdown.clear()
+        self.proto_file_dropdown.addItem("Select .proto file", userData=0)
+        for proto_def in proto_defs:
+            self.proto_file_dropdown.addItem(proto_def.name, userData=proto_def)
+        self.proto_file_dropdown.addItem("Upload new", userData=0)
+
+        self.proto_file_dropdown.setCurrentIndex(0)
+
+    def proto_file_dropdown_changed(self, index: int):
+        if index == 0:
+            self.selected_proto_def = None
+            self.proto_file_dropdown_prev_index = 0
+
+        elif index == self.proto_file_dropdown.count() - 1: # if its the last time
+            self.proto_file_dropdown.setCurrentIndex(self.proto_file_dropdown_prev_index)
+            self.proto_defs_dialog.show()
+
+        else:
+            proto_def: ProtoDef = self.proto_file_dropdown.itemData(index)
+            self.selected_proto_def = proto_def
+            self.reload_flow()
+            self.proto_file_dropdown_prev_index = index
 
     def about_to_quit(self):
         self.grpc_worker.stop()
