@@ -100,10 +100,8 @@ class NetworkPage(QtWidgets.QWidget):
         self.ui.requestText.setPlainText(str(flow.request))
         self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
 
-        if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse):
-            self.proto_file_dropdown.show()
-        else:
-            self.proto_file_dropdown.hide()
+        is_grpc = isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse)
+        self.proto_file_dropdown.setVisible(is_grpc)
 
         if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse) and self.selected_proto_def:
             proto_file = self.selected_proto_def.file_descriptor()

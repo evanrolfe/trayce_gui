@@ -58,6 +58,13 @@
     </spacer>
    </item>
    <item>
+    <widget class="QLabel" name="warningLabel">
+     <property name="text">
+      <string>WARNING: You must have the protoc command line tool installed to upload .proto files</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <spacer name="horizontalSpacer">

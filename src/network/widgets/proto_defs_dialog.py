@@ -7,6 +7,7 @@ from network.repos.proto_def_repo import ProtoDefRepo
 from network.ui.ui_proto_defs_dialog import Ui_ProtoDefsDialog
 from agent.api_pb2 import Container as AgentContainer
 from network.widgets.proto_defs_table_model import ProtoDefsTableModel
+from utils import is_tool_installed
 
 
 class ProtoDefsDialog(QtWidgets.QDialog):
@@ -28,6 +29,9 @@ class ProtoDefsDialog(QtWidgets.QDialog):
         self.ui.uploadButton.clicked.connect(self.upload_clicked)
 
     def show(self):
+        protoc_installed = is_tool_installed("protoc")
+        self.ui.warningLabel.setVisible(not protoc_installed)
+
         proto_defs = ProtoDefRepo().find_all()
         self.table_model.set_proto_defs(proto_defs)
         super().show()

@@ -57,6 +57,11 @@ class Ui_ProtoDefsDialog(object):
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
 
+        self.warningLabel = QLabel(ProtoDefsDialog)
+        self.warningLabel.setObjectName(u"warningLabel")
+
+        self.verticalLayout.addWidget(self.warningLabel)
+
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
@@ -86,6 +91,7 @@ class Ui_ProtoDefsDialog(object):
     def retranslateUi(self, ProtoDefsDialog):
         ProtoDefsDialog.setWindowTitle(QCoreApplication.translate("ProtoDefsDialog", u"Intercept Docker", None))
         self.label_3.setText(QCoreApplication.translate("ProtoDefsDialog", u"GRPC Proto Files", None))
+        self.warningLabel.setText(QCoreApplication.translate("ProtoDefsDialog", u"WARNING: You must have the protoc command line tool installed to upload .proto files", None))
         self.uploadButton.setText(QCoreApplication.translate("ProtoDefsDialog", u"Browse", None))
         self.closeButton.setText(QCoreApplication.translate("ProtoDefsDialog", u"Close", None))
     # retranslateUi

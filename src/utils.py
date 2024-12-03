@@ -1,6 +1,7 @@
 import os
 import pathlib
 import platform
+import subprocess
 
 
 def pntest_env() -> str:
@@ -28,3 +29,11 @@ def get_app_path() -> pathlib.Path:
         return app_path.joinpath("Resources")
     else:
         return app_path.joinpath("_internal")
+
+def is_tool_installed(tool_name):
+    try:
+        result = subprocess.run([tool_name, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        # If the tool is not found in the system PATH
+        return False
