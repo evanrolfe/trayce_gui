@@ -13,14 +13,19 @@ class GrpcRequest(FlowRequest):
     body: bytes
 
     def __str__(self):
-        out = f"GRPC {self.path}\n"
-        for key, value in self.headers.items():
-            v = ",".join(value)
-            out += f"{key}: {v}\n"
+        out = self.header_str()
 
         out += "\r\n"
         if len(self.body) > 0:
             out += self.body.decode()
+
+        return out
+
+    def header_str(self):
+        out = f"GRPC {self.path}\n"
+        for key, value in self.headers.items():
+            v = ",".join(value)
+            out += f"{key}: {v}\n"
 
         return out
 

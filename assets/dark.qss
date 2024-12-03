@@ -398,8 +398,10 @@ QMessageBox QPushButton {
 
 QComboBox#protoFileDropdown {
     margin: 2px;
+    margin-right: 5px;
     border-width: 1;
     background-color: $bg-input;
+    border: 1px solid $bg-extra-dark;
 }
 
 QComboBox#methodInput {
@@ -410,8 +412,6 @@ QComboBox#methodInput {
 }
 
 QComboBox::drop-down {
-  subcontrol-origin: padding;
-  subcontrol-position: top right;
   width: 25px;
 
   border-left-width: 0px;

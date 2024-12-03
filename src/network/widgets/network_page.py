@@ -81,9 +81,10 @@ class NetworkPage(QtWidgets.QWidget):
         self.proto_file_dropdown.setContentsMargins(10, 10, 10, 10)
         self.proto_file_dropdown.setObjectName('protoFileDropdown')
         self.proto_file_dropdown_prev_index = 0
+        self.proto_file_dropdown.currentIndexChanged.connect(self.proto_file_dropdown_changed)
+        self.proto_file_dropdown.hide()
         self.load_proto_defs()
 
-        self.proto_file_dropdown.currentIndexChanged.connect(self.proto_file_dropdown_changed)
 
         self.ui.requestTabs.setCornerWidget(self.proto_file_dropdown)
 
@@ -99,17 +100,22 @@ class NetworkPage(QtWidgets.QWidget):
         self.ui.requestText.setPlainText(str(flow.request))
         self.ui.requestBodyText.setPlainText(flow.request_body_formatted())
 
-        # TODO: Tidy up this method
+        if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse):
+            self.proto_file_dropdown.show()
+        else:
+            self.proto_file_dropdown.hide()
+
         if isinstance(flow.request, GrpcRequest) and isinstance(flow.response, GrpcResponse) and self.selected_proto_def:
             proto_file = self.selected_proto_def.file_descriptor()
-            req_decoded = flow.request.decode_body(proto_file, flow.request.path)
-            resp_decoded = flow.response.decode_body(proto_file, flow.request.path)
 
-            self.ui.requestText.setPlainText(str(flow.request))
-            self.ui.requestBodyText.setPlainText(req_decoded)
+            req_body_decoded = flow.request.decode_body(proto_file, flow.request.path)
+            resp_body_decoded = flow.response.decode_body(proto_file, flow.request.path)
 
-            self.ui.responseText.setPlainText(str(flow.response))
-            self.ui.responseBodyText.setPlainText(resp_decoded)
+            self.ui.requestText.setPlainText(flow.request.header_str() + "\r\n" + req_body_decoded)
+            self.ui.requestBodyText.setPlainText(req_body_decoded)
+
+            self.ui.responseText.setPlainText(str(flow.response.header_str() + "\r\n" + resp_body_decoded))
+            self.ui.responseBodyText.setPlainText(resp_body_decoded)
 
         else:
             self.ui.requestText.setPlainText(str(flow.request))
