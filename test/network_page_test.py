@@ -332,26 +332,25 @@ def describe_network_page():
 
     #     main_window.about_to_quit()
 
+    # # TODO: Remove this duplicate function
+    # def generate_http_request2(method: str, path: str, host: str, headers: dict[str, str], body: Optional[str] = None):
+    #     # Start with the request line
+    #     request_line = f"{method} {path} HTTP/1.1\r\n"
 
-# TODO: Remove this duplicate function
-def generate_http_request2(method: str, path: str, host: str, headers: dict[str, str], body: Optional[str] = None):
-    # Start with the request line
-    request_line = f"{method} {path} HTTP/1.1\r\n"
+    #     # Add the Host header
+    #     header_lines = f"Host: {host}\r\n"
 
-    # Add the Host header
-    header_lines = f"Host: {host}\r\n"
+    #     # Add any additional headers
+    #     for header, value in headers.items():
+    #         header_lines += f"{header}: {value}\r\n"
 
-    # Add any additional headers
-    for header, value in headers.items():
-        header_lines += f"{header}: {value}\r\n"
+    #     # Add the body if provided, with appropriate Content-Length header
+    #     if body:
+    #         if "Content-Length" not in headers:
+    #             header_lines += f"Content-Length: {len(body)}\r\n"
+    #         request = f"{request_line}{header_lines}\r\n{body}"
+    #     else:
+    #         request = f"{request_line}{header_lines}\r\n"
 
-    # Add the body if provided, with appropriate Content-Length header
-    if body:
-        if "Content-Length" not in headers:
-            header_lines += f"Content-Length: {len(body)}\r\n"
-        request = f"{request_line}{header_lines}\r\n{body}"
-    else:
-        request = f"{request_line}{header_lines}\r\n"
-
-    # Convert the request to bytes
-    return request.encode("utf-8")
+    #     # Convert the request to bytes
+    #     return request.encode("utf-8")

@@ -80,7 +80,7 @@ class AgentFlowFactory:
             source_addr="192.168.0.1",
             dest_addr="192.168.0.2",
             l4_protocol="tcp",
-            l7_protocol="http",
+            l7_protocol="grpc",
             grpc_response=response,
         )
 
