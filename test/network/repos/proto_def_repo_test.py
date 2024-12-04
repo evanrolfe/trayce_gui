@@ -5,7 +5,7 @@ from google.protobuf.reflection import ParseMessage
 from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
 from google.protobuf.message import DecodeError
 
-from helpers import hex_dump_to_bytes
+from support.helpers import hex_dump_to_bytes
 from network.repos.proto_def_repo import ProtoDefRepo
 
 def describe_proto_def_repo():

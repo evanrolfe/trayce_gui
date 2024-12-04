@@ -4,7 +4,7 @@ from pytestqt.qtbot import QtBot
 from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
-from helpers import send_containers_over_grpc
+from support.helpers import send_containers_over_grpc
 from agent.api_pb2 import Container as AgentContainer
 
 

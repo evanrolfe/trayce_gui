@@ -1,6 +1,5 @@
 import typing
 from agent import api_pb2
-from helpers import hex_dump_to_bytes
 
 request_hex = """00000000  47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a  |GET / HTTP/1.1..|
 00000010  48 6f 73 74 3a 20 31 37  32 2e 31 37 2e 30 2e 33  |Host: 172.17.0.3|

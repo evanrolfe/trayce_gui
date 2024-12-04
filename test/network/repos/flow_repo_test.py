@@ -5,7 +5,7 @@ from google.protobuf.reflection import ParseMessage
 from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
 from google.protobuf.message import DecodeError
 
-from helpers import hex_dump_to_bytes
+from support.helpers import hex_dump_to_bytes
 
 message_hex = """00000000  00 00 00 04 01 00 00 00  00 00 00 52 01 04 00 00  |...........R....|
 00000010  00 01 83 86 45 9c 60 75  99 7d f6 0f d1 0b 0c c5  |....E..u.}......|
