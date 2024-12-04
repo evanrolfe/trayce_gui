@@ -8,71 +8,8 @@ from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
 from helpers import generate_http_response, send_flow_over_grpc, generate_http_request
-from factories.agent_flow_factory import AgentFlowFactory
+from support.factories.agent_flow_factory import AgentFlowFactory
 from network.repos.proto_def_repo import ProtoDefRepo
-
-default_headers = headers = {
-    "User-Agent": "Python HTTP Client",
-    "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded",
-}
-
-resp_body = """{
-  "users": [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john.doe@example.com",
-      "phone": "555-1234",
-      "address": {
-        "street": "123 Main St",
-        "city": "Anytown",
-        "state": "Anystate",
-        "zip": "12345"
-      },
-      "preferences": {
-        "newsletter": true,
-        "notifications": false,
-        "theme": "dark"
-      }
-    },
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "email": "jane.smith@example.com",
-      "phone": "555-5678",
-      "address": {
-        "street": "456 Elm St",
-        "city": "Othertown",
-        "state": "Otherstate",
-        "zip": "67890"
-      },
-      "preferences": {
-        "newsletter": false,
-        "notifications": true,
-        "theme": "light"
-      }
-    },
-    {
-      "id": 3,
-      "name": "Alice Johnson",
-      "email": "alice.johnson@example.com",
-      "phone": "555-8765",
-      "address": {
-        "street": "789 Oak St",
-        "city": "Anothertown",
-        "state": "Anotherstate",
-        "zip": "13579"
-      },
-      "preferences": {
-        "newsletter": true,
-        "notifications": true,
-        "theme": "dark"
-      }
-    }
-    ]
-}
-"""
 
 
 def describe_network_page():
@@ -287,6 +224,68 @@ def describe_network_page():
 
         main_window.about_to_quit()
 
+    # default_headers = headers = {
+    #     "User-Agent": "Python HTTP Client",
+    #     "Accept": "application/json",
+    #     "Content-Type": "application/x-www-form-urlencoded",
+    # }
+
+    # resp_body = """{
+    # "users": [
+    #     {
+    #     "id": 1,
+    #     "name": "John Doe",
+    #     "email": "john.doe@example.com",
+    #     "phone": "555-1234",
+    #     "address": {
+    #         "street": "123 Main St",
+    #         "city": "Anytown",
+    #         "state": "Anystate",
+    #         "zip": "12345"
+    #     },
+    #     "preferences": {
+    #         "newsletter": true,
+    #         "notifications": false,
+    #         "theme": "dark"
+    #     }
+    #     },
+    #     {
+    #     "id": 2,
+    #     "name": "Jane Smith",
+    #     "email": "jane.smith@example.com",
+    #     "phone": "555-5678",
+    #     "address": {
+    #         "street": "456 Elm St",
+    #         "city": "Othertown",
+    #         "state": "Otherstate",
+    #         "zip": "67890"
+    #     },
+    #     "preferences": {
+    #         "newsletter": false,
+    #         "notifications": true,
+    #         "theme": "light"
+    #     }
+    #     },
+    #     {
+    #     "id": 3,
+    #     "name": "Alice Johnson",
+    #     "email": "alice.johnson@example.com",
+    #     "phone": "555-8765",
+    #     "address": {
+    #         "street": "789 Oak St",
+    #         "city": "Anothertown",
+    #         "state": "Anotherstate",
+    #         "zip": "13579"
+    #     },
+    #     "preferences": {
+    #         "newsletter": true,
+    #         "notifications": true,
+    #         "theme": "dark"
+    #     }
+    #     }
+    #     ]
+    # }
+    # """
     # def it_demo(qtbot: QtBot):  # type: ignore
     #     root_path = pathlib.Path("/home/evan/Code/trayce_gui")
     #     assets_path = root_path.joinpath("assets")

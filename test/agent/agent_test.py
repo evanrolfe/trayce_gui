@@ -8,7 +8,7 @@ from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
 from helpers import generate_http_response, send_flow_over_grpc, generate_http_request
-from factories.agent_flow_factory import AgentFlowFactory
+from support.factories.agent_flow_factory import AgentFlowFactory
 from network.repos.proto_def_repo import ProtoDefRepo
 
 def describe_agent():
