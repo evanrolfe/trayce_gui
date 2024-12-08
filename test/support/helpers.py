@@ -3,7 +3,13 @@ import typing
 import grpc
 from agent import api_pb2_grpc
 from agent import api_pb2
+from pytestqt.qtbot import QtBot
+from main_window import MainWindow
 
+def show(main_window: MainWindow, qtbot: QtBot):
+    main_window.show()
+    qtbot.waitExposed(main_window)
+    qtbot.wait(3000)
 
 def send_flow_over_grpc(flow: api_pb2.Flow):
     # Set up a channel and a stub
@@ -78,9 +84,3 @@ def generate_http_response(**kwargs: typing.Any) -> bytes:
     response += body
 
     return response.encode("utf-8")
-
-
-# def show():
-#     widget.show()
-#     qtbot.waitExposed(widget)
-#     qtbot.wait(3000)

@@ -1,6 +1,10 @@
+import pathlib
+import sys
 import pytest
 from sqlalchemy import text
 
+from PySide6.QtWidgets import QApplication
+from main_window import MainWindow
 from db import Database
 
 @pytest.fixture(scope="session")
@@ -19,3 +23,9 @@ def cleanup_database():
     conn.commit()
 
     yield
+
+@pytest.fixture(scope="function")
+def main_window(qapp):
+    main_window = MainWindow(pathlib.Path("./assets"))
+    yield main_window
+    main_window.about_to_quit()

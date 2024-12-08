@@ -9,10 +9,8 @@ from agent.api_pb2 import Container as AgentContainer
 
 
 def describe_containers_dialog():
-    def it_displays_the_containers(database, cleanup_database, qtbot: QtBot):  # type: ignore
+    def it_displays_the_containers(database, cleanup_database, main_window: MainWindow, qtbot: QtBot):  # type: ignore
         # Setup
-        main_window = MainWindow(pathlib.Path("./assets"))
-
         container1 = AgentContainer(
             id="1",
             image="traycer/trayce_agent",
@@ -55,8 +53,6 @@ def describe_containers_dialog():
         assert table_model.data(table_model.index(1, 3)) == container2.name
         assert table_model.data(table_model.index(1, 4)) == container2.status
         assert table_model.data(table_model.index(1, 5), check_state) == QtCore.Qt.CheckState.Unchecked
-
-        main_window.about_to_quit()
 
     # TODO: Get this test working by checking if the GRPC message was sent rather than mocking
     # def it_sends_the_selected_container_ids_to_the_agent(qtbot: QtBot):  # type: ignore

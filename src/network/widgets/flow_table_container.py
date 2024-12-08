@@ -68,7 +68,6 @@ class FlowTableContainer(QtWidgets.QWidget):
 
     def flow_selected(self, selected: QtCore.QItemSelection, deselecte: QtCore.QItemSelection):
         selected_indexes = self.ui.flowsTable.selectionModel().selectedRows()
-        # TODO: Catch IndexError out of range
         try:
             flow = self.table_model.get_flow(selected_indexes[0])
         except IndexError:

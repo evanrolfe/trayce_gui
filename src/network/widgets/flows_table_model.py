@@ -5,6 +5,7 @@ from network.repos.flow_repo import FlowRepo
 from network.widgets.containers_table_model import IndexArg
 from network.models.flow import Flow
 from agent.api_pb2 import Flow as AgentFlow
+from shared.background_worker import BackgroundWorker
 from shared.debounce import debounce
 
 class FlowsTableModel(QtCore.QAbstractTableModel):
@@ -14,10 +15,9 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
         super().__init__(parent)
         self.columns = ["#", "Protocol", "Destination", "Operation", "Path", "Response"]
         self.flows = []
-        EventBusGlobal.get().flows_received.connect(self.__receive_flows)
+        EventBusGlobal.get().flows_received.connect(self.__receive_flows_async)
         self.load_flows()
 
-    @debounce(0.2)
     def load_flows(self):
         self.flows = FlowRepo().find_all()
         print("Total flows:", len(self.flows))
@@ -31,6 +31,12 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
             return None
 
         return self.flows[index.row()]
+
+    @debounce(0.2)
+    def __receive_flows_async(self, agent_flows: list[AgentFlow]):
+        worker = BackgroundWorker(lambda x: self.__receive_flows(agent_flows))
+        thread_pool = QtCore.QThreadPool.globalInstance()
+        thread_pool.start(worker)
 
     def __receive_flows(self, agent_flows: list[AgentFlow]):
         for agent_flow in agent_flows:
