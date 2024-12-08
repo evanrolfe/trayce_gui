@@ -3,21 +3,7 @@ import pathlib
 import platform
 import subprocess
 
-
-def pntest_env() -> str:
-    return os.getenv("TRAYCE_ENV") or "production"
-
-
-def is_test_env() -> bool:
-    return pntest_env() == "test"
-
-
-def is_development_env() -> bool:
-    return pntest_env() == "development"
-
-
-def is_production_env() -> bool:
-    return pntest_env() == "production"
+from shared.environment import is_production_env
 
 
 def get_app_path() -> pathlib.Path:

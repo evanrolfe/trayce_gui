@@ -5,7 +5,6 @@ from network.event_bus import EventBus
 
 from network.ui.ui_flow_table_container import Ui_FlowTableContainer
 from network.widgets.flows_table_model import FlowsTableModel
-from agent.api_pb2 import Flow as AgentFlow
 from network.models.flow import Flow
 
 
@@ -55,8 +54,6 @@ class FlowTableContainer(QtWidgets.QWidget):
         self.ui.flowsTable.setColumnWidth(5, 75)  # Response
 
         self.ui.containersBtn.clicked.connect(EventBus.get().containers_btn_clicked)
-        # TODO: Why does this need to be in the widget? Can't it just be directly in the model
-        EventBusGlobal.get().flows_received.connect(self.flows_received)
         self.ui.flowsTable.selectionModel().selectionChanged.connect(self.flow_selected)
 
         self.ui.searchBox.returnPressed.connect(self.show_not_implemented)
@@ -68,10 +65,6 @@ class FlowTableContainer(QtWidgets.QWidget):
         message_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         message_box.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Ok)
         message_box.exec()
-
-    def flows_received(self, agent_flows: list[AgentFlow]):
-        flows = [Flow.from_agent_flow(af) for af in agent_flows]
-        self.table_model.add_flows(flows)
 
     def flow_selected(self, selected: QtCore.QItemSelection, deselecte: QtCore.QItemSelection):
         selected_indexes = self.ui.flowsTable.selectionModel().selectedRows()

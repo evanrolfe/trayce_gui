@@ -40,7 +40,7 @@ ifneq (,$(filter $(firstword $(MAKECMDGOALS)),test))
 endif
 
 test:
-	PYTHONPATH="./src:./test" pytest -s ./test $(TEST_ARGS)
+	PYTHONPATH="./src:./test" TRAYCE_ENV=test pytest -s ./test $(TEST_ARGS)
 
 # Builds a .dmg file from dist/trayce.app
 pkg-dmg:

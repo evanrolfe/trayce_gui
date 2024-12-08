@@ -1,8 +1,11 @@
 import typing
 from PySide6 import QtCore
+from event_bus_global import EventBusGlobal
+from network.repos.flow_repo import FlowRepo
 from network.widgets.containers_table_model import IndexArg
 from network.models.flow import Flow
-
+from agent.api_pb2 import Flow as AgentFlow
+from shared.debounce import debounce
 
 class FlowsTableModel(QtCore.QAbstractTableModel):
     flows: list[Flow]
@@ -11,29 +14,14 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
         super().__init__(parent)
         self.columns = ["#", "Protocol", "Destination", "Operation", "Path", "Response"]
         self.flows = []
+        EventBusGlobal.get().flows_received.connect(self.__receive_flows)
+        self.load_flows()
 
-    def set_flows(self, flows: list[Flow]):
-        self.flows = flows
-        self.layoutChanged.emit()
-
-    def add_flows(self, flows: list[Flow]):
-        for flow in flows:
-            self.__add_flow(flow)
+    @debounce(0.2)
+    def load_flows(self):
+        self.flows = FlowRepo().find_all()
         print("Total flows:", len(self.flows))
         self.layoutChanged.emit()
-
-    def __add_flow(self, flow: Flow):
-        if flow.is_request():
-            print("Added request flow ", flow.uuid)
-            self.flows.append(flow)
-            return
-
-        matching_request_flows = [f for f in self.flows if f.uuid == flow.uuid]
-        if len(matching_request_flows) > 0:
-            print("Found matching request flow for", flow.uuid)
-            matching_request_flows[0].add_response(flow)
-        else:
-            print("No matching request flow found!", flow.uuid)
 
     def get_flow(self, index: QtCore.QModelIndex) -> typing.Optional[Flow]:
         if not index.isValid():
@@ -43,6 +31,13 @@ class FlowsTableModel(QtCore.QAbstractTableModel):
             return None
 
         return self.flows[index.row()]
+
+    def __receive_flows(self, agent_flows: list[AgentFlow]):
+        for agent_flow in agent_flows:
+            flow = Flow.from_agent_flow(agent_flow)
+            FlowRepo().save(flow)
+
+        self.load_flows()
 
     def rowCount(self, parent: IndexArg = QtCore.QModelIndex()):
         return len(self.flows)

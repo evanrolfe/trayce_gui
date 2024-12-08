@@ -75,6 +75,7 @@ class Flow(Model):
                 headers=headers,
                 body=body,
             )
+            flow.request_raw = flow.request.to_json().encode()
 
         # GRPC Request
         if len(agent_flow.grpc_request.path) > 0:
@@ -90,6 +91,7 @@ class Flow(Model):
                 headers=headers,
                 body=req.payload,
             )
+            flow.request_raw = flow.request.to_json().encode()
 
         # HTTP Response
         if agent_flow.http_response.status > 0:
@@ -112,6 +114,7 @@ class Flow(Model):
                 headers=headers,
                 body=body,
             )
+            flow.response_raw = flow.response.to_json().encode()
 
         # GRPC Response
         if len(agent_flow.grpc_response.payload) > 0:
@@ -126,6 +129,7 @@ class Flow(Model):
                 headers=headers,
                 body=req.payload,
             )
+            flow.response_raw = flow.response.to_json().encode()
 
         return flow
 

@@ -1,4 +1,6 @@
 import pathlib
+import time
+import uuid
 from typing import Optional
 from PySide6 import QtCore
 
@@ -7,18 +9,52 @@ from agent import api_pb2
 from event_bus_global import EventBusGlobal
 
 from main_window import MainWindow
-from support.helpers import generate_http_response, send_flow_over_grpc, generate_http_request
 from support.factories.agent_flow_factory import AgentFlowFactory
 from network.repos.proto_def_repo import ProtoDefRepo
 
 
 def describe_network_page():
+    def receiving_a_single_request_flow(database, cleanup_database, qtbot: QtBot):  # type: ignore
+        # Setup
+        main_window = MainWindow(pathlib.Path("./assets"))
+
+        flow1 = AgentFlowFactory.build_request(
+            api_pb2.HTTPRequest(
+                method="GET",
+                path="/",
+                host="172.17.0.3:3001",
+                http_version="1.1",
+                headers={},
+                payload=bytes(),
+            ),
+            uuid=str(uuid.uuid4()),
+        )
+
+        EventBusGlobal.get().flows_received.emit([flow1])
+        time.sleep(0.2) # wait for the debounce
+        # Subject
+        # main_window.show()
+        # qtbot.waitExposed(main_window)
+        # qtbot.wait(3000)
+
+        # Assert
+        table_model = main_window.network_page.ui.flowTableContainer.table_model
+        assert table_model.rowCount() == 1
+        # assert table_model.data(table_model.index(0, 0)) == "1111"
+        assert table_model.data(table_model.index(0, 1)) == "http"
+        assert table_model.data(table_model.index(0, 2)) == "172.17.0.3:3001"
+        # assert table_model.data(table_model.index(0, 3)) == "GET"
+        assert table_model.data(table_model.index(0, 4)) == "/"
+        # assert table_model.data(table_model.index(0, 5)) == "200"
+
+        main_window.about_to_quit()
+
+
     def it_displays_an_http_flow_received(database, cleanup_database, qtbot: QtBot):  # type: ignore
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
         n = 3
-
         # TODO: Improve these factories also generate the uuid properly
         for i in range(n):
             flow1 = AgentFlowFactory.build_request(
@@ -30,7 +66,7 @@ def describe_network_page():
                     headers={},
                     payload=bytes(),
                 ),
-                uuid=str(i),
+                uuid=str(uuid.uuid4()),
             )
             flow2 = AgentFlowFactory.build_response(
                 api_pb2.HTTPResponse(
@@ -40,16 +76,14 @@ def describe_network_page():
                     headers={},
                     payload='{"hello":"world","how":"areyou","ok":123,"enabled": false}'.encode(),
                 ),
-                uuid=str(i),
+                uuid=flow1.uuid,
             )
 
-            signal = EventBusGlobal.get().flows_received
-            with qtbot.waitSignal(signal, timeout=1000):
-                send_flow_over_grpc(flow1)
-                send_flow_over_grpc(flow2)
+            EventBusGlobal.get().flows_received.emit([flow1, flow2])
+            time.sleep(0.2) # wait for the debounce
 
         # Subject
-        main_window.show()
+        # main_window.show()
         # qtbot.waitExposed(main_window)
         # qtbot.wait(3000)
 
@@ -80,7 +114,7 @@ def describe_network_page():
                     headers=headers,
                     payload=bytes(),
                 ),
-                uuid=str(i),
+                uuid=str(uuid.uuid4()),
             )
 
             flow2 = AgentFlowFactory.build_grpc_response(
@@ -88,13 +122,11 @@ def describe_network_page():
                     headers=headers,
                     payload=bytes([0x00, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x08, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x20]),
                 ),
-                uuid=str(i),
+                uuid=flow1.uuid,
             )
 
-            signal = EventBusGlobal.get().flows_received
-            with qtbot.waitSignal(signal, timeout=1000):
-                send_flow_over_grpc(flow1)
-                send_flow_over_grpc(flow2)
+            EventBusGlobal.get().flows_received.emit([flow1, flow2])
+            time.sleep(0.2) # wait for the debounce
 
         # Subject
         # main_window.show()
@@ -117,7 +149,7 @@ def describe_network_page():
         # Setup
         main_window = MainWindow(pathlib.Path("./assets"))
 
-        flow = AgentFlowFactory.build_request(
+        flow1 = AgentFlowFactory.build_request(
             api_pb2.HTTPRequest(
                 method="POST",
                 path="/",
@@ -127,22 +159,20 @@ def describe_network_page():
                 payload='{"hello":"world","how":"areyou","ok":123}'.encode(),
             )
         )
-        send_flow_over_grpc(flow)
+        EventBusGlobal.get().flows_received.emit([flow1])
 
-        flow = AgentFlowFactory.build_response(
+        flow2 = AgentFlowFactory.build_response(
             api_pb2.HTTPResponse(
                 status=200,
                 status_msg="OK",
                 http_version="1.1",
                 headers={},
                 payload='{"hello":"world","how":"areyou","ok":123,"enabled": false}'.encode(),
-            )
+            ),
+            uuid=flow1.uuid
         )
-        send_flow_over_grpc(flow)
-
-        signal = EventBusGlobal.get().flows_received
-        with qtbot.waitSignal(signal, timeout=1000):
-            send_flow_over_grpc(flow)
+        EventBusGlobal.get().flows_received.emit([flow2])
+        time.sleep(0.2) # wait for the debounce
 
         # Subject
         table_model = main_window.network_page.ui.flowTableContainer.table_model
@@ -187,7 +217,7 @@ def describe_network_page():
                 headers=headers,
                 payload=bytes([0x0a,0x29,0x0a,0x04,0x31,0x32,0x33,0x34,0x12,0x06,0x75,0x62,0x75,0x6e,0x74,0x75,0x1a,0x0a,0x31,0x37,0x32,0x2e,0x30,0x2e,0x31,0x2e,0x31,0x39,0x22,0x04,0x65,0x76,0x61,0x6e,0x2a,0x07,0x72,0x75,0x6e,0x6e,0x69,0x6e,0x67]),
             ),
-            uuid="1234-abcd",
+            uuid=str(uuid.uuid4()),
         )
 
         flow2 = AgentFlowFactory.build_grpc_response(
@@ -195,13 +225,10 @@ def describe_network_page():
                 headers=headers,
                 payload=bytes([0x0a, 0x08, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x20]),
             ),
-            uuid="1234-abcd",
+            uuid=flow1.uuid,
         )
-
-        signal = EventBusGlobal.get().flows_received
-        with qtbot.waitSignal(signal, timeout=1000):
-            send_flow_over_grpc(flow1)
-            send_flow_over_grpc(flow2)
+        EventBusGlobal.get().flows_received.emit([flow1, flow2])
+        time.sleep(0.2) # wait for the debounce
 
         # Subject
         table_model = main_window.network_page.ui.flowTableContainer.table_model

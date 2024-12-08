@@ -9,8 +9,9 @@ def migrate_v1_0_0_create_flows(conn: Connection):
         dest_addr TEXT NOT NULL,
         l4_protocol TEXT NOT NULL,
         l7_protocol TEXT NOT NULL,
-        request_raw BLOB NOT NULL ,
-        response_raw BLOB
+        request_raw JSONB NOT NULL ,
+        response_raw JSONB,
+        created_at TEXT NOT NULL
     );
     """
     for statmt in sql.split(";"):

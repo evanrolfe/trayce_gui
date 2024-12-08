@@ -1,5 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
+import json
+import base64
 from google.protobuf.descriptor import FileDescriptor
 
 from network.models.flow_request import FlowRequest
@@ -11,6 +13,29 @@ class GrpcRequest(FlowRequest):
     path: str
     headers: dict[str, list[str]]
     body: bytes
+
+    meta = {
+        "relationship_keys": [
+            "request",
+            "response",
+        ],
+        "json_columns": [],
+        "do_not_save_keys": [],
+    }
+
+    @classmethod
+    def from_json(cls, json_raw: bytes) -> GrpcRequest:
+        values = json.loads(json_raw)
+        return GrpcRequest(
+            path=values['path'],
+            headers=values['headers'],
+            body=base64.b64decode(values['body']),
+        )
+
+    def to_json(self) -> str:
+        values = self.values_for_db()
+        values['body'] = base64.b64encode(values['body']).decode()
+        return json.dumps(values)
 
     def __str__(self):
         out = self.header_str()
