@@ -54,14 +54,3 @@ Enter Apple ID (email), App-specific password, Team ID: KS7QN3G38M
 
 Generate app store connect API key:
 https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api
-
-
-xcrun notarytool store-credentials "trayce-profile3"
-
-/Users/evan/Code/AuthKey_CHPQQ54J5B.p8
-
-KeyID: CHPQQ54J5B
-
-IssuerID: a4aa5801-7c97-4db2-8239-8cc2eb29993f
-
-xcrun notarytool submit ./dist/trayce.dmg --keychain-profile "trayce-profile3" --wait

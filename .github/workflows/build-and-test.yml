@@ -59,6 +59,16 @@ jobs:
           echo "$APPLE_DEV_ID_PRIVATE_BASE64" | base64 --decode > /tmp/private.p12
           echo "$APPLE_APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/app_store_private.p12
 
+      # - name: Start tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   env:
+      #     APPLE_DEV_ID_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEV_ID_CERTIFICATE_BASE64 }}
+      #     APPLE_DEV_ID_PRIVATE_BASE64: ${{ secrets.APPLE_DEV_ID_PRIVATE_BASE64 }}
+      #     APPLE_APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPLE_APP_STORE_CONNECT_PRIVATE_KEY }}
+      #     APPLE_DEV_ID_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEV_ID_CERTIFICATE_PASSWORD }}
+      #     APPLE_APP_STORE_CONNECT_KEY_ID: ${{ secrets.APPLE_APP_STORE_CONNECT_KEY_ID }}
+      #     APPLE_APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPLE_APP_STORE_CONNECT_ISSUER_ID }}
+
       - name: Import Certificates
         env:
           APPLE_DEV_ID_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEV_ID_CERTIFICATE_PASSWORD }}
@@ -108,9 +118,6 @@ jobs:
 
       - name: Package .dmg
         run: make pkg-dmg
-
-      # - name: Start tmate session
-      #   uses: mxschmitt/action-tmate@v3
 
       - name: Notarize .dmg
         run: |
