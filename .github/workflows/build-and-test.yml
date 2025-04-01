@@ -61,13 +61,6 @@ jobs:
 
       # - name: Start tmate session
       #   uses: mxschmitt/action-tmate@v3
-      #   env:
-      #     APPLE_DEV_ID_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEV_ID_CERTIFICATE_BASE64 }}
-      #     APPLE_DEV_ID_PRIVATE_BASE64: ${{ secrets.APPLE_DEV_ID_PRIVATE_BASE64 }}
-      #     APPLE_APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPLE_APP_STORE_CONNECT_PRIVATE_KEY }}
-      #     APPLE_DEV_ID_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEV_ID_CERTIFICATE_PASSWORD }}
-      #     APPLE_APP_STORE_CONNECT_KEY_ID: ${{ secrets.APPLE_APP_STORE_CONNECT_KEY_ID }}
-      #     APPLE_APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APPLE_APP_STORE_CONNECT_ISSUER_ID }}
 
       - name: Import Certificates
         env:
@@ -154,15 +147,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete edge --repo github.com/evanrolfe/trayce --cleanup-tag --yes || true
-          gh release create edge --repo github.com/evanrolfe/trayce --title "edge" --prerelease --target main --generate-notes
+          gh release delete edge --repo github.com/evanrolfe/trayce_gui --cleanup-tag --yes || true
+          gh release create edge --repo github.com/evanrolfe/trayce_gui --title "edge" --prerelease --target main --generate-notes
 
       - name: Upload .deb
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload edge trayce.deb --repo github.com/evanrolfe/trayce
+        run: gh release upload edge trayce.deb --repo github.com/evanrolfe/trayce_gui
 
       - name: Upload .dmg
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload edge trayce.dmg --repo github.com/evanrolfe/trayce
+        run: gh release upload edge trayce.dmg --repo github.com/evanrolfe/trayce_gui
