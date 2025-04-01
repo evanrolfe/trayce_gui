@@ -4,6 +4,6 @@ Name=Trayce
 GenericName=Trayce
 Comment=backend web development software
 Exec=/usr/local/bin/trayce
-Icon=/usr/local/lib/trayce/_internal/include/icon_128x128.png
+Icon=/usr/local/lib/trayce/icon_128x128.png
 Terminal=false
 Categories=Development;
