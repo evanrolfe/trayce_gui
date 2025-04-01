@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+option go_package = "github.com/evanrolfe/trayce_agent/api";
+
+package api;
+
+service TrayceAgent {
+    rpc SendFlowsObserved (Flows) returns (Reply) {}
+	rpc SendContainersObserved (Containers) returns (Reply) {}
+    rpc SendAgentVerified (AgentVerified) returns (Reply) {}
+    rpc OpenCommandStream (stream AgentStarted) returns (stream Command) {}
+}
+
+message Flow {
+	string uuid = 1;
+    string source_addr = 2;
+    string dest_addr = 3;
+    string l4_protocol = 4;
+    string l7_protocol = 5;
+	oneof request {
+		HTTPRequest http_request = 6;
+		GRPCRequest grpc_request = 7;
+		SQLQuery sql_query = 8;
+	}
+	oneof response {
+		HTTPResponse http_response = 9;
+		GRPCResponse grpc_response = 10;
+		SQLResponse sql_response = 11;
+	}
+}
+
+message Flows {
+    repeated Flow flows = 1;
+}
+
+message StringList {
+	repeated string values = 1; // Inner array of strings
+  }
+
+message HTTPRequest {
+    string method = 1;
+    string host = 2;
+    string path = 3;
+    string http_version = 4;
+    map<string, StringList> headers = 5;
+    bytes payload = 6;
+}
+
+message HTTPResponse {
+    string http_version = 1;
+    int32 status = 2;
+    string status_msg = 3;
+    map<string, StringList> headers = 4;
+    bytes payload = 5;
+}
+
+message GRPCRequest {
+    string path = 1;
+    map<string, StringList> headers = 2;
+    bytes payload = 3;
+}
+
+message GRPCResponse {
+    map<string, StringList> headers = 1;
+    bytes payload = 2;
+}
+
+message SQLQuery {
+    string query = 1;
+    StringList params = 2;
+}
+
+message SQLResponse {
+    StringList columns = 1;
+    repeated StringList rows = 2;
+}
+
+message Reply {
+    string status = 1;
+}
+
+message AgentStarted {
+	string version = 1;
+}
+
+message AgentVerified {
+	bool valid = 1;
+	string message = 2;
+}
+
+message Command {
+    string type = 1;
+    Settings settings = 2;
+}
+
+message Settings {
+    repeated string container_ids = 1;
+	string license_key = 2;
+}
+
+message Request {
+    int32 num = 1;
+}
+
+message Response {
+    int32 result = 1;
+}
+
+message Container {
+	string id = 1;
+    string image = 2;
+    string ip = 3;
+    string name = 4;
+    string status = 5;
+}
+
+message Containers {
+    repeated Container containers = 1;
+}

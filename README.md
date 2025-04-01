@@ -1,34 +1,34 @@
 # TrayceGUI
-![](https://img.shields.io/badge/python-3.11-blue) ![](https://img.shields.io/badge/Qt-6-blue) [![Pntest.io](https://img.shields.io/badge/Website-orange)](https://trayce.dev/)
 
 TrayceGUI is a cross-platform desktop application which lets you interface with the [TrayceAgent](https://github.com/evanrolfe/trayce_agent/) to monitor network requests in Docker containers.
 
 ![](https://github.com/evanrolfe/trayce_gui/blob/main/screenshot.jpg)
 
-## Build
-
-See the [Build Guide](https://github.com/evanrolfe/trayce_gui/blob/main/BUILD.md).
-
 ## Develop
 
-Get started by setting up a Python virtual env.
-```bash
-python3.11 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip install -r dev-requirements.txt
-```
+Install Flutter SDK: [Linux](https://docs.flutter.dev/get-started/install/linux/desktop) or [Mac](https://docs.flutter.dev/get-started/install/macos/desktop#install-the-flutter-sdk).
 
-## Run
+Run the app:
+`flutter run`
+
+Generate protobuf files:
 ```
-make run
+dart pub global activate protoc_plugin
+make generate
 ```
 
 ## Test
-```
-make test
-```
-Or run specific test(s):
-```
-make test -- -k describe_containers_dialog
-```
+
+Run widget tests:
+`make test`
+
+Run integration tests:
+`make integration_test`
+
+## Build
+
+Run `make build-linux` or `make build-mac`
+
+## Troubleshooting
+
+Linux Mint - not able to type in text fields, solved by Disabling on-screen keyboard in accesibility settings: https://github.com/flutter/flutter/issues/153560#issuecomment-2503660633
