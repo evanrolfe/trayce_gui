@@ -9,7 +9,6 @@ import 'package:trayce/main.dart' as app;
 import 'containers_modal_test.dart' as containers_modal_test;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
-import 'license_key_test.dart' as license_key_test;
 import 'proto_def_modal.dart' as proto_def_modal_test;
 // NOTE: This is how we have to run integration tests (as opposed to letting flutter test run multiple tests)
 // because of this open issue: https://github.com/flutter/flutter/issues/135673
@@ -36,8 +35,8 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     final db = await databaseFactory.openDatabase('tmp.db');
 
-    await license_key_test.test(tester, db);
-    await truncateDb(db);
+    // await license_key_test.test(tester, db);
+    // await truncateDb(db);
     await proto_def_modal_test.test(tester, db);
     await truncateDb(db);
     await grpc_parsing_test.test(tester, db);

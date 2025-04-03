@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:trayce/agent/server.dart';
 import 'package:trayce/common/style.dart';
@@ -50,6 +52,22 @@ class _SettingsModalState extends State<SettingsModal> {
     _licenseController.dispose();
     _verificationSubscription.cancel();
     super.dispose();
+  }
+
+  Future<bool> _verifyLicense(String licenseKey) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://get.trayce.dev/verify/$licenseKey'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'active';
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -138,7 +156,17 @@ class _SettingsModalState extends State<SettingsModal> {
                           final licenseKey = _licenseController.text.trim();
                           if (licenseKey.isNotEmpty) {
                             setState(() => _isVerifying = true);
-                            context.read<ContainersRepo>().setLicenseKey(licenseKey);
+
+                            final isValid = await _verifyLicense(licenseKey);
+
+                            setState(() {
+                              _isVerifying = false;
+                              _isVerified = isValid;
+                            });
+
+                            if (isValid) {
+                              context.read<ContainersRepo>().setLicenseKey(licenseKey);
+                            }
                           }
                         },
                   style: commonButtonStyle,
@@ -170,12 +198,20 @@ class _SettingsModalState extends State<SettingsModal> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final licenseKey = _licenseController.text.trim();
                     if (licenseKey.isNotEmpty) {
-                      context.read<ContainersRepo>().setLicenseKey(licenseKey);
+                      final isValid = await _verifyLicense(licenseKey);
+
+                      setState(() {
+                        _isVerified = isValid;
+                      });
+
+                      if (isValid) {
+                        context.read<ContainersRepo>().setLicenseKey(licenseKey);
+                        Navigator.of(context).pop();
+                      }
                     }
-                    Navigator.of(context).pop();
                   },
                   style: commonButtonStyle,
                   child: const Text('Save'),
