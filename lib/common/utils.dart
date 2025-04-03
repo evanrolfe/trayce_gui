@@ -1,6 +1,10 @@
 import 'dart:io';
 
 Future<String> getMachineIp() async {
+  if (Platform.isMacOS) {
+    return 'host.docker.internal';
+  }
+
   try {
     final interfaces = await NetworkInterface.list();
     for (var interface in interfaces) {
