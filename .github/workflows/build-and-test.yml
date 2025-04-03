@@ -124,8 +124,8 @@ jobs:
           name: dmg-artifact
           path: dist/trayce.dmg
 
-  release:
-    name: Publish Release
+  release-edge:
+    name: Publish Edge Release
     if: github.ref == 'refs/heads/main'
     needs: [build-linux, build-mac-arm64]
     runs-on: ubuntu-latest
@@ -159,3 +159,43 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload edge trayce.dmg --repo github.com/evanrolfe/trayce_gui
+
+  release-version:
+    name: Publish Version Release
+    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release:')
+    needs: [release-edge]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deb-artifact
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dmg-artifact
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export TAG="v$(cat ./VERSION)"
+          gh release create ${TAG} --repo github.com/evanrolfe/trayce_gui --title ${TAG} --target main --generate-notes
+
+      - name: Upload .deb
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export TAG="v$(cat ./VERSION)"
+          gh release upload ${TAG} trayce.deb --repo github.com/evanrolfe/trayce_gui
+
+      - name: Upload .dmg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export TAG="v$(cat ./VERSION)"
+          gh release upload ${TAG} trayce.dmg --repo github.com/evanrolfe/trayce_gui
