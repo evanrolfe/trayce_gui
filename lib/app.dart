@@ -161,6 +161,7 @@ class _AppScaffoldState extends State<AppScaffold> {
     return Scaffold(
       body: Row(
         children: [
+          // Sidebar:
           Container(
             color: sidebarColor,
             child: Column(
@@ -173,14 +174,17 @@ class _AppScaffoldState extends State<AppScaffold> {
                     child: _getSidebarItem(isHovering0, widget.selectedIndex == 0, Icons.format_list_numbered),
                   ),
                 ),
-                Listener(
-                  onPointerDown: (_) => _navigateToPage(1),
-                  child: MouseRegion(
-                    onEnter: (_) => setState(() => isHovering1 = true),
-                    onExit: (_) => setState(() => isHovering1 = false),
-                    child: _getSidebarItem(isHovering1, widget.selectedIndex == 1, Icons.edit),
-                  ),
-                ),
+                //
+                // Editor sidebar item is commented out for now
+                //
+                // Listener(
+                //   onPointerDown: (_) => _navigateToPage(1),
+                //   child: MouseRegion(
+                //     onEnter: (_) => setState(() => isHovering1 = true),
+                //     onExit: (_) => setState(() => isHovering1 = false),
+                //     child: _getSidebarItem(isHovering1, widget.selectedIndex == 1, Icons.edit),
+                //   ),
+                // ),
               ],
             ),
           ),
