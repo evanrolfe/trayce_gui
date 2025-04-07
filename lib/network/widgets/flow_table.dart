@@ -31,7 +31,7 @@ class FlowTable extends StatefulWidget {
 }
 
 class _FlowTableState extends State<FlowTable> {
-  int? selectedRow;
+  int? selectedFlowID;
   final FocusNode _searchFocusNode = FocusNode();
   late final StreamSubscription _flowsSub;
   List<models.Flow> _flows = [];
@@ -57,6 +57,10 @@ class _FlowTableState extends State<FlowTable> {
     _searchFocusNode.dispose();
     _flowsSub.cancel();
     super.dispose();
+  }
+
+  int getSelectedFlowIndex() {
+    return _flows.indexWhere((flow) => flow.id == selectedFlowID);
   }
 
   @override
@@ -140,33 +144,56 @@ class _FlowTableState extends State<FlowTable> {
                 child: Focus(
                   autofocus: true,
                   onKeyEvent: (node, event) {
+                    // Handle Arrow Up Press
                     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                      if (selectedRow == null && _flows.isNotEmpty) {
-                        setState(() {
-                          selectedRow = 0;
-                          widget.onFlowSelected(_flows[0]);
-                        });
-                      } else if (selectedRow != null && selectedRow! > 0) {
-                        setState(() {
-                          selectedRow = selectedRow! - 1;
-                          widget.onFlowSelected(_flows[selectedRow!]);
-                        });
+                      if (selectedFlowID == null) {
+                        return KeyEventResult.handled;
                       }
-                      return KeyEventResult.handled;
-                    } else if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                      if (selectedRow == null && _flows.isNotEmpty) {
-                        setState(() {
-                          selectedRow = 0;
-                          widget.onFlowSelected(_flows[0]);
-                        });
-                      } else if (selectedRow != null && selectedRow! < _flows.length - 1) {
-                        setState(() {
-                          selectedRow = selectedRow! + 1;
-                          widget.onFlowSelected(_flows[selectedRow!]);
-                        });
+                      final nextIndex = getSelectedFlowIndex() - 1;
+                      if (nextIndex < 0) {
+                        return KeyEventResult.handled;
                       }
+
+                      final nextFlow = _flows[nextIndex];
+
+                      setState(() {
+                        selectedFlowID = nextFlow.id;
+                        widget.onFlowSelected(nextFlow);
+                      });
+
                       return KeyEventResult.handled;
                     }
+
+                    if (event is KeyRepeatEvent && event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                      // TODO: Make this select the next flow at a set rate
+                      return KeyEventResult.handled;
+                    }
+
+                    // Handle Arrow Down Press
+                    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                      if (selectedFlowID == null) {
+                        return KeyEventResult.handled;
+                      }
+                      final nextIndex = getSelectedFlowIndex() + 1;
+                      if (nextIndex > _flows.length - 1) {
+                        return KeyEventResult.handled;
+                      }
+
+                      final nextFlow = _flows[nextIndex];
+
+                      setState(() {
+                        selectedFlowID = nextFlow.id;
+                        widget.onFlowSelected(nextFlow);
+                      });
+
+                      return KeyEventResult.handled;
+                    }
+
+                    if (event is KeyRepeatEvent && event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                      // TODO: Make this select the next flow at a set rate
+                      return KeyEventResult.handled;
+                    }
+
                     return KeyEventResult.ignored;
                   },
                   child: Scrollbar(
@@ -190,14 +217,10 @@ class _FlowTableState extends State<FlowTable> {
                             onExit: (_) => setState(() => isHovered = false),
                             child: GestureDetector(
                               onTap: () {
+                                print('onTap: $index');
                                 this.setState(() {
-                                  if (selectedRow == index) {
-                                    selectedRow = null;
-                                    widget.onFlowSelected(null);
-                                  } else {
-                                    selectedRow = index;
-                                    widget.onFlowSelected(flow);
-                                  }
+                                  selectedFlowID = flow.id;
+                                  widget.onFlowSelected(flow);
                                 });
                               },
                               child: Container(
@@ -205,7 +228,7 @@ class _FlowTableState extends State<FlowTable> {
                                   border: Border(
                                     bottom: BorderSide(color: Colors.black),
                                   ),
-                                  color: selectedRow == index
+                                  color: selectedFlowID == flow.id
                                       ? const Color(0xFF4DB6AC).withAlpha(77)
                                       : isHovered
                                           ? const Color(0xFF2D2D2D).withAlpha(77)
