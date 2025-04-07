@@ -35,6 +35,18 @@ class _ContainersModalState extends State<ContainersModal> {
   bool _versionOk = false;
   bool _agentRunning = false;
 
+  void _updateContainerState(EventDisplayContainers event) {
+    setState(() {
+      _agentRunning = true;
+      _containers = event.containers;
+      _versionOk = event.versionOk();
+      // Update intercepted states for new containers
+      for (var container in _containers) {
+        _interceptedStates[container.id] = event.interceptedContainerIDs.contains(container.id);
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,17 +57,15 @@ class _ContainersModalState extends State<ContainersModal> {
       });
     });
 
+    // Get the cached container state from ContainersRepo
+    final lastEvent = context.read<ContainersRepo>().lastDisplayEvent;
+    if (lastEvent != null) {
+      _updateContainerState(lastEvent);
+    }
+
     // Subscribe to container updates
     _containerSubscription = context.read<EventBus>().on<EventDisplayContainers>().listen((event) {
-      setState(() {
-        _agentRunning = true;
-        _containers = event.containers;
-        _versionOk = event.versionOk();
-        // Update intercepted states for new containers
-        for (var container in _containers) {
-          _interceptedStates[container.id] = event.interceptedContainerIDs.contains(container.id);
-        }
-      });
+      _updateContainerState(event);
     });
 
     _agentRunningSubscription = context.read<EventBus>().on<EventAgentRunning>().listen((event) {
@@ -201,21 +211,21 @@ class _ContainersModalState extends State<ContainersModal> {
                                 child: Row(
                                   children: [
                                     Opacity(
-                                      opacity: container.image == 'trayce_agent:local' ? 0.25 : 1.0,
+                                      opacity: canIntercept(container.image) ? 1.0 : 0.25,
                                       child: Container(
                                         padding: const EdgeInsets.only(left: 16),
                                         child: Row(
                                           children: [
                                             Checkbox(
                                               value: _interceptedStates[container.id] ?? false,
-                                              onChanged: container.image == 'trayce_agent:local'
-                                                  ? null // null onChanged makes the checkbox disabled
-                                                  : (bool? value) => _onContainerInterceptChanged(container.id, value),
+                                              onChanged: canIntercept(container.image)
+                                                  ? (bool? value) => _onContainerInterceptChanged(container.id, value)
+                                                  : null,
                                               side: const BorderSide(color: Color(0xFFD4D4D4)),
                                               fillColor: MaterialStateProperty.resolveWith(
                                                 (states) {
-                                                  if (container.image == 'trayce_agent:local') {
-                                                    return Colors.grey; // greyed out when disabled
+                                                  if (!canIntercept(container.image)) {
+                                                    return Colors.grey;
                                                   }
                                                   return states.contains(MaterialState.selected)
                                                       ? const Color(0xFF4DB6AC)
@@ -424,7 +434,6 @@ class _ContainersModalState extends State<ContainersModal> {
       _interceptedStates[containerId] = value ?? false;
     });
 
-    print('Intercepting container: $containerId, value: $value');
     // Get selected container IDs
     final selectedIds = _containers
         .where((container) => _interceptedStates[container.id] ?? false)
@@ -432,6 +441,10 @@ class _ContainersModalState extends State<ContainersModal> {
         .toList();
 
     context.read<ContainersRepo>().interceptContainers(selectedIds);
+  }
+
+  bool canIntercept(String image) {
+    return !image.contains('trayce_agent');
   }
 }
 

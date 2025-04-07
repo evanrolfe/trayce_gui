@@ -52,12 +52,14 @@ class ContainersRepo {
   bool _isVerified = false;
   DateTime? _lastHeartbeatAt;
   final Settings _settings = Settings();
+  EventDisplayContainers? _lastDisplayEvent;
 
   static const _licenseKeyPref = 'license_key';
 
   // Getters
   String? get licenseKey => _settings.licenseKey;
   bool get isVerified => _isVerified;
+  EventDisplayContainers? get lastDisplayEvent => _lastDisplayEvent;
 
   ContainersRepo({
     required EventBus eventBus,
@@ -78,7 +80,10 @@ class ContainersRepo {
         _sendSettings();
         _eventBus.fire(EventAgentRunning(true));
       }
-      _eventBus.fire(EventDisplayContainers(_agentVersion, event.containers, _settings.containerIds));
+
+      final displayEvent = EventDisplayContainers(_agentVersion, event.containers, _settings.containerIds);
+      _lastDisplayEvent = displayEvent;
+      _eventBus.fire(displayEvent);
     });
 
     // Start heartbeat check timer
@@ -117,6 +122,8 @@ class ContainersRepo {
     }
   }
 
+  // TODO: This could be improved because when you check a container in the modal, then close the modal
+  // it remains checked the next time you open it even though you never pressed save
   void interceptContainers(List<String> containerIds) {
     print('Intercepting containers: $containerIds');
     _settings.containerIds.clear();
