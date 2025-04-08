@@ -122,29 +122,8 @@ class _SettingsModalState extends State<SettingsModal> {
                   child: TextField(
                     key: const Key('license-key-input'),
                     controller: _licenseController,
-                    style: const TextStyle(color: Color(0xFFD4D4D4)),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFF1E1E1E),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF474747),
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF474747),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        borderSide: const BorderSide(
-                          color: Colors.teal,
-                        ),
-                      ),
-                    ),
+                    style: textFieldStyle,
+                    decoration: textFieldDecor,
                   ),
                 ),
                 const SizedBox(width: 8),

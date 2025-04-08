@@ -2,11 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/app_scaffold.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/menu_bar.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/status_bar.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'editor/editor.dart';
 import 'network/repo/flow_repo.dart';
@@ -15,14 +18,62 @@ import 'network/widgets/network.dart';
 const Color backgroundColor = Color(0xFF1E1E1E);
 const Color textColor = Color(0xFFD4D4D4);
 const Color sidebarColor = Color(0xFF333333);
+const String windowWidthKey = 'window_width';
+const String windowHeightKey = 'window_height';
+const double defaultWindowWidth = 1200.0;
+const double defaultWindowHeight = 800.0;
 
-class App extends StatelessWidget {
+class AppCache {
+  static double? _cachedWidth;
+  static double? _cachedHeight;
+
+  static Future<void> preloadSize() async {
+    if (_cachedWidth != null && _cachedHeight != null) return;
+    final prefs = await SharedPreferences.getInstance();
+    _cachedWidth = prefs.getDouble(windowWidthKey);
+    _cachedHeight = prefs.getDouble(windowHeightKey);
+  }
+
+  static Size get size => Size(
+        _cachedWidth ?? defaultWindowWidth,
+        _cachedHeight ?? defaultWindowHeight,
+      );
+
+  static Future<void> saveSize(Size size) async {
+    _cachedWidth = size.width;
+    _cachedHeight = size.height;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(windowWidthKey, size.width);
+    await prefs.setDouble(windowHeightKey, size.height);
+  }
+}
+
+class App extends StatefulWidget {
   final String appVersion;
 
   const App({
     super.key,
     required this.appVersion,
   });
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeWindow();
+  }
+
+  Future<void> _initializeWindow() async {
+    await AppCache.preloadSize();
+    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+      final size = AppCache.size;
+      await windowManager.setSize(size);
+    }
+  }
 
   static final _navigatorKey = GlobalKey<NavigatorState>();
 
@@ -80,123 +131,35 @@ class App extends StatelessWidget {
       theme: appTheme,
       home: Builder(
         builder: (context) => AppMenuBar(
-          appVersion: appVersion,
+          appVersion: widget.appVersion,
           onFileOpen: (path) => _changeDatabase(context, path),
           onFileSave: (path) => _changeDatabase(context, path, shouldCopy: true),
           child: Scaffold(
-            body: Navigator(
-              key: _navigatorKey,
-              onGenerateRoute: (settings) {
-                Widget page;
-                if (settings.name == '/editor') {
-                  page = _createPage(1);
-                } else {
-                  page = _createPage(0);
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+                  AppCache.saveSize(Size(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  ));
                 }
-                return MaterialPageRoute(builder: (_) => page);
+                return Navigator(
+                  key: _navigatorKey,
+                  onGenerateRoute: (settings) {
+                    Widget page;
+                    if (settings.name == '/editor') {
+                      page = _createPage(1);
+                    } else {
+                      page = _createPage(0);
+                    }
+                    return MaterialPageRoute(builder: (_) => page);
+                  },
+                );
               },
             ),
             bottomNavigationBar: const StatusBar(),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class AppScaffold extends StatefulWidget {
-  final Widget child;
-  final int selectedIndex;
-
-  const AppScaffold({
-    super.key,
-    required this.child,
-    required this.selectedIndex,
-  });
-
-  @override
-  State<AppScaffold> createState() => _AppScaffoldState();
-}
-
-class _AppScaffoldState extends State<AppScaffold> {
-  bool isHovering0 = false;
-  bool isHovering1 = false;
-
-  void _navigateToPage(int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/network');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/editor');
-        break;
-    }
-  }
-
-  BoxDecoration _getSidebarItemDecoration(bool isSelected, bool isHovering) {
-    return BoxDecoration(
-      border: Border(
-        left: BorderSide(
-          color: isSelected ? const Color(0xFF4DB6AC) : Colors.transparent,
-          width: 2,
-        ),
-      ),
-      color: isSelected || isHovering ? const Color(0xFF3A3A3A) : Colors.transparent,
-    );
-  }
-
-  Widget _getSidebarItem(bool isHovering, bool isSelected, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _getSidebarItemDecoration(isSelected, isHovering),
-      child: Icon(
-        icon,
-        color: textColor,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar:
-          Container(
-            color: sidebarColor,
-            child: Column(
-              children: [
-                Listener(
-                  onPointerDown: (_) => _navigateToPage(0),
-                  child: MouseRegion(
-                    onEnter: (_) => setState(() => isHovering0 = true),
-                    onExit: (_) => setState(() => isHovering0 = false),
-                    child: _getSidebarItem(isHovering0, widget.selectedIndex == 0, Icons.format_list_numbered),
-                  ),
-                ),
-                //
-                // Editor sidebar item is commented out for now
-                //
-                // Listener(
-                //   onPointerDown: (_) => _navigateToPage(1),
-                //   child: MouseRegion(
-                //     onEnter: (_) => setState(() => isHovering1 = true),
-                //     onExit: (_) => setState(() => isHovering1 = false),
-                //     child: _getSidebarItem(isHovering1, widget.selectedIndex == 1, Icons.edit),
-                //   ),
-                // ),
-              ],
-            ),
-          ),
-          const VerticalDivider(
-            thickness: 1,
-            width: 1,
-            color: Color(0xFF474747),
-          ),
-          Expanded(
-            child: widget.child,
-          ),
-        ],
       ),
     );
   }

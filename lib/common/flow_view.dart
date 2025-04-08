@@ -426,8 +426,10 @@ class _FlowViewState extends State<FlowView> {
                     onEnter: (_) => setState(() => isDividerHovered = true),
                     onExit: (_) => setState(() => isDividerHovered = false),
                     child: GestureDetector(
-                      onPanUpdate: (details) {
-                        final newTopHeight = topPaneHeight + (details.delta.dy / totalHeight);
+                      onVerticalDragUpdate: (details) {
+                        final RenderBox box = context.findRenderObject() as RenderBox;
+                        final localPosition = box.globalToLocal(details.globalPosition);
+                        final newTopHeight = localPosition.dy / totalHeight;
                         if (newTopHeight > 0.1 && newTopHeight < 0.9) {
                           _saveHeight(newTopHeight);
                         }

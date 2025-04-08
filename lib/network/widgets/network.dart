@@ -125,12 +125,16 @@ class _NetworkState extends State<Network> {
                     onEnter: (_) => setState(() => isDividerHovered = true),
                     onExit: (_) => setState(() => isDividerHovered = false),
                     child: GestureDetector(
-                      onPanUpdate: (details) {
-                        final newLeftWidth = leftPaneWidth * totalWidth + details.delta.dx;
-                        final newRightWidth = (1 - leftPaneWidth) * totalWidth - details.delta.dx;
+                      onHorizontalDragUpdate: (details) {
+                        final RenderBox box = context.findRenderObject() as RenderBox;
+                        final localPosition = box.globalToLocal(details.globalPosition);
+                        final newLeftWidth = localPosition.dx / totalWidth;
 
-                        if (newLeftWidth >= minPaneWidth && newRightWidth >= minPaneWidth) {
-                          _saveWidth(newLeftWidth / totalWidth);
+                        // Check if the new widths would be valid
+                        final newRightWidth = 1 - newLeftWidth;
+                        if ((newLeftWidth * totalWidth) >= minPaneWidth &&
+                            (newRightWidth * totalWidth) >= minPaneWidth) {
+                          _saveWidth(newLeftWidth);
                         }
                       },
                       child: Stack(
