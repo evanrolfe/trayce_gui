@@ -59,6 +59,7 @@ class ContainersRepo {
   // Getters
   String? get licenseKey => _settings.licenseKey;
   bool get isVerified => _isVerified;
+  bool get agentRunning => _agentRunning;
   EventDisplayContainers? get lastDisplayEvent => _lastDisplayEvent;
 
   ContainersRepo({

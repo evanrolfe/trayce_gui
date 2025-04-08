@@ -59,7 +59,8 @@ class _ContainersModalState extends State<ContainersModal> {
 
     // Get the cached container state from ContainersRepo
     final lastEvent = context.read<ContainersRepo>().lastDisplayEvent;
-    if (lastEvent != null) {
+    final agentRunning = context.read<ContainersRepo>().agentRunning;
+    if (agentRunning && lastEvent != null) {
       _updateContainerState(lastEvent);
     }
 

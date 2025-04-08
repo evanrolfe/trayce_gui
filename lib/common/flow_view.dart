@@ -1,7 +1,9 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../network/models/flow.dart' as models;
 import '../network/models/grpc_request.dart';
@@ -294,6 +296,47 @@ class _FlowViewState extends State<FlowView> {
     );
   }
 
+  TextSpan _getText(String text) {
+    List<TextSpan> children = [];
+
+    final upgradeText = "Upgrade to Trayce Pro to see SQL queries";
+    final hasUpgradeText = text.contains(upgradeText);
+
+    if (hasUpgradeText) {
+      text = text.replaceAll(upgradeText, '');
+    }
+
+    children.add(
+      TextSpan(
+        text: text,
+        style: const TextStyle(
+          color: textColor,
+          fontSize: 13,
+          fontFamily: 'monospace',
+        ),
+      ),
+    );
+
+    if (hasUpgradeText) {
+      children.add(TextSpan(
+        text: "\n\n$upgradeText",
+        style: const TextStyle(
+          color: Colors.blue,
+          fontSize: 13,
+          fontFamily: 'monospace',
+          decoration: TextDecoration.underline,
+          decorationColor: Colors.blue,
+        ),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () {
+            launchUrl(Uri.parse('https://get.trayce.dev/'));
+          },
+      ));
+    }
+
+    return TextSpan(children: children);
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -319,24 +362,16 @@ class _FlowViewState extends State<FlowView> {
                           ),
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.zero,
-                              child: TextField(
-                                controller: _topController,
-                                maxLines: null,
-                                expands: true,
-                                readOnly: true,
-                                textAlignVertical: TextAlignVertical.top,
+                              padding: EdgeInsets.all(8),
+                              alignment: Alignment.topLeft,
+                              child: SelectableText.rich(
+                                _getText(_topController.text),
                                 style: const TextStyle(
                                   color: textColor,
                                   fontSize: 13,
                                   fontFamily: 'monospace',
                                 ),
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(borderSide: BorderSide.none),
-                                  focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
-                                  enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
-                                  contentPadding: EdgeInsets.all(8),
-                                ),
+                                textAlign: TextAlign.left,
                               ),
                             ),
                           ),

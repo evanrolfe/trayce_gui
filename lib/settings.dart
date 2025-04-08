@@ -36,7 +36,6 @@ class _SettingsModalState extends State<SettingsModal> {
     final repo = context.read<ContainersRepo>();
 
     _licenseController = TextEditingController(text: repo.licenseKey);
-    _isVerified = repo.isVerified;
 
     // Subscribe to verification events
     _verificationSubscription = context.read<EventBus>().on<EventAgentVerified>().listen((event) {
@@ -164,9 +163,7 @@ class _SettingsModalState extends State<SettingsModal> {
                               _isVerified = isValid;
                             });
 
-                            if (isValid) {
-                              context.read<ContainersRepo>().setLicenseKey(licenseKey);
-                            }
+                            context.read<ContainersRepo>().setLicenseKey(licenseKey);
                           }
                         },
                   style: commonButtonStyle,
@@ -207,10 +204,8 @@ class _SettingsModalState extends State<SettingsModal> {
                         _isVerified = isValid;
                       });
 
-                      if (isValid) {
-                        context.read<ContainersRepo>().setLicenseKey(licenseKey);
-                        Navigator.of(context).pop();
-                      }
+                      context.read<ContainersRepo>().setLicenseKey(licenseKey);
+                      Navigator.of(context).pop();
                     }
                   },
                   style: commonButtonStyle,
