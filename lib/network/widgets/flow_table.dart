@@ -217,7 +217,6 @@ class _FlowTableState extends State<FlowTable> {
                             onExit: (_) => setState(() => isHovered = false),
                             child: GestureDetector(
                               onTap: () {
-                                print('onTap: $index');
                                 this.setState(() {
                                   selectedFlowID = flow.id;
                                   widget.onFlowSelected(flow);
@@ -309,6 +308,7 @@ class _FlowTableState extends State<FlowTable> {
                 alignment: Alignment.centerLeft,
                 child: IntrinsicWidth(
                   child: Container(
+                    width: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                     decoration: BoxDecoration(
                       color: _getStatusColor(text),
@@ -323,6 +323,7 @@ class _FlowTableState extends State<FlowTable> {
                         fontSize: 13,
                         color: Color(0xFFD4D4D4),
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
