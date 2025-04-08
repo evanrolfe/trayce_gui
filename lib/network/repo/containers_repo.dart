@@ -6,7 +6,7 @@ import 'package:trayce/agent/gen/api.pb.dart';
 import 'package:trayce/agent/server.dart';
 
 class EventDisplayContainers {
-  static const minVersion = '1.0.0';
+  static const minVersion = '1.0.2';
 
   final String? agentVersion;
   final List<Container> containers;

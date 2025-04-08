@@ -36,7 +36,7 @@ Future<void> test(WidgetTester tester) async {
   final client = TrayceAgentClient(channel);
 
   // Open command stream and receive the commands sent to it
-  final agentStarted = pb.AgentStarted(version: '1.0.0');
+  final agentStarted = pb.AgentStarted(version: '1.0.2');
   final controller = StreamController<pb.AgentStarted>();
   final commandStream = client.openCommandStream(controller.stream);
   final commandsReceived = <pb.Command>[];
@@ -116,7 +116,7 @@ Future<void> test(WidgetTester tester) async {
   );
   final client2 = TrayceAgentClient(channel2);
 
-  final agentStarted2 = pb.AgentStarted(version: '1.0.0');
+  final agentStarted2 = pb.AgentStarted(version: '1.0.2');
   final controller2 = StreamController<pb.AgentStarted>();
   final commandStream2 = client2.openCommandStream(controller2.stream);
   final commandsReceived2 = <pb.Command>[];
