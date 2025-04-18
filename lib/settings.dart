@@ -65,6 +65,7 @@ class _SettingsModalState extends State<SettingsModal> {
       }
       return false;
     } catch (e) {
+      print("ERROR: $e");
       return false;
     }
   }
