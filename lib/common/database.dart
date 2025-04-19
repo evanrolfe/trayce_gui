@@ -10,7 +10,11 @@ Function(Database db, int version) initSchema(String schema) {
   return (Database db, int version) {
     final batch = db.batch();
 
-    final List<String> queries = schema.split(';').map((q) => q.trim()).where((q) => q.isNotEmpty).toList();
+    final List<String> queries = schema
+        .split(';')
+        .map((q) => q.trim())
+        .where((q) => q.isNotEmpty)
+        .toList();
 
     for (final query in queries) {
       batch.execute(query);
@@ -45,7 +49,11 @@ Future<Database> connectDB([String? dbFile]) async {
   sqfliteFfiInit();
 
   // Ensure that the SQLite library from sqlite3_flutter_libs is used
-  if (Platform.isAndroid || Platform.isIOS || Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+  if (Platform.isAndroid ||
+      Platform.isIOS ||
+      Platform.isLinux ||
+      Platform.isMacOS ||
+      Platform.isWindows) {
     // This ensures the bundled sqlite3 library is loaded and used
     // For Android 6.0 compatibility, you might need to use:
     // await sqlite3_flutter_libs.applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
@@ -79,5 +87,9 @@ Future<Database> connectDB([String? dbFile]) async {
         version: 1,
         onCreate: initSchema(schema),
       ));
+
+  // Workaround for this issue: https://stackoverflow.com/questions/78908421/sqlite-not-working-on-macos-using-swiftui-with-the-app-sandbox
+  await db.execute("PRAGMA journal_mode = MEMORY");
+
   return db;
 }

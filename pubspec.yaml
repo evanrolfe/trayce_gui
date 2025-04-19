@@ -35,13 +35,9 @@ dependencies:
   protobuf: ^3.1.0
   grpc: ^3.2.4
   uuid: ^4.3.3
-  file_picker: ^6.1.1
   event_bus: ^2.0.0
   provider: ^6.1.1
   url_launcher: ^6.3.1
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   flutter_bloc: ^8.1.4
   sqflite: ^2.4.1
@@ -52,6 +48,8 @@ dependencies:
   dropdown_button2: ^2.3.9
   ffigen: ^17.0.0
   window_manager: ^0.4.3
+  accessing_security_scoped_resource: ^3.4.0
+  file_selector: ^1.0.3
 
 dev_dependencies:
   flutter_test:

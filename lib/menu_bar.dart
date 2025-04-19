@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:trayce/common/style.dart';
@@ -21,16 +21,32 @@ class AppMenuBar extends StatelessWidget {
   });
 
   Future<void> _handleOpen() async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result != null && result.files.single.path != null) {
-      onFileOpen?.call(result.files.single.path!);
+    const XTypeGroup typeGroup = XTypeGroup(
+      label: 'trayce',
+      extensions: <String>['db'],
+    );
+    final XFile? file =
+        await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+
+    final path = file?.path;
+
+    if (path != null) {
+      onFileOpen?.call(path);
     }
   }
 
   Future<void> _handleSave() async {
-    final result = await FilePicker.platform.saveFile();
-    if (result != null) {
-      onFileSave?.call(result);
+    const XTypeGroup typeGroup = XTypeGroup(
+      label: 'trayce',
+      extensions: <String>['db'],
+    );
+    final FileSaveLocation? file =
+        await getSaveLocation(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+
+    final path = file?.path;
+
+    if (path != null) {
+      onFileSave?.call(path);
     }
   }
 
@@ -44,12 +60,14 @@ class AppMenuBar extends StatelessWidget {
             menus: [
               PlatformMenuItem(
                 label: 'Open',
-                shortcut: const SingleActivator(LogicalKeyboardKey.keyO, meta: true),
+                shortcut:
+                    const SingleActivator(LogicalKeyboardKey.keyO, meta: true),
                 onSelected: _handleOpen,
               ),
               PlatformMenuItem(
                 label: 'Save As',
-                shortcut: const SingleActivator(LogicalKeyboardKey.keyS, meta: true),
+                shortcut:
+                    const SingleActivator(LogicalKeyboardKey.keyS, meta: true),
                 onSelected: _handleSave,
               ),
               PlatformMenuItem(
@@ -98,13 +116,15 @@ class AppMenuBar extends StatelessWidget {
                 MenuItemButton(
                   style: menuItemStyle,
                   onPressed: _handleOpen,
-                  shortcut: const SingleActivator(LogicalKeyboardKey.keyO, control: true),
+                  shortcut: const SingleActivator(LogicalKeyboardKey.keyO,
+                      control: true),
                   child: const Text('Open'),
                 ),
                 MenuItemButton(
                   style: menuItemStyle,
                   onPressed: _handleSave,
-                  shortcut: const SingleActivator(LogicalKeyboardKey.keyS, control: true),
+                  shortcut: const SingleActivator(LogicalKeyboardKey.keyS,
+                      control: true),
                   child: const Text('Save As'),
                 ),
                 MenuItemButton(

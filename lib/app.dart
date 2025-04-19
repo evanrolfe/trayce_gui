@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:accessing_security_scoped_resource/accessing_security_scoped_resource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,7 +87,8 @@ class _AppState extends State<App> {
   }
 
   // Helper function to handle database operations
-  static Future<void> _changeDatabase(BuildContext context, String path, {bool shouldCopy = false}) async {
+  static Future<void> _changeDatabase(BuildContext context, String path,
+      {bool shouldCopy = false}) async {
     try {
       final flowRepo = context.read<FlowRepo>();
       final protoDefRepo = context.read<ProtoDefRepo>();
@@ -99,10 +101,17 @@ class _AppState extends State<App> {
         await File(oldDb.path).copy(path);
       }
 
+      await oldDb.close();
+
+      if (Platform.isMacOS) {
+        final access = AccessingSecurityScopedResource();
+        final dirPath = File(path).parent.path;
+        await access.startAccessingSecurityScopedResourceWithURL(dirPath);
+      }
+
       final newDb = await connectDB(path);
       flowRepo.db = newDb;
       protoDefRepo.db = newDb;
-      await oldDb.close();
 
       if (context.mounted) {
         _navigatorKey.currentState?.pushReplacement(
@@ -115,7 +124,8 @@ class _AppState extends State<App> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error ${shouldCopy ? 'saving' : 'opening'} database: $e'),
+            content:
+                Text('Error ${shouldCopy ? 'saving' : 'opening'} database: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -133,11 +143,14 @@ class _AppState extends State<App> {
         builder: (context) => AppMenuBar(
           appVersion: widget.appVersion,
           onFileOpen: (path) => _changeDatabase(context, path),
-          onFileSave: (path) => _changeDatabase(context, path, shouldCopy: true),
+          onFileSave: (path) =>
+              _changeDatabase(context, path, shouldCopy: true),
           child: Scaffold(
             body: LayoutBuilder(
               builder: (context, constraints) {
-                if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+                if (Platform.isLinux ||
+                    Platform.isMacOS ||
+                    Platform.isWindows) {
                   AppCache.saveSize(Size(
                     constraints.maxWidth,
                     constraints.maxHeight,
