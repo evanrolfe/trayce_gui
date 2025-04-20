@@ -14,7 +14,7 @@ import 'agent/server.dart';
 import 'network/repo/containers_repo.dart';
 import 'network/repo/flow_repo.dart';
 
-const String appVersion = '1.1.1';
+const String appVersion = '1.1.2';
 
 void main(List<String> args) async {
   // Check for --version flag
