@@ -59,15 +59,30 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.textContaining('GRPC /api.TrayceAgent/SendContainersObserved'), findsOneWidget);
   expect(find.textContaining('content-type: application/grpc'), findsOneWidget);
 
-  // --------------------------------------------------------------------------
-  // Select the ProtoDef
-  // --------------------------------------------------------------------------
+  // Open modal to update the protodef dropdown
   final dropdown = find.byType(DropdownButton2<String>);
   await tester.tap(dropdown);
   await tester.pumpAndSettle();
 
-  final protoDefOption = find.text('api.proto').last;
+  final protoDefOption = find.text('Import .proto file').last;
   await tester.tap(protoDefOption);
+  await tester.pumpAndSettle();
+
+  // Click save button
+  expect(find.text('Ok'), findsOneWidget);
+  final saveButton = find.text('Ok');
+  await tester.tap(saveButton);
+  await tester.pumpAndSettle();
+
+  // --------------------------------------------------------------------------
+  // Select the ProtoDef
+  // --------------------------------------------------------------------------
+  // final dropdown = find.byType(DropdownButton2<String>);
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+
+  final protoDefOption2 = find.text('api.proto').last;
+  await tester.tap(protoDefOption2);
   await tester.pumpAndSettle();
 
   expect(find.textContaining('"containers": ['), findsOneWidget);
@@ -117,7 +132,7 @@ List<pb.Flow> buildFlows() {
       grpcRequest: pb.GRPCRequest(
         path: '/api.TrayceAgent/SendContainersObserved',
         headers: {
-          "content-type": pb.StringList(values: ["application/grpc"])
+          "content-type": pb.StringList(values: ["application/grpc"]),
         },
         payload: grpcReqPayload,
       ),
@@ -134,7 +149,7 @@ List<pb.Flow> buildFlows() {
       grpcRequest: pb.GRPCRequest(
         path: '/api.TrayceAgent/SendContainersObserved',
         headers: {
-          "content-type": pb.StringList(values: ["application/grpc"])
+          "content-type": pb.StringList(values: ["application/grpc"]),
         },
         payload: grpcReqPayload,
       ),
@@ -150,7 +165,7 @@ List<pb.Flow> buildFlows() {
       l7Protocol: 'grpc',
       grpcResponse: pb.GRPCResponse(
         headers: {
-          "testheader": pb.StringList(values: ["ok"])
+          "testheader": pb.StringList(values: ["ok"]),
         },
         payload: grpcRespPayload,
       ),

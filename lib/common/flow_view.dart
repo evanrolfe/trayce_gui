@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/common/dropdown_style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../network/models/flow.dart' as models;
@@ -11,6 +12,7 @@ import '../network/models/grpc_response.dart';
 import '../network/models/proto_def.dart';
 import '../network/repo/proto_def_repo.dart';
 import '../network/widgets/proto_def_modal.dart';
+import 'tab_style.dart';
 
 const Color textColor = Color(0xFFD4D4D4);
 const String topPaneHeightKey = 'flow_view_top_pane_height';
@@ -37,10 +39,7 @@ class FlowViewCache {
 class FlowView extends StatefulWidget {
   final models.Flow? selectedFlow;
 
-  const FlowView({
-    super.key,
-    this.selectedFlow,
-  });
+  const FlowView({super.key, this.selectedFlow});
 
   @override
   State<FlowView> createState() => _FlowViewState();
@@ -69,9 +68,11 @@ class _FlowViewState extends State<FlowView> {
   }
 
   Future<void> _loadProtoDefs() async {
+    print('============> Loading proto defs');
     final protoDefRepo = context.read<ProtoDefRepo>();
     final protoDefs = await protoDefRepo.getAll();
     setState(() {
+      print('============> Proto defs loaded: ${protoDefs.length}');
       _protoDefs = protoDefs;
     });
   }
@@ -129,80 +130,40 @@ class _FlowViewState extends State<FlowView> {
 
   Widget _buildTabs(int selectedIndex, Function(int) onTabChanged, bool isTopTabs) {
     return Container(
-      height: 30,
-      decoration: const BoxDecoration(
-        color: Color(0xFF252526),
-        border: Border(
-          top: BorderSide(color: Color(0xFF474747)),
-        ),
-      ),
+      height: tabHeight,
+      decoration: getTabBarDecoration(),
       child: Row(
         children: [
           _buildTab(isTopTabs ? 'Request' : 'Response', 0, selectedIndex == 0, () => onTabChanged(0), isTopTabs),
-          // _buildTab('Tab 2', 1, selectedIndex == 1, () => onTabChanged(1), isTopTabs),
           const Spacer(),
-          if (isTopTabs && widget.selectedFlow?.l7Protocol == 'grpc') // Only show dropdown for gRPC flows
+          if (isTopTabs && widget.selectedFlow?.l7Protocol == 'grpc')
             Container(
               height: 22,
               padding: const EdgeInsets.symmetric(horizontal: 4),
               margin: const EdgeInsets.only(right: 5),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFF474747),
-                  width: 1,
-                ),
-              ),
+              decoration: BoxDecoration(border: Border.all(color: tabBorderColor, width: 1)),
               child: DropdownButton2<String>(
                 value: _selectedProtoDefName,
                 underline: Container(),
-                dropdownStyleData: DropdownStyleData(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
-                    border: Border.all(color: const Color(0xFF474747)),
-                  ),
-                  elevation: 0,
-                  padding: EdgeInsets.zero,
-                  useRootNavigator: true,
-                  width: 200,
-                  openInterval: const Interval(0, 0),
-                ),
-                buttonStyleData: const ButtonStyleData(
-                  height: 22,
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                ),
-                menuItemStyleData: MenuItemStyleData(
-                  height: 24,
-                  padding: EdgeInsets.zero,
-                ),
-                iconStyleData: const IconStyleData(
-                  icon: Icon(Icons.arrow_drop_down, size: 16),
-                  iconEnabledColor: textColor,
-                ),
-                style: const TextStyle(
-                  color: textColor,
-                  fontSize: 12,
-                ),
+                dropdownStyleData: DropdownStyleData(decoration: dropdownDecoration, width: 150),
+                buttonStyleData: buttonStyleData,
+                menuItemStyleData: menuItemStyleData,
+                iconStyleData: iconStyleData,
+                style: tabTextStyle,
                 items: [
                   const DropdownMenuItem(
                     value: 'select',
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('Select .proto file'),
+                    child: Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('Select .proto file')),
+                  ),
+                  ..._protoDefs.map(
+                    (def) => DropdownMenuItem(
+                      value: def.name,
+                      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text(def.name)),
                     ),
                   ),
-                  ..._protoDefs.map((def) => DropdownMenuItem(
-                        value: def.name,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(def.name),
-                        ),
-                      )),
                   const DropdownMenuItem(
                     value: 'import',
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('Import .proto file'),
-                    ),
+                    child: Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('Import .proto file')),
                   ),
                 ],
                 onChanged: (String? newValue) {
@@ -250,47 +211,29 @@ class _FlowViewState extends State<FlowView> {
   Widget _buildTab(String text, int index, bool isSelected, VoidCallback onTap, bool isTopTabs) {
     final isHovered = isTopTabs ? _hoveredTabIndex == index : _hoveredBottomTabIndex == index;
     return MouseRegion(
-      onEnter: (_) => setState(() {
-        if (isTopTabs) {
-          _hoveredTabIndex = index;
-        } else {
-          _hoveredBottomTabIndex = index;
-        }
-      }),
-      onExit: (_) => setState(() {
-        if (isTopTabs) {
-          _hoveredTabIndex = null;
-        } else {
-          _hoveredBottomTabIndex = null;
-        }
-      }),
+      onEnter:
+          (_) => setState(() {
+            if (isTopTabs) {
+              _hoveredTabIndex = index;
+            } else {
+              _hoveredBottomTabIndex = index;
+            }
+          }),
+      onExit:
+          (_) => setState(() {
+            if (isTopTabs) {
+              _hoveredTabIndex = null;
+            } else {
+              _hoveredBottomTabIndex = null;
+            }
+          }),
       child: Listener(
         onPointerDown: (_) => onTap(),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          constraints: const BoxConstraints(minWidth: 125),
-          decoration: BoxDecoration(
-            color: isSelected || isHovered ? const Color(0xFF2D2D2D) : const Color(0xFF252526),
-            border: Border(
-              top: BorderSide(
-                color: isSelected ? const Color(0xFF4DB6AC) : Colors.transparent,
-                width: 1,
-              ),
-              right: const BorderSide(
-                color: Color(0xFF474747),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: textColor,
-                fontSize: 13,
-              ),
-            ),
-          ),
+          padding: tabPadding,
+          constraints: tabConstraints,
+          decoration: getTabDecoration(isSelected: isSelected, isHovered: isHovered, showTopBorder: true),
+          child: Center(child: Text(text, style: tabTextStyle)),
         ),
       ),
     );
@@ -307,31 +250,27 @@ class _FlowViewState extends State<FlowView> {
     }
 
     children.add(
-      TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: textColor,
-          fontSize: 13,
-          fontFamily: 'monospace',
-        ),
-      ),
+      TextSpan(text: text, style: const TextStyle(color: textColor, fontSize: tabTextSize, fontFamily: 'monospace')),
     );
 
     if (hasUpgradeText) {
-      children.add(TextSpan(
-        text: "\n\n$upgradeText",
-        style: const TextStyle(
-          color: Colors.blue,
-          fontSize: 13,
-          fontFamily: 'monospace',
-          decoration: TextDecoration.underline,
-          decorationColor: Colors.blue,
+      children.add(
+        TextSpan(
+          text: "\n\n$upgradeText",
+          style: const TextStyle(
+            color: Colors.blue,
+            fontSize: tabTextSize,
+            fontFamily: 'monospace',
+            decoration: TextDecoration.underline,
+            decorationColor: Colors.blue,
+          ),
+          recognizer:
+              TapGestureRecognizer()
+                ..onTap = () {
+                  launchUrl(Uri.parse('https://get.trayce.dev/'));
+                },
         ),
-        recognizer: TapGestureRecognizer()
-          ..onTap = () {
-            launchUrl(Uri.parse('https://get.trayce.dev/'));
-          },
-      ));
+      );
     }
 
     return TextSpan(children: children);
@@ -356,21 +295,14 @@ class _FlowViewState extends State<FlowView> {
                           _buildTabs(_selectedTopTab, (index) {
                             setState(() => _selectedTopTab = index);
                           }, true),
-                          Container(
-                            height: 1,
-                            color: const Color(0xFF474747),
-                          ),
+                          Container(height: 1, color: tabBorderColor),
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               alignment: Alignment.topLeft,
                               child: SelectableText.rich(
                                 _getText(_topController.text),
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 13,
-                                  fontFamily: 'monospace',
-                                ),
+                                style: tabTextStyle.copyWith(fontFamily: 'monospace'),
                                 textAlign: TextAlign.left,
                               ),
                             ),
@@ -385,10 +317,7 @@ class _FlowViewState extends State<FlowView> {
                           _buildTabs(_selectedBottomTab, (index) {
                             setState(() => _selectedBottomTab = index);
                           }, false),
-                          Container(
-                            height: 1,
-                            color: const Color(0xFF474747),
-                          ),
+                          Container(height: 1, color: tabBorderColor),
                           Expanded(
                             child: Container(
                               padding: EdgeInsets.zero,
@@ -398,11 +327,7 @@ class _FlowViewState extends State<FlowView> {
                                 expands: true,
                                 readOnly: true,
                                 textAlignVertical: TextAlignVertical.top,
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 13,
-                                  fontFamily: 'monospace',
-                                ),
+                                style: tabTextStyle.copyWith(fontFamily: 'monospace'),
                                 decoration: const InputDecoration(
                                   border: OutlineInputBorder(borderSide: BorderSide.none),
                                   focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
@@ -436,18 +361,12 @@ class _FlowViewState extends State<FlowView> {
                       },
                       child: Stack(
                         children: [
-                          Container(
-                            height: 3,
-                            color: Colors.transparent,
-                          ),
+                          Container(height: 3, color: Colors.transparent),
                           Positioned(
                             top: 1,
                             left: 0,
                             right: 0,
-                            child: Container(
-                              height: 1,
-                              color: isDividerHovered ? const Color(0xFF4DB6AC) : const Color(0xFF474747),
-                            ),
+                            child: Container(height: 1, color: isDividerHovered ? tabIndicatorColor : tabBorderColor),
                           ),
                         ],
                       ),

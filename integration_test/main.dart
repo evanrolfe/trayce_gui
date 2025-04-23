@@ -35,8 +35,6 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     final db = await databaseFactory.openDatabase('tmp.db');
 
-    // await license_key_test.test(tester, db);
-    // await truncateDb(db);
     await proto_def_modal_test.test(tester, db);
     await truncateDb(db);
     await grpc_parsing_test.test(tester, db);

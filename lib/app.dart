@@ -35,10 +35,7 @@ class AppCache {
     _cachedHeight = prefs.getDouble(windowHeightKey);
   }
 
-  static Size get size => Size(
-        _cachedWidth ?? defaultWindowWidth,
-        _cachedHeight ?? defaultWindowHeight,
-      );
+  static Size get size => Size(_cachedWidth ?? defaultWindowWidth, _cachedHeight ?? defaultWindowHeight);
 
   static Future<void> saveSize(Size size) async {
     _cachedWidth = size.width;
@@ -52,16 +49,16 @@ class AppCache {
 class App extends StatefulWidget {
   final String appVersion;
 
-  const App({
-    super.key,
-    required this.appVersion,
-  });
+  const App({super.key, required this.appVersion});
 
   @override
   State<App> createState() => _AppState();
 }
 
 class _AppState extends State<App> {
+  int _selectedIndex = 0; // Add this to track current page
+  Key _rebuildKey = UniqueKey();
+
   @override
   void initState() {
     super.initState();
@@ -76,19 +73,8 @@ class _AppState extends State<App> {
     }
   }
 
-  static final _navigatorKey = GlobalKey<NavigatorState>();
-
-  // Helper function to create AppScaffold instances
-  static Widget _createPage(int index) {
-    return AppScaffold(
-      selectedIndex: index,
-      child: index == 0 ? const Network() : const Editor(),
-    );
-  }
-
   // Helper function to handle database operations
-  static Future<void> _changeDatabase(BuildContext context, String path,
-      {bool shouldCopy = false}) async {
+  Future<void> _changeDatabase(BuildContext context, String path, {bool shouldCopy = false}) async {
     try {
       final flowRepo = context.read<FlowRepo>();
       final protoDefRepo = context.read<ProtoDefRepo>();
@@ -114,18 +100,16 @@ class _AppState extends State<App> {
       protoDefRepo.db = newDb;
 
       if (context.mounted) {
-        _navigatorKey.currentState?.pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => _createPage(0),
-          ),
-        );
+        setState(() {
+          // Force a rebuild of the IndexedStack
+          _rebuildKey = UniqueKey();
+        });
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Error ${shouldCopy ? 'saving' : 'opening'} database: $e'),
+            content: Text('Error ${shouldCopy ? 'saving' : 'opening'} database: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -140,39 +124,38 @@ class _AppState extends State<App> {
       debugShowCheckedModeBanner: false,
       theme: appTheme,
       home: Builder(
-        builder: (context) => AppMenuBar(
-          appVersion: widget.appVersion,
-          onFileOpen: (path) => _changeDatabase(context, path),
-          onFileSave: (path) =>
-              _changeDatabase(context, path, shouldCopy: true),
-          child: Scaffold(
-            body: LayoutBuilder(
-              builder: (context, constraints) {
-                if (Platform.isLinux ||
-                    Platform.isMacOS ||
-                    Platform.isWindows) {
-                  AppCache.saveSize(Size(
-                    constraints.maxWidth,
-                    constraints.maxHeight,
-                  ));
-                }
-                return Navigator(
-                  key: _navigatorKey,
-                  onGenerateRoute: (settings) {
-                    Widget page;
-                    if (settings.name == '/editor') {
-                      page = _createPage(1);
-                    } else {
-                      page = _createPage(0);
+        builder:
+            (context) => AppMenuBar(
+              appVersion: widget.appVersion,
+              onFileOpen: (path) => _changeDatabase(context, path),
+              onFileSave: (path) => _changeDatabase(context, path, shouldCopy: true),
+              child: Scaffold(
+                body: LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+                      AppCache.saveSize(Size(constraints.maxWidth, constraints.maxHeight));
                     }
-                    return MaterialPageRoute(builder: (_) => page);
+                    return IndexedStack(
+                      key: _rebuildKey,
+                      index: _selectedIndex,
+                      children: [
+                        AppScaffold(
+                          selectedIndex: 0,
+                          onIndexChanged: (index) => setState(() => _selectedIndex = index),
+                          child: const Network(),
+                        ),
+                        AppScaffold(
+                          selectedIndex: 1,
+                          onIndexChanged: (index) => setState(() => _selectedIndex = index),
+                          child: const Editor(),
+                        ),
+                      ],
+                    );
                   },
-                );
-              },
+                ),
+                bottomNavigationBar: const StatusBar(),
+              ),
             ),
-            bottomNavigationBar: const StatusBar(),
-          ),
-        ),
       ),
     );
   }
