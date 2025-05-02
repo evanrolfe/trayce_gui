@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
-import 'package:trayce/editor/code_editor/auto_complete_list.dart';
-import 'package:trayce/editor/code_editor/code_editor_context_menu.dart';
+import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
+import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 
 class MultiLineCodeEditor extends StatelessWidget {
   final CodeLineEditingController controller;

@@ -13,7 +13,7 @@ import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/status_bar.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'editor/editor.dart';
+import 'editor/widgets/editor.dart';
 import 'network/repo/flow_repo.dart';
 import 'network/widgets/network.dart';
 

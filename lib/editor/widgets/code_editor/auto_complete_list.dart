@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
-import 'package:trayce/editor/code_editor/auto_scroll_list_view.dart';
+import 'package:trayce/editor/widgets/code_editor/auto_scroll_list_view.dart';
 
 class DefaultCodeAutocompleteListView extends StatefulWidget implements PreferredSizeWidget {
   static const double kItemHeight = 26;

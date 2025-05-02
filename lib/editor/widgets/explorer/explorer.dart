@@ -1,8 +1,14 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-import '../../common/context_menu_style.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:trayce/editor/repo/explorer_repo.dart';
+
+import '../../../common/context_menu_style.dart';
+import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
-import 'file_node.dart';
 
 const double itemHeight = 22;
 
@@ -16,44 +22,38 @@ class FileExplorer extends StatefulWidget {
 }
 
 class _FileExplorerState extends State<FileExplorer> {
-  FileNode? _hoveredNode;
-  FileNode? _selectedNode;
-  late final List<FileNode> _files;
+  ExplorerNode? _hoveredNode;
+  ExplorerNode? _selectedNode;
+  List<ExplorerNode> _files = [];
+  late final StreamSubscription _displaySub;
 
   @override
   void initState() {
     super.initState();
-    _files = [
-      FileNode(
-        name: 'src',
-        isDirectory: true,
-        isExpanded: true,
-        initialChildren: [
-          FileNode(name: 'main.dart'),
-          FileNode(name: 'utils.dart'),
-          FileNode(
-            name: 'widgets',
-            isDirectory: true,
-            initialChildren: [FileNode(name: 'button.dart'), FileNode(name: 'input.dart')],
-          ),
-        ],
-      ),
-      FileNode(name: 'test', isDirectory: true, initialChildren: [FileNode(name: 'widget_test.dart')]),
-      FileNode(name: 'README.md'),
-      FileNode(name: 'pubspec.yaml'),
-      FileNode(name: '.gitignore'),
-    ];
+
+    // Subscribe to verification events
+    _displaySub = context.read<EventBus>().on<EventDisplayExplorerItems>().listen((event) {
+      setState(() {
+        _files = event.nodes;
+      });
+    });
 
     // Sort initial files
-    _sortNodes(_files);
-    for (var node in _files) {
-      if (node.isDirectory) {
-        _sortNodes(node.children);
-      }
-    }
+    // _sortNodes(_files);
+    // for (var node in _files) {
+    //   if (node.isDirectory) {
+    //     _sortNodes(node.children);
+    //   }
+    // }
   }
 
-  void _sortNodes(List<FileNode> nodes) {
+  @override
+  void dispose() {
+    _displaySub.cancel();
+    super.dispose();
+  }
+
+  void _sortNodes(List<ExplorerNode> nodes) {
     nodes.sort((a, b) {
       if (a.isDirectory && !b.isDirectory) return -1;
       if (!a.isDirectory && b.isDirectory) return 1;
@@ -61,11 +61,19 @@ class _FileExplorerState extends State<FileExplorer> {
     });
   }
 
-  Widget _buildFileTree(FileNode node, {double indent = 0}) {
+  Future<void> _handleOpen() async {
+    final String? path = await getDirectoryPath(initialDirectory: '/home/evan/Code/bruno/test');
+
+    if (path != null && mounted) {
+      context.read<ExplorerRepo>().openCollection(path);
+    }
+  }
+
+  Widget _buildFileTree(ExplorerNode node, {double indent = 0}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Draggable<FileNode>(
+        Draggable<ExplorerNode>(
           data: node,
           feedback: Material(
             color: Colors.transparent,
@@ -82,13 +90,13 @@ class _FileExplorerState extends State<FileExplorer> {
               ),
             ),
           ),
-          child: DragTarget<FileNode>(
+          child: DragTarget<ExplorerNode>(
             onWillAccept: (data) {
               if (data == null) return false;
               if (data == node) return false;
 
               if (data.isDirectory) {
-                FileNode? parent = _findParentNode(node);
+                ExplorerNode? parent = _findParentNode(node);
                 while (parent != null) {
                   if (parent == data) return false;
                   parent = _findParentNode(parent);
@@ -130,9 +138,6 @@ class _FileExplorerState extends State<FileExplorer> {
                       }
                     });
                   },
-                  onSecondaryTapDown: (details) {
-                    _showContextMenu(context, details.globalPosition, node);
-                  },
                   child: Container(
                     height: itemHeight,
                     padding: EdgeInsets.only(left: indent + fileTreeLeftMargin),
@@ -166,7 +171,7 @@ class _FileExplorerState extends State<FileExplorer> {
     );
   }
 
-  void _removeNode(FileNode node) {
+  void _removeNode(ExplorerNode node) {
     if (_files.remove(node)) return;
 
     for (var file in _files) {
@@ -174,7 +179,7 @@ class _FileExplorerState extends State<FileExplorer> {
     }
   }
 
-  bool _removeNodeFromChildren(FileNode parent, FileNode nodeToRemove) {
+  bool _removeNodeFromChildren(ExplorerNode parent, ExplorerNode nodeToRemove) {
     if (parent.children.remove(nodeToRemove)) return true;
 
     for (var child in parent.children) {
@@ -184,7 +189,7 @@ class _FileExplorerState extends State<FileExplorer> {
     return false;
   }
 
-  FileNode? _findParentNode(FileNode node) {
+  ExplorerNode? _findParentNode(ExplorerNode node) {
     for (var file in _files) {
       final parent = _findParentInNode(file, node);
       if (parent != null) return parent;
@@ -192,7 +197,7 @@ class _FileExplorerState extends State<FileExplorer> {
     return null;
   }
 
-  FileNode? _findParentInNode(FileNode current, FileNode node) {
+  ExplorerNode? _findParentInNode(ExplorerNode current, ExplorerNode node) {
     if (current.children.contains(node)) return current;
 
     for (var child in current.children) {
@@ -201,40 +206,6 @@ class _FileExplorerState extends State<FileExplorer> {
     }
 
     return null;
-  }
-
-  void _showContextMenu(BuildContext context, Offset position, FileNode node) async {
-    final selected = await showMenu<String>(
-      context: context,
-      popUpAnimationStyle: contextMenuAnimationStyle,
-      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
-      color: contextMenuColor,
-      shape: contextMenuShape,
-      items: [
-        PopupMenuItem<String>(
-          value: 'copy',
-          height: 30,
-          child: const Text('Copy', style: TextStyle(color: Colors.white, fontWeight: FontWeight.normal)),
-        ),
-        PopupMenuItem<String>(
-          value: 'cut',
-          height: 30,
-          child: const Text('Cut', style: TextStyle(color: Colors.white, fontWeight: FontWeight.normal)),
-        ),
-        PopupMenuItem<String>(
-          value: 'paste',
-          height: 30,
-          child: const Text('Paste', style: TextStyle(color: Colors.white, fontWeight: FontWeight.normal)),
-        ),
-      ],
-    );
-    if (selected == 'copy') {
-      print('Copy "${node.name}"');
-    } else if (selected == 'cut') {
-      print('Cut "${node.name}"');
-    } else if (selected == 'paste') {
-      print('Paste into "${node.name}"');
-    }
   }
 
   @override
@@ -252,7 +223,46 @@ class _FileExplorerState extends State<FileExplorer> {
               padding: const EdgeInsets.only(left: fileTreeLeftMargin),
               alignment: Alignment.centerLeft,
               decoration: headerDecoration,
-              child: const Text('Editor', style: TextStyle(color: textColor, fontSize: 13)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Editor', style: TextStyle(color: textColor, fontSize: 13)),
+                  IconButton(
+                    icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
+                    padding: const EdgeInsets.only(right: 5),
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      final anchors = TextSelectionToolbarAnchors(
+                        primaryAnchor: Offset(widget.width + 40, itemHeight + 32),
+                      );
+                      showMenu(
+                        popUpAnimationStyle: contextMenuAnimationStyle,
+                        context: context,
+                        position: RelativeRect.fromSize(
+                          anchors.primaryAnchor & const Size(150, double.infinity),
+                          MediaQuery.of(context).size,
+                        ),
+                        color: contextMenuColor,
+                        shape: contextMenuShape,
+                        items: [
+                          PopupMenuItem(
+                            height: 30,
+                            child: Text('Open Collection', style: contextMenuTextStyle),
+                            onTap: () => _handleOpen(),
+                          ),
+                          PopupMenuItem(
+                            height: 30,
+                            child: Text('New Collection', style: contextMenuTextStyle),
+                            onTap: () {
+                              print('New Collection');
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(),
@@ -261,7 +271,7 @@ class _FileExplorerState extends State<FileExplorer> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ..._files.map((node) => _buildFileTree(node)).toList(),
-                  DragTarget<FileNode>(
+                  DragTarget<ExplorerNode>(
                     onWillAccept: (data) {
                       if (data == null) return false;
                       return _findParentNode(data) != null;

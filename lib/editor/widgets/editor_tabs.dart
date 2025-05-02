@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../common/style.dart';
-import '../common/tab_style.dart';
+import '../../common/style.dart';
+import '../../common/tab_style.dart';
 import 'flow_editor.dart';
 
 class EditorTabs extends StatefulWidget {

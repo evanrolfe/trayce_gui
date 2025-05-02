@@ -1,0 +1,86 @@
+import 'dart:io';
+
+import 'package:event_bus/event_bus.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
+
+class EventDisplayExplorerItems {
+  final List<ExplorerNode> nodes;
+
+  EventDisplayExplorerItems(this.nodes);
+}
+
+class ExplorerRepo {
+  final EventBus _eventBus;
+  final filesToIgnore = ['folder.bru', 'collection.bru'];
+  final foldersToIgnore = ['environments'];
+
+  ExplorerRepo({required EventBus eventBus}) : _eventBus = eventBus;
+
+  void openCollection(String path) {
+    print(path);
+
+    // Helper function to recursively build ExplorerNodes
+    ExplorerNode buildNode(FileSystemEntity entity, int depth) {
+      // Use basename from path for both files and directories
+      final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
+
+      if (entity is Directory) {
+        final children = entity.listSync().where(_shouldIncludeEntity).map((e) => buildNode(e, depth + 1)).toList();
+
+        // Sort: directories first, then by name alphabetically
+        children.sort((a, b) {
+          if (a.isDirectory && !b.isDirectory) return -1;
+          if (!a.isDirectory && b.isDirectory) return 1;
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+
+        final isExpanded = depth == 0;
+        return ExplorerNode(name: name, isDirectory: true, isExpanded: isExpanded, initialChildren: children);
+      } else {
+        return ExplorerNode(name: name, isDirectory: false);
+      }
+    }
+
+    final rootDir = Directory(path);
+    if (!rootDir.existsSync()) {
+      print('Directory does not exist: $path');
+      return;
+    }
+
+    final rootNode = buildNode(rootDir, 0);
+
+    _eventBus.fire(EventDisplayExplorerItems([rootNode]));
+  }
+
+  bool _shouldIncludeEntity(FileSystemEntity entity) {
+    final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
+
+    if (entity is Directory && name != 'environments') {
+      return true;
+    }
+    if (entity is File && name.endsWith('.bru') && !filesToIgnore.contains(name)) {
+      return true;
+    }
+    return false;
+  }
+}
+
+// final nodes = [
+//   ExplorerNode(
+//     name: dirName, // Use the extracted directory name
+//     isDirectory: true,
+//     initialChildren: [
+//       ExplorerNode(name: 'main.dart'),
+//       ExplorerNode(name: 'utils.dart'),
+//       ExplorerNode(
+//         name: 'widgets',
+//         isDirectory: true,
+//         initialChildren: [ExplorerNode(name: 'button.dart'), ExplorerNode(name: 'input.dart')],
+//       ),
+//     ],
+//   ),
+//   ExplorerNode(name: 'test', isDirectory: true, initialChildren: [ExplorerNode(name: 'widget_test.dart')]),
+//   ExplorerNode(name: 'README.md'),
+//   ExplorerNode(name: 'pubspec.yaml'),
+//   ExplorerNode(name: '.gitignore'),
+// ];

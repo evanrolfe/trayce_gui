@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grpc/grpc.dart';
 import 'package:trayce/app.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/utils/grpc_parser_lib.dart';
 import 'package:window_manager/window_manager.dart';
@@ -29,9 +30,7 @@ void main(List<String> args) async {
 
   // Set default window size
   await windowManager.ensureInitialized();
-  WindowOptions windowOptions = WindowOptions(
-    size: Size(1200, 800),
-  );
+  WindowOptions windowOptions = WindowOptions(size: Size(1200, 800));
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
@@ -46,6 +45,7 @@ void main(List<String> args) async {
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
+  final explorerRepo = ExplorerRepo(eventBus: eventBus);
 
   runApp(
     MultiRepositoryProvider(
@@ -54,6 +54,7 @@ void main(List<String> args) async {
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
+        RepositoryProvider<ExplorerRepo>(create: (context) => explorerRepo),
       ],
       child: const App(appVersion: appVersion),
     ),

@@ -2,14 +2,14 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trayce/editor/code_editor/code_editor_multi.dart';
-import 'package:trayce/editor/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/common/headers_table.dart';
-import 'package:trayce/editor/common/headers_table_read_only.dart';
-import 'package:trayce/editor/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
+import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
+import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
-import '../../common/dropdown_style.dart';
-import '../../common/style.dart';
+import '../../../common/dropdown_style.dart';
+import '../../../common/style.dart';
 
 // Create a static notifier that all instances can share
 class HttpEditorState {

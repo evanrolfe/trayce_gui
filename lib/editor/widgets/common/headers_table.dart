@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
-import 'package:trayce/editor/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 
 class HeadersTable extends StatefulWidget {
   const HeadersTable({super.key});

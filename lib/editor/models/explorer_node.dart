@@ -1,13 +1,13 @@
-class FileNode {
+class ExplorerNode {
   final String name;
   final bool isDirectory;
-  final List<FileNode> children = [];
+  final List<ExplorerNode> children = [];
   bool isExpanded;
 
-  FileNode({
+  ExplorerNode({
     required this.name,
     this.isDirectory = false,
-    List<FileNode>? initialChildren,
+    List<ExplorerNode>? initialChildren,
     this.isExpanded = false,
   }) {
     if (initialChildren != null) {
@@ -15,8 +15,8 @@ class FileNode {
     }
   }
 
-  FileNode copyWith({bool? isExpanded}) {
-    return FileNode(
+  ExplorerNode copyWith({bool? isExpanded}) {
+    return ExplorerNode(
       name: name,
       isDirectory: isDirectory,
       initialChildren: children,
