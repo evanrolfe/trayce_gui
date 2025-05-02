@@ -26,6 +26,8 @@ class _FileExplorerState extends State<FileExplorer> {
   ExplorerNode? _selectedNode;
   List<ExplorerNode> _files = [];
   late final StreamSubscription _displaySub;
+  int? _dropPosition;
+  ExplorerNode? _dropTargetDir;
 
   @override
   void initState() {
@@ -38,13 +40,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    // Sort initial files
-    // _sortNodes(_files);
-    // for (var node in _files) {
-    //   if (node.isDirectory) {
-    //     _sortNodes(node.children);
-    //   }
-    // }
+    context.read<ExplorerRepo>().openCollection('/home/evan/Code/bruno/test');
   }
 
   @override
@@ -67,6 +63,11 @@ class _FileExplorerState extends State<FileExplorer> {
     if (path != null && mounted) {
       context.read<ExplorerRepo>().openCollection(path);
     }
+  }
+
+  bool _shouldShowDropLineBelow(ExplorerNode node, List<ExplorerNode?> candidateData) {
+    if (_dropPosition == null || _dropPosition != _files.indexOf(node) || candidateData.isEmpty) return false;
+    return !node.isDirectory;
   }
 
   Widget _buildFileTree(ExplorerNode node, {double indent = 0}) {
@@ -103,6 +104,12 @@ class _FileExplorerState extends State<FileExplorer> {
                 }
               }
 
+              if (node.isDirectory) {
+                setState(() {
+                  _dropTargetDir = node;
+                });
+              }
+
               return true;
             },
             onAccept: (data) {
@@ -122,53 +129,86 @@ class _FileExplorerState extends State<FileExplorer> {
                     _sortNodes(_files);
                   }
                 }
+                _dropTargetDir = null;
+              });
+            },
+            onMove: (details) {
+              setState(() {
+                _dropPosition = _files.indexOf(node);
+              });
+            },
+            onLeave: (data) {
+              setState(() {
+                _dropPosition = null;
+                if (_dropTargetDir == node) _dropTargetDir = null;
               });
             },
             builder: (context, candidateData, rejectedData) {
-              return MouseRegion(
-                cursor: SystemMouseCursors.click,
-                onEnter: (_) => setState(() => _hoveredNode = node),
-                onExit: (_) => setState(() => _hoveredNode = null),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedNode = node;
-                      if (node.isDirectory) {
-                        node.isExpanded = !node.isExpanded;
-                      }
-                    });
-                  },
-                  child: Container(
-                    height: itemHeight,
-                    padding: EdgeInsets.only(left: indent + fileTreeLeftMargin),
-                    decoration: getItemDecoration(
-                      isHovered: _hoveredNode == node,
-                      isSelected: _selectedNode == node,
-                      isDragTarget: candidateData.isNotEmpty,
-                    ),
-                    child: Row(
-                      children: [
-                        if (node.isDirectory)
-                          Icon(
-                            node.isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
-                            color: textColor,
-                            size: 16,
-                          ),
-                        if (!node.isDirectory) const Icon(Icons.insert_drive_file, color: fileIconColor, size: 16),
-                        const SizedBox(width: 8),
-                        Text(node.name, style: itemTextStyle),
-                      ],
+              return Column(
+                children: [
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    onEnter: (_) => setState(() => _hoveredNode = node),
+                    onExit: (_) => setState(() => _hoveredNode = null),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedNode = node;
+                          if (node.isDirectory) {
+                            node.isExpanded = !node.isExpanded;
+                          }
+                        });
+                      },
+                      child: Container(
+                        height: itemHeight,
+                        padding: EdgeInsets.only(left: indent + fileTreeLeftMargin),
+                        decoration: getItemDecoration(
+                          isHovered: _hoveredNode == node,
+                          isSelected: _selectedNode == node,
+                          isDragTarget: candidateData.isNotEmpty,
+                        ),
+                        child: Row(
+                          children: [
+                            if (node.isDirectory)
+                              Icon(
+                                node.isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                                color: textColor,
+                                size: 16,
+                              ),
+                            if (!node.isDirectory) const Icon(Icons.insert_drive_file, color: fileIconColor, size: 16),
+                            const SizedBox(width: 8),
+                            Text(node.name, style: itemTextStyle),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  if (_shouldShowDropLineBelow(node, candidateData))
+                    Container(
+                      height: 1,
+                      color: Colors.white,
+                      margin: EdgeInsets.only(left: indent + fileTreeLeftMargin),
+                    ),
+                ],
               );
             },
           ),
         ),
-        if (node.isDirectory && node.isExpanded)
-          ...node.children.map((child) => _buildFileTree(child, indent: indent + 24)),
+        if (node.isDirectory && node.isExpanded) ..._buildDirChildrenWithDropLine(node, indent: indent + 24),
       ],
     );
+  }
+
+  List<Widget> _buildDirChildrenWithDropLine(ExplorerNode dir, {required double indent}) {
+    if (dir.children.isEmpty) return [];
+    final children = <Widget>[];
+    if (_dropTargetDir == dir) {
+      children.add(
+        Container(height: 1, color: Colors.white, margin: EdgeInsets.only(left: indent + fileTreeLeftMargin)),
+      );
+    }
+    children.addAll(dir.children.map((child) => _buildFileTree(child, indent: indent)));
+    return children;
   }
 
   void _removeNode(ExplorerNode node) {
