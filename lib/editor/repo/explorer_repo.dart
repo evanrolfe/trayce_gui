@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 
 class EventDisplayExplorerItems {
@@ -17,39 +18,43 @@ class ExplorerRepo {
   ExplorerRepo({required EventBus eventBus}) : _eventBus = eventBus;
 
   void openCollection(String path) {
-    print(path);
-
-    // Helper function to recursively build ExplorerNodes
-    ExplorerNode buildNode(FileSystemEntity entity, int depth) {
-      // Use basename from path for both files and directories
-      final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
-
-      if (entity is Directory) {
-        final children = entity.listSync().where(_shouldIncludeEntity).map((e) => buildNode(e, depth + 1)).toList();
-
-        // Sort: directories first, then by name alphabetically
-        children.sort((a, b) {
-          if (a.isDirectory && !b.isDirectory) return -1;
-          if (!a.isDirectory && b.isDirectory) return 1;
-          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-        });
-
-        final isExpanded = depth == 0;
-        return ExplorerNode(name: name, isDirectory: true, isExpanded: isExpanded, initialChildren: children);
-      } else {
-        return ExplorerNode(name: name, isDirectory: false);
-      }
-    }
-
+    // Check for bruno.json in the root directory
     final rootDir = Directory(path);
     if (!rootDir.existsSync()) {
       print('Directory does not exist: $path');
+      return;
+    }
+    final brunoJsonFile = File('${rootDir.path}${Platform.pathSeparator}bruno.json');
+    if (!brunoJsonFile.existsSync()) {
+      _eventBus.fire(EventDisplayAlert('the collection path is missing bruno.json'));
       return;
     }
 
     final rootNode = buildNode(rootDir, 0);
 
     _eventBus.fire(EventDisplayExplorerItems([rootNode]));
+  }
+
+  // Helper function to recursively build ExplorerNodes
+  ExplorerNode buildNode(FileSystemEntity entity, int depth) {
+    // Use basename from path for both files and directories
+    final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
+
+    if (entity is Directory) {
+      final children = entity.listSync().where(_shouldIncludeEntity).map((e) => buildNode(e, depth + 1)).toList();
+
+      // Sort: directories first, then by name alphabetically
+      children.sort((a, b) {
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+
+      final isExpanded = depth == 0;
+      return ExplorerNode(name: name, isDirectory: true, isExpanded: isExpanded, initialChildren: children);
+    } else {
+      return ExplorerNode(name: name, isDirectory: false);
+    }
   }
 
   bool _shouldIncludeEntity(FileSystemEntity entity) {

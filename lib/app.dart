@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:accessing_security_scoped_resource/accessing_security_scoped_resource.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/app_scaffold.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/common/error_widget.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/menu_bar.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
@@ -59,14 +62,23 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   int _selectedIndex = 0;
   Key _rebuildKey = UniqueKey();
-  FlutterErrorDetails? _errorDetails;
+  String? _errorMessage;
   bool _showingError = false;
+  late final StreamSubscription _displaySub;
 
   @override
   void initState() {
     super.initState();
     _initializeWindow();
     _setupErrorHandling();
+
+    // Subscribe to verification events
+    _displaySub = context.read<EventBus>().on<EventDisplayAlert>().listen((event) {
+      setState(() {
+        _showingError = true;
+        _errorMessage = event.message;
+      });
+    });
   }
 
   void _setupErrorHandling() {
@@ -74,7 +86,7 @@ class _AppState extends State<App> {
       FlutterError.presentError(details);
       if (!_showingError) {
         _showingError = true;
-        _errorDetails = details;
+        _errorMessage = details.exception.toString();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {});
@@ -152,7 +164,7 @@ class _AppState extends State<App> {
       theme: appTheme,
       builder: (context, child) {
         ErrorWidget.builder = (FlutterErrorDetails details) {
-          return CustomErrorWidget(errorDetails: details, onClose: _clearError);
+          return CustomErrorWidget(errorMessage: details.exception.toString(), onClose: _clearError);
         };
         return child!;
       },
@@ -190,12 +202,12 @@ class _AppState extends State<App> {
             ),
           );
 
-          if (_showingError && _errorDetails != null) {
+          if (_showingError && _errorMessage != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => CustomErrorWidget(errorDetails: _errorDetails!, onClose: _clearError),
+                builder: (context) => CustomErrorWidget(errorMessage: _errorMessage!, onClose: _clearError),
               );
             });
           }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CustomErrorWidget extends StatelessWidget {
-  final FlutterErrorDetails errorDetails;
+  final String errorMessage;
   final VoidCallback onClose;
 
-  const CustomErrorWidget({super.key, required this.errorDetails, required this.onClose});
+  const CustomErrorWidget({super.key, required this.errorMessage, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class CustomErrorWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              errorDetails.exception.toString(),
+              errorMessage,
               style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
               textAlign: TextAlign.center,
             ),
