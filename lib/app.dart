@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/app_scaffold.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/common/error_widget.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/menu_bar.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
@@ -56,13 +57,39 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  int _selectedIndex = 0; // Add this to track current page
+  int _selectedIndex = 0;
   Key _rebuildKey = UniqueKey();
+  FlutterErrorDetails? _errorDetails;
+  bool _showingError = false;
 
   @override
   void initState() {
     super.initState();
     _initializeWindow();
+    _setupErrorHandling();
+  }
+
+  void _setupErrorHandling() {
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      if (!_showingError) {
+        _showingError = true;
+        _errorDetails = details;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      }
+    };
+  }
+
+  void _clearError() {
+    if (_showingError) {
+      setState(() {
+        _showingError = false;
+      });
+    }
   }
 
   Future<void> _initializeWindow() async {
@@ -123,39 +150,58 @@ class _AppState extends State<App> {
       title: 'Trayce',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
+      builder: (context, child) {
+        ErrorWidget.builder = (FlutterErrorDetails details) {
+          return CustomErrorWidget(errorDetails: details, onClose: _clearError);
+        };
+        return child!;
+      },
       home: Builder(
-        builder:
-            (context) => AppMenuBar(
-              appVersion: widget.appVersion,
-              onFileOpen: (path) => _changeDatabase(context, path),
-              onFileSave: (path) => _changeDatabase(context, path, shouldCopy: true),
-              child: Scaffold(
-                body: LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-                      AppCache.saveSize(Size(constraints.maxWidth, constraints.maxHeight));
-                    }
-                    return IndexedStack(
-                      key: _rebuildKey,
-                      index: _selectedIndex,
-                      children: [
-                        AppScaffold(
-                          selectedIndex: 0,
-                          onIndexChanged: (index) => setState(() => _selectedIndex = index),
-                          child: const Network(),
-                        ),
-                        AppScaffold(
-                          selectedIndex: 1,
-                          onIndexChanged: (index) => setState(() => _selectedIndex = index),
-                          child: const Editor(),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                bottomNavigationBar: const StatusBar(),
+        builder: (context) {
+          Widget appContent = AppMenuBar(
+            appVersion: widget.appVersion,
+            onFileOpen: (path) => _changeDatabase(context, path),
+            onFileSave: (path) => _changeDatabase(context, path, shouldCopy: true),
+            child: Scaffold(
+              body: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+                    AppCache.saveSize(Size(constraints.maxWidth, constraints.maxHeight));
+                  }
+                  return IndexedStack(
+                    key: _rebuildKey,
+                    index: _selectedIndex,
+                    children: [
+                      AppScaffold(
+                        selectedIndex: 0,
+                        onIndexChanged: (index) => setState(() => _selectedIndex = index),
+                        child: const Network(),
+                      ),
+                      AppScaffold(
+                        selectedIndex: 1,
+                        onIndexChanged: (index) => setState(() => _selectedIndex = index),
+                        child: const Editor(),
+                      ),
+                    ],
+                  );
+                },
               ),
+              bottomNavigationBar: const StatusBar(),
             ),
+          );
+
+          if (_showingError && _errorDetails != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => CustomErrorWidget(errorDetails: _errorDetails!, onClose: _clearError),
+              );
+            });
+          }
+
+          return appContent;
+        },
       ),
     );
   }
