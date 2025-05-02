@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'editor_tabs.dart';
-import 'explorer.dart';
-import 'explorer_style.dart';
+import 'explorer/explorer.dart';
+import 'explorer/explorer_style.dart';
 
 class EditorCache {
   static double? _cachedWidth;
@@ -57,12 +57,8 @@ class _EditorState extends State<Editor> {
               children: [
                 Row(
                   children: [
-                    FileExplorer(
-                      width: totalWidth * effectiveWidth,
-                    ),
-                    EditorTabs(
-                      width: totalWidth * (1 - effectiveWidth),
-                    ),
+                    FileExplorer(width: totalWidth * effectiveWidth),
+                    EditorTabs(width: totalWidth * (1 - effectiveWidth)),
                   ],
                 ),
                 Positioned(
@@ -88,10 +84,7 @@ class _EditorState extends State<Editor> {
                       },
                       child: Stack(
                         children: [
-                          Container(
-                            width: 3,
-                            color: Colors.transparent,
-                          ),
+                          Container(width: 3, color: Colors.transparent),
                           Positioned(
                             left: 1,
                             top: 0,

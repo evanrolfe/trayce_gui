@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 
-import '../common/context_menu_style.dart';
+import '../../common/context_menu_style.dart';
 
 class ContextMenuItemWidget extends PopupMenuItem<void> implements PreferredSizeWidget {
   ContextMenuItemWidget({Key? key, required String text, required VoidCallback onTap})

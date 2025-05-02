@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/style.dart';
-import 'package:trayce/editor/code_editor_multi.dart';
+import 'package:trayce/editor/code_editor/code_editor_multi.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
 
-import '../common/selectable_table.dart';
+import '../../common/selectable_table.dart';
 
 class GrpcStreamMessage implements Identifiable {
   final int id;

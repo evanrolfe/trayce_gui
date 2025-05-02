@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/dart.dart';
-import 'package:trayce/editor/auto_complete_list.dart';
+import 'package:trayce/editor/code_editor/auto_complete_list.dart';
 
 class SingleLineCodeEditor extends StatefulWidget {
   final CodeLineEditingController controller;

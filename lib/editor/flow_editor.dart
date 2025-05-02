@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'flow_editor_grpc.dart';
-import 'flow_editor_http.dart';
+import 'flow_editor_grpc/flow_editor_grpc.dart';
+import 'flow_editor_http/flow_editor_http.dart';
 
 class FlowEditor extends StatefulWidget {
   final String flowType;
 
-  const FlowEditor({
-    super.key,
-    required this.flowType,
-  });
+  const FlowEditor({super.key, required this.flowType});
 
   @override
   State<FlowEditor> createState() => _FlowEditorState();
@@ -18,9 +15,7 @@ class FlowEditor extends StatefulWidget {
 class _FlowEditorState extends State<FlowEditor> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: _buildEditorContent(),
-    );
+    return Container(child: _buildEditorContent());
   }
 
   Widget _buildEditorContent() {
@@ -31,10 +26,7 @@ class _FlowEditorState extends State<FlowEditor> {
         return const FlowEditorGrpc();
       default:
         return Center(
-          child: Text(
-            'Unsupported flow type: ${widget.flowType}',
-            style: const TextStyle(color: Color(0xFFD4D4D4)),
-          ),
+          child: Text('Unsupported flow type: ${widget.flowType}', style: const TextStyle(color: Color(0xFFD4D4D4))),
         );
     }
   }
