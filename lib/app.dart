@@ -59,12 +59,13 @@ class App extends StatefulWidget {
   State<App> createState() => _AppState();
 }
 
-class _AppState extends State<App> {
+class _AppState extends State<App> with WindowListener {
   int _selectedIndex = 0;
   Key _rebuildKey = UniqueKey();
   String? _errorMessage;
   bool _showingError = false;
   late final StreamSubscription _displaySub;
+  Timer? _resizeDebounceTimer;
 
   @override
   void initState() {
@@ -79,6 +80,30 @@ class _AppState extends State<App> {
         _errorMessage = event.message;
       });
     });
+
+    // Register window listener
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    // Remove window listener
+    windowManager.removeListener(this);
+    _displaySub.cancel();
+    _resizeDebounceTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void onWindowResize() async {
+    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+      _resizeDebounceTimer?.cancel();
+      _resizeDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
+        final size = await windowManager.getSize();
+        AppCache.saveSize(size);
+        print('onWindowResize: ${size.width}x${size.height}');
+      });
+    }
   }
 
   void _setupErrorHandling() {
@@ -177,9 +202,6 @@ class _AppState extends State<App> {
             child: Scaffold(
               body: LayoutBuilder(
                 builder: (context, constraints) {
-                  if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-                    AppCache.saveSize(Size(constraints.maxWidth, constraints.maxHeight));
-                  }
                   return IndexedStack(
                     key: _rebuildKey,
                     index: _selectedIndex,

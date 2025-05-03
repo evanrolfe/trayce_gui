@@ -26,16 +26,9 @@ void main(List<String> args) async {
   }
 
   WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
 
   await GrpcParserLib.ensureExists();
-
-  // Set default window size
-  await windowManager.ensureInitialized();
-  WindowOptions windowOptions = WindowOptions(size: Size(1200, 800));
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
 
   // Connect DB, EventBus & GRPC server
   EventBus eventBus = EventBus();
