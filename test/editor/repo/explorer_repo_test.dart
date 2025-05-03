@@ -28,12 +28,13 @@ void main() {
 
       expect(event.nodes[0].name, 'collection1');
       expect(event.nodes[0].type, NodeType.collection);
-      expect(event.nodes[0].collection.type, 'collection');
-      final collectionAuth = event.nodes[0].collection.auth as BasicAuth;
+      final collection = event.nodes[0].getCollection();
+      expect(collection?.type, 'collection');
+      final collectionAuth = collection?.auth as BasicAuth;
       expect(collectionAuth.username, 'asdf');
       expect(collectionAuth.password, 'asdf');
-      expect(event.nodes[0].collection.requestVars[0].name, 'xxx');
-      expect(event.nodes[0].collection.requestVars[0].value, 'yyy');
+      expect(collection?.requestVars[0].name, 'xxx');
+      expect(collection?.requestVars[0].value, 'yyy');
 
       expect(event.nodes[0].children[0].name, 'hello');
       expect(event.nodes[0].children[0].type, NodeType.folder);
@@ -41,7 +42,7 @@ void main() {
       expect(event.nodes[0].children[1].type, NodeType.folder);
       expect(event.nodes[0].children[2].name, 'my-request.bru');
       expect(event.nodes[0].children[2].type, NodeType.request);
-      Request? request = event.nodes[0].children[2].request;
+      Request? request = event.nodes[0].children[2].getRequest();
       expect(request?.method, 'post');
       expect(request?.url, 'https://trayce.dev');
       expect(request?.headers[0].name, 'hello');
@@ -49,7 +50,7 @@ void main() {
 
       expect(event.nodes[0].children[1].children[0].name, 'a-req.bru');
       expect(event.nodes[0].children[1].children[0].type, NodeType.request);
-      request = event.nodes[0].children[1].children[0].request;
+      request = event.nodes[0].children[1].children[0].getRequest();
       expect(request?.method, 'get');
       expect(request?.url, 'http://www.github.com');
 
