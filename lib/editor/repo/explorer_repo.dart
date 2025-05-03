@@ -10,6 +10,12 @@ class EventDisplayExplorerItems {
   EventDisplayExplorerItems(this.nodes);
 }
 
+class EventOpenExplorerNode {
+  final ExplorerNode node;
+
+  EventOpenExplorerNode(this.node);
+}
+
 class ExplorerRepo {
   final EventBus _eventBus;
   final filesToIgnore = ['folder.bru', 'collection.bru'];
@@ -88,6 +94,10 @@ class ExplorerRepo {
       return true;
     }
     return false;
+  }
+
+  void openNode(ExplorerNode node) {
+    _eventBus.fire(EventOpenExplorerNode(node));
   }
 }
 

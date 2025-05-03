@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
@@ -40,7 +41,9 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
-  const FlowEditorHttp({super.key});
+  final Request request;
+
+  const FlowEditorHttp({super.key, required this.request});
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
@@ -68,6 +71,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _bottomTabController = TabController(length: 2, vsync: this);
     _topTabController = TabController(length: 2, vsync: this);
     HttpEditorState.initialize();
+
+    // Set the initial value of the URL controller from the request
+    _urlController.text = widget.request.url;
   }
 
   @override

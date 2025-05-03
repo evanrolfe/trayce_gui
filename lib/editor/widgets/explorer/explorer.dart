@@ -29,6 +29,7 @@ class _FileExplorerState extends State<FileExplorer> {
   late final StreamSubscription _displaySub;
   int? _dropPosition;
   ExplorerNode? _dropTargetDir;
+  int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
 
   @override
   void initState() {
@@ -41,7 +42,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    // context.read<ExplorerRepo>().openCollection('/home/evan/Code/bruno/test');
+    // context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
   }
 
   @override
@@ -62,10 +63,10 @@ class _FileExplorerState extends State<FileExplorer> {
     final config = context.read<Config>();
     late String? path;
     if (config.isTest) {
-      path = '/home/evan/Code/trayce/gui/test/support/collection1';
+      path = './test/support/collection1';
     } else {
       // Need to find a way to mock the file selector in integration tests
-      path = await getDirectoryPath(initialDirectory: '/home/evan/Code/bruno/test');
+      path = await getDirectoryPath();
     }
 
     if (path != null && mounted) {
@@ -159,13 +160,25 @@ class _FileExplorerState extends State<FileExplorer> {
                     onEnter: (_) => setState(() => _hoveredNode = node),
                     onExit: (_) => setState(() => _hoveredNode = null),
                     child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedNode = node;
-                          if (node.isDirectory) {
-                            node.isExpanded = !node.isExpanded;
+                      onTapDown: (_) {
+                        // We do this instead of using onDoubleTap because that makes single tap way too slow
+                        // See: https://stackoverflow.com/questions/71293804/ondoubletap-makes-ontap-very-slow
+                        int currMills = DateTime.now().millisecondsSinceEpoch;
+                        if ((currMills - lastClickmilliseconds) < 250) {
+                          // Double tap
+                          if (node.type == NodeType.request) {
+                            context.read<ExplorerRepo>().openNode(node);
                           }
-                        });
+                        } else {
+                          // Single tap
+                          lastClickmilliseconds = currMills;
+                          setState(() {
+                            _selectedNode = node;
+                            if (node.isDirectory) {
+                              node.isExpanded = !node.isExpanded;
+                            }
+                          });
+                        }
                       },
                       child: Container(
                         height: itemHeight,
