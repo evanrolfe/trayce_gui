@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grpc/grpc.dart';
 import 'package:trayce/app.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
@@ -40,6 +41,7 @@ void main(List<String> args) async {
   EventBus eventBus = EventBus();
   final db = await connectDB();
   final grpcService = TrayceAgentService(eventBus: eventBus);
+  final config = Config.fromArgs(args);
 
   // Init repos
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
@@ -55,6 +57,7 @@ void main(List<String> args) async {
         RepositoryProvider<EventBus>(create: (context) => eventBus),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<ExplorerRepo>(create: (context) => explorerRepo),
+        RepositoryProvider<Config>(create: (context) => config),
       ],
       child: const App(appVersion: appVersion),
     ),

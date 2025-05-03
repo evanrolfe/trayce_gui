@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
 import '../../../common/context_menu_style.dart';
@@ -40,7 +41,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    context.read<ExplorerRepo>().openCollection('/home/evan/Code/bruno/test');
+    // context.read<ExplorerRepo>().openCollection('/home/evan/Code/bruno/test');
   }
 
   @override
@@ -58,7 +59,14 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleOpen() async {
-    final String? path = await getDirectoryPath(initialDirectory: '/home/evan/Code/bruno/test');
+    final config = context.read<Config>();
+    late String? path;
+    if (config.isTest) {
+      path = '/home/evan/Code/trayce/gui/test/support/collection1';
+    } else {
+      // Need to find a way to mock the file selector in integration tests
+      path = await getDirectoryPath(initialDirectory: '/home/evan/Code/bruno/test');
+    }
 
     if (path != null && mounted) {
       context.read<ExplorerRepo>().openCollection(path);
@@ -268,6 +276,7 @@ class _FileExplorerState extends State<FileExplorer> {
                 children: [
                   const Text('Editor', style: TextStyle(color: textColor, fontSize: 13)),
                   IconButton(
+                    key: const Key('open_collection_btn'),
                     icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
                     padding: const EdgeInsets.only(right: 5),
                     constraints: const BoxConstraints(),

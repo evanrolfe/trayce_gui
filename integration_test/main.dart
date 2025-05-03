@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/main.dart' as app;
 
 import 'containers_modal_test.dart' as containers_modal_test;
+import 'explorer_open_collection.dart' as explorer_open_collection;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
 import 'proto_def_modal.dart' as proto_def_modal_test;
@@ -25,7 +26,7 @@ void main() {
     }
 
     // Start the real app once for all tests
-    app.main([]);
+    app.main(['--test']);
 
     // Add a longer initial pump and settle to ensure app is fully loaded
     await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -42,6 +43,8 @@ void main() {
     await containers_modal_test.test(tester);
     await truncateDb(db);
     await flow_table_test.test(tester);
+    await truncateDb(db);
+    await explorer_open_collection.test(tester);
     await truncateDb(db);
 
     await db.close();

@@ -1,0 +1,38 @@
+meta {
+  name: my-request
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://trayce.dev
+  body: file
+  auth: basic
+}
+
+headers {
+  hello: world
+  key: {{my_key}}
+  password: {{my_password}}
+}
+
+body:json {
+  {
+    "asdfsa": "asdfasf",
+    "hello": true
+  }
+}
+
+body:file {
+  file: @file(test.bru)
+  ~file: @file(test2.bru)
+  ~file: @file(test.bru)
+}
+
+vars:pre-request {
+  asdf: xxx
+}
+
+vars:post-response {
+  asfdasf: fff
+}
