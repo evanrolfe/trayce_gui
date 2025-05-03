@@ -50,10 +50,31 @@ class ExplorerRepo {
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
 
-      final isExpanded = depth == 0;
-      return ExplorerNode(name: name, isDirectory: true, isExpanded: isExpanded, initialChildren: children);
+      late NodeType type;
+      late File file;
+      late Directory dir;
+
+      if (depth == 0) {
+        type = NodeType.collection;
+        dir = entity;
+        file = File('${entity.path}/collection.bru');
+      } else {
+        type = NodeType.folder;
+        dir = entity;
+        file = File('${entity.path}/folder.bru');
+      }
+
+      return ExplorerNode(
+        file: file,
+        dir: dir,
+        name: name,
+        isDirectory: true,
+        type: type,
+        isExpanded: (type == NodeType.collection),
+        initialChildren: children,
+      );
     } else {
-      return ExplorerNode(name: name, isDirectory: false);
+      return ExplorerNode(file: entity as File, type: NodeType.request, name: name, isDirectory: false);
     }
   }
 
