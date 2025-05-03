@@ -48,19 +48,19 @@ void main() {
       expect(request?.headers[0].name, 'hello');
       expect(request?.headers[0].value, 'world');
 
-      expect(event.nodes[0].children[1].children[0].name, 'a-req.bru');
+      expect(event.nodes[0].children[1].children[0].name, 'five.bru');
       expect(event.nodes[0].children[1].children[0].type, NodeType.request);
       request = event.nodes[0].children[1].children[0].getRequest();
       expect(request?.method, 'get');
-      expect(request?.url, 'http://www.github.com');
+      expect(request?.url, 'www.getuser.com/five');
 
-      expect(event.nodes[0].children[1].children[1].name, 'another-req.bru');
+      expect(event.nodes[0].children[1].children[1].name, 'four.bru');
       expect(event.nodes[0].children[1].children[1].type, NodeType.request);
-      expect(event.nodes[0].children[1].children[2].name, 'get users.bru');
+      expect(event.nodes[0].children[1].children[2].name, 'one.bru');
       expect(event.nodes[0].children[1].children[2].type, NodeType.request);
-      expect(event.nodes[0].children[1].children[3].name, 'new-request.bru');
+      expect(event.nodes[0].children[1].children[3].name, 'three.bru');
       expect(event.nodes[0].children[1].children[3].type, NodeType.request);
-      expect(event.nodes[0].children[1].children[4].name, 'test-request.bru');
+      expect(event.nodes[0].children[1].children[4].name, 'two.bru');
       expect(event.nodes[0].children[1].children[4].type, NodeType.request);
     });
   });
