@@ -21,31 +21,37 @@ class EditorTabs extends StatefulWidget {
 
 class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub;
-  final List<TabItem> _tabs = [];
-  List<int> _editorIndices = [0]; // Maps tab positions to original editor positions
-  ValueKey? _selectedTabKey; // Track selected tab by its key
   int? _hoveredTabIndex;
-  final Map<ValueKey, int> _keyToEditorIndex = {}; // Map from tab key to editor index
+  int _selectedTabIndex = 0;
+  final List<_TabEntry> _tabs = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Subscribe to verification events
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
         final newTab = TabItem(node: event.node);
 
-        final newTabIndex = _tabs.map((e) => e.key).toList().indexOf(newTab.key);
-        if (newTabIndex != -1) {
-          _selectedTabKey = newTab.key;
+        // Check if tab already exists
+        final existingIndex = _tabs.indexWhere((entry) => entry.tab.key == newTab.key);
+        if (existingIndex != -1) {
+          _selectedTabIndex = existingIndex;
           return;
         }
 
-        _tabs.add(newTab);
-        _selectedTabKey = newTab.key;
-        _editorIndices = List.generate(_tabs.length, (index) => index);
-        _keyToEditorIndex[newTab.key] = _tabs.length - 1; // Map the new tab's key to its editor index
+        // Add new tab
+        _tabs.add(
+          _TabEntry(
+            tab: newTab,
+            editor: FlowEditor(
+              key: ValueKey('editor_${newTab.key}'),
+              flowType: 'http',
+              request: newTab.node.getRequest()!,
+            ),
+          ),
+        );
+        _selectedTabIndex = _tabs.length - 1;
       });
     });
   }
@@ -61,34 +67,48 @@ class _EditorTabsState extends State<EditorTabs> {
       if (oldIndex < newIndex) {
         newIndex -= 1;
       }
-      // Reorder tabs
-      final TabItem item = _tabs.removeAt(oldIndex);
+
+      // Reorder the tab entry
+      final item = _tabs.removeAt(oldIndex);
       _tabs.insert(newIndex, item);
 
-      // Reorder the mapping instead of the actual editors
-      final int editorIndex = _editorIndices.removeAt(oldIndex);
-      _editorIndices.insert(newIndex, editorIndex);
-
-      // Update the key-to-editor-index map
-      _keyToEditorIndex.clear();
-      for (int i = 0; i < _tabs.length; i++) {
-        _keyToEditorIndex[_tabs[i].key] = _editorIndices[i];
+      // Update selected index
+      if (_selectedTabIndex == oldIndex) {
+        _selectedTabIndex = newIndex;
+      } else if (_selectedTabIndex > oldIndex && _selectedTabIndex <= newIndex) {
+        _selectedTabIndex--;
+      } else if (_selectedTabIndex < oldIndex && _selectedTabIndex >= newIndex) {
+        _selectedTabIndex++;
       }
 
-      // Update selected tab key if needed
-      if (_selectedTabKey == _tabs[oldIndex].key) {
-        _selectedTabKey = _tabs[newIndex].key;
+      // Ensure selected index is valid
+      if (_selectedTabIndex >= _tabs.length) {
+        _selectedTabIndex = _tabs.length - 1;
+      }
+    });
+  }
+
+  void _closeTab(int index) {
+    setState(() {
+      _tabs.removeAt(index);
+
+      if (_tabs.isEmpty) {
+        _selectedTabIndex = 0;
+      } else {
+        // If we're closing the selected tab or a tab before it, adjust the index
+        if (index <= _selectedTabIndex) {
+          _selectedTabIndex = _selectedTabIndex > 0 ? _selectedTabIndex - 1 : 0;
+        }
+        // Ensure the selected index is within bounds
+        if (_selectedTabIndex >= _tabs.length) {
+          _selectedTabIndex = _tabs.length - 1;
+        }
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final editors = List.generate(
-      _tabs.length,
-      (i) => FlowEditor(key: ValueKey('editor_$i'), flowType: 'http', request: _tabs[i].node.getRequest()!),
-    );
-
     return SizedBox(
       width: widget.width,
       child: Column(
@@ -100,15 +120,14 @@ class _EditorTabsState extends State<EditorTabs> {
               scrollDirection: Axis.horizontal,
               onReorder: _onReorder,
               buildDefaultDragHandles: false,
-              children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+              children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value.tab, entry.key)).toList(),
             ),
           ),
           Expanded(
-            child: IndexedStack(
-              // Use the mapping to show the correct editor
-              index: _selectedTabKey != null ? _keyToEditorIndex[_selectedTabKey] ?? 0 : 0,
-              children: editors,
-            ),
+            child:
+                _tabs.isEmpty
+                    ? const Center(child: Text('No tabs open'))
+                    : IndexedStack(index: _selectedTabIndex, children: _tabs.map((entry) => entry.editor).toList()),
           ),
         ],
       ),
@@ -116,7 +135,7 @@ class _EditorTabsState extends State<EditorTabs> {
   }
 
   Widget _buildTab(TabItem tabItem, int index) {
-    final isSelected = _selectedTabKey == tabItem.key;
+    final isSelected = _selectedTabIndex == index;
     final isHovered = _hoveredTabIndex == index;
 
     return ReorderableDragStartListener(
@@ -126,7 +145,7 @@ class _EditorTabsState extends State<EditorTabs> {
         onEnter: (_) => setState(() => _hoveredTabIndex = index),
         onExit: (_) => setState(() => _hoveredTabIndex = null),
         child: GestureDetector(
-          onTapDown: (_) => setState(() => _selectedTabKey = tabItem.key),
+          onTapDown: (_) => setState(() => _selectedTabIndex = index),
           child: Container(
             height: tabHeight,
             padding: tabPadding,
@@ -141,8 +160,13 @@ class _EditorTabsState extends State<EditorTabs> {
                   const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
                   const SizedBox(width: 8),
                   Text(tabItem.node.name, style: tabTextStyle),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.close, size: 16, color: lightTextColor),
+                  if (_tabs.length > 1) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTapDown: (_) => _closeTab(index),
+                      child: const Icon(Icons.close, size: 16, color: lightTextColor),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -151,4 +175,11 @@ class _EditorTabsState extends State<EditorTabs> {
       ),
     );
   }
+}
+
+class _TabEntry {
+  final TabItem tab;
+  final Widget editor;
+
+  _TabEntry({required this.tab, required this.editor});
 }
