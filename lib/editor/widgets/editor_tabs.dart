@@ -163,7 +163,9 @@ class _EditorTabsState extends State<EditorTabs> {
                   if (_tabs.length > 1) ...[
                     const SizedBox(width: 8),
                     GestureDetector(
-                      onTapDown: (_) => _closeTab(index),
+                      // Note: this needs to be onTap, not onTapDown otherwise it initiates a drag sequence which calls a null error
+                      // because the tab is deleted
+                      onTap: () => _closeTab(index),
                       child: const Icon(Icons.close, size: 16, color: lightTextColor),
                     ),
                   ],
