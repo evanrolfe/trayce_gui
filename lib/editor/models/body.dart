@@ -4,6 +4,8 @@ import 'utils.dart';
 abstract class Body {
   String get type;
   String toBru();
+  @override
+  String toString();
 }
 
 class JsonBody extends Body {
@@ -16,6 +18,11 @@ class JsonBody extends Body {
   @override
   String toBru() {
     return 'body:json {\n${indentString(content)}\n}';
+  }
+
+  @override
+  String toString() {
+    return content;
   }
 }
 
@@ -30,6 +37,11 @@ class TextBody extends Body {
   String toBru() {
     return 'body:text {\n${indentString(content)}\n}';
   }
+
+  @override
+  String toString() {
+    return content;
+  }
 }
 
 class XmlBody extends Body {
@@ -43,6 +55,11 @@ class XmlBody extends Body {
   String toBru() {
     return 'body:xml {\n${indentString(content)}\n}';
   }
+
+  @override
+  String toString() {
+    return content;
+  }
 }
 
 class SparqlBody extends Body {
@@ -55,6 +72,11 @@ class SparqlBody extends Body {
   @override
   String toBru() {
     return 'body:sparql {\n${indentString(content)}\n}';
+  }
+
+  @override
+  String toString() {
+    return content;
   }
 }
 
@@ -72,6 +94,12 @@ class GraphqlBody extends Body {
     bru += 'body:graphql {\n${indentString(query)}\n}\n';
     bru += '\nbody:graphql:vars {\n${indentString(variables)}\n}';
     return bru;
+  }
+
+  @override
+  String toString() {
+    // TODO: include the variables somehow
+    return query;
   }
 }
 
@@ -100,6 +128,11 @@ class FormUrlEncodedBody extends Body {
     bru += '}';
     return bru;
   }
+
+  @override
+  String toString() {
+    return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+  }
 }
 
 class MultipartFormBody extends Body {
@@ -127,6 +160,11 @@ class MultipartFormBody extends Body {
     bru += '}';
     return bru;
   }
+
+  @override
+  String toString() {
+    return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+  }
 }
 
 class FileBodyItem {
@@ -134,11 +172,7 @@ class FileBodyItem {
   String contentType;
   bool selected;
 
-  FileBodyItem({
-    required this.filePath,
-    required this.contentType,
-    required this.selected,
-  });
+  FileBodyItem({required this.filePath, required this.contentType, required this.selected});
 
   static FileBodyItem fromBruLine(String line, bool selected) {
     // Default values
@@ -157,11 +191,12 @@ class FileBodyItem {
       contentType = contentTypeMatch.group(1) ?? '';
     }
 
-    return FileBodyItem(
-      filePath: filePath,
-      contentType: contentType,
-      selected: selected,
-    );
+    return FileBodyItem(filePath: filePath, contentType: contentType, selected: selected);
+  }
+
+  @override
+  String toString() {
+    return filePath;
   }
 }
 
@@ -177,15 +212,24 @@ class FileBody extends Body {
     var bru = 'body:file {\n';
 
     if (files.isNotEmpty) {
-      bru += indentString(files.map((item) {
-        final selected = item.selected ? '' : '~';
-        final contentType = item.contentType.isNotEmpty ? ' @contentType(${item.contentType})' : '';
-        final value = '@file(${item.filePath})';
-        return '${selected}file: $value$contentType';
-      }).join('\n'));
+      bru += indentString(
+        files
+            .map((item) {
+              final selected = item.selected ? '' : '~';
+              final contentType = item.contentType.isNotEmpty ? ' @contentType(${item.contentType})' : '';
+              final value = '@file(${item.filePath})';
+              return '${selected}file: $value$contentType';
+            })
+            .join('\n'),
+      );
     }
 
     bru += '\n}';
     return bru;
+  }
+
+  @override
+  String toString() {
+    return files.map((f) => f.toString()).join('\n');
   }
 }

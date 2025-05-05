@@ -53,17 +53,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   bool isDividerHovered = false;
   late TabController _bottomTabController;
   late TabController _topTabController;
-  final CodeLineEditingController _responseController = CodeLineEditingController();
   final CodeLineEditingController _urlController = CodeLineEditingController();
-  final CodeLineEditingController _bodyController = CodeLineEditingController();
-  final CodeLineEditingController _headerKey1Controller = CodeLineEditingController();
-  final CodeLineEditingController _headerValue1Controller = CodeLineEditingController();
-  final CodeLineEditingController _headerKey2Controller = CodeLineEditingController();
-  final CodeLineEditingController _headerValue2Controller = CodeLineEditingController();
+  final CodeLineEditingController _reqBodyController = CodeLineEditingController();
+  final CodeLineEditingController _respBodyController = CodeLineEditingController();
   String _selectedMethod = 'GET';
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
+  late final HeadersStateManager _headersController;
 
   @override
   void initState() {
@@ -73,21 +70,26 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     HttpEditorState.initialize();
 
     // Set the initial value of the URL controller from the request
+    _selectedMethod = widget.request.method.toUpperCase();
     _urlController.text = widget.request.url;
+    _headersController = HeadersStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: widget.request.headers,
+    );
+    if (widget.request.body != null) {
+      _reqBodyController.text = widget.request.body!.toString();
+    }
   }
 
   @override
   void dispose() {
     _bottomTabController.dispose();
     _topTabController.dispose();
-    _responseController.dispose();
+    _respBodyController.dispose();
     _urlController.dispose();
-    _bodyController.dispose();
-    _headerKey1Controller.dispose();
-    _headerValue1Controller.dispose();
-    _headerKey2Controller.dispose();
-    _headerValue2Controller.dispose();
+    _reqBodyController.dispose();
     _disabledScrollController.dispose();
+    _headersController.dispose();
     super.dispose();
   }
 
@@ -194,9 +196,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             width: constraints.maxWidth,
                             height: middleHeight,
                             child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: Colors.grey[700]!, width: 0)),
-                              ),
                               child: DefaultTabController(
                                 length: 2,
                                 animationDuration: Duration.zero,
@@ -250,8 +249,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                       child: TabBarView(
                                         controller: _topTabController,
                                         children: [
-                                          SingleChildScrollView(child: const HeadersTable()),
-                                          MultiLineCodeEditor(controller: _bodyController),
+                                          SingleChildScrollView(child: HeadersTable(stateManager: _headersController)),
+                                          MultiLineCodeEditor(controller: _reqBodyController),
                                         ],
                                       ),
                                     ),
@@ -330,7 +329,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                     child: TabBarView(
                                       controller: _bottomTabController,
                                       children: [
-                                        MultiLineCodeEditor(controller: _responseController),
+                                        MultiLineCodeEditor(controller: _respBodyController),
                                         Padding(padding: const EdgeInsets.all(20.0), child: HeadersTableReadOnly()),
                                       ],
                                     ),

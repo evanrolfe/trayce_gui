@@ -55,10 +55,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
   final CodeLineEditingController _responseController = CodeLineEditingController();
   final CodeLineEditingController _urlController = CodeLineEditingController();
   final CodeLineEditingController _bodyController = CodeLineEditingController();
-  final CodeLineEditingController _headerKey1Controller = CodeLineEditingController();
-  final CodeLineEditingController _headerValue1Controller = CodeLineEditingController();
-  final CodeLineEditingController _headerKey2Controller = CodeLineEditingController();
-  final CodeLineEditingController _headerValue2Controller = CodeLineEditingController();
+  late final HeadersStateManager _headersController;
   String _selectedMethod = 'GET';
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
@@ -70,6 +67,8 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
     _topTabController = TabController(length: 2, vsync: this);
     _bottomTabController = TabController(length: 3, vsync: this);
     GrpcEditorState.initialize();
+
+    _headersController = HeadersStateManager(onStateChanged: () => setState(() {}), initialRows: []);
   }
 
   @override
@@ -79,10 +78,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
     _responseController.dispose();
     _urlController.dispose();
     _bodyController.dispose();
-    _headerKey1Controller.dispose();
-    _headerValue1Controller.dispose();
-    _headerKey2Controller.dispose();
-    _headerValue2Controller.dispose();
+    _headersController.dispose();
     _disabledScrollController.dispose();
     super.dispose();
   }
@@ -288,7 +284,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                                         controller: _topTabController,
                                         children: [
                                           MultiLineCodeEditor(controller: _bodyController),
-                                          SingleChildScrollView(child: const HeadersTable()),
+                                          SingleChildScrollView(child: HeadersTable(stateManager: _headersController)),
                                         ],
                                       ),
                                     ),

@@ -4,8 +4,20 @@ meta {
   seq: 2
 }
 
-get {
+post {
   url: http://www.github.com/one
-  body: none
+  body: json
   auth: inherit
+}
+
+headers {
+    hello: world
+    X-Auth-Token: abcd1234
+    Content-Type: application/json
+}
+
+body:json {
+  {
+    "hello": "world"
+  }
 }
