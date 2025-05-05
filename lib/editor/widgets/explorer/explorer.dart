@@ -7,9 +7,10 @@ import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
-import '../../../common/context_menu_style.dart';
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
+import 'menu_node_context.dart';
+import 'menu_open_collection.dart';
 
 const double itemHeight = 22;
 
@@ -42,7 +43,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    // context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+    context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
   }
 
   @override
@@ -180,6 +181,9 @@ class _FileExplorerState extends State<FileExplorer> {
                           });
                         }
                       },
+                      onSecondaryTapDown: (details) {
+                        showNodeContextMenu(context, details, node);
+                      },
                       child: Container(
                         height: itemHeight,
                         padding: EdgeInsets.only(left: indent + fileTreeLeftMargin),
@@ -293,35 +297,7 @@ class _FileExplorerState extends State<FileExplorer> {
                     icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
                     padding: const EdgeInsets.only(right: 5),
                     constraints: const BoxConstraints(),
-                    onPressed: () {
-                      final anchors = TextSelectionToolbarAnchors(
-                        primaryAnchor: Offset(widget.width + 40, itemHeight + 32),
-                      );
-                      showMenu(
-                        popUpAnimationStyle: contextMenuAnimationStyle,
-                        context: context,
-                        position: RelativeRect.fromSize(
-                          anchors.primaryAnchor & const Size(150, double.infinity),
-                          MediaQuery.of(context).size,
-                        ),
-                        color: contextMenuColor,
-                        shape: contextMenuShape,
-                        items: [
-                          PopupMenuItem(
-                            height: 30,
-                            child: Text('Open Collection', style: contextMenuTextStyle),
-                            onTap: () => _handleOpen(),
-                          ),
-                          PopupMenuItem(
-                            height: 30,
-                            child: Text('New Collection', style: contextMenuTextStyle),
-                            onTap: () {
-                              print('New Collection');
-                            },
-                          ),
-                        ],
-                      );
-                    },
+                    onPressed: () => openCollectionMenu(context, widget.width, itemHeight, _handleOpen),
                   ),
                 ],
               ),

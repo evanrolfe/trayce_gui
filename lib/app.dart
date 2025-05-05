@@ -101,7 +101,6 @@ class _AppState extends State<App> with WindowListener {
       _resizeDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
         final size = await windowManager.getSize();
         AppCache.saveSize(size);
-        print('onWindowResize: ${size.width}x${size.height}');
       });
     }
   }
