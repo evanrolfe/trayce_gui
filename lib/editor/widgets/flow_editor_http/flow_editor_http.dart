@@ -310,9 +310,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             controller: _topTabController,
                                             children: [
                                               SingleChildScrollView(
-                                                child: HeadersTable(stateManager: _headersController),
+                                                child: HeadersTable(
+                                                  stateManager: _headersController,
+                                                  saveCallback: saveFlow,
+                                                ),
                                               ),
-                                              MultiLineCodeEditor(controller: _reqBodyController),
+                                              MultiLineCodeEditor(
+                                                controller: _reqBodyController,
+                                                saveCallback: saveFlow,
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -391,7 +397,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                         child: TabBarView(
                                           controller: _bottomTabController,
                                           children: [
-                                            MultiLineCodeEditor(controller: _respBodyController),
+                                            MultiLineCodeEditor(
+                                              controller: _respBodyController,
+                                              saveCallback: saveFlow,
+                                            ),
                                             Padding(padding: const EdgeInsets.all(20.0), child: HeadersTableReadOnly()),
                                           ],
                                         ),

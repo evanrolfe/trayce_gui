@@ -5,8 +5,9 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 
 class HeadersTable extends StatelessWidget {
   final HeadersStateManager stateManager;
+  final VoidCallback? saveCallback;
 
-  const HeadersTable({super.key, required this.stateManager});
+  const HeadersTable({super.key, required this.stateManager, this.saveCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +39,7 @@ class HeadersTable extends StatelessWidget {
                     controller: row.keyController,
                     onTabPressed: () => stateManager.handleTabPress(index, true),
                     focusNode: row.keyFocusNode,
+                    saveCallback: saveCallback,
                   ),
                 ),
               ),
@@ -49,6 +51,7 @@ class HeadersTable extends StatelessWidget {
                     controller: row.valueController,
                     onTabPressed: () => stateManager.handleTabPress(index, false),
                     focusNode: row.valueFocusNode,
+                    saveCallback: saveCallback,
                   ),
                 ),
               ),

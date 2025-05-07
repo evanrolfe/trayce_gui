@@ -12,6 +12,7 @@ class SingleLineCodeEditor extends StatefulWidget {
   final VoidCallback? onTabPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
+  final VoidCallback? saveCallback;
 
   const SingleLineCodeEditor({
     super.key,
@@ -22,6 +23,7 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.onTabPressed,
     this.focusNode,
     this.decoration,
+    this.saveCallback,
   });
 
   @override
@@ -36,6 +38,15 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
+    _focusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+          widget.saveCallback?.call();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override

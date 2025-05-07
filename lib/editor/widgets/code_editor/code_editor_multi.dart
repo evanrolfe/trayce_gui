@@ -12,6 +12,7 @@ class MultiLineCodeEditor extends StatefulWidget {
   final ScrollController? horizontalScroller;
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
   final Border? border;
+  final VoidCallback? saveCallback;
 
   const MultiLineCodeEditor({
     super.key,
@@ -20,6 +21,7 @@ class MultiLineCodeEditor extends StatefulWidget {
     this.horizontalScroller,
     this.shortcutOverrideActions,
     this.border,
+    this.saveCallback,
   });
 
   @override
@@ -36,7 +38,7 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
     _focusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          print('===========> CTRL+S PRESSED focus');
+          widget.saveCallback?.call();
           return KeyEventResult.handled;
         }
       }
