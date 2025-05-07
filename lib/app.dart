@@ -85,6 +85,12 @@ class _AppState extends State<App> with WindowListener {
     windowManager.addListener(this);
   }
 
+  void _onIndexChanged(int index) {
+    // Unfocus any focused nodes when changing pages
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _selectedIndex = index);
+  }
+
   @override
   void dispose() {
     // Remove window listener
@@ -205,16 +211,8 @@ class _AppState extends State<App> with WindowListener {
                     key: _rebuildKey,
                     index: _selectedIndex,
                     children: [
-                      AppScaffold(
-                        selectedIndex: 0,
-                        onIndexChanged: (index) => setState(() => _selectedIndex = index),
-                        child: const Network(),
-                      ),
-                      AppScaffold(
-                        selectedIndex: 1,
-                        onIndexChanged: (index) => setState(() => _selectedIndex = index),
-                        child: const Editor(),
-                      ),
+                      AppScaffold(selectedIndex: 0, onIndexChanged: _onIndexChanged, child: const Network()),
+                      AppScaffold(selectedIndex: 1, onIndexChanged: _onIndexChanged, child: const Editor()),
                     ],
                   );
                 },

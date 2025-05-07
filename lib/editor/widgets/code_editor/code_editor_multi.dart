@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 
-class MultiLineCodeEditor extends StatelessWidget {
+class MultiLineCodeEditor extends StatefulWidget {
   final CodeLineEditingController controller;
   final ScrollController? verticalScroller;
   final ScrollController? horizontalScroller;
@@ -22,6 +23,34 @@ class MultiLineCodeEditor extends StatelessWidget {
   });
 
   @override
+  State<MultiLineCodeEditor> createState() => _MultiLineCodeEditorState();
+}
+
+class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+          print('===========> CTRL+S PRESSED focus');
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CodeAutocomplete(
       viewBuilder: (context, notifier, onSelected) {
@@ -29,12 +58,15 @@ class MultiLineCodeEditor extends StatelessWidget {
       },
       promptsBuilder: DefaultCodeAutocompletePromptsBuilder(language: langJson),
       child: CodeEditor(
-        controller: controller,
+        controller: widget.controller,
+        focusNode: _focusNode,
         scrollController: CodeScrollController(
-          verticalScroller: verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
-          horizontalScroller: horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
+          verticalScroller:
+              widget.verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
+          horizontalScroller:
+              widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
         ),
-        border: border ?? Border.all(width: 0.0),
+        border: widget.border ?? Border.all(width: 0.0),
         style: CodeEditorStyle(
           fontFamily: "monospace",
           textColor: const Color(0xFFD4D4D4),
@@ -44,7 +76,7 @@ class MultiLineCodeEditor extends StatelessWidget {
           ),
         ),
         wordWrap: false,
-        shortcutOverrideActions: shortcutOverrideActions,
+        shortcutOverrideActions: widget.shortcutOverrideActions,
         scrollbarBuilder: (context, child, details) {
           return Scrollbar(
             controller: details.controller,
