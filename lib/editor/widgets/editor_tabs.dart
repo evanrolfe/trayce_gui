@@ -44,11 +44,7 @@ class _EditorTabsState extends State<EditorTabs> {
         _tabs.add(
           _TabEntry(
             tab: newTab,
-            editor: FlowEditor(
-              key: ValueKey('editor_${newTab.key}'),
-              flowType: 'http',
-              request: newTab.node.getRequest()!,
-            ),
+            editor: FlowEditor(key: ValueKey('editor_${newTab.key}'), flowType: 'http', node: newTab.node),
           ),
         );
         _selectedTabIndex = _tabs.length - 1;

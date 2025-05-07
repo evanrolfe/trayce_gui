@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
@@ -46,9 +47,9 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
-  final Request request;
+  final ExplorerNode node;
 
-  const FlowEditorHttp({super.key, required this.request});
+  const FlowEditorHttp({super.key, required this.node});
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
@@ -77,25 +78,53 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     HttpEditorState.initialize();
 
     // Set the initial value of the URL controller from the request
-    _selectedMethod = widget.request.method.toUpperCase();
-    _urlController.text = widget.request.url;
-    _headersController = HeadersStateManager(
-      onStateChanged: () => setState(() {}),
-      initialRows: widget.request.headers,
-    );
-    if (widget.request.body != null) {
-      _reqBodyController.text = widget.request.body!.toString();
+    final request = widget.node.request;
+    if (request == null) {
+      return;
+    }
+
+    _selectedMethod = request.method.toUpperCase();
+    _urlController.text = request.url;
+    _headersController = HeadersStateManager(onStateChanged: () => setState(() {}), initialRows: request.headers);
+    if (request.body != null) {
+      _reqBodyController.text = request.body!.toString();
     }
 
     focusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          print('===========> CTRL+S PRESSED');
+          saveFlow();
           return KeyEventResult.handled;
         }
       }
       return KeyEventResult.ignored;
     };
+  }
+
+  void saveFlow() {
+    final request = widget.node.request!;
+
+    // URL+Method
+    request.url = _urlController.text;
+    request.method = _selectedMethod.toLowerCase();
+
+    // Body
+    if (request.body != null) {
+      if (_reqBodyController.text.isEmpty) {
+        request.body = null;
+      } else {
+        request.body!.setContent(_reqBodyController.text);
+      }
+    } else {
+      request.body = TextBody(content: _reqBodyController.text);
+    }
+
+    // Headers
+    request.headers = _headersController.getHeaders();
+
+    widget.node.save();
+
+    print('===========> Saved request URL: ${_urlController.text}');
   }
 
   @override

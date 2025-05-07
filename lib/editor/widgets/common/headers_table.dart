@@ -91,6 +91,12 @@ class HeadersStateManager {
 
   List<HeaderRow> get rows => _rows;
 
+  List<Header> getHeaders() {
+    return _rows.where((row) => !row.isEmpty()).map((row) {
+      return Header(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
+    }).toList();
+  }
+
   List<HeaderRow> _convertHeadersToRows(List<Header> headers) {
     return headers.map((header) {
       final keyController = CodeLineEditingController();

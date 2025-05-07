@@ -6,6 +6,7 @@ abstract class Body {
   String toBru();
   @override
   String toString();
+  void setContent(String value);
 }
 
 class JsonBody extends Body {
@@ -23,6 +24,11 @@ class JsonBody extends Body {
   @override
   String toString() {
     return content;
+  }
+
+  @override
+  void setContent(String value) {
+    content = value;
   }
 }
 
@@ -42,6 +48,11 @@ class TextBody extends Body {
   String toString() {
     return content;
   }
+
+  @override
+  void setContent(String value) {
+    content = value;
+  }
 }
 
 class XmlBody extends Body {
@@ -60,6 +71,11 @@ class XmlBody extends Body {
   String toString() {
     return content;
   }
+
+  @override
+  void setContent(String value) {
+    content = value;
+  }
 }
 
 class SparqlBody extends Body {
@@ -77,6 +93,11 @@ class SparqlBody extends Body {
   @override
   String toString() {
     return content;
+  }
+
+  @override
+  void setContent(String value) {
+    content = value;
   }
 }
 
@@ -100,6 +121,11 @@ class GraphqlBody extends Body {
   String toString() {
     // TODO: include the variables somehow
     return query;
+  }
+
+  @override
+  void setContent(String value) {
+    query = value;
   }
 }
 
@@ -133,6 +159,11 @@ class FormUrlEncodedBody extends Body {
   String toString() {
     return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
   }
+
+  @override
+  void setContent(String value) {
+    // params = value;
+  }
 }
 
 class MultipartFormBody extends Body {
@@ -164,6 +195,11 @@ class MultipartFormBody extends Body {
   @override
   String toString() {
     return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+  }
+
+  @override
+  void setContent(String value) {
+    // TODO
   }
 }
 
@@ -231,5 +267,10 @@ class FileBody extends Body {
   @override
   String toString() {
     return files.map((f) => f.toString()).join('\n');
+  }
+
+  @override
+  void setContent(String value) {
+    // TODO
   }
 }

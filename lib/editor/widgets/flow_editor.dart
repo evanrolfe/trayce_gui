@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 
 import 'flow_editor_grpc/flow_editor_grpc.dart';
 import 'flow_editor_http/flow_editor_http.dart';
 
 class FlowEditor extends StatefulWidget {
   final String flowType;
-  final Request request;
+  final ExplorerNode node;
 
-  const FlowEditor({super.key, required this.flowType, required this.request});
+  const FlowEditor({super.key, required this.flowType, required this.node});
 
   @override
   State<FlowEditor> createState() => _FlowEditorState();
@@ -23,7 +23,7 @@ class _FlowEditorState extends State<FlowEditor> {
   Widget _buildEditorContent() {
     switch (widget.flowType) {
       case 'http':
-        return FlowEditorHttp(request: widget.request);
+        return FlowEditorHttp(node: widget.node);
       case 'grpc':
         return const FlowEditorGrpc();
       default:
