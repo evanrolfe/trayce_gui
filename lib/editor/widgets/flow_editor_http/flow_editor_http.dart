@@ -1,10 +1,15 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
+import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
@@ -77,6 +82,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _topTabController = TabController(length: 2, vsync: this);
     HttpEditorState.initialize();
 
+    // Add listener to _urlController
+    _urlController.addListener(_flowModified);
+    _reqBodyController.addListener(_flowModified);
+
     // Set the initial value of the URL controller from the request
     final request = widget.node.request;
     if (request == null) {
@@ -85,7 +94,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     _selectedMethod = request.method.toUpperCase();
     _urlController.text = request.url;
-    _headersController = HeadersStateManager(onStateChanged: () => setState(() {}), initialRows: request.headers);
+    _headersController = HeadersStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: request.headers,
+      onModified: _flowModified,
+    );
     if (request.body != null) {
       _reqBodyController.text = request.body!.toString();
     }
@@ -99,6 +112,43 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       }
       return KeyEventResult.ignored;
     };
+  }
+
+  void _flowModified() {
+    final formReq = _getRequestFromForm();
+    final origReq = widget.node.request!;
+
+    final isDifferent = !formReq.equals(origReq);
+
+    context.read<EventBus>().fire(EventEditorNodeModified(widget.node.file.path, isDifferent));
+  }
+
+  Request _getRequestFromForm() {
+    List<Header> headers = [];
+    try {
+      headers = _headersController.getHeaders();
+    } catch (e) {
+      // _headersController not initialized yet
+    }
+
+    final formReq = Request(
+      name: widget.node.request!.name,
+      type: widget.node.request!.type,
+      seq: widget.node.request!.seq,
+      method: _selectedMethod.toLowerCase(),
+      url: _urlController.text,
+      body: TextBody(content: _reqBodyController.text),
+      headers: headers,
+      params: [], // todo
+      requestVars: [], // todo
+      responseVars: [], // todo
+      assertions: [], // todo
+      script: null, // todo
+      tests: null, // todo
+      docs: null, // todo
+    );
+
+    return formReq;
   }
 
   void saveFlow() {
@@ -122,9 +172,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     // Headers
     request.headers = _headersController.getHeaders();
 
+    print("saving flow");
     widget.node.save();
-
-    print('===========> Saved request URL: ${_urlController.text}');
+    context.read<EventBus>().fire(EventEditorNodeModified(widget.node.file.path, false));
   }
 
   @override
@@ -138,10 +188,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   @override
   void dispose() {
+    _urlController.removeListener(_flowModified);
+    _reqBodyController.removeListener(_flowModified);
     _bottomTabController.dispose();
     _topTabController.dispose();
     _respBodyController.dispose();
-    _urlController.dispose();
     _reqBodyController.dispose();
     _disabledScrollController.dispose();
     _headersController.dispose();

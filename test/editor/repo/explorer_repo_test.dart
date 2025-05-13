@@ -42,7 +42,7 @@ void main() {
       expect(event.nodes[0].children[1].type, NodeType.folder);
       expect(event.nodes[0].children[2].name, 'my-request.bru');
       expect(event.nodes[0].children[2].type, NodeType.request);
-      Request? request = event.nodes[0].children[2].getRequest();
+      Request? request = event.nodes[0].children[2].request;
       expect(request?.method, 'post');
       expect(request?.url, 'https://trayce.dev');
       expect(request?.headers[0].name, 'hello');
@@ -50,7 +50,7 @@ void main() {
 
       expect(event.nodes[0].children[1].children[0].name, 'five.bru');
       expect(event.nodes[0].children[1].children[0].type, NodeType.request);
-      request = event.nodes[0].children[1].children[0].getRequest();
+      request = event.nodes[0].children[1].children[0].request;
       expect(request?.method, 'get');
       expect(request?.url, 'www.getuser.com/five');
 

@@ -3,6 +3,7 @@ import 'utils.dart';
 abstract class Auth {
   String get type;
   String toBru();
+  bool equals(Auth other);
 }
 
 class AwsV4Auth extends Auth {
@@ -25,6 +26,17 @@ class AwsV4Auth extends Auth {
   });
 
   @override
+  bool equals(Auth other) {
+    if (other is! AwsV4Auth) return false;
+    return accessKeyId == other.accessKeyId &&
+        secretAccessKey == other.secretAccessKey &&
+        sessionToken == other.sessionToken &&
+        service == other.service &&
+        region == other.region &&
+        profileName == other.profileName;
+  }
+
+  @override
   String toBru() {
     return '''auth:awsv4 {
 ${indentString('accessKeyId: $accessKeyId')}
@@ -43,10 +55,13 @@ class BasicAuth extends Auth {
   String username;
   String password;
 
-  BasicAuth({
-    required this.username,
-    required this.password,
-  });
+  BasicAuth({required this.username, required this.password});
+
+  @override
+  bool equals(Auth other) {
+    if (other is! BasicAuth) return false;
+    return username == other.username && password == other.password;
+  }
 
   @override
   String toBru() {
@@ -62,9 +77,13 @@ class BearerAuth extends Auth {
   final String type = 'bearer';
   String token;
 
-  BearerAuth({
-    required this.token,
-  });
+  BearerAuth({required this.token});
+
+  @override
+  bool equals(Auth other) {
+    if (other is! BearerAuth) return false;
+    return token == other.token;
+  }
 
   @override
   String toBru() {
@@ -80,10 +99,13 @@ class DigestAuth extends Auth {
   String username;
   String password;
 
-  DigestAuth({
-    required this.username,
-    required this.password,
-  });
+  DigestAuth({required this.username, required this.password});
+
+  @override
+  bool equals(Auth other) {
+    if (other is! DigestAuth) return false;
+    return username == other.username && password == other.password;
+  }
 
   @override
   String toBru() {
@@ -134,6 +156,28 @@ class OAuth2Auth extends Auth {
     required this.tokenPlacement,
     required this.tokenQueryKey,
   });
+
+  @override
+  bool equals(Auth other) {
+    if (other is! OAuth2Auth) return false;
+    return accessTokenUrl == other.accessTokenUrl &&
+        authorizationUrl == other.authorizationUrl &&
+        autoFetchToken == other.autoFetchToken &&
+        autoRefreshToken == other.autoRefreshToken &&
+        callbackUrl == other.callbackUrl &&
+        clientId == other.clientId &&
+        clientSecret == other.clientSecret &&
+        credentialsId == other.credentialsId &&
+        credentialsPlacement == other.credentialsPlacement &&
+        grantType == other.grantType &&
+        pkce == other.pkce &&
+        refreshTokenUrl == other.refreshTokenUrl &&
+        scope == other.scope &&
+        state == other.state &&
+        tokenHeaderPrefix == other.tokenHeaderPrefix &&
+        tokenPlacement == other.tokenPlacement &&
+        tokenQueryKey == other.tokenQueryKey;
+  }
 
   @override
   String toBru() {
@@ -223,10 +267,13 @@ class WsseAuth extends Auth {
   String username;
   String password;
 
-  WsseAuth({
-    required this.username,
-    required this.password,
-  });
+  WsseAuth({required this.username, required this.password});
+
+  @override
+  bool equals(Auth other) {
+    if (other is! WsseAuth) return false;
+    return username == other.username && password == other.password;
+  }
 
   @override
   String toBru() {

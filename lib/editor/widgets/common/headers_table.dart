@@ -81,8 +81,9 @@ class HeadersTable extends StatelessWidget {
 class HeadersStateManager {
   late final List<HeaderRow> _rows;
   final void Function() onStateChanged;
+  final VoidCallback? onModified;
 
-  HeadersStateManager({required this.onStateChanged, List<Header>? initialRows}) {
+  HeadersStateManager({required this.onStateChanged, List<Header>? initialRows, this.onModified}) {
     if (initialRows != null) {
       _rows = _convertHeadersToRows(initialRows);
     } else {
@@ -101,12 +102,18 @@ class HeadersStateManager {
   }
 
   List<HeaderRow> _convertHeadersToRows(List<Header> headers) {
-    return headers.map((header) {
+    return headers.asMap().entries.map((entry) {
+      final index = entry.key;
+      final header = entry.value;
+
       final keyController = CodeLineEditingController();
       final valueController = CodeLineEditingController();
 
       keyController.text = header.name;
       valueController.text = header.value;
+
+      _setupControllerListener(keyController, index, true);
+      _setupControllerListener(valueController, index, false);
 
       return HeaderRow(
         keyController: keyController,
@@ -120,6 +127,7 @@ class HeadersStateManager {
 
   void _setupControllerListener(CodeLineEditingController controller, int index, bool isKey) {
     controller.addListener(() {
+      print('User typed in ${isKey ? "key" : "value"} input at index $index: ${controller.text}');
       if (index >= _rows.length) return;
       final row = _rows[index];
       if (index == _rows.length - 1 && controller.text.isNotEmpty) {
@@ -143,6 +151,8 @@ class HeadersStateManager {
       } else {
         row.previousValueText = currentValueText;
       }
+
+      onModified?.call();
     });
   }
 
@@ -179,6 +189,7 @@ class HeadersStateManager {
 
     _rows.last.setEmpty();
     onStateChanged();
+    onModified?.call();
   }
 
   void handleTabPress(int row, bool isKey) {
@@ -196,6 +207,7 @@ class HeadersStateManager {
   void setCheckboxState(int index, bool value) {
     _rows[index].checkboxState = value;
     onStateChanged();
+    onModified?.call();
   }
 
   void dispose() {

@@ -25,7 +25,7 @@ class _FlowEditorState extends State<FlowEditor> {
       case 'http':
         return FlowEditorHttp(node: widget.node);
       case 'grpc':
-        return const FlowEditorGrpc();
+        return FlowEditorGrpc();
       default:
         return Center(
           child: Text('Unsupported flow type: ${widget.flowType}', style: const TextStyle(color: Color(0xFFD4D4D4))),

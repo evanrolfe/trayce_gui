@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/tab_item.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
@@ -21,6 +22,7 @@ class EditorTabs extends StatefulWidget {
 
 class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub;
+  late final StreamSubscription _tabsSub2;
   int? _hoveredTabIndex;
   int _selectedTabIndex = 0;
   final List<_TabEntry> _tabs = [];
@@ -50,11 +52,23 @@ class _EditorTabsState extends State<EditorTabs> {
         _selectedTabIndex = _tabs.length - 1;
       });
     });
+
+    _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((event) {
+      final index = _tabs.indexWhere((entry) => entry.tab.node.file.path == event.nodePath);
+      if (index == -1) {
+        return;
+      }
+
+      setState(() {
+        _tabs[index].tab.isModified = event.isDifferent;
+      });
+    });
   }
 
   @override
   void dispose() {
     _tabsSub.cancel();
+    _tabsSub2.cancel();
     super.dispose();
   }
 
@@ -155,7 +169,7 @@ class _EditorTabsState extends State<EditorTabs> {
                 children: [
                   const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
                   const SizedBox(width: 8),
-                  Text(tabItem.node.name, style: tabTextStyle),
+                  Text(tabItem.displayName, style: tabTextStyle),
                   if (_tabs.length > 1) ...[
                     const SizedBox(width: 8),
                     GestureDetector(

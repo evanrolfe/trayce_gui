@@ -4,10 +4,9 @@ class Param {
   String type;
   bool enabled;
 
-  Param({
-    required this.name,
-    required this.value,
-    required this.type,
-    required this.enabled,
-  });
+  Param({required this.name, required this.value, required this.type, required this.enabled});
+
+  bool equals(Param other) {
+    return name == other.name && value == other.value && type == other.type && enabled == other.enabled;
+  }
 }

@@ -7,6 +7,7 @@ abstract class Body {
   @override
   String toString();
   void setContent(String value);
+  bool equals(Body other);
 }
 
 class JsonBody extends Body {
@@ -15,6 +16,12 @@ class JsonBody extends Body {
   String content;
 
   JsonBody({required this.content});
+
+  @override
+  bool equals(Body other) {
+    if (other is! JsonBody) return false;
+    return content == other.content;
+  }
 
   @override
   String toBru() {
@@ -40,6 +47,12 @@ class TextBody extends Body {
   TextBody({required this.content});
 
   @override
+  bool equals(Body other) {
+    if (other is! TextBody) return false;
+    return content == other.content;
+  }
+
+  @override
   String toBru() {
     return 'body:text {\n${indentString(content)}\n}';
   }
@@ -61,6 +74,12 @@ class XmlBody extends Body {
   String content;
 
   XmlBody({required this.content});
+
+  @override
+  bool equals(Body other) {
+    if (other is! XmlBody) return false;
+    return content == other.content;
+  }
 
   @override
   String toBru() {
@@ -86,6 +105,12 @@ class SparqlBody extends Body {
   SparqlBody({required this.content});
 
   @override
+  bool equals(Body other) {
+    if (other is! SparqlBody) return false;
+    return content == other.content;
+  }
+
+  @override
   String toBru() {
     return 'body:sparql {\n${indentString(content)}\n}';
   }
@@ -108,6 +133,12 @@ class GraphqlBody extends Body {
   String variables;
 
   GraphqlBody({required this.query, required this.variables});
+
+  @override
+  bool equals(Body other) {
+    if (other is! GraphqlBody) return false;
+    return query == other.query && variables == other.variables;
+  }
 
   @override
   String toBru() {
@@ -135,6 +166,16 @@ class FormUrlEncodedBody extends Body {
   List<Param> params;
 
   FormUrlEncodedBody({required this.params});
+
+  @override
+  bool equals(Body other) {
+    if (other is! FormUrlEncodedBody) return false;
+    if (params.length != other.params.length) return false;
+    for (var i = 0; i < params.length; i++) {
+      if (!params[i].equals(other.params[i])) return false;
+    }
+    return true;
+  }
 
   @override
   String toBru() {
@@ -172,6 +213,16 @@ class MultipartFormBody extends Body {
   List<Param> params;
 
   MultipartFormBody({required this.params});
+
+  @override
+  bool equals(Body other) {
+    if (other is! MultipartFormBody) return false;
+    if (params.length != other.params.length) return false;
+    for (var i = 0; i < params.length; i++) {
+      if (!params[i].equals(other.params[i])) return false;
+    }
+    return true;
+  }
 
   @override
   String toBru() {
@@ -234,6 +285,10 @@ class FileBodyItem {
   String toString() {
     return filePath;
   }
+
+  bool equals(FileBodyItem other) {
+    return filePath == other.filePath && contentType == other.contentType && selected == other.selected;
+  }
 }
 
 class FileBody extends Body {
@@ -242,6 +297,16 @@ class FileBody extends Body {
   List<FileBodyItem> files;
 
   FileBody({required this.files});
+
+  @override
+  bool equals(Body other) {
+    if (other is! FileBody) return false;
+    if (files.length != other.files.length) return false;
+    for (var i = 0; i < files.length; i++) {
+      if (!files[i].equals(other.files[i])) return false;
+    }
+    return true;
+  }
 
   @override
   String toBru() {

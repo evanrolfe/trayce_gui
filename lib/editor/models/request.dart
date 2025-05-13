@@ -133,6 +133,72 @@ class Request {
 
     return bru;
   }
+
+  bool equals(Request other) {
+    // tests != other.tests ||
+    //         docs != other.docs
+
+    if (name != other.name || type != other.type || seq != other.seq || method != other.method || url != other.url) {
+      print("different 0");
+      return false;
+    }
+
+    // Compare body
+    if ((body == null) != (other.body == null)) {
+      print("different body 1");
+      return false;
+    }
+    if (body != null && !body!.equals(other.body!)) {
+      print("different body 2");
+      return false;
+    }
+
+    // Compare headers
+    if (headers.length != other.headers.length) {
+      print("different headers 1");
+      return false;
+    }
+    for (var i = 0; i < headers.length; i++) {
+      if (!headers[i].equals(other.headers[i])) {
+        print("different headers loop - $i");
+        return false;
+      }
+    }
+
+    // Compare auth
+    // if ((auth == null) != (other.auth == null)) return false;
+    // if (auth != null && !auth!.equals(other.auth!)) return false;
+
+    // Compare params
+    // if (params.length != other.params.length) return false;
+    // for (var i = 0; i < params.length; i++) {
+    //   if (!params[i].equals(other.params[i])) return false;
+    // }
+
+    // Compare request variables
+    // if (requestVars.length != other.requestVars.length) return false;
+    // for (var i = 0; i < requestVars.length; i++) {
+    //   if (!requestVars[i].equals(other.requestVars[i])) return false;
+    // }
+
+    // Compare response variables
+    // if (responseVars.length != other.responseVars.length) return false;
+    // for (var i = 0; i < responseVars.length; i++) {
+    //   if (!responseVars[i].equals(other.responseVars[i])) return false;
+    // }
+
+    // Compare assertions
+    // if (assertions.length != other.assertions.length) return false;
+    // for (var i = 0; i < assertions.length; i++) {
+    //   if (!assertions[i].equals(other.assertions[i])) return false;
+    // }
+
+    // Compare script
+    // if ((script == null) != (other.script == null)) return false;
+    // if (script != null && !script!.equals(other.script!)) return false;
+
+    return true;
+  }
 }
 
 String queryParamsToBru(List<Param> params) {
