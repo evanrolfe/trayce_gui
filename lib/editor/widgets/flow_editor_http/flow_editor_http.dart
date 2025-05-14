@@ -266,6 +266,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           child: SingleLineCodeEditor(
                             key: const Key('flow_editor_http_url_input'),
                             controller: _urlController,
+                            saveCallback: saveFlow,
                             decoration: BoxDecoration(
                               border: Border.all(color: const Color(0xFF474747), width: 0),
                               color: const Color(0xFF2E2E2E),
