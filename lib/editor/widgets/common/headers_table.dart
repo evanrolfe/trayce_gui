@@ -127,7 +127,6 @@ class HeadersStateManager {
 
   void _setupControllerListener(CodeLineEditingController controller, int index, bool isKey) {
     controller.addListener(() {
-      print('User typed in ${isKey ? "key" : "value"} input at index $index: ${controller.text}');
       if (index >= _rows.length) return;
       final row = _rows[index];
       if (index == _rows.length - 1 && controller.text.isNotEmpty) {

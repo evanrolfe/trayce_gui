@@ -139,28 +139,23 @@ class Request {
     //         docs != other.docs
 
     if (name != other.name || type != other.type || seq != other.seq || method != other.method || url != other.url) {
-      print("different 0");
       return false;
     }
 
     // Compare body
     if ((body == null) != (other.body == null)) {
-      print("different body 1");
       return false;
     }
     if (body != null && !body!.equals(other.body!)) {
-      print("different body 2");
       return false;
     }
 
     // Compare headers
     if (headers.length != other.headers.length) {
-      print("different headers 1");
       return false;
     }
     for (var i = 0; i < headers.length; i++) {
       if (!headers[i].equals(other.headers[i])) {
-        print("different headers loop - $i");
         return false;
       }
     }

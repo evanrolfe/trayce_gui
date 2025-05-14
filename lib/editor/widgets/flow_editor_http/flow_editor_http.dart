@@ -117,7 +117,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   void _flowModified() {
     final formReq = _getRequestFromForm();
     final origReq = widget.node.request!;
-
     final isDifferent = !formReq.equals(origReq);
 
     context.read<EventBus>().fire(EventEditorNodeModified(widget.node.file.path, isDifferent));
@@ -152,27 +151,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   }
 
   void saveFlow() {
-    final request = widget.node.request!;
-
-    // URL+Method
-    request.url = _urlController.text;
-    request.method = _selectedMethod.toLowerCase();
-
-    // Body
-    if (request.body != null) {
-      if (_reqBodyController.text.isEmpty) {
-        request.body = null;
-      } else {
-        request.body!.setContent(_reqBodyController.text);
-      }
-    } else {
-      request.body = TextBody(content: _reqBodyController.text);
-    }
-
-    // Headers
-    request.headers = _headersController.getHeaders();
+    final newRequest = _getRequestFromForm();
 
     print("saving flow");
+
+    widget.node.request = newRequest;
     widget.node.save();
     context.read<EventBus>().fire(EventEditorNodeModified(widget.node.file.path, false));
   }
@@ -273,6 +256,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                               if (newValue != null) {
                                 setState(() {
                                   _selectedMethod = newValue;
+                                  _flowModified();
                                 });
                               }
                             },

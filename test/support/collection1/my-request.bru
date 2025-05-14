@@ -6,8 +6,7 @@ meta {
 
 post {
   url: https://trayce.dev
-  body: file
-  auth: basic
+  body: text
 }
 
 headers {
@@ -16,17 +15,11 @@ headers {
   password: {{my_password}}
 }
 
-body:json {
+body:text {
   {
     "asdfsa": "asdfasf",
     "hello": true
   }
-}
-
-body:file {
-  file: @file(test.bru)
-  ~file: @file(test2.bru)
-  ~file: @file(test.bru)
 }
 
 vars:pre-request {

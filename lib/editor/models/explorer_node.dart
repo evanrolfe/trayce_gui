@@ -17,8 +17,8 @@ class ExplorerNode {
   final NodeType type;
   bool isExpanded;
 
-  late final Collection collection;
-  late final Request? request;
+  late Collection collection;
+  late Request? request;
 
   ExplorerNode({
     required this.file,
