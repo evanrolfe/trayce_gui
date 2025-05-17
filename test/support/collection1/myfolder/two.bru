@@ -1,11 +1,20 @@
 meta {
-  name: another-req
+  name: a-req
   type: http
-  seq: 4
+  seq: 2
 }
 
-get {
-  url: http://trayce.dev/two
-  body: none
-  auth: inherit
+post {
+  url: http://www.github.com/two
+  body: text
+}
+
+headers {
+    hello: world
+    X-Auth-Token: abcd1234
+    Content-Type: application/json
+}
+
+body:text {
+  {"hello": "world"}
 }

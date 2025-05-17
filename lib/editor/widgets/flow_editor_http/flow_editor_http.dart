@@ -73,11 +73,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
   late final HeadersStateManager _headersController;
   late final FocusNode focusNode;
+  late final FocusNode dropdownFocusNode;
 
   @override
   void initState() {
     super.initState();
     focusNode = FocusNode();
+    dropdownFocusNode = FocusNode();
     _bottomTabController = TabController(length: 2, vsync: this);
     _topTabController = TabController(length: 2, vsync: this);
     HttpEditorState.initialize();
@@ -104,6 +106,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     }
 
     focusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+          saveFlow();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
+    dropdownFocusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
           saveFlow();
@@ -180,6 +191,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _disabledScrollController.dispose();
     _headersController.dispose();
     focusNode.dispose();
+    dropdownFocusNode.dispose();
     super.dispose();
   }
 
@@ -237,6 +249,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             ),
                           ),
                           child: DropdownButton2<String>(
+                            focusNode: dropdownFocusNode,
                             value: _selectedMethod,
                             underline: Container(),
                             dropdownStyleData: DropdownStyleData(decoration: dropdownDecoration, width: 100),

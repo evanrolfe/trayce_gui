@@ -7,7 +7,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/main.dart' as app;
 
 import 'containers_modal_test.dart' as containers_modal_test;
-import 'explorer_open_collection.dart' as explorer_open_collection;
+import 'editor_modifying_requests.dart' as editor_modifying_requests;
+import 'editor_saving_request.dart' as editor_saving_request;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
 import 'proto_def_modal.dart' as proto_def_modal_test;
@@ -44,7 +45,9 @@ void main() {
     await truncateDb(db);
     await flow_table_test.test(tester);
     await truncateDb(db);
-    await explorer_open_collection.test(tester);
+    await editor_modifying_requests.test(tester);
+    await truncateDb(db);
+    await editor_saving_request.test(tester);
     await truncateDb(db);
 
     await db.close();
