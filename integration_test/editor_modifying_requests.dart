@@ -4,11 +4,12 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
 
-Future<void> test(WidgetTester tester) async {
+Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final oneBruPath = 'test/support/collection1/myfolder/one.bru';

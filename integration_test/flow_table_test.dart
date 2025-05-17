@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grpc/grpc.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/agent/gen/api.pb.dart' as pb;
 import 'package:trayce/agent/gen/api.pbgrpc.dart';
 import 'package:uuid/uuid.dart';
 
 import 'const.dart';
 
-Future<void> test(WidgetTester tester) async {
+Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the Network tab

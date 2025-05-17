@@ -37,18 +37,23 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     final db = await databaseFactory.openDatabase('tmp.db');
 
-    await proto_def_modal_test.test(tester, db);
-    await truncateDb(db);
-    await grpc_parsing_test.test(tester, db);
-    await truncateDb(db);
-    await containers_modal_test.test(tester);
-    await truncateDb(db);
-    await flow_table_test.test(tester);
-    await truncateDb(db);
-    await editor_modifying_requests.test(tester);
-    await truncateDb(db);
-    await editor_saving_request.test(tester);
-    await truncateDb(db);
+    List<Map<String, dynamic>> tests = [
+      {'func': proto_def_modal_test.test},
+      {'func': grpc_parsing_test.test},
+      {'func': containers_modal_test.test},
+      {'func': flow_table_test.test},
+      {'func': editor_modifying_requests.test},
+      {'func': editor_saving_request.test},
+    ];
+
+    bool isFocused = tests.any((test) => test.containsKey('f'));
+
+    for (var test in tests) {
+      if (isFocused && !test.containsKey('f')) continue;
+
+      await test['func'](tester, db);
+      await truncateDb(db);
+    }
 
     await db.close();
   });
