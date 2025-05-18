@@ -20,25 +20,30 @@ class ExplorerRepo {
   final EventBus _eventBus;
   final filesToIgnore = ['folder.bru', 'collection.bru'];
   final foldersToIgnore = ['environments'];
+  List<ExplorerNode> _nodes = [];
 
   ExplorerRepo({required EventBus eventBus}) : _eventBus = eventBus;
 
   void openCollection(String path) {
+    // Check if its already open
+    if (_nodes.any((node) => node.dir?.path == path)) return;
+
     // Check for bruno.json in the root directory
-    final rootDir = Directory(path);
-    if (!rootDir.existsSync()) {
+    final collectionDir = Directory(path);
+    if (!collectionDir.existsSync()) {
       print('Directory does not exist: $path');
       return;
     }
-    final brunoJsonFile = File('${rootDir.path}${Platform.pathSeparator}bruno.json');
+    final brunoJsonFile = File('${collectionDir.path}${Platform.pathSeparator}bruno.json');
     if (!brunoJsonFile.existsSync()) {
       _eventBus.fire(EventDisplayAlert('the collection path is missing bruno.json'));
       return;
     }
 
-    final rootNode = buildNode(rootDir, 0);
+    final collectionNode = buildNode(collectionDir, 0);
+    _nodes.add(collectionNode);
 
-    _eventBus.fire(EventDisplayExplorerItems([rootNode]));
+    _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
   // Helper function to recursively build ExplorerNodes

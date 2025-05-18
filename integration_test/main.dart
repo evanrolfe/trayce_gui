@@ -8,6 +8,7 @@ import 'package:trayce/main.dart' as app;
 
 import 'containers_modal_test.dart' as containers_modal_test;
 import 'editor_modifying_requests.dart' as editor_modifying_requests;
+import 'editor_multiple_collections_test.dart' as editor_multiple_collections_test;
 import 'editor_saving_request.dart' as editor_saving_request;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
@@ -44,6 +45,7 @@ void main() {
       {'func': flow_table_test.test},
       {'func': editor_modifying_requests.test},
       {'func': editor_saving_request.test},
+      {'func': editor_multiple_collections_test.test},
     ];
 
     bool isFocused = tests.any((test) => test.containsKey('f'));
