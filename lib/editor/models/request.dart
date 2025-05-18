@@ -46,6 +46,21 @@ class Request {
     this.docs,
   });
 
+  static Request blank() {
+    return Request(
+      name: '',
+      type: 'http',
+      seq: 0,
+      method: 'GET',
+      url: '',
+      params: [],
+      headers: [],
+      requestVars: [],
+      responseVars: [],
+      assertions: [],
+    );
+  }
+
   String toBru() {
     var bru = '';
 

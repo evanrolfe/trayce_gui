@@ -1,11 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/tab_item.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/widgets/explorer/explorer.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 
 import '../../common/style.dart';
 import '../../common/tab_style.dart';
@@ -23,6 +30,8 @@ class EditorTabs extends StatefulWidget {
 class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub;
   late final StreamSubscription _tabsSub2;
+  late final StreamSubscription _tabsSub3;
+  late final StreamSubscription _tabsSub4;
   int? _hoveredTabIndex;
   int _selectedTabIndex = 0;
   final List<_TabEntry> _tabs = [];
@@ -42,11 +51,18 @@ class _EditorTabsState extends State<EditorTabs> {
           return;
         }
 
+        if (event.node.request == null) return;
+
         // Add new tab
         _tabs.add(
           _TabEntry(
             tab: newTab,
-            editor: FlowEditor(key: ValueKey('editor_${newTab.key}'), flowType: 'http', node: newTab.node),
+            editor: FlowEditor(
+              key: ValueKey('editor_${newTab.key}'),
+              tabKey: newTab.key,
+              flowType: 'http',
+              request: event.node.request!,
+            ),
           ),
         );
         _selectedTabIndex = _tabs.length - 1;
@@ -54,7 +70,7 @@ class _EditorTabsState extends State<EditorTabs> {
     });
 
     _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((event) {
-      final index = _tabs.indexWhere((entry) => entry.tab.node.file.path == event.nodePath);
+      final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
         return;
       }
@@ -63,12 +79,88 @@ class _EditorTabsState extends State<EditorTabs> {
         _tabs[index].tab.isModified = event.isDifferent;
       });
     });
+
+    _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen((event) {
+      setState(() {
+        // Add new tab
+        final newTab = TabItem(node: null);
+        _tabs.add(
+          _TabEntry(
+            tab: newTab,
+            editor: FlowEditor(
+              key: ValueKey('editor_untitled_todo'),
+              tabKey: newTab.key,
+              flowType: 'http',
+              request: Request.blank(),
+            ),
+          ),
+        );
+        _selectedTabIndex = _tabs.length - 1;
+      });
+    });
+
+    _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen((event) async {
+      final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
+      if (index == -1) {
+        return;
+      }
+
+      final tab = _tabs[index].tab;
+      if (tab.node == null) {
+        final path = await _getPath();
+        if (path == null) return;
+
+        final node = ExplorerNode(
+          file: File(path),
+          name: 'Untitled',
+          type: NodeType.request,
+          isDirectory: false,
+          request: event.request,
+        );
+
+        node.save();
+        tab.node = node;
+      } else {
+        tab.node!.request = event.request;
+        tab.node!.save();
+      }
+
+      if (!mounted) return;
+      context.read<EventBus>().fire(EventEditorNodeModified(tab.key, false));
+
+      setState(() {
+        _tabs[index].tab.isModified = false;
+      });
+    });
+  }
+
+  Future<String?> _getPath() async {
+    final config = context.read<Config>();
+    late String? path;
+    if (config.isTest) {
+      path = './test/support/collection1/hello';
+    } else {
+      List<XTypeGroup> exts = [
+        XTypeGroup(label: 'Trayce', extensions: ['bru']),
+      ];
+      final loc = await getSaveLocation(acceptedTypeGroups: exts, suggestedName: 'untitled.bru');
+      if (loc == null) return null;
+
+      path = loc.path;
+
+      // Ensure the path ends with .bru
+      if (!path.endsWith('.bru')) path = '$path.bru';
+    }
+
+    return path;
   }
 
   @override
   void dispose() {
     _tabsSub.cancel();
     _tabsSub2.cancel();
+    _tabsSub3.cancel();
+    _tabsSub4.cancel();
     super.dispose();
   }
 
@@ -169,7 +261,7 @@ class _EditorTabsState extends State<EditorTabs> {
                 children: [
                   const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
                   const SizedBox(width: 8),
-                  Text(tabItem.displayName, style: tabTextStyle),
+                  Text(tabItem.getDisplayName(), style: tabTextStyle),
                   if (_tabs.length > 1) ...[
                     const SizedBox(width: 8),
                     GestureDetector(

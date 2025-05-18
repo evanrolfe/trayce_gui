@@ -28,6 +28,7 @@ class ExplorerNode {
     required this.type,
     List<ExplorerNode>? initialChildren,
     this.isExpanded = false,
+    Request? request,
   }) {
     if (type == NodeType.collection) {
       final collectionStr = file.readAsStringSync();
@@ -40,8 +41,12 @@ class ExplorerNode {
     }
 
     if (type == NodeType.request) {
-      final requestStr = file.readAsStringSync();
-      request = parseRequest(requestStr);
+      if (request != null) {
+        this.request = request;
+      } else {
+        final requestStr = file.readAsStringSync();
+        this.request = parseRequest(requestStr);
+      }
     }
 
     if (initialChildren != null) {
@@ -68,6 +73,9 @@ class ExplorerNode {
   void save() {
     if (type == NodeType.request) {
       final bruStr = request!.toBru();
+      if (!file.existsSync()) {
+        file.createSync(recursive: true);
+      }
       file.writeAsStringSync(bruStr);
     }
   }

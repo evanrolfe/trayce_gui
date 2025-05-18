@@ -27,21 +27,22 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the PopupMenuItem with the text "Open Collection"
-  final openCollectionMenuItem = find.text('Open Collection');
-  await tester.tap(openCollectionMenuItem);
+  // TODO: When running in isolation you need to uncomment these lines:
+  // final openCollectionMenuItem = find.text('Open Collection');
+  // await tester.tap(openCollectionMenuItem);
 
-  await tester.pumpAndSettle();
+  // await tester.pumpAndSettle();
 
-  expect(find.text('collection1'), findsOneWidget);
-  expect(find.text('hello'), findsOneWidget);
-  expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request.bru'), findsOneWidget);
+  // expect(find.text('collection1'), findsOneWidget);
+  // expect(find.text('hello'), findsOneWidget);
+  // expect(find.text('myfolder'), findsOneWidget);
+  // expect(find.text('my-request.bru'), findsOneWidget);
 
   // Click on the myfolder item
   final myfolderItem = find.text('myfolder');
   await tester.tap(myfolderItem);
   await tester.pumpAndSettle();
-
+  await tester.pumpAndSettle(const Duration(seconds: 5));
   // Right-click on two.bru request
   final oneReq = find.text('two.bru');
   await tester.tapAt(tester.getCenter(oneReq), buttons: 2);

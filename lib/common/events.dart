@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class EventDisplayAlert {
   final String message;
 
@@ -5,8 +7,8 @@ class EventDisplayAlert {
 }
 
 class EventEditorNodeModified {
-  final String nodePath;
+  final ValueKey tabKey;
   final bool isDifferent;
 
-  EventEditorNodeModified(this.nodePath, this.isDifferent);
+  EventEditorNodeModified(this.tabKey, this.isDifferent);
 }

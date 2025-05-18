@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:trayce/common/context_menu_style.dart';
 
-void openCollectionMenu(BuildContext context, double width, double itemHeight, VoidCallback onOpenCollection) {
+void openCollectionMenu(
+  BuildContext context,
+  double width,
+  double itemHeight,
+  VoidCallback onOpenCollection,
+  VoidCallback onNewRequest,
+) {
   final anchors = TextSelectionToolbarAnchors(primaryAnchor: Offset(width + 40, itemHeight + 32));
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
@@ -22,9 +28,10 @@ void openCollectionMenu(BuildContext context, double width, double itemHeight, V
         height: 30,
         child: Text('New Collection', style: contextMenuTextStyle),
         onTap: () {
-          print('New Collection');
+          print('TODO: Implement New Collection');
         },
       ),
+      PopupMenuItem(height: 30, onTap: onNewRequest, child: Text('New Request', style: contextMenuTextStyle)),
     ],
   );
 }

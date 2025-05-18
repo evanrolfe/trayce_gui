@@ -14,6 +14,10 @@ import 'menu_open_collection.dart';
 
 const double itemHeight = 22;
 
+class EventNewRequest {
+  EventNewRequest();
+}
+
 class FileExplorer extends StatefulWidget {
   const FileExplorer({super.key, required this.width});
 
@@ -44,7 +48,10 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    // context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+    final config = context.read<Config>();
+    if (!config.isTest) {
+      context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+    }
   }
 
   @override
@@ -62,6 +69,18 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleOpen() async {
+    final path = await _getCollectionPath();
+
+    if (path != null && mounted) {
+      context.read<ExplorerRepo>().openCollection(path);
+    }
+  }
+
+  Future<void> _handleNewRequest() async {
+    context.read<EventBus>().fire(EventNewRequest());
+  }
+
+  Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
     late String? path;
     if (config.isTest) {
@@ -76,9 +95,7 @@ class _FileExplorerState extends State<FileExplorer> {
       path = await getDirectoryPath();
     }
 
-    if (path != null && mounted) {
-      context.read<ExplorerRepo>().openCollection(path);
-    }
+    return path;
   }
 
   bool _shouldShowDropLineBelow(ExplorerNode node, List<ExplorerNode?> candidateData) {
@@ -303,7 +320,8 @@ class _FileExplorerState extends State<FileExplorer> {
                     icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
                     padding: const EdgeInsets.only(right: 5),
                     constraints: const BoxConstraints(),
-                    onPressed: () => openCollectionMenu(context, widget.width, itemHeight, _handleOpen),
+                    onPressed:
+                        () => openCollectionMenu(context, widget.width, itemHeight, _handleOpen, _handleNewRequest),
                   ),
                 ],
               ),

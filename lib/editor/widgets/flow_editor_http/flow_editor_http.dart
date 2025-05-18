@@ -7,7 +7,6 @@ import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
-import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
@@ -21,6 +20,13 @@ import '../../../common/style.dart';
 
 class SaveIntent extends Intent {
   const SaveIntent();
+}
+
+class EventSaveRequest {
+  final Request request;
+  final ValueKey tabKey;
+
+  EventSaveRequest(this.request, this.tabKey);
 }
 
 // Create a static notifier that all instances can share
@@ -52,9 +58,10 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
-  final ExplorerNode node;
+  final Request request;
+  final ValueKey tabKey;
 
-  const FlowEditorHttp({super.key, required this.node});
+  const FlowEditorHttp({super.key, required this.request, required this.tabKey});
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
@@ -88,21 +95,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _urlController.addListener(_flowModified);
     _reqBodyController.addListener(_flowModified);
 
-    // Set the initial value of the URL controller from the request
-    final request = widget.node.request;
-    if (request == null) {
-      return;
-    }
-
-    _selectedMethod = request.method.toUpperCase();
-    _urlController.text = request.url;
+    _selectedMethod = widget.request.method.toUpperCase();
+    _urlController.text = widget.request.url;
     _headersController = HeadersStateManager(
       onStateChanged: () => setState(() {}),
-      initialRows: request.headers,
+      initialRows: widget.request.headers,
       onModified: _flowModified,
     );
-    if (request.body != null) {
-      _reqBodyController.text = request.body!.toString();
+    if (widget.request.body != null) {
+      _reqBodyController.text = widget.request.body!.toString();
     }
 
     focusNode.onKeyEvent = (node, event) {
@@ -127,10 +128,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   void _flowModified() {
     final formReq = _getRequestFromForm();
-    final origReq = widget.node.request!;
-    final isDifferent = !formReq.equals(origReq);
+    final isDifferent = !formReq.equals(widget.request);
 
-    context.read<EventBus>().fire(EventEditorNodeModified(widget.node.file.path, isDifferent));
+    context.read<EventBus>().fire(EventEditorNodeModified(widget.tabKey, isDifferent));
   }
 
   Request _getRequestFromForm() {
@@ -142,9 +142,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     }
 
     final formReq = Request(
-      name: widget.node.request!.name,
-      type: widget.node.request!.type,
-      seq: widget.node.request!.seq,
+      name: widget.request.name,
+      type: widget.request.type,
+      seq: widget.request.seq,
       method: _selectedMethod.toLowerCase(),
       url: _urlController.text,
       body: TextBody(content: _reqBodyController.text),
@@ -161,14 +161,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     return formReq;
   }
 
-  void saveFlow() {
+  Future<void> saveFlow() async {
     final newRequest = _getRequestFromForm();
 
-    print("saving flow");
-
-    widget.node.request = newRequest;
-    widget.node.save();
-    context.read<EventBus>().fire(EventEditorNodeModified(widget.node.file.path, false));
+    context.read<EventBus>().fire(EventSaveRequest(newRequest, widget.tabKey));
   }
 
   @override

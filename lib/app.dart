@@ -112,8 +112,14 @@ class _AppState extends State<App> with WindowListener {
   }
 
   void _setupErrorHandling() {
+    // Store the original error handler
+    final originalErrorHandler = FlutterError.onError;
+
     FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
+      // Call the original error handler first (important for tests)
+      originalErrorHandler?.call(details);
+
+      // Then handle the error for the app UI
       if (!_showingError) {
         _showingError = true;
         _errorMessage = details.exception.toString();
