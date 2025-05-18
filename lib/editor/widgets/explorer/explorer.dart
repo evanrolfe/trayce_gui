@@ -48,10 +48,10 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    final config = context.read<Config>();
-    if (!config.isTest) {
-      context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
-    }
+    // final config = context.read<Config>();
+    // if (!config.isTest) {
+    //   context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+    // }
   }
 
   @override

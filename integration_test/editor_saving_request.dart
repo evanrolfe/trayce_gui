@@ -17,14 +17,14 @@ Future<void> test(WidgetTester tester, Database db) async {
   print("oneBruFile:\n $originalTwoBru");
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.edit);
-  await tester.tap(networkTab);
-  await tester.pumpAndSettle();
+  // final networkTab = find.byIcon(Icons.edit);
+  // await tester.tap(networkTab);
+  // await tester.pumpAndSettle();
 
   // Find and click the IconButton with the key 'open_collection_btn'
-  final openCollectionBtn = find.byKey(const Key('open_collection_btn'));
-  await tester.tap(openCollectionBtn);
-  await tester.pumpAndSettle();
+  // final openCollectionBtn = find.byKey(const Key('open_collection_btn'));
+  // await tester.tap(openCollectionBtn);
+  // await tester.pumpAndSettle();
 
   // Find and click the PopupMenuItem with the text "Open Collection"
   // TODO: When running in isolation you need to uncomment these lines:
@@ -39,10 +39,10 @@ Future<void> test(WidgetTester tester, Database db) async {
   // expect(find.text('my-request.bru'), findsOneWidget);
 
   // Click on the myfolder item
-  final myfolderItem = find.text('myfolder');
-  await tester.tap(myfolderItem);
-  await tester.pumpAndSettle();
-  await tester.pumpAndSettle(const Duration(seconds: 5));
+  // final myfolderItem = find.text('myfolder');
+  // await tester.tap(myfolderItem);
+  // await tester.pumpAndSettle();
+
   // Right-click on two.bru request
   final oneReq = find.text('two.bru');
   await tester.tapAt(tester.getCenter(oneReq), buttons: 2);
