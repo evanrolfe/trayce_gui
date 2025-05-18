@@ -141,13 +141,18 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       // _headersController not initialized yet
     }
 
+    TextBody? body;
+    if (_reqBodyController.text.isNotEmpty) {
+      body = TextBody(content: _reqBodyController.text);
+    }
+
     final formReq = Request(
       name: widget.request.name,
       type: widget.request.type,
       seq: widget.request.seq,
       method: _selectedMethod.toLowerCase(),
       url: _urlController.text,
-      body: TextBody(content: _reqBodyController.text),
+      body: body,
       headers: headers,
       params: [], // todo
       requestVars: [], // todo
