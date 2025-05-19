@@ -168,7 +168,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   Future<void> saveFlow() async {
     final newRequest = _getRequestFromForm();
-
+    widget.request.copyValuesFrom(newRequest);
     context.read<EventBus>().fire(EventSaveRequest(newRequest, widget.tabKey));
   }
 

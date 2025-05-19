@@ -209,6 +209,38 @@ class Request {
 
     return true;
   }
+
+  void copyValuesFrom(Request request) {
+    name = request.name;
+    type = request.type;
+    seq = request.seq;
+    method = request.method;
+    url = request.url;
+    tests = request.tests;
+    docs = request.docs;
+
+    // Copy body if it exists
+    body = request.body;
+
+    // Copy auth if it exists
+    auth = request.auth;
+
+    // Copy params
+    params = List.from(request.params);
+
+    // Copy headers
+    headers = List.from(request.headers);
+
+    // Copy variables
+    requestVars = List.from(request.requestVars);
+    responseVars = List.from(request.responseVars);
+
+    // Copy assertions
+    assertions = List.from(request.assertions);
+
+    // Copy script if it exists
+    script = request.script;
+  }
 }
 
 String queryParamsToBru(List<Param> params) {

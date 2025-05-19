@@ -13,6 +13,7 @@ import 'package:trayce/editor/models/tab_item.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../common/style.dart';
 import '../../common/tab_style.dart';
@@ -40,9 +41,11 @@ class _EditorTabsState extends State<EditorTabs> {
   void initState() {
     super.initState();
 
+    // Called when a request is opened from the explorer
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
-        final newTab = TabItem(node: event.node);
+        final uuid = const Uuid().v4();
+        final newTab = TabItem(node: event.node, key: ValueKey('tabItem_$uuid'), displayName: event.node.name);
 
         // Check if tab already exists
         final existingIndex = _tabs.indexWhere((entry) => entry.tab.key == newTab.key);
@@ -58,7 +61,7 @@ class _EditorTabsState extends State<EditorTabs> {
           _TabEntry(
             tab: newTab,
             editor: FlowEditor(
-              key: ValueKey('editor_${newTab.key}'),
+              key: ValueKey('editor_$uuid'),
               tabKey: newTab.key,
               flowType: 'http',
               request: event.node.request!,
@@ -69,6 +72,7 @@ class _EditorTabsState extends State<EditorTabs> {
       });
     });
 
+    // Called when a request is modified
     _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((event) {
       final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
@@ -80,15 +84,25 @@ class _EditorTabsState extends State<EditorTabs> {
       });
     });
 
+    // Called when a new request is created (i.e. CTRL+N)
     _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen((event) {
       setState(() {
+        final newTabCount = _tabs.where((entry) => entry.tab.isNew).length;
+
         // Add new tab
-        final newTab = TabItem(node: null);
+        final uuid = const Uuid().v4();
+        final newTab = TabItem(
+          node: null,
+          isNew: true,
+          key: ValueKey('tabItem_$uuid'),
+          displayName: 'Untitled-$newTabCount',
+        );
+
         _tabs.add(
           _TabEntry(
             tab: newTab,
             editor: FlowEditor(
-              key: ValueKey('editor_untitled_todo'),
+              key: ValueKey('editor_$uuid'),
               tabKey: newTab.key,
               flowType: 'http',
               request: Request.blank(),
@@ -99,6 +113,7 @@ class _EditorTabsState extends State<EditorTabs> {
       });
     });
 
+    // Called when a request is saved (i.e. CTRL+S)
     _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen((event) async {
       final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
@@ -107,12 +122,14 @@ class _EditorTabsState extends State<EditorTabs> {
 
       final tab = _tabs[index].tab;
       if (tab.node == null) {
+        // Creating a new request
         final path = await _getPath();
         if (path == null) return;
 
+        final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
         final node = ExplorerNode(
           file: File(path),
-          name: 'Untitled',
+          name: fileName,
           type: NodeType.request,
           isDirectory: false,
           request: event.request,
@@ -120,13 +137,13 @@ class _EditorTabsState extends State<EditorTabs> {
 
         node.save();
         tab.node = node;
+        tab.isNew = false;
+        tab.displayName = fileName;
       } else {
+        // Updating an existing request
         tab.node!.request = event.request;
         tab.node!.save();
       }
-
-      if (!mounted) return;
-      context.read<EventBus>().fire(EventEditorNodeModified(tab.key, false));
 
       setState(() {
         _tabs[index].tab.isModified = false;
@@ -283,7 +300,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
 class _TabEntry {
   final TabItem tab;
-  final Widget editor;
+  final FlowEditor editor;
 
   _TabEntry({required this.tab, required this.editor});
 }

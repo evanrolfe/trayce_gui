@@ -4,19 +4,17 @@ import 'package:trayce/editor/models/explorer_node.dart';
 class TabItem {
   ExplorerNode? node;
   bool isModified = false;
-  TabItem({required this.node});
+  bool isNew;
+  ValueKey key;
+  String displayName;
 
-  ValueKey get key => ValueKey(node?.file.path);
+  TabItem({required this.node, this.isNew = false, required this.key, required this.displayName});
 
   String getDisplayName() {
-    if (node == null) {
-      return 'Untitled';
-    }
-
     if (isModified) {
-      return "${node!.name}*";
+      return "$displayName*";
     }
 
-    return node!.name;
+    return displayName;
   }
 }
