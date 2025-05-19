@@ -4,7 +4,7 @@ import 'package:trayce/common/context_menu_style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
-void showNodeContextMenu(BuildContext context, TapDownDetails details, ExplorerNode node) {
+void showNodeMenu(BuildContext context, TapDownDetails details, ExplorerNode node) {
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
     context: context,
@@ -20,6 +20,12 @@ void showNodeContextMenu(BuildContext context, TapDownDetails details, ExplorerN
           height: 30,
           child: Text('Open', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerRepo>().openNode(node),
+        ),
+      if (node.type == NodeType.collection)
+        PopupMenuItem(
+          height: 30,
+          child: Text('Close Collection', style: contextMenuTextStyle),
+          onTap: () => context.read<ExplorerRepo>().closeCollection(node),
         ),
       PopupMenuItem(
         height: 30,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trayce/common/context_menu_style.dart';
 
-void openCollectionMenu(
+void showRootMenu(
   BuildContext context,
   double width,
   double itemHeight,

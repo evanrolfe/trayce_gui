@@ -9,8 +9,8 @@ import 'package:trayce/editor/repo/explorer_repo.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
-import 'menu_node_context.dart';
-import 'menu_open_collection.dart';
+import 'menu_node.dart';
+import 'menu_root.dart';
 
 const double itemHeight = 22;
 
@@ -48,10 +48,10 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
-    // final config = context.read<Config>();
-    // if (!config.isTest) {
-    //   context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
-    // }
+    final config = context.read<Config>();
+    if (!config.isTest) {
+      context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+    }
   }
 
   @override
@@ -209,7 +209,7 @@ class _FileExplorerState extends State<FileExplorer> {
                         }
                       },
                       onSecondaryTapDown: (details) {
-                        showNodeContextMenu(context, details, node);
+                        showNodeMenu(context, details, node);
                       },
                       child: Container(
                         height: itemHeight,
@@ -325,7 +325,7 @@ class _FileExplorerState extends State<FileExplorer> {
                     padding: const EdgeInsets.only(right: 5),
                     constraints: const BoxConstraints(),
                     onPressed:
-                        () => openCollectionMenu(
+                        () => showRootMenu(
                           context,
                           widget.width,
                           itemHeight,

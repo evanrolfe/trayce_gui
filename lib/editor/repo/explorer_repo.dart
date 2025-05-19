@@ -47,6 +47,12 @@ class ExplorerRepo {
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
+  void closeCollection(ExplorerNode node) {
+    if (node.type != NodeType.collection) return;
+    _nodes.remove(node);
+    _eventBus.fire(EventDisplayExplorerItems(_nodes));
+  }
+
   void refresh() {
     final refreshedNodes = <ExplorerNode>[];
     for (var node in _nodes) {
