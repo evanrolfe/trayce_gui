@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,31 +18,30 @@ Future<void> test(WidgetTester tester, Database db) async {
   print("oneBruFile:\n $originalTwoBru");
 
   // Find and click the Network tab
-  // final networkTab = find.byIcon(Icons.edit);
-  // await tester.tap(networkTab);
-  // await tester.pumpAndSettle();
+  final networkTab = find.byIcon(Icons.edit);
+  await tester.tap(networkTab);
+  await tester.pumpAndSettle();
 
   // Find and click the IconButton with the key 'open_collection_btn'
-  // final openCollectionBtn = find.byKey(const Key('open_collection_btn'));
-  // await tester.tap(openCollectionBtn);
-  // await tester.pumpAndSettle();
+  final openCollectionBtn = find.byKey(const Key('open_collection_btn'));
+  await tester.tap(openCollectionBtn);
+  await tester.pumpAndSettle();
 
   // Find and click the PopupMenuItem with the text "Open Collection"
-  // TODO: When running in isolation you need to uncomment these lines:
-  // final openCollectionMenuItem = find.text('Open Collection');
-  // await tester.tap(openCollectionMenuItem);
+  final openCollectionMenuItem = find.text('Open Collection');
+  await tester.tap(openCollectionMenuItem);
 
-  // await tester.pumpAndSettle();
+  await tester.pumpAndSettle();
 
-  // expect(find.text('collection1'), findsOneWidget);
-  // expect(find.text('hello'), findsOneWidget);
-  // expect(find.text('myfolder'), findsOneWidget);
-  // expect(find.text('my-request.bru'), findsOneWidget);
+  expect(find.text('collection1'), findsOneWidget);
+  expect(find.text('hello'), findsOneWidget);
+  expect(find.text('myfolder'), findsOneWidget);
+  expect(find.text('my-request.bru'), findsOneWidget);
 
   // Click on the myfolder item
-  // final myfolderItem = find.text('myfolder');
-  // await tester.tap(myfolderItem);
-  // await tester.pumpAndSettle();
+  final myfolderItem = find.text('myfolder');
+  await tester.tap(myfolderItem);
+  await tester.pumpAndSettle();
 
   // Right-click on two.bru request
   final oneReq = find.text('two.bru');
@@ -239,7 +239,19 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Restore the original file
   saveFile(twoBruPath, originalTwoBru);
-  return;
+
+  // ===========================================================================
+  // Close the collection
+  // ===========================================================================
+  // Right-click on collection1
+  final coll1 = find.text('collection1');
+  await tester.tapAt(tester.getCenter(coll1), buttons: kSecondaryButton);
+  await tester.pumpAndSettle();
+
+  // Click open on Close Collection
+  final closeItem = find.text('Close Collection');
+  await tester.tap(closeItem);
+  await tester.pumpAndSettle();
 }
 
 Future<void> pressCtrlS(WidgetTester tester) async {

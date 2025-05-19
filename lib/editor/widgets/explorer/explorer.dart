@@ -35,7 +35,6 @@ class _FileExplorerState extends State<FileExplorer> {
   int? _dropPosition;
   ExplorerNode? _dropTargetDir;
   int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
-  int _openCount = 0;
 
   @override
   void initState() {
@@ -88,12 +87,7 @@ class _FileExplorerState extends State<FileExplorer> {
     final config = context.read<Config>();
     late String? path;
     if (config.isTest) {
-      if (_openCount == 0) {
-        path = './test/support/collection1';
-      } else {
-        path = './test/support/collection2';
-      }
-      _openCount++;
+      path = './test/support/collection1';
     } else {
       // Need to find a way to mock the file selector in integration tests
       path = await getDirectoryPath();

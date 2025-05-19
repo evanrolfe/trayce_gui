@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +45,7 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Right-click on one.bru request
   final oneReq = find.text('one.bru');
-  await tester.tapAt(tester.getCenter(oneReq), buttons: 2);
+  await tester.tapAt(tester.getCenter(oneReq), buttons: kSecondaryButton);
   await tester.pumpAndSettle();
 
   // Click open on context menu
@@ -213,6 +214,19 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Expect the file to be unchanged
   expect(loadFile(oneBruPath), originalOneBru);
+
+  // ===========================================================================
+  // Close the collection
+  // ===========================================================================
+  // Right-click on collection1
+  final coll1 = find.text('collection1');
+  await tester.tapAt(tester.getCenter(coll1), buttons: kSecondaryButton);
+  await tester.pumpAndSettle();
+
+  // Click open on Close Collection
+  final closeItem = find.text('Close Collection');
+  await tester.tap(closeItem);
+  await tester.pumpAndSettle();
 
   // await tester.pumpAndSettle(const Duration(seconds: 5));
 }
