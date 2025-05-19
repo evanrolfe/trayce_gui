@@ -48,7 +48,7 @@ class _EditorTabsState extends State<EditorTabs> {
         final newTab = TabItem(node: event.node, key: ValueKey('tabItem_$uuid'), displayName: event.node.name);
 
         // Check if tab already exists
-        final existingIndex = _tabs.indexWhere((entry) => entry.tab.key == newTab.key);
+        final existingIndex = _tabs.indexWhere((entry) => entry.tab.getPath() == newTab.getPath());
         if (existingIndex != -1) {
           _selectedTabIndex = existingIndex;
           return;
@@ -139,6 +139,11 @@ class _EditorTabsState extends State<EditorTabs> {
         tab.node = node;
         tab.isNew = false;
         tab.displayName = fileName;
+
+        // Refresh the explorer
+        if (mounted) {
+          context.read<ExplorerRepo>().refresh();
+        }
       } else {
         // Updating an existing request
         tab.node!.request = event.request;

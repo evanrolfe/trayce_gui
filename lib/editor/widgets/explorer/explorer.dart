@@ -80,6 +80,10 @@ class _FileExplorerState extends State<FileExplorer> {
     context.read<EventBus>().fire(EventNewRequest());
   }
 
+  Future<void> _handleRefresh() async {
+    context.read<ExplorerRepo>().refresh();
+  }
+
   Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
     late String? path;
@@ -321,7 +325,14 @@ class _FileExplorerState extends State<FileExplorer> {
                     padding: const EdgeInsets.only(right: 5),
                     constraints: const BoxConstraints(),
                     onPressed:
-                        () => openCollectionMenu(context, widget.width, itemHeight, _handleOpen, _handleNewRequest),
+                        () => openCollectionMenu(
+                          context,
+                          widget.width,
+                          itemHeight,
+                          _handleOpen,
+                          _handleNewRequest,
+                          _handleRefresh,
+                        ),
                   ),
                 ],
               ),

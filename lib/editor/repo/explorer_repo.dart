@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
@@ -20,7 +21,7 @@ class ExplorerRepo {
   final EventBus _eventBus;
   final filesToIgnore = ['folder.bru', 'collection.bru'];
   final foldersToIgnore = ['environments'];
-  List<ExplorerNode> _nodes = [];
+  final List<ExplorerNode> _nodes = [];
 
   ExplorerRepo({required EventBus eventBus}) : _eventBus = eventBus;
 
@@ -40,19 +41,80 @@ class ExplorerRepo {
       return;
     }
 
-    final collectionNode = buildNode(collectionDir, 0);
+    final collectionNode = _buildNode(collectionDir, 0);
     _nodes.add(collectionNode);
 
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
+  void refresh() {
+    final refreshedNodes = <ExplorerNode>[];
+    for (var node in _nodes) {
+      refreshedNodes.add(_buildNode(node.dir!, 0));
+    }
+
+    for (var collNode in _nodes) {
+      final refreshedCollNode = refreshedNodes.firstWhereOrNull((node) => node.dir?.path == collNode.dir?.path);
+      if (refreshedCollNode == null) continue;
+
+      _syncNodes(collNode.children, refreshedCollNode.children);
+    }
+    _eventBus.fire(EventDisplayExplorerItems(_nodes));
+  }
+
+  void _syncNodes(List<ExplorerNode> existingNodes, List<ExplorerNode> refreshedNodes) {
+    // Collect nodes to add
+    final nodesToAdd = <ExplorerNode>[];
+
+    for (var refreshedNode in refreshedNodes) {
+      if (refreshedNode.type == NodeType.folder) {
+        // Check if folder exists
+        final existingNode = existingNodes.firstWhereOrNull((node) => node.dir?.path == refreshedNode.dir?.path);
+        if (existingNode == null) {
+          nodesToAdd.add(refreshedNode);
+        } else {
+          // Recursively sync children
+          _syncNodes(existingNode.children, refreshedNode.children);
+        }
+      } else if (refreshedNode.type == NodeType.request) {
+        // Check if request exists
+        final exists = existingNodes.any((node) => node.file.path == refreshedNode.file.path);
+        if (!exists) {
+          nodesToAdd.add(refreshedNode);
+        }
+      }
+    }
+    existingNodes.addAll(nodesToAdd);
+
+    // Collect nodes to remove
+    final nodesToRemove = <ExplorerNode>[];
+    for (var node in existingNodes) {
+      if (node.type == NodeType.folder) {
+        final exists = refreshedNodes.any(
+          (refreshedNode) => refreshedNode.type == NodeType.folder && refreshedNode.dir?.path == node.dir?.path,
+        );
+        if (!exists) {
+          nodesToRemove.add(node);
+        }
+      } else if (node.type == NodeType.request) {
+        final exists = refreshedNodes.any(
+          (refreshedNode) => refreshedNode.type == NodeType.request && refreshedNode.file.path == node.file.path,
+        );
+        if (!exists) {
+          nodesToRemove.add(node);
+        }
+      }
+    }
+    existingNodes.removeWhere((node) => nodesToRemove.contains(node));
+  }
+
   // Helper function to recursively build ExplorerNodes
-  ExplorerNode buildNode(FileSystemEntity entity, int depth) {
+  ExplorerNode _buildNode(FileSystemEntity entity, int depth) {
     // Use basename from path for both files and directories
     final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
 
     if (entity is Directory) {
-      final children = entity.listSync().where(_shouldIncludeEntity).map((e) => buildNode(e, depth + 1)).toList();
+      final children = entity.listSync().where(_shouldIncludeEntity).map((e) => _buildNode(e, depth + 1)).toList();
 
       // Sort: directories first, then by name alphabetically
       children.sort((a, b) {
@@ -105,23 +167,3 @@ class ExplorerRepo {
     _eventBus.fire(EventOpenExplorerNode(node));
   }
 }
-
-// final nodes = [
-//   ExplorerNode(
-//     name: dirName, // Use the extracted directory name
-//     isDirectory: true,
-//     initialChildren: [
-//       ExplorerNode(name: 'main.dart'),
-//       ExplorerNode(name: 'utils.dart'),
-//       ExplorerNode(
-//         name: 'widgets',
-//         isDirectory: true,
-//         initialChildren: [ExplorerNode(name: 'button.dart'), ExplorerNode(name: 'input.dart')],
-//       ),
-//     ],
-//   ),
-//   ExplorerNode(name: 'test', isDirectory: true, initialChildren: [ExplorerNode(name: 'widget_test.dart')]),
-//   ExplorerNode(name: 'README.md'),
-//   ExplorerNode(name: 'pubspec.yaml'),
-//   ExplorerNode(name: '.gitignore'),
-// ];

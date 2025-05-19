@@ -17,4 +17,10 @@ class TabItem {
 
     return displayName;
   }
+
+  String getPath() {
+    if (node == null) return key.toString();
+
+    return node!.file.path;
+  }
 }

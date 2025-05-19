@@ -7,6 +7,7 @@ void openCollectionMenu(
   double itemHeight,
   VoidCallback onOpenCollection,
   VoidCallback onNewRequest,
+  VoidCallback onRefresh,
 ) {
   final anchors = TextSelectionToolbarAnchors(primaryAnchor: Offset(width + 40, itemHeight + 32));
   showMenu(
@@ -31,6 +32,7 @@ void openCollectionMenu(
           print('TODO: Implement New Collection');
         },
       ),
+      PopupMenuItem(height: 30, onTap: () => onRefresh(), child: Text('Refresh', style: contextMenuTextStyle)),
       PopupMenuItem(height: 30, onTap: onNewRequest, child: Text('New Request', style: contextMenuTextStyle)),
     ],
   );
