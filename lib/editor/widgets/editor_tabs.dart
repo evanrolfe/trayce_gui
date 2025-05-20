@@ -126,6 +126,11 @@ class _EditorTabsState extends State<EditorTabs> {
         final path = await _getPath();
         if (path == null) return;
 
+        if (mounted) {
+          final seq = context.read<ExplorerRepo>().getNextSeq(path);
+          event.request.seq = seq;
+        }
+
         final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
         final node = ExplorerNode(
           file: File(path),

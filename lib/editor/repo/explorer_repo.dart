@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:event_bus/event_bus.dart';
@@ -44,12 +45,15 @@ class ExplorerRepo {
     final collectionNode = _buildNode(collectionDir, 0);
     _nodes.add(collectionNode);
 
+    _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
   void closeCollection(ExplorerNode node) {
     if (node.type != NodeType.collection) return;
     _nodes.remove(node);
+
+    _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
@@ -65,6 +69,8 @@ class ExplorerRepo {
 
       _syncNodes(collNode.children, refreshedCollNode.children);
     }
+
+    _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
@@ -171,5 +177,63 @@ class ExplorerRepo {
 
   void openNode(ExplorerNode node) {
     _eventBus.fire(EventOpenExplorerNode(node));
+  }
+
+  void _sortNodes(List<ExplorerNode> nodes) {
+    for (var node in nodes) {
+      if (node.type == NodeType.folder || node.type == NodeType.collection) {
+        // Sort children by seq value if they are requests
+        node.children.sort((a, b) {
+          if (a.type == NodeType.request && b.type == NodeType.request) {
+            return a.request!.seq.compareTo(b.request!.seq);
+          }
+          // Keep folders at the top
+          if (a.type == NodeType.folder && b.type == NodeType.request) return -1;
+          if (a.type == NodeType.request && b.type == NodeType.folder) return 1;
+          // If both are folders, sort by name
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+
+        // Recursively sort children
+        _sortNodes(node.children);
+      }
+    }
+  }
+
+  int getNextSeq(String path) {
+    // Find the collection node that contains this path
+    final collectionNode = _nodes.firstWhereOrNull((node) => path.startsWith(node.dir?.path ?? ''));
+    if (collectionNode == null) return 0;
+
+    // Strip any file from the path
+    final folderPath = path.endsWith('.bru') ? path.substring(0, path.lastIndexOf(Platform.pathSeparator)) : path;
+
+    // Find the folder node that matches the exact path
+    late final ExplorerNode? folderNode;
+    if (folderPath == collectionNode.dir?.path) {
+      folderNode = collectionNode;
+    } else {
+      folderNode = collectionNode.children.firstWhereOrNull((node) => _comparePaths(node.dir?.path ?? '', folderPath));
+    }
+
+    if (folderNode == null) return 0;
+
+    // Find the highest seq number in this folder
+    int highestSeq = 0;
+    for (var node in folderNode.children) {
+      if (node.type == NodeType.request && node.request != null) {
+        highestSeq = math.max(highestSeq, node.request!.seq);
+      }
+    }
+
+    return highestSeq + 1;
+  }
+
+  bool _comparePaths(String path1, String path2) {
+    // Remove trailing slashes from both paths
+    final normalizedPath1 = path1.endsWith(Platform.pathSeparator) ? path1.substring(0, path1.length - 1) : path1;
+    final normalizedPath2 = path2.endsWith(Platform.pathSeparator) ? path2.substring(0, path2.length - 1) : path2;
+
+    return normalizedPath1 == normalizedPath2;
   }
 }
