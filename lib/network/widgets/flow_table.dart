@@ -43,7 +43,6 @@ class _FlowTableState extends State<FlowTable> {
 
     // Subscribe to verification events
     _flowsSub = context.read<EventBus>().on<EventDisplayFlows>().listen((event) {
-      print('EventDisplayFlows received: ${event.flows.length}');
       setState(() {
         _flows = event.flows;
       });

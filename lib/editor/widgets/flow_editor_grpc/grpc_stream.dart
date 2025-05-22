@@ -45,7 +45,6 @@ class _GrpcStreamState extends State<GrpcStream> {
 
     // Subscribe to verification events
     _flowsSub = context.read<EventBus>().on<EventDisplayFlows>().listen((event) {
-      print('EventDisplayFlows received: ${event.flows.length}');
       setState(() {
         _messages = [
           GrpcStreamMessage(id: 1, message: 'Hello, world!', time: '12:00:01'),

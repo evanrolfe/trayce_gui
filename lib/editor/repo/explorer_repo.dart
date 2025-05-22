@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:path/path.dart' as path;
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 
@@ -57,6 +58,111 @@ class ExplorerRepo {
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
+  // moveNode moves a node's file to the target node path and refreshes the explorer
+  Future<void> moveNode(ExplorerNode movedNode, ExplorerNode targetNode) async {
+    // Moving a folder
+    if (movedNode.type == NodeType.folder) {
+      Directory? targetDir;
+      if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
+        targetDir = targetNode.dir!;
+      }
+
+      if (targetNode.type == NodeType.request) {
+        final parentNodeTarget = _findParentNode(targetNode);
+        if (parentNodeTarget == null) return;
+
+        targetDir = parentNodeTarget.dir!;
+      }
+
+      if (targetDir == null) return;
+      targetDir = Directory(path.join(targetDir.path, movedNode.name));
+
+      // Move the folder
+      final sourceDir = movedNode.dir!;
+      if (sourceDir.path == targetDir.path) return;
+
+      await moveDirectory(sourceDir, targetDir);
+      refresh();
+      return;
+    }
+
+    // Moving a request
+    if (movedNode.type == NodeType.request) {
+      final parentNodeMoved = _findParentNode(movedNode);
+      final parentNodeTarget = _findParentNode(targetNode);
+      if (parentNodeMoved == null || parentNodeTarget == null) return;
+      final movedToDifferentFolder = parentNodeMoved.dir?.path != parentNodeTarget.dir?.path;
+
+      if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
+        // Get the file paths
+        final sourceFile = movedNode.file;
+        final targetDir = targetNode.dir!;
+        final targetPath = path.join(targetDir.path, movedNode.name);
+
+        if (targetNode == parentNodeMoved) {
+          parentNodeMoved.children.remove(movedNode);
+          parentNodeMoved.children.insert(0, movedNode);
+          parentNodeMoved.updateChildrenSeq();
+          refresh();
+          return;
+        }
+
+        // Update the movedNode's request seq num
+        movedNode.request!.seq = getNextSeq(targetDir.path);
+        movedNode.save();
+
+        // Move the file
+        sourceFile.copySync(targetPath);
+        sourceFile.deleteSync();
+
+        parentNodeMoved.children.remove(movedNode);
+        parentNodeMoved.updateChildrenSeq();
+
+        refresh();
+      } else if (targetNode.type == NodeType.request && movedToDifferentFolder) {
+        // Get the file paths
+        final sourceFile = movedNode.file;
+        final targetDir = parentNodeTarget.dir!;
+        final targetPath = path.join(targetDir.path, movedNode.name);
+
+        // Move the file
+        sourceFile.copySync(targetPath);
+        sourceFile.deleteSync();
+
+        // Update the movedNode's file
+        movedNode.file = File(targetPath);
+
+        parentNodeMoved.children.remove(movedNode);
+        parentNodeMoved.updateChildrenSeq();
+
+        // targetIndex+1 because it should be inserted after the target node
+        int targetIndex = parentNodeTarget.children.indexOf(targetNode) + 1;
+        parentNodeTarget.children.insert(targetIndex, movedNode);
+
+        parentNodeTarget.updateChildrenSeq();
+
+        refresh();
+      } else if (targetNode.type == NodeType.request && !movedToDifferentFolder) {
+        // Find the index of targetNode in parentNode.children
+        final movedIndex = parentNodeMoved.children.indexOf(movedNode);
+        int targetIndex = parentNodeTarget.children.indexOf(targetNode);
+        if (targetIndex == -1) return;
+
+        if (targetIndex < movedIndex) targetIndex++;
+
+        parentNodeMoved.children.remove(movedNode);
+        parentNodeTarget.children.insert(targetIndex, movedNode);
+
+        parentNodeMoved.updateChildrenSeq();
+        // parentNodeTarget.updateChildrenSeq();
+
+        refresh();
+      }
+    }
+  }
+
+  // refresh re loads the nodes from file and emits EventDisplayExplorerItems, it will preserve
+  // existing nodes so that they dont lose their state values like isExpanded, etc
   void refresh() {
     final refreshedNodes = <ExplorerNode>[];
     for (var node in _nodes) {
@@ -67,14 +173,17 @@ class ExplorerRepo {
       final refreshedCollNode = refreshedNodes.firstWhereOrNull((node) => node.dir?.path == collNode.dir?.path);
       if (refreshedCollNode == null) continue;
 
-      _syncNodes(collNode.children, refreshedCollNode.children);
+      _refreshNodes(collNode.children, refreshedCollNode.children);
     }
 
     _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
-  void _syncNodes(List<ExplorerNode> existingNodes, List<ExplorerNode> refreshedNodes) {
+  // _refreshNodes syncs the children of two nodes - any nodes which exist in refreshNodes
+  // but not in existingNodes are added, and any nodes which exist in existingNodes
+  // but not in refreshedNodes are removed
+  void _refreshNodes(List<ExplorerNode> existingNodes, List<ExplorerNode> refreshedNodes) {
     // Collect nodes to add
     final nodesToAdd = <ExplorerNode>[];
 
@@ -86,7 +195,7 @@ class ExplorerRepo {
           nodesToAdd.add(refreshedNode);
         } else {
           // Recursively sync children
-          _syncNodes(existingNode.children, refreshedNode.children);
+          _refreshNodes(existingNode.children, refreshedNode.children);
         }
       } else if (refreshedNode.type == NodeType.request) {
         // Check if request exists
@@ -120,7 +229,7 @@ class ExplorerRepo {
     existingNodes.removeWhere((node) => nodesToRemove.contains(node));
   }
 
-  // Helper function to recursively build ExplorerNodes
+  // _buildNode builds a node tree recursively from file
   ExplorerNode _buildNode(FileSystemEntity entity, int depth) {
     // Use basename from path for both files and directories
     final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
@@ -163,6 +272,7 @@ class ExplorerRepo {
     }
   }
 
+  // _shouldIncludeEntity determines if a file or directory should be included in the node tree
   bool _shouldIncludeEntity(FileSystemEntity entity) {
     final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
 
@@ -179,6 +289,7 @@ class ExplorerRepo {
     _eventBus.fire(EventOpenExplorerNode(node));
   }
 
+  // _sortNodes recursively sorts the children of a node by seq value
   void _sortNodes(List<ExplorerNode> nodes) {
     for (var node in nodes) {
       if (node.type == NodeType.folder || node.type == NodeType.collection) {
@@ -200,6 +311,7 @@ class ExplorerRepo {
     }
   }
 
+  // getNextSeq gives the next seq number for a folder based on the existing requests in it
   int getNextSeq(String path) {
     // Find the collection node that contains this path
     final collectionNode = _nodes.firstWhereOrNull((node) => path.startsWith(node.dir?.path ?? ''));
@@ -218,6 +330,7 @@ class ExplorerRepo {
 
     if (folderNode == null) return 0;
 
+    if (folderNode.children.isEmpty) return 0;
     // Find the highest seq number in this folder
     int highestSeq = 0;
     for (var node in folderNode.children) {
@@ -236,4 +349,54 @@ class ExplorerRepo {
 
     return normalizedPath1 == normalizedPath2;
   }
+
+  // _findParentNode finds the parent node of a given node
+  ExplorerNode? _findParentNode(ExplorerNode node) {
+    for (var parentNode in _nodes) {
+      if (parentNode.children.contains(node)) {
+        return parentNode;
+      }
+      // Recursively check children
+      final foundParent = _findParentNodeInChildren(parentNode, node);
+      if (foundParent != null) {
+        return foundParent;
+      }
+    }
+    return null;
+  }
+
+  ExplorerNode? _findParentNodeInChildren(ExplorerNode parentNode, ExplorerNode node) {
+    for (var child in parentNode.children) {
+      if (child.children.contains(node)) {
+        return child;
+      }
+      // Recursively check children of the child
+      final foundParent = _findParentNodeInChildren(child, node);
+      if (foundParent != null) {
+        return foundParent;
+      }
+    }
+    return null;
+  }
+}
+
+Future<void> moveDirectory(Directory source, Directory destination) async {
+  // Step 1: Copy everything
+  if (!await destination.exists()) {
+    await destination.create(recursive: true);
+  }
+
+  await for (var entity in source.list(recursive: false)) {
+    if (entity is Directory) {
+      var newDirectory = Directory('${destination.path}/${entity.uri.pathSegments.last}');
+      await moveDirectory(entity, newDirectory);
+    } else if (entity is File) {
+      var newFile = File('${destination.path}/${entity.uri.pathSegments.last}');
+      await newFile.writeAsBytes(await entity.readAsBytes());
+      await entity.delete(); // Remove the file after moving
+    }
+  }
+
+  // Step 2: Delete the original directory (should be empty now)
+  await source.delete();
 }
