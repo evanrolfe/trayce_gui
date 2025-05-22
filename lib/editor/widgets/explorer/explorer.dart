@@ -59,14 +59,6 @@ class _FileExplorerState extends State<FileExplorer> {
     super.dispose();
   }
 
-  void _sortNodes(List<ExplorerNode> nodes) {
-    nodes.sort((a, b) {
-      if (a.isDirectory && !b.isDirectory) return -1;
-      if (!a.isDirectory && b.isDirectory) return 1;
-      return a.name.compareTo(b.name);
-    });
-  }
-
   Future<void> _handleOpen() async {
     final path = await _getCollectionPath();
 
@@ -143,23 +135,12 @@ class _FileExplorerState extends State<FileExplorer> {
 
               return true;
             },
-            onAccept: (data) {
+            onAcceptWithDetails: (details) {
+              final movedNode = details.data;
+              context.read<ExplorerRepo>().moveNode(movedNode, node);
+
               setState(() {
-                _removeNode(data);
-                if (node.isDirectory) {
-                  node.children.add(data);
-                  _sortNodes(node.children);
-                } else {
-                  final parentNode = _findParentNode(node);
-                  if (parentNode != null) {
-                    final index = parentNode.children.indexOf(node);
-                    parentNode.children.insert(index + 1, data);
-                    _sortNodes(parentNode.children);
-                  } else {
-                    _files.add(data);
-                    _sortNodes(_files);
-                  }
-                }
+                _dropPosition = null;
                 _dropTargetDir = null;
               });
             },
@@ -248,31 +229,8 @@ class _FileExplorerState extends State<FileExplorer> {
   List<Widget> _buildDirChildrenWithDropLine(ExplorerNode dir, {required double indent}) {
     if (dir.children.isEmpty) return [];
     final children = <Widget>[];
-    if (_dropTargetDir == dir) {
-      children.add(
-        Container(height: 1, color: Colors.white, margin: EdgeInsets.only(left: indent + fileTreeLeftMargin)),
-      );
-    }
     children.addAll(dir.children.map((child) => _buildFileTree(child, indent: indent)));
     return children;
-  }
-
-  void _removeNode(ExplorerNode node) {
-    if (_files.remove(node)) return;
-
-    for (var file in _files) {
-      if (_removeNodeFromChildren(file, node)) return;
-    }
-  }
-
-  bool _removeNodeFromChildren(ExplorerNode parent, ExplorerNode nodeToRemove) {
-    if (parent.children.remove(nodeToRemove)) return true;
-
-    for (var child in parent.children) {
-      if (_removeNodeFromChildren(child, nodeToRemove)) return true;
-    }
-
-    return false;
   }
 
   ExplorerNode? _findParentNode(ExplorerNode node) {
@@ -336,28 +294,7 @@ class _FileExplorerState extends State<FileExplorer> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ..._files.map((node) => _buildFileTree(node)).toList(),
-                  DragTarget<ExplorerNode>(
-                    onWillAccept: (data) {
-                      if (data == null) return false;
-                      return _findParentNode(data) != null;
-                    },
-                    onAccept: (data) {
-                      setState(() {
-                        _removeNode(data);
-                        _files.add(data);
-                        _sortNodes(_files);
-                      });
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      return Container(
-                        height: itemHeight,
-                        decoration: getItemDecoration(isDragTarget: candidateData.isNotEmpty),
-                      );
-                    },
-                  ),
-                ],
+                children: [..._files.map((node) => _buildFileTree(node)).toList()],
               ),
             ),
           ],

@@ -68,11 +68,9 @@ class _FlowViewState extends State<FlowView> {
   }
 
   Future<void> _loadProtoDefs() async {
-    print('============> Loading proto defs');
     final protoDefRepo = context.read<ProtoDefRepo>();
     final protoDefs = await protoDefRepo.getAll();
     setState(() {
-      print('============> Proto defs loaded: ${protoDefs.length}');
       _protoDefs = protoDefs;
     });
   }

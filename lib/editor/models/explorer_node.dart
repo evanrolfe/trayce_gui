@@ -10,7 +10,7 @@ enum NodeType { collection, folder, request }
 
 class ExplorerNode {
   final Directory? dir;
-  final File file;
+  File file;
   final String name;
   final bool isDirectory;
   final List<ExplorerNode> children = [];
@@ -77,6 +77,14 @@ class ExplorerNode {
         file.createSync(recursive: true);
       }
       file.writeAsStringSync(bruStr);
+    }
+  }
+
+  void updateChildrenSeq() {
+    for (int i = 0; i < children.length; i++) {
+      if (children[i].type != NodeType.request) continue;
+      children[i].request!.seq = i;
+      children[i].save();
     }
   }
 }
