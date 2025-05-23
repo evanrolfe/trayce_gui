@@ -33,7 +33,6 @@ class _FileExplorerState extends State<FileExplorer> {
   List<ExplorerNode> _files = [];
   late final StreamSubscription _displaySub;
   int? _dropPosition;
-  ExplorerNode? _dropTargetDir;
   int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
 
   @override
@@ -89,8 +88,11 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   bool _shouldShowDropLineBelow(ExplorerNode node, List<ExplorerNode?> candidateData) {
-    if (_dropPosition == null || _dropPosition != _files.indexOf(node) || candidateData.isEmpty) return false;
-    return !node.isDirectory;
+    if (node.type != NodeType.request) return false;
+
+    if (_dropPosition == null || candidateData.isEmpty) return false;
+
+    return _dropPosition == _files.indexOf(node);
   }
 
   Widget _buildFileTree(ExplorerNode node, {double indent = 0}) {
@@ -115,25 +117,9 @@ class _FileExplorerState extends State<FileExplorer> {
             ),
           ),
           child: DragTarget<ExplorerNode>(
-            onWillAccept: (data) {
-              if (data == null) return false;
-              if (data == node) return false;
-
-              if (data.isDirectory) {
-                ExplorerNode? parent = _findParentNode(node);
-                while (parent != null) {
-                  if (parent == data) return false;
-                  parent = _findParentNode(parent);
-                }
-              }
-
-              if (node.isDirectory) {
-                setState(() {
-                  _dropTargetDir = node;
-                });
-              }
-
-              return true;
+            onWillAcceptWithDetails: (details) {
+              final targetNode = details.data;
+              return (targetNode != node && targetNode.type == NodeType.request);
             },
             onAcceptWithDetails: (details) {
               final movedNode = details.data;
@@ -141,7 +127,6 @@ class _FileExplorerState extends State<FileExplorer> {
 
               setState(() {
                 _dropPosition = null;
-                _dropTargetDir = null;
               });
             },
             onMove: (details) {
@@ -152,7 +137,6 @@ class _FileExplorerState extends State<FileExplorer> {
             onLeave: (data) {
               setState(() {
                 _dropPosition = null;
-                if (_dropTargetDir == node) _dropTargetDir = null;
               });
             },
             builder: (context, candidateData, rejectedData) {
@@ -221,16 +205,10 @@ class _FileExplorerState extends State<FileExplorer> {
             },
           ),
         ),
-        if (node.isDirectory && node.isExpanded) ..._buildDirChildrenWithDropLine(node, indent: indent + 24),
+        if (node.isDirectory && node.isExpanded)
+          ...node.children.map((child) => _buildFileTree(child, indent: indent + 24)),
       ],
     );
-  }
-
-  List<Widget> _buildDirChildrenWithDropLine(ExplorerNode dir, {required double indent}) {
-    if (dir.children.isEmpty) return [];
-    final children = <Widget>[];
-    children.addAll(dir.children.map((child) => _buildFileTree(child, indent: indent)));
-    return children;
   }
 
   ExplorerNode? _findParentNode(ExplorerNode node) {
@@ -294,7 +272,7 @@ class _FileExplorerState extends State<FileExplorer> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [..._files.map((node) => _buildFileTree(node)).toList()],
+                children: [..._files.map((node) => _buildFileTree(node))],
               ),
             ),
           ],
