@@ -81,6 +81,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   late final HeadersStateManager _headersController;
   late final FocusNode focusNode;
   late final FocusNode dropdownFocusNode;
+  late final FocusNode _topTabFocusNode;
 
   @override
   void initState() {
@@ -116,6 +117,17 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       return KeyEventResult.ignored;
     };
     dropdownFocusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+          saveFlow();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
+
+    _topTabFocusNode = FocusNode();
+    _topTabFocusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
           saveFlow();
@@ -193,6 +205,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _headersController.dispose();
     focusNode.dispose();
     dropdownFocusNode.dispose();
+    _topTabFocusNode.dispose();
     super.dispose();
   }
 
@@ -272,6 +285,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                   _selectedMethod = newValue;
                                   _flowModified();
                                 });
+                                focusNode.requestFocus();
                               }
                             },
                           ),
@@ -315,44 +329,54 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                       children: [
                                         Container(
                                           height: 30,
-                                          child: TabBar(
-                                            controller: _topTabController,
-                                            dividerColor: Colors.transparent,
-                                            labelColor: const Color(0xFFD4D4D4),
-                                            unselectedLabelColor: const Color(0xFF808080),
-                                            indicator: const UnderlineTabIndicator(
-                                              borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
+                                          child: Focus(
+                                            focusNode: _topTabFocusNode,
+                                            canRequestFocus: true,
+                                            child: TabBar(
+                                              controller: _topTabController,
+                                              dividerColor: Colors.transparent,
+                                              labelColor: const Color(0xFFD4D4D4),
+                                              unselectedLabelColor: const Color(0xFF808080),
+                                              indicator: const UnderlineTabIndicator(
+                                                borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
+                                              ),
+                                              labelPadding: EdgeInsets.zero,
+                                              padding: EdgeInsets.zero,
+                                              isScrollable: true,
+                                              tabAlignment: TabAlignment.start,
+                                              labelStyle: const TextStyle(fontWeight: FontWeight.normal),
+                                              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+                                              tabs: [
+                                                GestureDetector(
+                                                  onTapDown: (_) {
+                                                    _topTabController.animateTo(0);
+                                                    _topTabFocusNode.requestFocus();
+                                                  },
+                                                  child: Container(
+                                                    color: Colors.blue.withOpacity(0.0),
+                                                    child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
+                                                  ),
+                                                ),
+                                                GestureDetector(
+                                                  onTapDown: (_) {
+                                                    _topTabController.animateTo(1);
+                                                    _topTabFocusNode.requestFocus();
+                                                  },
+                                                  child: Container(
+                                                    color: Colors.blue.withOpacity(0.0),
+                                                    child: const SizedBox(width: 100, child: Tab(text: 'Body')),
+                                                  ),
+                                                ),
+                                              ],
+                                              overlayColor: MaterialStateProperty.resolveWith<Color?>((
+                                                Set<MaterialState> states,
+                                              ) {
+                                                if (states.contains(MaterialState.hovered)) {
+                                                  return hoveredItemColor.withAlpha(hoverAlpha);
+                                                }
+                                                return null;
+                                              }),
                                             ),
-                                            labelPadding: EdgeInsets.zero,
-                                            padding: EdgeInsets.zero,
-                                            isScrollable: true,
-                                            tabAlignment: TabAlignment.start,
-                                            labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                            tabs: [
-                                              GestureDetector(
-                                                onTapDown: (_) => _topTabController.animateTo(0),
-                                                child: Container(
-                                                  color: Colors.blue.withOpacity(0.0),
-                                                  child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
-                                                ),
-                                              ),
-                                              GestureDetector(
-                                                onTapDown: (_) => _topTabController.animateTo(1),
-                                                child: Container(
-                                                  color: Colors.blue.withOpacity(0.0),
-                                                  child: const SizedBox(width: 100, child: Tab(text: 'Body')),
-                                                ),
-                                              ),
-                                            ],
-                                            overlayColor: MaterialStateProperty.resolveWith<Color?>((
-                                              Set<MaterialState> states,
-                                            ) {
-                                              if (states.contains(MaterialState.hovered)) {
-                                                return hoveredItemColor.withAlpha(hoverAlpha);
-                                              }
-                                              return null;
-                                            }),
                                           ),
                                         ),
                                         Expanded(
