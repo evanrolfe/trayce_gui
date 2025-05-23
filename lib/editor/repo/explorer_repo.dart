@@ -62,26 +62,21 @@ class ExplorerRepo {
   Future<void> moveNode(ExplorerNode movedNode, ExplorerNode targetNode) async {
     // Moving a folder
     if (movedNode.type == NodeType.folder) {
-      Directory? targetDir;
-      if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
-        targetDir = targetNode.dir!;
-      }
-
-      if (targetNode.type == NodeType.request) {
-        final parentNodeTarget = _findParentNode(targetNode);
-        if (parentNodeTarget == null) return;
-
-        targetDir = parentNodeTarget.dir!;
-      }
-
-      if (targetDir == null) return;
-      targetDir = Directory(path.join(targetDir.path, movedNode.name));
-
-      // Move the folder
+      Directory targetDir = targetNode.dir!;
       final sourceDir = movedNode.dir!;
-      if (sourceDir.path == targetDir.path) return;
 
-      await moveDirectory(sourceDir, targetDir);
+      if (targetNode.type == NodeType.collection) {
+        // Moving to a collection
+        targetDir = Directory(path.join(targetDir.path, movedNode.name));
+        if (sourceDir.path == targetDir.path) return;
+        await moveDirectory(sourceDir, targetDir);
+      } else if (targetNode.type == NodeType.folder) {
+        // Moving to a folder
+        if (sourceDir.path == targetDir.path) return;
+        targetDir = Directory(path.join(targetDir.path, movedNode.name));
+        await moveDirectory(sourceDir, targetDir);
+      }
+
       refresh();
       return;
     }
@@ -90,8 +85,9 @@ class ExplorerRepo {
     if (movedNode.type == NodeType.request) {
       final parentNodeMoved = _findParentNode(movedNode);
       final parentNodeTarget = _findParentNode(targetNode);
-      if (parentNodeMoved == null || parentNodeTarget == null) return;
-      final movedToDifferentFolder = parentNodeMoved.dir?.path != parentNodeTarget.dir?.path;
+      if (parentNodeMoved == null) return;
+
+      final movedToDifferentFolder = parentNodeMoved.dir?.path != parentNodeTarget?.dir?.path;
 
       if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
         // Get the file paths
@@ -120,6 +116,7 @@ class ExplorerRepo {
 
         refresh();
       } else if (targetNode.type == NodeType.request && movedToDifferentFolder) {
+        if (parentNodeTarget == null) return;
         // Get the file paths
         final sourceFile = movedNode.file;
         final targetDir = parentNodeTarget.dir!;
@@ -143,6 +140,7 @@ class ExplorerRepo {
 
         refresh();
       } else if (targetNode.type == NodeType.request && !movedToDifferentFolder) {
+        if (parentNodeTarget == null) return;
         // Find the index of targetNode in parentNode.children
         final movedIndex = parentNodeMoved.children.indexOf(movedNode);
         int targetIndex = parentNodeTarget.children.indexOf(targetNode);

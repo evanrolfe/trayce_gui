@@ -87,12 +87,17 @@ class _FileExplorerState extends State<FileExplorer> {
     return path;
   }
 
-  bool _shouldShowDropLineBelow(ExplorerNode node, List<ExplorerNode?> candidateData) {
-    if (node.type != NodeType.request) return false;
+  bool _shouldShowDropLineBelow(ExplorerNode targetNode, List<ExplorerNode?> candidateData) {
+    if (targetNode.type != NodeType.request) return false;
 
     if (_dropPosition == null || candidateData.isEmpty) return false;
 
-    return _dropPosition == _files.indexOf(node);
+    print('node: ${targetNode.name} / ${targetNode.type}, candidateData: ${candidateData.map((e) => e?.name)}');
+
+    final movedNode = candidateData.first;
+    if (movedNode?.type != NodeType.request && targetNode.type == NodeType.request) return false;
+
+    return _dropPosition == _files.indexOf(targetNode);
   }
 
   Widget _buildFileTree(ExplorerNode node, {double indent = 0}) {
@@ -118,8 +123,12 @@ class _FileExplorerState extends State<FileExplorer> {
           ),
           child: DragTarget<ExplorerNode>(
             onWillAcceptWithDetails: (details) {
-              final targetNode = details.data;
-              return (targetNode != node && targetNode.type == NodeType.request);
+              final targetNode = node;
+              final movedNode = details.data;
+
+              if (movedNode.type == NodeType.folder && targetNode.type == NodeType.request) return false;
+
+              return true;
             },
             onAcceptWithDetails: (details) {
               final movedNode = details.data;
@@ -209,25 +218,6 @@ class _FileExplorerState extends State<FileExplorer> {
           ...node.children.map((child) => _buildFileTree(child, indent: indent + 24)),
       ],
     );
-  }
-
-  ExplorerNode? _findParentNode(ExplorerNode node) {
-    for (var file in _files) {
-      final parent = _findParentInNode(file, node);
-      if (parent != null) return parent;
-    }
-    return null;
-  }
-
-  ExplorerNode? _findParentInNode(ExplorerNode current, ExplorerNode node) {
-    if (current.children.contains(node)) return current;
-
-    for (var child in current.children) {
-      final parent = _findParentInNode(child, node);
-      if (parent != null) return parent;
-    }
-
-    return null;
   }
 
   @override
