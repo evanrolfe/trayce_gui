@@ -19,8 +19,12 @@ import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 import '../../../common/dropdown_style.dart';
 import '../../../common/style.dart';
 
-class SaveIntent extends Intent {
-  const SaveIntent();
+// EventSaveIntent is sent by editor tabs when the user wants to save the flow but is
+// focused on the tab, not the editor
+class EventSaveIntent {
+  final ValueKey tabKey;
+
+  const EventSaveIntent(this.tabKey);
 }
 
 class EventSaveRequest {
@@ -114,6 +118,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     focusNode.onKeyEvent = _onKeyUp;
     dropdownFocusNode.onKeyEvent = _onKeyUp;
     _topTabFocusNode.onKeyEvent = _onKeyUp;
+
+    context.read<EventBus>().on<EventSaveIntent>().listen((event) {
+      if (event.tabKey == widget.tabKey) {
+        saveFlow();
+      }
+    });
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {

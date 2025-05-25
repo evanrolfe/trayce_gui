@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
@@ -58,9 +59,15 @@ class _EditorTabsState extends State<EditorTabs> {
         if (event.node.request == null) return;
 
         // Add new tab
+        final tabKey = newTab.key;
         _tabs.add(
           _TabEntry(
             tab: newTab,
+            // Bit of a round-about way of letting the user save the flow when focused on a tab,
+            // it sends this event to FlowEditorHttpp, which then sends the EventSaveRequest back to us,
+            // theres probably a better/cleaner way of doing this
+            onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
+            onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
             editor: FlowEditor(
               key: ValueKey('editor_$uuid'),
               tabKey: newTab.key,
@@ -98,13 +105,15 @@ class _EditorTabsState extends State<EditorTabs> {
           key: ValueKey('tabItem_$uuid'),
           displayName: 'Untitled-$newTabCount',
         );
-
+        final tabKey = newTab.key;
         _tabs.add(
           _TabEntry(
             tab: newTab,
+            onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
+            onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
             editor: FlowEditor(
               key: ValueKey('editor_$uuid'),
-              tabKey: newTab.key,
+              tabKey: tabKey,
               flowType: 'http',
               request: Request.blank(),
             ),
@@ -252,7 +261,7 @@ class _EditorTabsState extends State<EditorTabs> {
               scrollDirection: Axis.horizontal,
               onReorder: _onReorder,
               buildDefaultDragHandles: false,
-              children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value.tab, entry.key)).toList(),
+              children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
             ),
           ),
           Expanded(
@@ -266,7 +275,8 @@ class _EditorTabsState extends State<EditorTabs> {
     );
   }
 
-  Widget _buildTab(TabItem tabItem, int index) {
+  Widget _buildTab(_TabEntry tabEntry, int index) {
+    final tabItem = tabEntry.tab;
     final isSelected = _selectedTabIndex == index;
     final isHovered = _hoveredTabIndex == index;
 
@@ -277,39 +287,47 @@ class _EditorTabsState extends State<EditorTabs> {
         onEnter: (_) => setState(() => _hoveredTabIndex = index),
         onExit: (_) => setState(() => _hoveredTabIndex = null),
         child: GestureDetector(
-          onTapDown: (_) => setState(() => _selectedTabIndex = index),
-          child: Container(
-            height: tabHeight,
-            padding: tabPadding,
-            constraints: tabConstraints,
-            decoration: getTabDecoration(isSelected: isSelected, isHovered: isHovered, showTopBorder: true),
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
-                  const SizedBox(width: 8),
-                  Text(tabItem.getDisplayName(), style: tabTextStyle),
-                  const SizedBox(width: 8),
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    onEnter: (_) => setState(() => _hoveredCloseButtonIndex = index),
-                    onExit: (_) => setState(() => _hoveredCloseButtonIndex = null),
-                    child: GestureDetector(
-                      onTap: () => _closeTab(index),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: _hoveredCloseButtonIndex == index ? Colors.grey.withOpacity(0.2) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(4),
+          onTapDown: (_) {
+            tabEntry.focusNode.requestFocus();
+            setState(() => _selectedTabIndex = index);
+          },
+          child: Focus(
+            focusNode: tabEntry.focusNode,
+            canRequestFocus: true,
+            child: Container(
+              height: tabHeight,
+              padding: tabPadding,
+              constraints: tabConstraints,
+              decoration: getTabDecoration(isSelected: isSelected, isHovered: isHovered, showTopBorder: true),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
+                    const SizedBox(width: 8),
+                    Text(tabItem.getDisplayName(), style: tabTextStyle),
+                    const SizedBox(width: 8),
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (_) => setState(() => _hoveredCloseButtonIndex = index),
+                      onExit: (_) => setState(() => _hoveredCloseButtonIndex = null),
+                      child: GestureDetector(
+                        onTap: () => _closeTab(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color:
+                                _hoveredCloseButtonIndex == index ? Colors.grey.withOpacity(0.2) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(Icons.close, size: 16, color: lightTextColor),
                         ),
-                        child: const Icon(Icons.close, size: 16, color: lightTextColor),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -322,6 +340,23 @@ class _EditorTabsState extends State<EditorTabs> {
 class _TabEntry {
   final TabItem tab;
   final FlowEditor editor;
-
-  _TabEntry({required this.tab, required this.editor});
+  final FocusNode focusNode;
+  final void Function() onSave;
+  final void Function() onNewRequest;
+  _TabEntry({required this.tab, required this.editor, required this.onSave, required this.onNewRequest})
+    : focusNode = FocusNode() {
+    focusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+          onSave();
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
+          onNewRequest();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
+  }
 }
