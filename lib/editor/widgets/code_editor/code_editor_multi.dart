@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
+import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 
@@ -12,7 +12,7 @@ class MultiLineCodeEditor extends StatefulWidget {
   final ScrollController? horizontalScroller;
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
   final Border? border;
-  final VoidCallback? saveCallback;
+  final KeyCallback? keyCallback;
 
   const MultiLineCodeEditor({
     super.key,
@@ -21,7 +21,7 @@ class MultiLineCodeEditor extends StatefulWidget {
     this.horizontalScroller,
     this.shortcutOverrideActions,
     this.border,
-    this.saveCallback,
+    this.keyCallback,
   });
 
   @override
@@ -35,15 +35,7 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
   void initState() {
     super.initState();
     _focusNode = FocusNode();
-    _focusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          widget.saveCallback?.call();
-          return KeyEventResult.handled;
-        }
-      }
-      return KeyEventResult.ignored;
-    };
+    _focusNode.onKeyEvent = widget.keyCallback;
   }
 
   @override

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
+import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 
 class HeadersTable extends StatelessWidget {
   final HeadersStateManager stateManager;
-  final VoidCallback? saveCallback;
+  final KeyCallback? keyCallback;
 
-  const HeadersTable({super.key, required this.stateManager, this.saveCallback});
+  const HeadersTable({super.key, required this.stateManager, this.keyCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +40,7 @@ class HeadersTable extends StatelessWidget {
                     controller: row.keyController,
                     onTabPressed: () => stateManager.handleTabPress(index, true),
                     focusNode: row.keyFocusNode,
-                    saveCallback: saveCallback,
+                    keyCallback: keyCallback,
                   ),
                 ),
               ),
@@ -51,7 +52,7 @@ class HeadersTable extends StatelessWidget {
                     controller: row.valueController,
                     onTabPressed: () => stateManager.handleTabPress(index, false),
                     focusNode: row.valueFocusNode,
-                    saveCallback: saveCallback,
+                    keyCallback: keyCallback,
                   ),
                 ),
               ),

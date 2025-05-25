@@ -34,6 +34,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub3;
   late final StreamSubscription _tabsSub4;
   int? _hoveredTabIndex;
+  int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
   final List<_TabEntry> _tabs = [];
 
@@ -220,6 +221,8 @@ class _EditorTabsState extends State<EditorTabs> {
   void _closeTab(int index) {
     setState(() {
       _tabs.removeAt(index);
+      _hoveredCloseButtonIndex = null;
+      _hoveredTabIndex = null;
 
       if (_tabs.isEmpty) {
         _selectedTabIndex = 0;
@@ -289,15 +292,23 @@ class _EditorTabsState extends State<EditorTabs> {
                   const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
                   const SizedBox(width: 8),
                   Text(tabItem.getDisplayName(), style: tabTextStyle),
-                  if (_tabs.length > 1) ...[
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      // Note: this needs to be onTap, not onTapDown otherwise it initiates a drag sequence which calls a null error
-                      // because the tab is deleted
+                  const SizedBox(width: 8),
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    onEnter: (_) => setState(() => _hoveredCloseButtonIndex = index),
+                    onExit: (_) => setState(() => _hoveredCloseButtonIndex = null),
+                    child: GestureDetector(
                       onTap: () => _closeTab(index),
-                      child: const Icon(Icons.close, size: 16, color: lightTextColor),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _hoveredCloseButtonIndex == index ? Colors.grey.withOpacity(0.2) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Icon(Icons.close, size: 16, color: lightTextColor),
+                      ),
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/dart.dart';
+import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 
 class SingleLineCodeEditor extends StatefulWidget {
@@ -12,7 +13,7 @@ class SingleLineCodeEditor extends StatefulWidget {
   final VoidCallback? onTabPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
-  final VoidCallback? saveCallback;
+  final KeyCallback? keyCallback;
 
   const SingleLineCodeEditor({
     super.key,
@@ -23,7 +24,7 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.onTabPressed,
     this.focusNode,
     this.decoration,
-    this.saveCallback,
+    this.keyCallback,
   });
 
   @override
@@ -38,15 +39,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
-    _focusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          widget.saveCallback?.call();
-          return KeyEventResult.handled;
-        }
-      }
-      return KeyEventResult.ignored;
-    };
+    _focusNode.onKeyEvent = widget.keyCallback;
   }
 
   @override

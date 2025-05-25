@@ -13,6 +13,7 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
+import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
 import '../../../common/dropdown_style.dart';
@@ -86,8 +87,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-    focusNode = FocusNode();
-    dropdownFocusNode = FocusNode();
+
     _bottomTabController = TabController(length: 2, vsync: this);
     _topTabController = TabController(length: 2, vsync: this);
     HttpEditorState.initialize();
@@ -107,35 +107,27 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       _reqBodyController.text = widget.request.body!.toString();
     }
 
-    focusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          saveFlow();
-          return KeyEventResult.handled;
-        }
-      }
-      return KeyEventResult.ignored;
-    };
-    dropdownFocusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          saveFlow();
-          return KeyEventResult.handled;
-        }
-      }
-      return KeyEventResult.ignored;
-    };
-
+    focusNode = FocusNode();
+    dropdownFocusNode = FocusNode();
     _topTabFocusNode = FocusNode();
-    _topTabFocusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
-          saveFlow();
-          return KeyEventResult.handled;
-        }
+
+    focusNode.onKeyEvent = _onKeyUp;
+    dropdownFocusNode.onKeyEvent = _onKeyUp;
+    _topTabFocusNode.onKeyEvent = _onKeyUp;
+  }
+
+  KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+        saveFlow();
+        return KeyEventResult.handled;
       }
-      return KeyEventResult.ignored;
-    };
+      if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
+        context.read<EventBus>().fire(EventNewRequest());
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
   }
 
   void _flowModified() {
@@ -294,7 +286,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           child: SingleLineCodeEditor(
                             key: const Key('flow_editor_http_url_input'),
                             controller: _urlController,
-                            saveCallback: saveFlow,
+                            keyCallback: _onKeyUp,
                             decoration: BoxDecoration(
                               border: Border.all(color: const Color(0xFF474747), width: 0),
                               color: const Color(0xFF2E2E2E),
@@ -386,12 +378,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               SingleChildScrollView(
                                                 child: HeadersTable(
                                                   stateManager: _headersController,
-                                                  saveCallback: saveFlow,
+                                                  keyCallback: _onKeyUp,
                                                 ),
                                               ),
                                               MultiLineCodeEditor(
                                                 controller: _reqBodyController,
-                                                saveCallback: saveFlow,
+                                                keyCallback: _onKeyUp,
                                               ),
                                             ],
                                           ),
@@ -471,10 +463,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                         child: TabBarView(
                                           controller: _bottomTabController,
                                           children: [
-                                            MultiLineCodeEditor(
-                                              controller: _respBodyController,
-                                              saveCallback: saveFlow,
-                                            ),
+                                            MultiLineCodeEditor(controller: _respBodyController, keyCallback: _onKeyUp),
                                             Padding(padding: const EdgeInsets.all(20.0), child: HeadersTableReadOnly()),
                                           ],
                                         ),

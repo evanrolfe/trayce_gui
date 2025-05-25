@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
@@ -34,6 +35,7 @@ class _FileExplorerState extends State<FileExplorer> {
   late final StreamSubscription _displaySub;
   int? _dropPosition;
   int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
@@ -46,15 +48,29 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     });
 
+    _focusNode = FocusNode();
+    _focusNode.onKeyEvent = _onKeyUp;
+
     final config = context.read<Config>();
     if (!config.isTest) {
       context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
   }
 
+  KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
+        context.read<EventBus>().fire(EventNewRequest());
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
   @override
   void dispose() {
     _displaySub.cancel();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -222,50 +238,58 @@ class _FileExplorerState extends State<FileExplorer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: widget.width,
-      alignment: Alignment.topLeft,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: itemHeight,
-              padding: const EdgeInsets.only(left: fileTreeLeftMargin),
-              alignment: Alignment.centerLeft,
-              decoration: headerDecoration,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Editor', style: TextStyle(color: textColor, fontSize: 13)),
-                  IconButton(
-                    key: const Key('open_collection_btn'),
-                    icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
-                    padding: const EdgeInsets.only(right: 5),
-                    constraints: const BoxConstraints(),
-                    onPressed:
-                        () => showRootMenu(
-                          context,
-                          widget.width,
-                          itemHeight,
-                          _handleOpen,
-                          _handleNewRequest,
-                          _handleRefresh,
-                        ),
+    return Focus(
+      focusNode: _focusNode,
+      canRequestFocus: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => _focusNode.requestFocus(),
+        child: Container(
+          width: widget.width,
+          alignment: Alignment.topLeft,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: itemHeight,
+                  padding: const EdgeInsets.only(left: fileTreeLeftMargin),
+                  alignment: Alignment.centerLeft,
+                  decoration: headerDecoration,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Editor', style: TextStyle(color: textColor, fontSize: 13)),
+                      IconButton(
+                        key: const Key('open_collection_btn'),
+                        icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
+                        padding: const EdgeInsets.only(right: 5),
+                        constraints: const BoxConstraints(),
+                        onPressed:
+                            () => showRootMenu(
+                              context,
+                              widget.width,
+                              itemHeight,
+                              _handleOpen,
+                              _handleNewRequest,
+                              _handleRefresh,
+                            ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [..._files.map((node) => _buildFileTree(node))],
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [..._files.map((node) => _buildFileTree(node))],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
