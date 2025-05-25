@@ -4,7 +4,7 @@ import 'package:trayce/common/context_menu_style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
-void showNodeMenu(BuildContext context, TapDownDetails details, ExplorerNode node) {
+void showNodeMenu(BuildContext context, TapDownDetails details, ExplorerNode node, VoidCallback onRename) {
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
     context: context,
@@ -31,8 +31,7 @@ void showNodeMenu(BuildContext context, TapDownDetails details, ExplorerNode nod
         height: 30,
         child: Text('Rename', style: contextMenuTextStyle),
         onTap: () {
-          // TODO: Implement rename functionality
-          print('Rename ${node.name}');
+          onRename();
         },
       ),
       PopupMenuItem(

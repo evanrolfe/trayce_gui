@@ -16,6 +16,7 @@ class ExplorerNode {
   final List<ExplorerNode> children = [];
   final NodeType type;
   bool isExpanded;
+  bool isRenaming;
 
   late Collection collection;
   late Request? request;
@@ -28,6 +29,7 @@ class ExplorerNode {
     required this.type,
     List<ExplorerNode>? initialChildren,
     this.isExpanded = false,
+    this.isRenaming = false,
     Request? request,
   }) {
     if (type == NodeType.collection) {

@@ -36,6 +36,7 @@ class _FileExplorerState extends State<FileExplorer> {
   int? _dropPosition;
   int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
   late final FocusNode _focusNode;
+  final TextEditingController _renameController = TextEditingController();
 
   @override
   void initState() {
@@ -107,8 +108,6 @@ class _FileExplorerState extends State<FileExplorer> {
     if (targetNode.type != NodeType.request) return false;
 
     if (_dropPosition == null || candidateData.isEmpty) return false;
-
-    print('node: ${targetNode.name} / ${targetNode.type}, candidateData: ${candidateData.map((e) => e?.name)}');
 
     final movedNode = candidateData.first;
     if (movedNode?.type != NodeType.request && targetNode.type == NodeType.request) return false;
@@ -193,7 +192,15 @@ class _FileExplorerState extends State<FileExplorer> {
                         }
                       },
                       onSecondaryTapDown: (details) {
-                        showNodeMenu(context, details, node);
+                        showNodeMenu(context, details, node, () {
+                          _renameController.text = node.name;
+                          _renameController.selection = TextSelection.fromPosition(
+                            TextPosition(offset: node.name.length),
+                          );
+                          setState(() {
+                            node.isRenaming = true;
+                          });
+                        });
                       },
                       child: Container(
                         height: itemHeight,
@@ -213,7 +220,35 @@ class _FileExplorerState extends State<FileExplorer> {
                               ),
                             if (!node.isDirectory) const Icon(Icons.insert_drive_file, color: fileIconColor, size: 16),
                             const SizedBox(width: 8),
-                            Text(node.name, style: itemTextStyle),
+                            if (node.isRenaming)
+                              Expanded(
+                                child: TextField(
+                                  controller: _renameController,
+                                  style: itemTextStyle,
+                                  autofocus: true,
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Color(0xFF474747), width: 1),
+                                    ),
+                                    fillColor: Color(0xFF2E2E2E),
+                                    filled: true,
+                                  ),
+                                  onSubmitted: (value) {
+                                    setState(() {
+                                      node.isRenaming = false;
+                                    });
+                                  },
+                                  onEditingComplete: () {
+                                    setState(() {
+                                      node.isRenaming = false;
+                                    });
+                                  },
+                                ),
+                              )
+                            else
+                              Text(node.name, style: itemTextStyle),
                           ],
                         ),
                       ),
