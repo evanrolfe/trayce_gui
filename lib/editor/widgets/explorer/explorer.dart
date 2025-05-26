@@ -31,11 +31,13 @@ class FileExplorer extends StatefulWidget {
 class _FileExplorerState extends State<FileExplorer> {
   ExplorerNode? _hoveredNode;
   ExplorerNode? _selectedNode;
+  ExplorerNode? _renamingNode;
   List<ExplorerNode> _files = [];
   late final StreamSubscription _displaySub;
   int? _dropPosition;
   int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
   late final FocusNode _focusNode;
+  late final FocusNode _renameFocusNode;
   final TextEditingController _renameController = TextEditingController();
 
   @override
@@ -51,11 +53,43 @@ class _FileExplorerState extends State<FileExplorer> {
 
     _focusNode = FocusNode();
     _focusNode.onKeyEvent = _onKeyUp;
+    _renameFocusNode = FocusNode();
+    _renameFocusNode.addListener(() {
+      if (!_renameFocusNode.hasFocus) _stopRenaming();
+    });
+
+    _renameFocusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.escape) _stopRenaming();
+      }
+      return KeyEventResult.ignored;
+    };
 
     final config = context.read<Config>();
     if (!config.isTest) {
       context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
+  }
+
+  void _startRenaming(ExplorerNode node) {
+    print('startRenaming, node: ${node.name}');
+    _renameFocusNode.requestFocus();
+    _renameController.text = node.name;
+    _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.name.length);
+    setState(() {
+      node.isRenaming = true;
+      _renamingNode = node;
+    });
+  }
+
+  void _stopRenaming() {
+    if (_renamingNode == null) return;
+    print('stopRenaming, node: ${_renamingNode!.name}');
+
+    setState(() {
+      _renamingNode!.isRenaming = false;
+      _renamingNode = null;
+    });
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
@@ -72,6 +106,7 @@ class _FileExplorerState extends State<FileExplorer> {
   void dispose() {
     _displaySub.cancel();
     _focusNode.dispose();
+    _renameFocusNode.dispose();
     super.dispose();
   }
 
@@ -193,13 +228,7 @@ class _FileExplorerState extends State<FileExplorer> {
                       },
                       onSecondaryTapDown: (details) {
                         showNodeMenu(context, details, node, () {
-                          _renameController.text = node.name;
-                          _renameController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: node.name.length),
-                          );
-                          setState(() {
-                            node.isRenaming = true;
-                          });
+                          _startRenaming(node);
                         });
                       },
                       child: Container(
@@ -224,6 +253,8 @@ class _FileExplorerState extends State<FileExplorer> {
                               Expanded(
                                 child: TextField(
                                   controller: _renameController,
+                                  focusNode: _renameFocusNode,
+                                  canRequestFocus: true,
                                   style: itemTextStyle,
                                   autofocus: true,
                                   decoration: const InputDecoration(
@@ -236,14 +267,10 @@ class _FileExplorerState extends State<FileExplorer> {
                                     filled: true,
                                   ),
                                   onSubmitted: (value) {
-                                    setState(() {
-                                      node.isRenaming = false;
-                                    });
+                                    _stopRenaming();
                                   },
                                   onEditingComplete: () {
-                                    setState(() {
-                                      node.isRenaming = false;
-                                    });
+                                    _stopRenaming();
                                   },
                                 ),
                               )
