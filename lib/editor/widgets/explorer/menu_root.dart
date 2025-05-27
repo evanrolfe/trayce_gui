@@ -6,6 +6,7 @@ void showRootMenu(
   double width,
   double itemHeight,
   VoidCallback onOpenCollection,
+  VoidCallback onNewCollection,
   VoidCallback onNewRequest,
   VoidCallback onRefresh,
 ) {
@@ -28,9 +29,7 @@ void showRootMenu(
       PopupMenuItem(
         height: 30,
         child: Text('New Collection', style: contextMenuTextStyle),
-        onTap: () {
-          print('TODO: Implement New Collection');
-        },
+        onTap: () => onNewCollection(),
       ),
       PopupMenuItem(height: 30, onTap: () => onRefresh(), child: Text('Refresh', style: contextMenuTextStyle)),
       PopupMenuItem(height: 30, onTap: onNewRequest, child: Text('New Request', style: contextMenuTextStyle)),

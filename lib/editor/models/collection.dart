@@ -6,6 +6,16 @@ import 'script.dart';
 import 'utils.dart';
 import 'variable.dart';
 
+const String collectionBrunoJson = '''{
+    "version": "1",
+    "name": "collection2",
+    "type": "collection",
+    "ignore": [
+        "node_modules",
+        ".git"
+    ]
+}''';
+
 class Collection {
   String type;
 
@@ -90,5 +100,23 @@ class Collection {
     }
 
     return bru;
+  }
+
+  static String getBrunoJson(String name) {
+    return '''{
+  "version": "1",
+  "name": "$name",
+  "type": "collection",
+  "ignore": [
+      "node_modules",
+      ".git"
+  ]
+}''';
+  }
+
+  static String getDefaultCollectionBru() {
+    return '''meta {
+  type: collection
+}''';
   }
 }

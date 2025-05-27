@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:path/path.dart' as path;
 import 'package:trayce/common/events.dart';
+import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 
 class EventDisplayExplorerItems {
@@ -33,6 +34,41 @@ class ExplorerRepo {
 
   ExplorerRepo({required EventBus eventBus}) : _eventBus = eventBus;
 
+  void createCollection(String collectionPath) async {
+    final collectionDir = Directory(collectionPath);
+    if (!collectionDir.existsSync()) {
+      print('collectionDir does not exist: $collectionPath');
+      _eventBus.fire(EventDisplayAlert('the collection path must exist'));
+      return;
+    }
+
+    final files = collectionDir.listSync();
+    if (files.isNotEmpty) {
+      print('collectionDir is not empty: $collectionPath');
+      _eventBus.fire(EventDisplayAlert('the collection path must be empty'));
+      return;
+    }
+
+    // Create the collection files (bruno.json and collection.bru)
+    final brunoJsonFile = File(path.join(collectionPath, 'bruno.json'));
+    final collectionFile = File(path.join(collectionPath, 'collection.bru'));
+    final collectionName = collectionDir.path.split(Platform.pathSeparator).last;
+
+    await brunoJsonFile.create();
+    await collectionFile.create();
+
+    await brunoJsonFile.writeAsString(Collection.getBrunoJson(collectionName));
+    await collectionFile.writeAsString(Collection.getDefaultCollectionBru());
+
+    // Add the new collection to the explorer
+    final collectionNode = _buildNode(collectionDir, 0);
+    _nodes.add(collectionNode);
+
+    _sortNodes(_nodes);
+    print('===========> eventbus fire');
+    _eventBus.fire(EventDisplayExplorerItems(_nodes));
+  }
+
   void openCollection(String path) {
     // Check if its already open
     if (_nodes.any((node) => node.dir?.path == path)) return;
@@ -49,6 +85,7 @@ class ExplorerRepo {
       return;
     }
 
+    // Add the collection to the explorer
     final collectionNode = _buildNode(collectionDir, 0);
     _nodes.add(collectionNode);
 

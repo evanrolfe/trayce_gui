@@ -124,6 +124,13 @@ class _FileExplorerState extends State<FileExplorer> {
     }
   }
 
+  Future<void> _handleNewCollection() async {
+    final path = await _getCollectionPath();
+    if (path != null && mounted) {
+      context.read<ExplorerRepo>().createCollection(path);
+    }
+  }
+
   Future<void> _handleNewRequest() async {
     context.read<EventBus>().fire(EventNewRequest());
   }
@@ -337,6 +344,7 @@ class _FileExplorerState extends State<FileExplorer> {
                               widget.width,
                               itemHeight,
                               _handleOpen,
+                              _handleNewCollection,
                               _handleNewRequest,
                               _handleRefresh,
                             ),

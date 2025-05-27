@@ -445,4 +445,27 @@ void main() {
       await deleteFolder(newFolderPath);
     });
   });
+
+  // TODO: Get this test working
+  // group('createCollection()', () {
+  //   test('creating a new collection', () async {
+  //     final newFolderPath = '$collection1Path-new';
+
+  //     final collectionDir = Directory(newFolderPath);
+  //     await collectionDir.create();
+
+  //     final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+
+  //     explorerRepo.createCollection(newFolderPath);
+  //     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+  //     final event = captured[0] as EventDisplayExplorerItems;
+
+  //     expect(event.nodes.length, 2);
+  //     // expect(node.name, 'collection1-test');
+  //     // expect(node.type, NodeType.collection);
+  //     // expect(event.nodes.length, 1);
+
+  //     await deleteFolder(newFolderPath);
+  //   });
+  // });
 }
