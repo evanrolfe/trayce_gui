@@ -92,6 +92,12 @@ class _FileExplorerState extends State<FileExplorer> {
     });
   }
 
+  void _renameNode(ExplorerNode node, String newName) {
+    _stopRenaming();
+
+    context.read<ExplorerRepo>().renameNode(node, newName);
+  }
+
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
@@ -267,10 +273,7 @@ class _FileExplorerState extends State<FileExplorer> {
                                     filled: true,
                                   ),
                                   onSubmitted: (value) {
-                                    _stopRenaming();
-                                  },
-                                  onEditingComplete: () {
-                                    _stopRenaming();
+                                    _renameNode(node, value);
                                   },
                                 ),
                               )

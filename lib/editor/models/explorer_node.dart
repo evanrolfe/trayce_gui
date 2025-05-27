@@ -9,9 +9,9 @@ import 'package:trayce/editor/models/request.dart';
 enum NodeType { collection, folder, request }
 
 class ExplorerNode {
-  final Directory? dir;
+  Directory? dir;
   File file;
-  final String name;
+  String name;
   final bool isDirectory;
   final List<ExplorerNode> children = [];
   final NodeType type;

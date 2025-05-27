@@ -58,6 +58,41 @@ class ExplorerRepo {
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
+  Future<void> renameNode(ExplorerNode node, String newName) async {
+    // Rename a collection/folder
+    if (node.type == NodeType.collection || node.type == NodeType.folder) {
+      final targetDir = node.dir!;
+      final targetPath = path.join(path.dirname(targetDir.path), newName);
+
+      await node.dir!.rename(targetPath);
+
+      node.dir = Directory(targetPath);
+      node.file = File(path.join(targetPath, 'collection.bru'));
+      node.name = newName;
+    }
+
+    // Rename a request
+    if (node.type == NodeType.request) {
+      final parentNode = _findParentNode(node);
+      if (parentNode == null) return;
+
+      final sourceFile = node.file;
+      final targetDir = parentNode.dir!;
+      final targetPath = path.join(targetDir.path, newName);
+
+      // Move the file
+      sourceFile.copySync(targetPath);
+      sourceFile.deleteSync();
+
+      // Update the movedNode's file
+      node.file = File(targetPath);
+      node.name = newName;
+      node.save();
+    }
+
+    refresh();
+  }
+
   // moveNode moves a node's file to the target node path and refreshes the explorer
   Future<void> moveNode(ExplorerNode movedNode, ExplorerNode targetNode) async {
     // Moving a folder

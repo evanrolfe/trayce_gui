@@ -1,12 +1,13 @@
-import 'dart:io';
-
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+
+import '../../support/helpers.dart';
 
 class MockEventBus extends Mock implements EventBus {}
 
@@ -353,35 +354,95 @@ void main() {
       await deleteFolder(newFolderPath);
     });
   });
-}
 
-Future<void> copyFolder(String sourcePath, String targetPath) async {
-  final sourceDir = Directory(sourcePath);
-  final targetDir = Directory(targetPath);
+  group('renameNode()', () {
+    test('renaming a collection', () async {
+      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
 
-  // Create target directory if it doesn't exist
-  if (!targetDir.existsSync()) {
-    targetDir.createSync(recursive: true);
-  }
+      final folderPath = collection1Path;
+      final newFolderPath = '$collection1Path-test';
+      await copyFolder(folderPath, newFolderPath);
 
-  // Copy all contents
-  await for (final entity in sourceDir.list(recursive: true)) {
-    final relativePath = entity.path.substring(sourcePath.length);
-    final targetEntityPath = '$targetPath$relativePath';
+      explorerRepo.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
 
-    if (entity is File) {
-      // Copy file
-      await entity.copy(targetEntityPath);
-    } else if (entity is Directory) {
-      // Create directory
-      Directory(targetEntityPath).createSync(recursive: true);
-    }
-  }
-}
+      // Node to rename:
+      final node = event.nodes[0];
+      expect(node.name, 'collection1-test');
+      expect(node.type, NodeType.collection);
+      expect(event.nodes.length, 1);
 
-Future<void> deleteFolder(String folderPath) async {
-  final directory = Directory(folderPath);
-  if (directory.existsSync()) {
-    await directory.delete(recursive: true);
-  }
+      await explorerRepo.renameNode(node, 'collection1-new');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[0] as EventDisplayExplorerItems;
+
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0];
+      expect(node2.name, 'collection1-new');
+      expect(node2.type, NodeType.collection);
+      expect(event2.nodes.length, 1);
+
+      final renamedPath = path.join(path.dirname(newFolderPath), 'collection1-new');
+      print('renamedPath: $renamedPath');
+      await deleteFolder(renamedPath);
+    });
+    test('renaming a folder', () async {
+      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+
+      final folderPath = collection1Path;
+      final newFolderPath = '$collection1Path-test';
+      await copyFolder(folderPath, newFolderPath);
+
+      explorerRepo.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      // Node to rename:
+      final node = event.nodes[0].children[1];
+      expect(node.name, 'myfolder');
+      expect(node.type, NodeType.folder);
+      expect(event.nodes[0].children.length, 3);
+
+      await explorerRepo.renameNode(node, 'newname');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[0] as EventDisplayExplorerItems;
+
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0].children[1];
+      expect(node2.name, 'newname');
+      expect(node.type, NodeType.folder);
+      expect(event2.nodes[0].children.length, 3);
+
+      await deleteFolder(newFolderPath);
+    });
+
+    test('renaming a request', () async {
+      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+
+      final folderPath = collection1Path;
+      final newFolderPath = '$collection1Path-test';
+      await copyFolder(folderPath, newFolderPath);
+
+      explorerRepo.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      // Node to rename:
+      final node = event.nodes[0].children[2];
+      expect(node.name, 'my-request.bru');
+      expect(node.type, NodeType.request);
+
+      await explorerRepo.renameNode(node, 'newname.bru');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[0] as EventDisplayExplorerItems;
+
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0].children[2];
+      expect(node2.name, 'newname.bru');
+      expect(node2.type, NodeType.request);
+
+      await deleteFolder(newFolderPath);
+    });
+  });
 }
