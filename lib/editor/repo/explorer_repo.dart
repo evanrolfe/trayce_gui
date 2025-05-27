@@ -19,6 +19,12 @@ class EventOpenExplorerNode {
   EventOpenExplorerNode(this.node);
 }
 
+class EventExplorerNodeRenamed {
+  final ExplorerNode node;
+
+  EventExplorerNodeRenamed(this.node);
+}
+
 class ExplorerRepo {
   final EventBus _eventBus;
   final filesToIgnore = ['folder.bru', 'collection.bru'];
@@ -88,6 +94,8 @@ class ExplorerRepo {
       node.file = File(targetPath);
       node.name = newName;
       node.save();
+
+      _eventBus.fire(EventExplorerNodeRenamed(node));
     }
 
     refresh();
@@ -187,7 +195,6 @@ class ExplorerRepo {
         parentNodeTarget.children.insert(targetIndex, movedNode);
 
         parentNodeMoved.updateChildrenSeq();
-        // parentNodeTarget.updateChildrenSeq();
 
         refresh();
       }

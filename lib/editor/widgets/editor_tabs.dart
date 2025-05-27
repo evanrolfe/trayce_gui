@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub2;
   late final StreamSubscription _tabsSub3;
   late final StreamSubscription _tabsSub4;
+  late final StreamSubscription _tabsSub5;
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
@@ -169,6 +171,15 @@ class _EditorTabsState extends State<EditorTabs> {
         _tabs[index].tab.isModified = false;
       });
     });
+
+    _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen((event) {
+      final tab = _tabs.firstWhereOrNull((entry) => entry.tab.node == event.node);
+      if (tab == null) return;
+
+      setState(() {
+        tab.tab.displayName = event.node.name;
+      });
+    });
   }
 
   Future<String?> _getPath() async {
@@ -198,6 +209,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub2.cancel();
     _tabsSub3.cancel();
     _tabsSub4.cancel();
+    _tabsSub5.cancel();
     super.dispose();
   }
 
