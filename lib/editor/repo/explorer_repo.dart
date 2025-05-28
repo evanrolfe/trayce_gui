@@ -65,7 +65,6 @@ class ExplorerRepo {
     _nodes.add(collectionNode);
 
     _sortNodes(_nodes);
-    print('===========> eventbus fire');
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
@@ -133,6 +132,38 @@ class ExplorerRepo {
       node.save();
 
       _eventBus.fire(EventExplorerNodeRenamed(node));
+    }
+
+    refresh();
+  }
+
+  Future<void> deleteNode(ExplorerNode node) async {
+    // Deleting a collection
+    if (node.type == NodeType.collection) {
+      if (node.dir == null) return;
+
+      await deleteDir(node.dir!);
+      _nodes.remove(node);
+    }
+
+    // Deleting a folder
+    if (node.type == NodeType.folder) {
+      final parentNode = _findParentNode(node);
+      if (parentNode == null || node.dir == null) return;
+
+      await deleteDir(node.dir!);
+      parentNode.children.remove(node);
+      parentNode.updateChildrenSeq();
+    }
+
+    // Deleting a request
+    if (node.type == NodeType.request) {
+      final parentNode = _findParentNode(node);
+      if (parentNode == null) return;
+
+      node.file.deleteSync();
+      parentNode.children.remove(node);
+      parentNode.updateChildrenSeq();
     }
 
     refresh();
@@ -476,4 +507,18 @@ Future<void> moveDirectory(Directory source, Directory destination) async {
 
   // Step 2: Delete the original directory (should be empty now)
   await source.delete();
+}
+
+Future<void> deleteDir(Directory dir) async {
+  if (!await dir.exists()) return;
+
+  await for (var entity in dir.list(recursive: false)) {
+    if (entity is Directory) {
+      await deleteDir(entity);
+    } else if (entity is File) {
+      await entity.delete();
+    }
+  }
+
+  await dir.delete();
 }

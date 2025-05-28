@@ -4,7 +4,13 @@ import 'package:trayce/common/context_menu_style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
-void showNodeMenu(BuildContext context, TapDownDetails details, ExplorerNode node, VoidCallback onRename) {
+void showNodeMenu(
+  BuildContext context,
+  TapDownDetails details,
+  ExplorerNode node,
+  Function(ExplorerNode) onRename,
+  Function(ExplorerNode) onDelete,
+) {
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
     context: context,
@@ -27,21 +33,8 @@ void showNodeMenu(BuildContext context, TapDownDetails details, ExplorerNode nod
           child: Text('Close Collection', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerRepo>().closeCollection(node),
         ),
-      PopupMenuItem(
-        height: 30,
-        child: Text('Rename', style: contextMenuTextStyle),
-        onTap: () {
-          onRename();
-        },
-      ),
-      PopupMenuItem(
-        height: 30,
-        child: Text('Delete', style: contextMenuTextStyle),
-        onTap: () {
-          // TODO: Implement delete functionality
-          print('Delete ${node.name}');
-        },
-      ),
+      PopupMenuItem(height: 30, child: Text('Rename', style: contextMenuTextStyle), onTap: () => onRename(node)),
+      PopupMenuItem(height: 30, child: Text('Delete', style: contextMenuTextStyle), onTap: () => onDelete(node)),
     ],
   );
 }

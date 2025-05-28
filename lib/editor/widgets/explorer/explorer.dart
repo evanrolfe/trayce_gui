@@ -98,6 +98,32 @@ class _FileExplorerState extends State<FileExplorer> {
     context.read<ExplorerRepo>().renameNode(node, newName);
   }
 
+  void _deleteNode(ExplorerNode node) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF252526),
+          title: const Text('Delete Item'),
+          content: Text(
+            'Are you sure you want to delete "${node.name}"?',
+            style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('No')),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<ExplorerRepo>().deleteNode(node);
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
@@ -240,9 +266,7 @@ class _FileExplorerState extends State<FileExplorer> {
                         }
                       },
                       onSecondaryTapDown: (details) {
-                        showNodeMenu(context, details, node, () {
-                          _startRenaming(node);
-                        });
+                        showNodeMenu(context, details, node, _startRenaming, _deleteNode);
                       },
                       child: Container(
                         height: itemHeight,
