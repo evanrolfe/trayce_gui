@@ -37,6 +37,10 @@ class _AppScaffoldState extends State<AppScaffold> {
     );
   }
 
+  static const _kFontFam = 'MyFlutterApp';
+  static const String? _kFontPkg = null;
+  static const IconData docker = IconData(0xf395, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,7 +56,7 @@ class _AppScaffoldState extends State<AppScaffold> {
                   child: MouseRegion(
                     onEnter: (_) => setState(() => isHovering0 = true),
                     onExit: (_) => setState(() => isHovering0 = false),
-                    child: _getSidebarItem(isHovering0, widget.selectedIndex == 0, Icons.format_list_numbered),
+                    child: _getSidebarItem(isHovering0, widget.selectedIndex == 0, docker),
                   ),
                 ),
                 Listener(

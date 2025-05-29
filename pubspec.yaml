@@ -78,3 +78,7 @@ flutter:
   uses-material-design: true
   assets:
     - schema.sql
+  fonts:
+   - family:  MyFlutterApp
+     fonts:
+      - asset: fonts/MyFlutterApp.ttf
