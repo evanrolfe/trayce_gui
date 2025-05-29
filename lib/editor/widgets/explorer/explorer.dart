@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/dialog.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
 import '../../models/explorer_node.dart';
@@ -17,6 +18,10 @@ const double itemHeight = 22;
 
 class EventNewRequest {
   EventNewRequest();
+}
+
+class EventCloseCurrentNode {
+  EventCloseCurrentNode();
 }
 
 class FileExplorer extends StatefulWidget {
@@ -99,28 +104,11 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   void _deleteNode(ExplorerNode node) {
-    showDialog(
+    showConfirmDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF252526),
-          title: const Text('Delete Item'),
-          content: Text(
-            'Are you sure you want to delete "${node.name}"?',
-            style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('No')),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.read<ExplorerRepo>().deleteNode(node);
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
-      },
+      title: 'Delete Item',
+      message: 'Are you sure you want to delete "${node.name}"?',
+      onAccept: () => context.read<ExplorerRepo>().deleteNode(node),
     );
   }
 
@@ -128,6 +116,10 @@ class _FileExplorerState extends State<FileExplorer> {
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
         context.read<EventBus>().fire(EventNewRequest());
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyW && HardwareKeyboard.instance.isControlPressed) {
+        context.read<EventBus>().fire(EventCloseCurrentNode());
         return KeyEventResult.handled;
       }
     }

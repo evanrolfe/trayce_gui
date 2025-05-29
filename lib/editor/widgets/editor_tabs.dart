@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/dialog.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -36,6 +37,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub3;
   late final StreamSubscription _tabsSub4;
   late final StreamSubscription _tabsSub5;
+  late final StreamSubscription _tabsSub6;
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
@@ -70,6 +72,7 @@ class _EditorTabsState extends State<EditorTabs> {
             // theres probably a better/cleaner way of doing this
             onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
             onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
+            onCloseCurrentTab: () => _closeCurrentTab(),
             editor: FlowEditor(
               key: ValueKey('editor_$uuid'),
               tabKey: newTab.key,
@@ -113,6 +116,7 @@ class _EditorTabsState extends State<EditorTabs> {
             tab: newTab,
             onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
             onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
+            onCloseCurrentTab: () => _closeCurrentTab(),
             editor: FlowEditor(
               key: ValueKey('editor_$uuid'),
               tabKey: tabKey,
@@ -172,6 +176,7 @@ class _EditorTabsState extends State<EditorTabs> {
       });
     });
 
+    // Called when a node is renamed from the explorer
     _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen((event) {
       final tab = _tabs.firstWhereOrNull((entry) => entry.tab.node == event.node);
       if (tab == null) return;
@@ -179,6 +184,11 @@ class _EditorTabsState extends State<EditorTabs> {
       setState(() {
         tab.tab.displayName = event.node.name;
       });
+    });
+
+    // Called when CTRL+W is pressed
+    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((event) {
+      _closeCurrentTab();
     });
   }
 
@@ -210,6 +220,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub3.cancel();
     _tabsSub4.cancel();
     _tabsSub5.cancel();
+    _tabsSub6.cancel();
     super.dispose();
   }
 
@@ -240,6 +251,21 @@ class _EditorTabsState extends State<EditorTabs> {
   }
 
   void _closeTab(int index) {
+    final tab = _tabs[index];
+
+    if (tab.tab.isModified) {
+      showConfirmDialog(
+        context: context,
+        title: 'Close tab',
+        message: 'Are you sure you want to close this tab"?',
+        onAccept: () => _closeTabNoConfirm(index),
+      );
+    } else {
+      _closeTabNoConfirm(index);
+    }
+  }
+
+  void _closeTabNoConfirm(int index) {
     setState(() {
       _tabs.removeAt(index);
       _hoveredCloseButtonIndex = null;
@@ -258,6 +284,10 @@ class _EditorTabsState extends State<EditorTabs> {
         }
       }
     });
+  }
+
+  void _closeCurrentTab() {
+    _closeTab(_selectedTabIndex);
   }
 
   @override
@@ -355,8 +385,14 @@ class _TabEntry {
   final FocusNode focusNode;
   final void Function() onSave;
   final void Function() onNewRequest;
-  _TabEntry({required this.tab, required this.editor, required this.onSave, required this.onNewRequest})
-    : focusNode = FocusNode() {
+  final void Function() onCloseCurrentTab;
+  _TabEntry({
+    required this.tab,
+    required this.editor,
+    required this.onSave,
+    required this.onNewRequest,
+    required this.onCloseCurrentTab,
+  }) : focusNode = FocusNode() {
     focusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
@@ -365,6 +401,10 @@ class _TabEntry {
         }
         if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
           onNewRequest();
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.keyW && HardwareKeyboard.instance.isControlPressed) {
+          onCloseCurrentTab();
           return KeyEventResult.handled;
         }
       }

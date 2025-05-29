@@ -136,6 +136,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
         context.read<EventBus>().fire(EventNewRequest());
         return KeyEventResult.handled;
       }
+      if (event.logicalKey == LogicalKeyboardKey.keyW && HardwareKeyboard.instance.isControlPressed) {
+        context.read<EventBus>().fire(EventCloseCurrentNode());
+        return KeyEventResult.handled;
+      }
     }
     return KeyEventResult.ignored;
   }
