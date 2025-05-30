@@ -6,7 +6,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.edit);
+  final networkTab = find.byKey(const Key('editor-sidebar-btn'));
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 

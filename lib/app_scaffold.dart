@@ -29,8 +29,9 @@ class _AppScaffoldState extends State<AppScaffold> {
     );
   }
 
-  Widget _getSidebarItem(bool isHovering, bool isSelected, IconData icon) {
+  Widget _getSidebarItem(Key key, bool isHovering, bool isSelected, IconData icon) {
     return Container(
+      key: key,
       padding: const EdgeInsets.all(16),
       decoration: _getSidebarItemDecoration(isSelected, isHovering),
       child: Icon(icon, color: textColor),
@@ -56,7 +57,7 @@ class _AppScaffoldState extends State<AppScaffold> {
                   child: MouseRegion(
                     onEnter: (_) => setState(() => isHovering0 = true),
                     onExit: (_) => setState(() => isHovering0 = false),
-                    child: _getSidebarItem(isHovering0, widget.selectedIndex == 0, docker),
+                    child: _getSidebarItem(Key('network-sidebar-btn'), isHovering0, widget.selectedIndex == 0, docker),
                   ),
                 ),
                 Listener(
@@ -64,7 +65,12 @@ class _AppScaffoldState extends State<AppScaffold> {
                   child: MouseRegion(
                     onEnter: (_) => setState(() => isHovering1 = true),
                     onExit: (_) => setState(() => isHovering1 = false),
-                    child: _getSidebarItem(isHovering1, widget.selectedIndex == 1, Icons.edit),
+                    child: _getSidebarItem(
+                      Key('editor-sidebar-btn'),
+                      isHovering1,
+                      widget.selectedIndex == 1,
+                      Icons.edit,
+                    ),
                   ),
                 ),
               ],

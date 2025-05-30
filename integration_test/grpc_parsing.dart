@@ -19,7 +19,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await protoDefRepo.upload('api.proto', protoPath);
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.format_list_numbered);
+  final networkTab = find.byKey(const Key('network-sidebar-btn'));
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 

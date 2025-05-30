@@ -12,7 +12,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.format_list_numbered);
+  final networkTab = find.byKey(const Key('network-sidebar-btn'));
   expect(networkTab, findsOneWidget); // Add verification that icon exists
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
