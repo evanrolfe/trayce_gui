@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,12 +75,15 @@ class FlowEditorHttp extends StatefulWidget {
 
 class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStateMixin {
   bool isDividerHovered = false;
+  bool _isSending = false;
   late TabController _bottomTabController;
   late TabController _topTabController;
   final CodeLineEditingController _urlController = CodeLineEditingController();
   final CodeLineEditingController _reqBodyController = CodeLineEditingController();
   final CodeLineEditingController _respBodyController = CodeLineEditingController();
   String _selectedMethod = 'GET';
+  String? _respStatusMsg;
+  List<Header> _respHeaders = [];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
@@ -188,6 +192,45 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     final newRequest = _getRequestFromForm();
     widget.request.copyValuesFrom(newRequest);
     context.read<EventBus>().fire(EventSaveRequest(newRequest, widget.tabKey));
+  }
+
+  Future<void> sendRequest() async {
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final formRequest = _getRequestFromForm();
+      final method = formRequest.method;
+      final url = formRequest.url;
+      final headers = formRequest.headers.map((h) => MapEntry(h.name, h.value)).toList();
+      final body = formRequest.body?.toString() ?? '';
+
+      // Make the request
+      final request =
+          http.Request(method, Uri.parse(url))
+            ..headers.addAll(Map.fromEntries(headers))
+            ..body = body;
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // Update response UI
+      setState(() {
+        _respStatusMsg = '${response.statusCode} ${response.reasonPhrase}';
+        _respBodyController.text = response.body;
+        _respHeaders = response.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
+      });
+    } catch (e) {
+      setState(() {
+        _respStatusMsg = 'Error';
+        _respBodyController.text = e.toString();
+        _respHeaders = [];
+      });
+    } finally {
+      setState(() {
+        _isSending = false;
+      });
+    }
   }
 
   @override
@@ -308,7 +351,21 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton(onPressed: () {}, style: commonButtonStyle, child: const Text('Send')),
+                        ElevatedButton(
+                          onPressed: sendRequest,
+                          style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
+                          child:
+                              _isSending
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                  : const Text('Send'),
+                        ),
                       ],
                     ),
                   ),
@@ -459,16 +516,20 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               ),
                                             ),
                                             const SizedBox(width: 12),
-                                            Container(
-                                              height: 20,
-                                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green,
-                                                borderRadius: BorderRadius.circular(4),
+                                            if (_respStatusMsg != null)
+                                              Container(
+                                                height: 20,
+                                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  _respStatusMsg!,
+                                                  style: const TextStyle(color: Colors.white),
+                                                ),
                                               ),
-                                              alignment: Alignment.center,
-                                              child: const Text('200 OK', style: TextStyle(color: Colors.white)),
-                                            ),
                                             const SizedBox(width: 20),
                                           ],
                                         ),
@@ -478,7 +539,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           controller: _bottomTabController,
                                           children: [
                                             MultiLineCodeEditor(controller: _respBodyController, keyCallback: _onKeyUp),
-                                            Padding(padding: const EdgeInsets.all(20.0), child: HeadersTableReadOnly()),
+                                            SingleChildScrollView(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(20.0),
+                                                child: HeadersTableReadOnly(headers: _respHeaders),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
