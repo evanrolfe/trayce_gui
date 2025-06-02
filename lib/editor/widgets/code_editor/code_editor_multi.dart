@@ -54,12 +54,12 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
       child: CodeEditor(
         controller: widget.controller,
         focusNode: _focusNode,
-        scrollController: CodeScrollController(
-          verticalScroller:
-              widget.verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
-          horizontalScroller:
-              widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
-        ),
+        // scrollController: CodeScrollController(
+        //   verticalScroller:
+        //       widget.verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
+        //   horizontalScroller:
+        //       widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
+        // ),
         border: widget.border ?? Border.all(width: 0.0),
         style: CodeEditorStyle(
           fontFamily: "monospace",
@@ -74,9 +74,9 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
         scrollbarBuilder: (context, child, details) {
           return Scrollbar(
             controller: details.controller,
-            thumbVisibility: false,
-            trackVisibility: false,
-            thickness: 0,
+            thumbVisibility: true,
+            trackVisibility: true,
+            thickness: 6,
             child: child,
           );
         },

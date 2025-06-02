@@ -4,6 +4,7 @@ import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/dart.dart';
 import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
+import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 
 class SingleLineCodeEditor extends StatefulWidget {
   final CodeLineEditingController controller;
@@ -99,6 +100,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
               child: child,
             );
           },
+          toolbarController: const ContextMenuControllerImpl(),
         ),
       ),
     );
