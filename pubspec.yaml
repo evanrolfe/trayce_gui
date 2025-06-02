@@ -59,6 +59,8 @@ dependencies:
 
 dev_dependencies:
   mocktail: ^1.0.0
+  shelf: ^1.4.1
+  shelf_test_handler: ^2.0.2
   flutter_test:
     sdk: flutter
   integration_test:

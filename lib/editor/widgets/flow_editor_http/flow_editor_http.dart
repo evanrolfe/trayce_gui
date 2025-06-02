@@ -352,6 +352,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton(
+                          key: const Key('flow_editor_http_send_btn'),
                           onPressed: sendRequest,
                           style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
                           child:

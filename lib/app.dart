@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/app_scaffold.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/common/error_widget.dart';
 import 'package:trayce/common/events.dart';
@@ -111,9 +112,11 @@ class _AppState extends State<App> with WindowListener {
     }
   }
 
+  // _setupErrorHandling catches errors and shows a custom error modal. it is disabled during tests
+  // so that it doesn't swallow errors and prevent of from seeing whats failing
   void _setupErrorHandling() {
-    // Store the original error handler
-    // final originalErrorHandler = FlutterError.onError;
+    final config = context.read<Config>();
+    if (config.isTest) return;
 
     FlutterError.onError = (FlutterErrorDetails details) {
       // originalErrorHandler?.call(details);
@@ -198,9 +201,13 @@ class _AppState extends State<App> with WindowListener {
       debugShowCheckedModeBanner: false,
       theme: appTheme,
       builder: (context, child) {
+        // Only set custom error widget builder when not in test mode
+        if (context.read<Config>().isTest) return child!;
+
         ErrorWidget.builder = (FlutterErrorDetails details) {
           return CustomErrorWidget(errorMessage: details.exception.toString(), onClose: _clearError);
         };
+
         return child!;
       },
       home: Builder(
