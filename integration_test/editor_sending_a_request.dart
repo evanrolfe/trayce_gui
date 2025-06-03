@@ -9,6 +9,12 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
 
+const jsonResponse = '{"message":"Hello, World!","status":200}';
+const expectedFormattedJson = '''{
+  "message": "Hello, World!",
+  "status": 200
+}''';
+
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
@@ -37,7 +43,7 @@ Future<void> test(WidgetTester tester, Database db) async {
     sentRequest = request;
     sentRequestBody = await sentRequest!.readAsString();
 
-    return shelf.Response.ok('{"message": "Hello, World!"}', headers: {"content-type": "application/json"});
+    return shelf.Response.ok(jsonResponse, headers: {"content-type": "application/json"});
   });
 
   // ===========================================================================
@@ -50,7 +56,7 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Select POST method
   final methodDropdown = find.byType(DropdownButton2<String>);
-  await tester.tap(methodDropdown);
+  await tester.tap(methodDropdown.first);
   await tester.pumpAndSettle();
   await tester.tap(find.text('POST'));
   await tester.pumpAndSettle();
@@ -89,6 +95,23 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.headers['X-Auth-Token'], '1234abcd');
   expect(sentRequest!.headers['Content-Type'], 'application/json; charset=utf-8');
   expect(sentRequestBody, 'helloworld');
+
+  final responseEditor = tester.widget<MultiLineCodeEditor>(find.byType(MultiLineCodeEditor).last);
+  expect(responseEditor.controller.text, expectedFormattedJson);
+
+  // Assert that the formatting is "JSON"
+  final formatDropdown = find.byType(DropdownButton2<String>).last;
+  expect(tester.widget<DropdownButton2<String>>(formatDropdown).value, 'JSON');
+
+  // ===========================================================================
+  // Change formatting to "Unformatted"
+  // ===========================================================================
+  await tester.tap(formatDropdown.first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Unformatted'));
+  await tester.pumpAndSettle();
+
+  expect(responseEditor.controller.text, jsonResponse);
 
   await server.close();
 }

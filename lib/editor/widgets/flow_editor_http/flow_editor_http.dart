@@ -205,19 +205,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     });
 
     try {
-      final formRequest = _getRequestFromForm();
-      final method = formRequest.method;
-      final url = formRequest.url;
-      final headers = formRequest.headers.map((h) => MapEntry(h.name, h.value)).toList();
-      final body = formRequest.body?.toString() ?? '';
-
-      // Make the request
-      final request =
-          http.Request(method, Uri.parse(url))
-            ..headers.addAll(Map.fromEntries(headers))
-            ..body = body;
-      final streamedResponse = await request.send();
-      _response = await http.Response.fromStream(streamedResponse);
+      final req = _getRequestFromForm();
+      _response = await req.send();
 
       // Set the selected format
       final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';

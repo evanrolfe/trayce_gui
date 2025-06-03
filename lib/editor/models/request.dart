@@ -1,3 +1,5 @@
+import 'package:http/http.dart' as http;
+
 import 'assertion.dart';
 import 'auth.dart';
 import 'body.dart';
@@ -208,6 +210,21 @@ class Request {
     // if (script != null && !script!.equals(other.script!)) return false;
 
     return true;
+  }
+
+  Future<http.Response> send() async {
+    final request = http.Request(method, Uri.parse(url));
+
+    request.headers.addAll(Map.fromEntries(headers.map((h) => MapEntry(h.name, h.value))));
+
+    if (body != null) {
+      request.body = body!.toString();
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return response;
   }
 
   void copyValuesFrom(Request request) {
