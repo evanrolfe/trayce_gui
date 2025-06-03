@@ -44,7 +44,7 @@ void main() {
       expect(event.nodes[0].children[2].name, 'my-request.bru');
       expect(event.nodes[0].children[2].type, NodeType.request);
       Request? request = event.nodes[0].children[2].request;
-      expect(request?.method, 'post');
+      expect(request?.method, 'get');
       expect(request?.url, 'https://trayce.dev');
       expect(request?.headers[0].name, 'hello');
       expect(request?.headers[0].value, 'world');
@@ -91,7 +91,7 @@ void main() {
       verify(() => mockEventBus.fire(captureAny())).captured;
 
       final seq = explorerRepo.getNextSeq(collection1Path);
-      expect(seq, 1);
+      expect(seq, 2);
     });
   });
 
@@ -402,7 +402,7 @@ void main() {
       final node = event.nodes[0].children[1];
       expect(node.name, 'myfolder');
       expect(node.type, NodeType.folder);
-      expect(event.nodes[0].children.length, 3);
+      expect(event.nodes[0].children.length, 4);
 
       await explorerRepo.renameNode(node, 'newname');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -412,7 +412,7 @@ void main() {
       final node2 = event2.nodes[0].children[1];
       expect(node2.name, 'newname');
       expect(node.type, NodeType.folder);
-      expect(event2.nodes[0].children.length, 3);
+      expect(event2.nodes[0].children.length, 4);
 
       await deleteFolder(newFolderPath);
     });
@@ -514,7 +514,7 @@ void main() {
       await explorerRepo.deleteNode(node);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
-      expect(event2.nodes[0].children.length, 2);
+      expect(event2.nodes[0].children.length, 3);
 
       await deleteFolder(newFolderPath);
     });

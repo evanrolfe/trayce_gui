@@ -16,6 +16,7 @@ import 'package:trayce/editor/widgets/common/headers_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/utils/parsing.dart';
 
 import '../../../common/dropdown_style.dart';
 import '../../../common/style.dart';
@@ -84,7 +85,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   String _selectedMethod = 'GET';
   String? _respStatusMsg;
   List<Header> _respHeaders = [];
+  String _selectedFormat = 'Unformatted';
+  static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+
+  http.Response? _response;
 
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
   late final HeadersStateManager _headersController;
@@ -212,18 +217,25 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
             ..headers.addAll(Map.fromEntries(headers))
             ..body = body;
       final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      _response = await http.Response.fromStream(streamedResponse);
 
-      // Update response UI
-      setState(() {
-        _respStatusMsg = '${response.statusCode} ${response.reasonPhrase}';
-        _respBodyController.text = response.body;
-        _respHeaders = response.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
-      });
+      // Set the selected format
+      final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';
+      if (contentType.contains('json')) {
+        _selectedFormat = 'JSON';
+      } else if (contentType.contains('html') || contentType.contains('xml')) {
+        _selectedFormat = 'HTML';
+      } else {
+        _selectedFormat = 'Unformatted';
+      }
+
+      // Display the response
+      displayResponse();
     } catch (e) {
+      _response = null;
       setState(() {
         _respStatusMsg = 'Error';
-        _respBodyController.text = e.toString();
+        _respBodyController.text = 'Error: $e';
         _respHeaders = [];
       });
     } finally {
@@ -231,6 +243,24 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
         _isSending = false;
       });
     }
+  }
+
+  void displayResponse() {
+    if (_response == null) return;
+
+    setState(() {
+      _respStatusMsg = '${_response!.statusCode} ${_response!.reasonPhrase}';
+      _respHeaders = _response!.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
+
+      // Format the response body based on the selected format
+      if (_selectedFormat == 'JSON') {
+        _respBodyController.text = formatJson(_response!.body);
+      } else if (_selectedFormat == 'HTML') {
+        _respBodyController.text = formatHTML(_response!.body);
+      } else {
+        _respBodyController.text = _response!.body;
+      }
+    });
   }
 
   @override
@@ -517,7 +547,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               ),
                                             ),
                                             const SizedBox(width: 12),
-                                            if (_respStatusMsg != null)
+                                            if (_respStatusMsg != null) ...[
                                               Container(
                                                 height: 20,
                                                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -531,6 +561,49 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   style: const TextStyle(color: Colors.white),
                                                 ),
                                               ),
+                                              const SizedBox(width: 12),
+                                              Container(
+                                                width: 120,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(color: const Color(0xFF474747), width: 1),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: DropdownButton2<String>(
+                                                  value: _selectedFormat,
+                                                  underline: Container(),
+                                                  dropdownStyleData: DropdownStyleData(
+                                                    decoration: dropdownDecoration,
+                                                    width: 120,
+                                                  ),
+                                                  buttonStyleData: ButtonStyleData(
+                                                    padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                                  ),
+                                                  menuItemStyleData: menuItemStyleData,
+                                                  iconStyleData: iconStyleData,
+                                                  style: textFieldStyle,
+                                                  isExpanded: true,
+                                                  items:
+                                                      _formatOptions.map((String format) {
+                                                        return DropdownMenuItem<String>(
+                                                          value: format,
+                                                          child: Padding(
+                                                            padding: EdgeInsets.symmetric(horizontal: 8),
+                                                            child: Text(format),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                  onChanged: (String? newValue) {
+                                                    if (newValue != null) {
+                                                      setState(() {
+                                                        _selectedFormat = newValue;
+                                                      });
+                                                      displayResponse();
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                            ],
                                             const SizedBox(width: 20),
                                           ],
                                         ),
