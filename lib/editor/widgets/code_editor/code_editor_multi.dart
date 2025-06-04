@@ -13,6 +13,7 @@ class MultiLineCodeEditor extends StatefulWidget {
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
   final Border? border;
   final KeyCallback? keyCallback;
+  final VoidCallback? onFocusChange;
 
   const MultiLineCodeEditor({
     super.key,
@@ -22,6 +23,7 @@ class MultiLineCodeEditor extends StatefulWidget {
     this.shortcutOverrideActions,
     this.border,
     this.keyCallback,
+    this.onFocusChange,
   });
 
   @override
@@ -36,6 +38,9 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
     super.initState();
     _focusNode = FocusNode();
     _focusNode.onKeyEvent = widget.keyCallback;
+    _focusNode.addListener(() {
+      widget.onFocusChange?.call();
+    });
   }
 
   @override

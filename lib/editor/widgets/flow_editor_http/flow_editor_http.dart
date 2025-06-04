@@ -96,6 +96,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   late final FocusNode focusNode;
   late final FocusNode dropdownFocusNode;
   late final FocusNode _topTabFocusNode;
+  late final FocusNode _urlFocusNode;
 
   @override
   void initState() {
@@ -123,10 +124,42 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     focusNode = FocusNode();
     dropdownFocusNode = FocusNode();
     _topTabFocusNode = FocusNode();
+    _urlFocusNode = FocusNode();
 
     focusNode.onKeyEvent = _onKeyUp;
     dropdownFocusNode.onKeyEvent = _onKeyUp;
     _topTabFocusNode.onKeyEvent = _onKeyUp;
+    _urlFocusNode.onKeyEvent = _onKeyUp;
+
+    // Listen for selection changes
+    context.read<EventBus>().on<EditorSelectionChanged>().listen((event) {
+      // Clear URL input selection if it's not the focused editor and has a selection
+      if (event.controller != _urlController &&
+          _urlController.selection.baseOffset != _urlController.selection.extentOffset) {
+        _urlController.selection = CodeLineSelection.collapsed(
+          index: _urlController.selection.baseIndex,
+          offset: _urlController.selection.baseOffset,
+        );
+      }
+      // Clear request body input selection if it's not the focused editor and has a selection
+      if (event.controller != _reqBodyController &&
+          _reqBodyController.selection.baseOffset != _reqBodyController.selection.extentOffset) {
+        _reqBodyController.selection = CodeLineSelection.collapsed(
+          index: _reqBodyController.selection.baseIndex,
+          offset: _reqBodyController.selection.baseOffset,
+        );
+      }
+      // Clear response body input selection if it's not the focused editor and has a selection
+      if (event.controller != _respBodyController &&
+          _respBodyController.selection.baseOffset != _respBodyController.selection.extentOffset) {
+        _respBodyController.selection = CodeLineSelection.collapsed(
+          index: _respBodyController.selection.baseIndex,
+          offset: _respBodyController.selection.baseOffset,
+        );
+      }
+      // Clear all header selections
+      _headersController.clearAllSelections();
+    });
 
     context.read<EventBus>().on<EventSaveIntent>().listen((event) {
       if (event.tabKey == widget.tabKey) {
@@ -274,6 +307,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     focusNode.dispose();
     dropdownFocusNode.dispose();
     _topTabFocusNode.dispose();
+    _urlFocusNode.dispose();
     super.dispose();
   }
 
@@ -363,6 +397,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             key: const Key('flow_editor_http_url_input'),
                             controller: _urlController,
                             keyCallback: _onKeyUp,
+                            focusNode: _urlFocusNode,
+                            onFocusChange: () {
+                              context.read<EventBus>().fire(EditorSelectionChanged(_urlController));
+                            },
                             decoration: BoxDecoration(
                               border: Border.all(color: const Color(0xFF474747), width: 0),
                               color: const Color(0xFF2E2E2E),
@@ -475,6 +513,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               MultiLineCodeEditor(
                                                 controller: _reqBodyController,
                                                 keyCallback: _onKeyUp,
+                                                onFocusChange: () {
+                                                  context.read<EventBus>().fire(
+                                                    EditorSelectionChanged(_reqBodyController),
+                                                  );
+                                                },
                                               ),
                                             ],
                                           ),
@@ -601,7 +644,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                         child: TabBarView(
                                           controller: _bottomTabController,
                                           children: [
-                                            MultiLineCodeEditor(controller: _respBodyController, keyCallback: _onKeyUp),
+                                            MultiLineCodeEditor(
+                                              controller: _respBodyController,
+                                              keyCallback: _onKeyUp,
+                                              onFocusChange: () {
+                                                context.read<EventBus>().fire(
+                                                  EditorSelectionChanged(_respBodyController),
+                                                );
+                                              },
+                                            ),
                                             SingleChildScrollView(
                                               child: Padding(
                                                 padding: const EdgeInsets.all(20.0),

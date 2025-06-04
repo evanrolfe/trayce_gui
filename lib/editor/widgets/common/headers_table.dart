@@ -1,5 +1,8 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
@@ -41,6 +44,9 @@ class HeadersTable extends StatelessWidget {
                     onTabPressed: () => stateManager.handleTabPress(index, true),
                     focusNode: row.keyFocusNode,
                     keyCallback: keyCallback,
+                    onFocusChange: () {
+                      context.read<EventBus>().fire(EditorSelectionChanged(row.keyController));
+                    },
                   ),
                 ),
               ),
@@ -53,6 +59,9 @@ class HeadersTable extends StatelessWidget {
                     onTabPressed: () => stateManager.handleTabPress(index, false),
                     focusNode: row.valueFocusNode,
                     keyCallback: keyCallback,
+                    onFocusChange: () {
+                      context.read<EventBus>().fire(EditorSelectionChanged(row.valueController));
+                    },
                   ),
                 ),
               ),
@@ -83,8 +92,16 @@ class HeadersStateManager {
   late final List<HeaderRow> _rows;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
+  final CodeLineEditingController? urlController;
+  final CodeLineEditingController? bodyController;
 
-  HeadersStateManager({required this.onStateChanged, List<Header>? initialRows, this.onModified}) {
+  HeadersStateManager({
+    required this.onStateChanged,
+    List<Header>? initialRows,
+    this.onModified,
+    this.urlController,
+    this.bodyController,
+  }) {
     if (initialRows != null) {
       _rows = _convertHeadersToRows(initialRows);
     } else {
@@ -95,6 +112,46 @@ class HeadersStateManager {
   }
 
   List<HeaderRow> get rows => _rows;
+
+  void clearAllSelections() {
+    for (var row in _rows) {
+      row.keyController.selection = CodeLineSelection.collapsed(
+        index: row.keyController.selection.baseIndex,
+        offset: row.keyController.selection.baseOffset,
+      );
+      row.valueController.selection = CodeLineSelection.collapsed(
+        index: row.valueController.selection.baseIndex,
+        offset: row.valueController.selection.baseOffset,
+      );
+    }
+  }
+
+  void _clearOtherSelections(HeaderRow focusedRow, bool isKey) {
+    // Clear URL input selection if it exists
+    if (urlController != null) {
+      urlController!.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+    }
+
+    // Clear body input selection if it exists
+    if (bodyController != null) {
+      bodyController!.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+    }
+
+    for (var row in _rows) {
+      if (row != focusedRow) {
+        // Clear selections in other rows
+        row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+        row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+      } else {
+        // Clear selection in the other editor of the same row
+        if (isKey) {
+          row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+        } else {
+          row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+        }
+      }
+    }
+  }
 
   List<Header> getHeaders() {
     return _rows.where((row) => !row.isEmpty()).map((row) {
@@ -116,13 +173,27 @@ class HeadersStateManager {
       _setupControllerListener(keyController, index, true);
       _setupControllerListener(valueController, index, false);
 
-      return HeaderRow(
+      final row = HeaderRow(
         keyController: keyController,
         valueController: valueController,
         keyFocusNode: FocusNode(),
         valueFocusNode: FocusNode(),
         checkboxState: header.enabled,
       );
+
+      row.keyFocusNode.addListener(() {
+        if (row.keyFocusNode.hasFocus) {
+          _clearOtherSelections(row, true);
+        }
+      });
+
+      row.valueFocusNode.addListener(() {
+        if (row.valueFocusNode.hasFocus) {
+          _clearOtherSelections(row, false);
+        }
+      });
+
+      return row;
     }).toList();
   }
 
@@ -163,6 +234,19 @@ class HeadersStateManager {
       keyFocusNode: FocusNode(),
       valueFocusNode: FocusNode(),
     );
+
+    row.keyFocusNode.addListener(() {
+      if (row.keyFocusNode.hasFocus) {
+        _clearOtherSelections(row, true);
+      }
+    });
+
+    row.valueFocusNode.addListener(() {
+      if (row.valueFocusNode.hasFocus) {
+        _clearOtherSelections(row, false);
+      }
+    });
+
     _rows.add(row);
 
     final index = _rows.length - 1;

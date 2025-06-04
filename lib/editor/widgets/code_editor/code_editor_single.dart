@@ -15,6 +15,7 @@ class SingleLineCodeEditor extends StatefulWidget {
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
   final KeyCallback? keyCallback;
+  final VoidCallback? onFocusChange;
 
   const SingleLineCodeEditor({
     super.key,
@@ -26,6 +27,7 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.focusNode,
     this.decoration,
     this.keyCallback,
+    this.onFocusChange,
   });
 
   @override
@@ -61,6 +63,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
         }
         return KeyEventResult.ignored;
       };
+      widget.onFocusChange?.call();
     }
   }
 
