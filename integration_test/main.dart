@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/main.dart' as app;
 
@@ -12,9 +14,13 @@ import 'editor_saving_request.dart' as editor_saving_request;
 import 'editor_sending_a_request.dart' as editor_sending_a_request;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
+import 'license_key_test.dart' as license_key_test;
 import 'proto_def_modal.dart' as proto_def_modal_test;
 // NOTE: This is how we have to run integration tests (as opposed to letting flutter test run multiple tests)
 // because of this open issue: https://github.com/flutter/flutter/issues/135673
+
+const licenseKey = 'ce8d3bb0-40f4-4d68-84c2-1388e5263051';
+const licenseKeyInvalid = '6f95fe90-cdfc-4054-9515-84bba62f7f1d';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -27,8 +33,17 @@ void main() {
       screenshotsDir.createSync();
     }
 
+    // Start the mock trayce API server
+    final trayceApi = await ShelfTestServer.create();
+    trayceApi.handler.expect("GET", "/verify/$licenseKey", (request) async {
+      return shelf.Response.ok('{"status": "active"}', headers: {"content-type": "application/json"});
+    });
+    trayceApi.handler.expect("GET", "/verify/$licenseKeyInvalid", (request) async {
+      return shelf.Response.ok('{"status": "inactive"}', headers: {"content-type": "application/json"});
+    });
+
     // Start the real app once for all tests
-    app.main(['--test']);
+    app.main(['--test', '--trayce-api-url', trayceApi.url.toString()]);
 
     // Add a longer initial pump and settle to ensure app is fully loaded
     await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -47,6 +62,7 @@ void main() {
       {'func': editor_saving_request.test},
       {'func': editor_sending_a_request.test},
       // {'func': editor_multiple_collections_test.test},
+      {'func': license_key_test.test},
     ];
 
     bool isFocused = tests.any((test) => test.containsKey('f'));

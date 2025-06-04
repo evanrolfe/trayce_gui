@@ -8,6 +8,11 @@ const Color sidebarColor = Color(0xFF333333);
 const Color borderColor = Color(0xFF474747);
 const Color lightButtonColor = Color(0xFF2C2C2C);
 
+const Color highlightBorderColor = Color(0xFF4DB6AC);
+const Color statusBarBackground = Color(0xFF333333);
+const Color statusBarText = Color(0xFFD4D4D4);
+const Color statusBarHoverBackground = Color.fromARGB(255, 71, 71, 71);
+
 final commonButtonStyle = ElevatedButton.styleFrom(
   backgroundColor: Color(0xFF4DB6AC),
   padding: EdgeInsets.symmetric(horizontal: 16),
