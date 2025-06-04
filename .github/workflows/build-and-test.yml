@@ -99,7 +99,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.27.1
+          flutter-version: 3.29.3
 
       - name: Build
         run: make build-mac
