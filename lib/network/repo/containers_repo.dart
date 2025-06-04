@@ -7,7 +7,7 @@ import 'package:trayce/agent/server.dart';
 import 'package:trayce/network/models/license_key.dart';
 
 class EventDisplayContainers {
-  static const minVersion = '1.0.2';
+  static const minVersion = '1.0.5';
 
   final String? agentVersion;
   final List<Container> containers;
