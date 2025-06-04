@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:trayce/agent/server.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/network/models/license_key.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 
 Future<void> showSettingsModal(BuildContext context) {
-  return showDialog(
-    context: context,
-    builder: (dialogContext) => const SettingsModal(),
-  );
+  return showDialog(context: context, builder: (dialogContext) => const SettingsModal());
 }
 
 class SettingsModal extends StatefulWidget {
@@ -33,10 +32,7 @@ class _SettingsModalState extends State<SettingsModal> {
   void initState() {
     super.initState();
 
-    final repo = context.read<ContainersRepo>();
-
-    _licenseController = TextEditingController(text: repo.licenseKey);
-
+    _licenseController = TextEditingController();
     // Subscribe to verification events
     _verificationSubscription = context.read<EventBus>().on<EventAgentVerified>().listen((event) {
       setState(() {
@@ -44,6 +40,15 @@ class _SettingsModalState extends State<SettingsModal> {
         _isVerified = event.valid;
       });
     });
+
+    _loadLicenseKey();
+  }
+
+  Future<void> _loadLicenseKey() async {
+    final licenseKey = await context.read<ContainersRepo>().getLicenseKey();
+    if (licenseKey != null) {
+      _licenseController.text = licenseKey.key;
+    }
   }
 
   @override
@@ -53,11 +58,29 @@ class _SettingsModalState extends State<SettingsModal> {
     super.dispose();
   }
 
-  Future<bool> _verifyLicense(String licenseKey) async {
+  void _verifyLicense() async {
+    final key = _licenseController.text.trim();
+    if (key.isEmpty) return;
+
+    setState(() => _isVerifying = true);
+
+    final isValid = await _isLicenseValid(key);
+
+    setState(() {
+      _isVerifying = false;
+      _isVerified = isValid;
+    });
+
+    if (!mounted) return;
+    context.read<ContainersRepo>().setLicenseKey(LicenseKey(key, isValid));
+  }
+
+  Future<bool> _isLicenseValid(String licenseKey) async {
+    final trayceApiUrl = context.read<Config>().trayceApiUrl;
+    final url = '$trayceApiUrl/verify/$licenseKey';
+
     try {
-      final response = await http.get(
-        Uri.parse('https://get.trayce.dev/verify/$licenseKey'),
-      );
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -74,9 +97,7 @@ class _SettingsModalState extends State<SettingsModal> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: const Color(0xFF252526),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       child: Container(
         width: 400,
         padding: const EdgeInsets.all(16),
@@ -89,19 +110,11 @@ class _SettingsModalState extends State<SettingsModal> {
               children: [
                 const Text(
                   'Settings',
-                  style: TextStyle(
-                    color: Color(0xFFD4D4D4),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(
-                    Icons.close,
-                    color: Color(0xFFD4D4D4),
-                    size: 20,
-                  ),
+                  icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   splashRadius: 16,
@@ -109,13 +122,7 @@ class _SettingsModalState extends State<SettingsModal> {
               ],
             ),
             const SizedBox(height: 24),
-            const Text(
-              'License Key',
-              style: TextStyle(
-                color: Color(0xFFD4D4D4),
-                fontSize: 14,
-              ),
-            ),
+            const Text('License Key', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -129,34 +136,19 @@ class _SettingsModalState extends State<SettingsModal> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: _isVerifying
-                      ? null
-                      : () async {
-                          final licenseKey = _licenseController.text.trim();
-                          if (licenseKey.isNotEmpty) {
-                            setState(() => _isVerifying = true);
-
-                            final isValid = await _verifyLicense(licenseKey);
-
-                            setState(() {
-                              _isVerifying = false;
-                              _isVerified = isValid;
-                            });
-
-                            context.read<ContainersRepo>().setLicenseKey(licenseKey);
-                          }
-                        },
+                  onPressed: _verifyLicense,
                   style: commonButtonStyle,
-                  child: _isVerifying
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text('Verify'),
+                  child:
+                      _isVerifying
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                          : const Text('Verify'),
                 ),
               ],
             ),
@@ -164,10 +156,7 @@ class _SettingsModalState extends State<SettingsModal> {
               const SizedBox(height: 8),
               Text(
                 _isVerified! ? 'License key is valid' : 'License key is invalid',
-                style: TextStyle(
-                  color: _isVerified! ? Colors.green : Colors.red,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: _isVerified! ? Colors.green : Colors.red, fontSize: 12),
               ),
             ],
             const SizedBox(height: 24),
@@ -176,20 +165,10 @@ class _SettingsModalState extends State<SettingsModal> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    final licenseKey = _licenseController.text.trim();
-                    if (licenseKey.isNotEmpty) {
-                      final isValid = await _verifyLicense(licenseKey);
-
-                      setState(() {
-                        _isVerified = isValid;
-                      });
-
-                      context.read<ContainersRepo>().setLicenseKey(licenseKey);
-                      Navigator.of(context).pop();
-                    }
+                    Navigator.of(context).pop();
                   },
                   style: commonButtonStyle,
-                  child: const Text('Save'),
+                  child: const Text('Close'),
                 ),
               ],
             ),

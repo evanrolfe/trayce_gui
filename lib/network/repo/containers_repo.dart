@@ -4,9 +4,10 @@ import 'package:event_bus/event_bus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/agent/gen/api.pb.dart';
 import 'package:trayce/agent/server.dart';
+import 'package:trayce/network/models/license_key.dart';
 
 class EventDisplayContainers {
-  static const minVersion = '1.0.2';
+  static const minVersion = '1.0.5';
 
   final String? agentVersion;
   final List<Container> containers;
@@ -45,6 +46,11 @@ class EventSendCommand {
   EventSendCommand(this.command);
 }
 
+class EventLicenseVerified {
+  final bool isValid;
+  EventLicenseVerified(this.isValid);
+}
+
 class ContainersRepo {
   final EventBus _eventBus;
   String? _agentVersion = '';
@@ -57,14 +63,11 @@ class ContainersRepo {
   static const _licenseKeyPref = 'license_key';
 
   // Getters
-  String? get licenseKey => _settings.licenseKey;
   bool get isVerified => _isVerified;
   bool get agentRunning => _agentRunning;
   EventDisplayContainers? get lastDisplayEvent => _lastDisplayEvent;
 
-  ContainersRepo({
-    required EventBus eventBus,
-  }) : _eventBus = eventBus {
+  ContainersRepo({required EventBus eventBus}) : _eventBus = eventBus {
     _eventBus.on<EventAgentStarted>().listen((event) {
       _agentVersion = event.version;
     });
@@ -90,27 +93,22 @@ class ContainersRepo {
     // Start heartbeat check timer
     Timer.periodic(const Duration(milliseconds: 100), (_) => _checkHeartbeat());
 
-    _initSettings();
-  }
-
-  Future<void> _initSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedLicenseKey = prefs.getString(_licenseKeyPref);
-    if (savedLicenseKey != null) {
-      _settings.licenseKey = savedLicenseKey;
-      _sendSettings();
-    }
-  }
-
-  Future<void> setLicenseKey(String licenseKey) async {
-    print('Setting license key: $licenseKey');
-    _settings.licenseKey = licenseKey;
-
-    // Save to persistent storage
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_licenseKeyPref, licenseKey);
-
     _sendSettings();
+  }
+
+  Future<LicenseKey?> getLicenseKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    final licenseKeyJSON = prefs.getString(_licenseKeyPref);
+    if (licenseKeyJSON == null) return null;
+
+    return LicenseKey.fromJSON(licenseKeyJSON);
+  }
+
+  Future<void> setLicenseKey(LicenseKey licenseKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_licenseKeyPref, licenseKey.toJSON());
+
+    _eventBus.fire(EventLicenseVerified(licenseKey.isValid));
   }
 
   void _checkHeartbeat() {

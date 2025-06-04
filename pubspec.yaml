@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.7.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -50,8 +50,18 @@ dependencies:
   window_manager: ^0.4.3
   accessing_security_scoped_resource: ^3.4.0
   file_selector: ^1.0.3
+  reorderables: ^0.6.0
+  re_editor: ^0.7.0
+  re_highlight: ^0.0.3
+  collection: ^1.19.1
+  petitparser: ^5.0.0
+  http: ^1.2.0
+  html: ^0.15.6
 
 dev_dependencies:
+  mocktail: ^1.0.0
+  shelf: ^1.4.1
+  shelf_test_handler: ^2.0.2
   flutter_test:
     sdk: flutter
   integration_test:
@@ -72,3 +82,7 @@ flutter:
   uses-material-design: true
   assets:
     - schema.sql
+  fonts:
+   - family:  MyFlutterApp
+     fonts:
+      - asset: fonts/MyFlutterApp.ttf

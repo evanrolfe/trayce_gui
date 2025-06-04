@@ -20,7 +20,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await protoDefRepo.upload('myproto2', protoPath);
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.format_list_numbered);
+  final networkTab = find.byKey(const Key('network-sidebar-btn'));
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 
@@ -95,7 +95,7 @@ List<pb.Flow> buildFlows() {
       grpcRequest: pb.GRPCRequest(
         path: '/api.TrayceAgent/SendContainersObserved',
         headers: {
-          "content-type": pb.StringList(values: ["application/grpc"])
+          "content-type": pb.StringList(values: ["application/grpc"]),
         },
         payload: grpcReqPayload,
       ),

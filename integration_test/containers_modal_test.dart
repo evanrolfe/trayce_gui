@@ -3,15 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grpc/grpc.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/agent/gen/api.pb.dart' as pb;
 import 'package:trayce/agent/gen/api.pbgrpc.dart';
 
 // https://github.com/flutter/flutter/issues/135673
-Future<void> test(WidgetTester tester) async {
+Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.format_list_numbered);
+  final networkTab = find.byKey(const Key('network-sidebar-btn'));
   expect(networkTab, findsOneWidget); // Add verification that icon exists
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
@@ -36,7 +37,7 @@ Future<void> test(WidgetTester tester) async {
   final client = TrayceAgentClient(channel);
 
   // Open command stream and receive the commands sent to it
-  final agentStarted = pb.AgentStarted(version: '1.0.2');
+  final agentStarted = pb.AgentStarted(version: '1.0.5');
   final controller = StreamController<pb.AgentStarted>();
   final commandStream = client.openCommandStream(controller.stream);
   final commandsReceived = <pb.Command>[];
@@ -59,15 +60,10 @@ Future<void> test(WidgetTester tester) async {
 
   // Find and click the checkbox for container a3db0b
   final containerRow = find.text('a3db0b');
-  final checkbox = find
-      .descendant(
-        of: find.ancestor(
-          of: containerRow,
-          matching: find.byType(Row),
-        ),
-        matching: find.byType(Checkbox),
-      )
-      .first;
+  final checkbox =
+      find
+          .descendant(of: find.ancestor(of: containerRow, matching: find.byType(Row)), matching: find.byType(Checkbox))
+          .first;
   await tester.tap(checkbox);
   await tester.pumpAndSettle();
 
@@ -116,7 +112,7 @@ Future<void> test(WidgetTester tester) async {
   );
   final client2 = TrayceAgentClient(channel2);
 
-  final agentStarted2 = pb.AgentStarted(version: '1.0.2');
+  final agentStarted2 = pb.AgentStarted(version: '1.0.5');
   final controller2 = StreamController<pb.AgentStarted>();
   final commandStream2 = client2.openCommandStream(controller2.stream);
   final commandsReceived2 = <pb.Command>[];
@@ -144,15 +140,10 @@ Future<void> test(WidgetTester tester) async {
 
   // Verify the checkbox for container a3db0b is checked
   final containerRow2 = find.text('a3db0b');
-  final checkbox2 = find
-      .descendant(
-        of: find.ancestor(
-          of: containerRow2,
-          matching: find.byType(Row),
-        ),
-        matching: find.byType(Checkbox),
-      )
-      .first;
+  final checkbox2 =
+      find
+          .descendant(of: find.ancestor(of: containerRow2, matching: find.byType(Row)), matching: find.byType(Checkbox))
+          .first;
   expect(checkbox2, findsOneWidget);
   expect(tester.widget<Checkbox>(checkbox2).value, true);
 

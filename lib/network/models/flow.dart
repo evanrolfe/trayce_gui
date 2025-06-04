@@ -10,9 +10,10 @@ import 'package:trayce/network/models/sql_response.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../agent/gen/api.pb.dart' as pb;
+import '../../common/selectable_table.dart';
 import 'flow_request.dart';
 
-class Flow {
+class Flow implements Identifiable {
   final int? id;
   final String uuid;
   final String source;
@@ -26,6 +27,9 @@ class Flow {
   final Uint8List requestRaw;
   final Uint8List responseRaw;
   final DateTime createdAt;
+
+  @override
+  int getTableKey() => id ?? 0;
 
   Flow({
     this.id,

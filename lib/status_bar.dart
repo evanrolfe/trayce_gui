@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trayce/common/style.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:trayce/network/widgets/containers_modal.dart';
+import 'package:trayce/settings.dart';
 
 class StatusBar extends StatefulWidget {
   const StatusBar({super.key});
@@ -16,21 +18,41 @@ class StatusBar extends StatefulWidget {
 class _StatusBarState extends State<StatusBar> {
   bool _agentRunning = false;
   bool _isHovering = false;
-  late final StreamSubscription _agentRunningSubscription;
-
+  bool _isLicenseHovering = false;
+  bool _isLicensed = false;
+  late final StreamSubscription _eventSub1;
+  late final StreamSubscription _eventSub2;
   @override
   void initState() {
     super.initState();
-    _agentRunningSubscription = context.read<EventBus>().on<EventAgentRunning>().listen((event) {
+    _eventSub1 = context.read<EventBus>().on<EventAgentRunning>().listen((event) {
       setState(() {
         _agentRunning = event.running;
       });
     });
+
+    _eventSub2 = context.read<EventBus>().on<EventLicenseVerified>().listen((event) {
+      setState(() {
+        _isLicensed = event.isValid;
+      });
+    });
+
+    _checkLicenseKey();
+  }
+
+  Future<void> _checkLicenseKey() async {
+    final licenseKey = await context.read<ContainersRepo>().getLicenseKey();
+    if (licenseKey != null && licenseKey.isValid) {
+      setState(() {
+        _isLicensed = true;
+      });
+    }
   }
 
   @override
   void dispose() {
-    _agentRunningSubscription.cancel();
+    _eventSub1.cancel();
+    _eventSub2.cancel();
     super.dispose();
   }
 
@@ -39,13 +61,8 @@ class _StatusBarState extends State<StatusBar> {
     return Container(
       height: 20,
       decoration: const BoxDecoration(
-        color: Color(0xFF333333),
-        border: Border(
-          top: BorderSide(
-            color: Color(0xFF4DB6AC),
-            width: 1,
-          ),
-        ),
+        color: statusBarBackground,
+        border: Border(top: BorderSide(color: highlightBorderColor, width: 1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
@@ -53,25 +70,42 @@ class _StatusBarState extends State<StatusBar> {
         children: [
           MouseRegion(
             cursor: SystemMouseCursors.click,
+            onEnter: (_) => setState(() => _isLicenseHovering = true),
+            onExit: (_) => setState(() => _isLicenseHovering = false),
+            child: GestureDetector(
+              onTap: () => showSettingsModal(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(color: _isLicenseHovering ? statusBarHoverBackground : Colors.transparent),
+                child: DefaultTextStyle.merge(
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: statusBarText,
+                    fontWeight: FontWeight.normal,
+                    decoration: TextDecoration.none,
+                  ),
+                  child: _buildLicenseStatus(),
+                ),
+              ),
+            ),
+          ),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
             onEnter: (_) => setState(() => _isHovering = true),
             onExit: (_) => setState(() => _isHovering = false),
             child: GestureDetector(
               onTap: () => showContainersModal(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _isHovering ? const Color(0xFF3A3A3A) : Colors.transparent,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                decoration: BoxDecoration(color: _isHovering ? statusBarHoverBackground : Colors.transparent),
                 child: DefaultTextStyle.merge(
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFFD4D4D4),
+                    color: statusBarText,
                     fontWeight: FontWeight.normal,
                     decoration: TextDecoration.none,
                   ),
-                  child: Text(
-                    'Agent: ${_agentRunning ? 'running' : 'not running'}',
-                  ),
+                  child: Text('Agent: ${_agentRunning ? 'running' : 'not running'}'),
                 ),
               ),
             ),
@@ -79,5 +113,29 @@ class _StatusBarState extends State<StatusBar> {
         ],
       ),
     );
+  }
+
+  Widget _buildLicenseStatus() {
+    if (_isLicensed) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.check, size: 18, color: Colors.green),
+          const SizedBox(width: 2),
+          const Text('Licensed', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+          const SizedBox(width: 8),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.close, size: 18, color: Colors.red),
+          const SizedBox(width: 2),
+          const Text('Unlicensed', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+          const SizedBox(width: 8),
+        ],
+      );
+    }
   }
 }

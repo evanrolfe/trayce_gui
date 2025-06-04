@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grpc/grpc.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/agent/gen/api.pb.dart' as pb;
 import 'package:trayce/agent/gen/api.pbgrpc.dart';
 import 'package:uuid/uuid.dart';
 
 import 'const.dart';
 
-Future<void> test(WidgetTester tester) async {
+Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the Network tab
-  final networkTab = find.byIcon(Icons.format_list_numbered);
+  final networkTab = find.byKey(const Key('network-sidebar-btn'));
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 
@@ -136,7 +137,6 @@ Future<void> test(WidgetTester tester) async {
   final flowRow8 = find.text('80.0.0.1').first;
   await tester.tap(flowRow8);
   await tester.pumpAndSettle();
-  await tester.pump(const Duration(seconds: 5));
 
   // Verify the request text appears in the top pane
   expect(find.textContaining('SELECT * FROM things'), findsOneWidget);
@@ -249,7 +249,7 @@ List<pb.Flow> buildFlows() {
       grpcRequest: pb.GRPCRequest(
         path: '/api.TrayceAgent/SendContainersObserved',
         headers: {
-          "content-type": pb.StringList(values: ["application/grpc"])
+          "content-type": pb.StringList(values: ["application/grpc"]),
         },
         payload: grpcReqPayload,
       ),
@@ -266,7 +266,7 @@ List<pb.Flow> buildFlows() {
       grpcRequest: pb.GRPCRequest(
         path: '/api.TrayceAgent/SendContainersObserved',
         headers: {
-          "content-type": pb.StringList(values: ["application/grpc"])
+          "content-type": pb.StringList(values: ["application/grpc"]),
         },
         payload: grpcReqPayload,
       ),
@@ -282,7 +282,7 @@ List<pb.Flow> buildFlows() {
       l7Protocol: 'grpc',
       grpcResponse: pb.GRPCResponse(
         headers: {
-          "testheader": pb.StringList(values: ["ok"])
+          "testheader": pb.StringList(values: ["ok"]),
         },
         payload: grpcRespPayload,
       ),
@@ -295,10 +295,7 @@ List<pb.Flow> buildFlows() {
       destAddr: '50.0.0.2',
       l4Protocol: 'tcp',
       l7Protocol: 'mysql',
-      sqlQuery: pb.SQLQuery(
-        query: 'SELECT * FROM users WHERE id = ?',
-        params: pb.StringList(values: ["123"]),
-      ),
+      sqlQuery: pb.SQLQuery(query: 'SELECT * FROM users WHERE id = ?', params: pb.StringList(values: ["123"])),
     ),
     // Flow 6 (MySQL Query)
     pb.Flow(
@@ -307,10 +304,7 @@ List<pb.Flow> buildFlows() {
       destAddr: '60.0.0.2',
       l4Protocol: 'tcp',
       l7Protocol: 'mysql',
-      sqlQuery: pb.SQLQuery(
-        query: 'SELECT * FROM users',
-        params: pb.StringList(values: []),
-      ),
+      sqlQuery: pb.SQLQuery(query: 'SELECT * FROM users', params: pb.StringList(values: [])),
     ),
 
     // Flow 6 (MySQL Response)
@@ -335,10 +329,7 @@ List<pb.Flow> buildFlows() {
       destAddr: '70.0.0.2',
       l4Protocol: 'tcp',
       l7Protocol: 'psql',
-      sqlQuery: pb.SQLQuery(
-        query: 'SELECT * FROM things WHERE id = ?',
-        params: pb.StringList(values: ["123"]),
-      ),
+      sqlQuery: pb.SQLQuery(query: 'SELECT * FROM things WHERE id = ?', params: pb.StringList(values: ["123"])),
     ),
     // Flow 8 (Postgres Query)
     pb.Flow(
@@ -347,10 +338,7 @@ List<pb.Flow> buildFlows() {
       destAddr: '80.0.0.2',
       l4Protocol: 'tcp',
       l7Protocol: 'psql',
-      sqlQuery: pb.SQLQuery(
-        query: 'SELECT * FROM things',
-        params: pb.StringList(values: []),
-      ),
+      sqlQuery: pb.SQLQuery(query: 'SELECT * FROM things', params: pb.StringList(values: [])),
     ),
 
     // Flow 8 (Postgres Response)

@@ -32,3 +32,5 @@ Run `make build-linux` or `make build-mac`
 ## Troubleshooting
 
 Linux Mint - not able to type in text fields, solved by Disabling on-screen keyboard in accesibility settings: https://github.com/flutter/flutter/issues/153560#issuecomment-2503660633
+
+Material Icons available here: https://fonts.google.com/icons?icon.size=24&icon.color=%23e3e3e3

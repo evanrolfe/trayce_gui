@@ -1,0 +1,72 @@
+meta {
+  name: Send Bulk SMS
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.textlocal.in/send/:id
+  body: json
+  auth: bearer
+}
+
+params:query {
+  apiKey: secret
+  numbers: 998877665
+  ~message: hello
+}
+
+params:path {
+  id: 123
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer 123
+  ~transaction-id: {{transactionId}}
+}
+
+auth:bearer {
+  token: 123
+}
+
+body:json {
+  {
+    "hello": "world"
+  }
+}
+
+vars:pre-request {
+  departingDate: 2020-01-01
+  ~returningDate: 2020-01-02
+}
+
+vars:post-response {
+  token: $res.body.token
+  @orderNumber: $res.body.orderNumber
+  ~petId: $res.body.id
+  ~@transactionId: $res.body.transactionId
+}
+
+assert {
+  $res.status: 200
+  ~$res.body.message: success
+}
+
+script:pre-request {
+  const foo = 'bar';
+}
+
+script:post-response {
+  const hello = 'world';
+}
+
+tests {
+  function onResponse(request, response) {
+    expect(response.status).to.equal(200);
+  }
+}
+
+docs {
+  This request needs auth token to be set in the headers.
+}

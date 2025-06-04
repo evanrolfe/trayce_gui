@@ -1,86 +1,65 @@
 import 'package:flutter/material.dart';
 
 const Color textColor = Color(0xFF1E1E1E);
+const Color lightTextColor = Color(0xFFD4D4D4);
 const Color backgroundColor = Color(0xFF1E1E1E);
+const Color lightBackgroundColor = Color(0xFF252526);
 const Color sidebarColor = Color(0xFF333333);
+const Color borderColor = Color(0xFF474747);
+const Color lightButtonColor = Color(0xFF2C2C2C);
+
+const Color highlightBorderColor = Color(0xFF4DB6AC);
+const Color statusBarBackground = Color(0xFF333333);
+const Color statusBarText = Color(0xFFD4D4D4);
+const Color statusBarHoverBackground = Color.fromARGB(255, 71, 71, 71);
 
 final commonButtonStyle = ElevatedButton.styleFrom(
-  backgroundColor: const Color(0xFF4DB6AC),
-  padding: const EdgeInsets.symmetric(horizontal: 16),
-  minimumSize: const Size(0, 36),
-  maximumSize: const Size(double.infinity, 36),
-  textStyle: const TextStyle(
-    fontSize: 13,
-    color: textColor,
-  ),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(4),
-  ),
+  backgroundColor: Color(0xFF4DB6AC),
+  padding: EdgeInsets.symmetric(horizontal: 16),
+  minimumSize: Size(0, 36),
+  maximumSize: Size(double.infinity, 36),
+  textStyle: TextStyle(fontSize: 13, color: textColor),
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
   foregroundColor: textColor,
 );
 
-const textFieldStyle = TextStyle(
-  color: Color(0xFFD4D4D4),
-  fontSize: 13,
+final tabbarButtonStyle = ElevatedButton.styleFrom(
+  backgroundColor: lightButtonColor,
+  padding: EdgeInsets.symmetric(horizontal: 16),
+  minimumSize: Size(0, 30),
+  maximumSize: Size(double.infinity, 36),
+  textStyle: TextStyle(fontSize: 13, color: textColor),
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4), side: BorderSide(color: borderColor, width: 1)),
+  foregroundColor: lightTextColor,
 );
 
+const textFieldStyle = TextStyle(color: lightTextColor, fontSize: 13);
+
 const textFieldDecor = InputDecoration(
-  border: OutlineInputBorder(
-    borderSide: BorderSide(
-      color: Color(0xFF474747),
-      width: 1,
-    ),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderSide: BorderSide(
-      color: Color(0xFF2C4C49),
-      width: 1,
-    ),
-  ),
-  enabledBorder: OutlineInputBorder(
-    borderSide: BorderSide(
-      color: Color(0xFF474747),
-      width: 1,
-    ),
-  ),
-  hintText: 'Search...',
-  hintStyle: TextStyle(
-    color: Color(0xFF808080),
-    fontSize: 13,
-  ),
+  border: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1)),
+  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF4DB6AC), width: 1.0)),
+  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1)),
+  hintStyle: TextStyle(color: Color(0xFF808080), fontSize: 13),
   filled: true,
   fillColor: Color(0xFF2E2E2E),
   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 11),
-  constraints: BoxConstraints(
-    maxHeight: 30,
-    minHeight: 30,
-  ),
+  constraints: BoxConstraints(maxHeight: 30, minHeight: 30),
 );
 
 const menuItemStyle = ButtonStyle(
-  foregroundColor: WidgetStatePropertyAll(Color(0xFFD4D4D4)),
+  foregroundColor: WidgetStatePropertyAll(lightTextColor),
   backgroundColor: WidgetStatePropertyAll(Color(0xFF333333)),
   padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
   minimumSize: WidgetStatePropertyAll(Size.fromHeight(40)),
   maximumSize: WidgetStatePropertyAll(Size.fromHeight(40)),
-  textStyle: WidgetStatePropertyAll(
-    TextStyle(
-      fontSize: 13,
-      fontWeight: FontWeight.normal,
-    ),
-  ),
+  textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
 );
 
 const menuButtonStyle = ButtonStyle(
   foregroundColor: WidgetStatePropertyAll(Color(0xFFD4D4D4)),
   padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 8)),
   minimumSize: WidgetStatePropertyAll(Size(0, 40)),
-  textStyle: WidgetStatePropertyAll(
-    TextStyle(
-      fontSize: 13,
-      fontWeight: FontWeight.normal,
-    ),
-  ),
+  textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
 );
 
 const menuStyle = MenuStyle(
