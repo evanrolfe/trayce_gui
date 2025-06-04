@@ -175,7 +175,6 @@ class _SelectableTableState<T extends Identifiable> extends State<SelectableTabl
                             onTap: () {
                               this.setState(() {
                                 selectedRow = row;
-                                print('===========> GestureDetector, selected ID: ${selectedRow!.getTableKey()}');
                                 widget.onRowSelected(row);
                               });
                               FocusScope.of(context).requestFocus(_focusNode);

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +8,13 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
 
+import '../test/support/helpers.dart';
+
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final oneBruPath = 'test/support/collection1/myfolder/one.bru';
   final originalOneBru = loadFile(oneBruPath);
-  print("oneBruFile:\n $originalOneBru");
 
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
@@ -238,21 +237,3 @@ Future<void> pressCtrlS(WidgetTester tester) async {
   await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
   await tester.pumpAndSettle();
 }
-
-String loadFile(String path) {
-  try {
-    final file = File(path);
-    return file.readAsStringSync();
-  } catch (e) {
-    throw Exception('Failed to load one.bru file: $e');
-  }
-}
-
-// Future<void> saveFile(String path, String contents) async {
-//   try {
-//     final file = File(path);
-//     await file.writeAsString(contents);
-//   } catch (e) {
-//     throw Exception('Failed to save file at $path: $e');
-//   }
-// }

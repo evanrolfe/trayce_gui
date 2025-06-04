@@ -178,6 +178,12 @@ class _FileExplorerState extends State<FileExplorer> {
     );
     // reqNode.save();
 
+    if (!parentNode.isExpanded) {
+      setState(() {
+        parentNode.isExpanded = true;
+      });
+    }
+
     context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
     _startRenaming(node);
   }
@@ -310,6 +316,7 @@ class _FileExplorerState extends State<FileExplorer> {
                             if (node.isRenaming)
                               Expanded(
                                 child: TextField(
+                                  key: const Key('explorer_rename_input'),
                                   controller: _renameController,
                                   focusNode: _renameFocusNode,
                                   canRequestFocus: true,

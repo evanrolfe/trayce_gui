@@ -1,5 +1,14 @@
 import 'dart:io';
 
+void saveFile(String path, String contents) {
+  try {
+    final file = File(path);
+    file.writeAsStringSync(contents);
+  } catch (e) {
+    throw Exception('Failed to save file at $path: $e');
+  }
+}
+
 Future<void> copyFolder(String sourcePath, String targetPath) async {
   final sourceDir = Directory(sourcePath);
   final targetDir = Directory(targetPath);
@@ -28,5 +37,21 @@ Future<void> deleteFolder(String folderPath) async {
   final directory = Directory(folderPath);
   if (directory.existsSync()) {
     await directory.delete(recursive: true);
+  }
+}
+
+Future<void> deleteFile(String path) async {
+  final file = File(path);
+  if (file.existsSync()) {
+    await file.delete();
+  }
+}
+
+String loadFile(String path) {
+  try {
+    final file = File(path);
+    return file.readAsStringSync();
+  } catch (e) {
+    throw Exception('Failed to load file: $e');
   }
 }

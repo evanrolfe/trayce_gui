@@ -1,21 +1,20 @@
-import 'dart:io';
-
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/headers_table.dart';
 
+import '../test/support/helpers.dart';
+import 'helpers.dart';
+
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final twoBruPath = 'test/support/collection1/myfolder/two.bru';
   final originalTwoBru = loadFile(twoBruPath);
-  print("oneBruFile:\n $originalTwoBru");
 
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
@@ -252,30 +251,4 @@ Future<void> test(WidgetTester tester, Database db) async {
   final closeItem = find.text('Close Collection');
   await tester.tap(closeItem);
   await tester.pumpAndSettle();
-}
-
-Future<void> pressCtrlS(WidgetTester tester) async {
-  await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
-  await tester.sendKeyDownEvent(LogicalKeyboardKey.keyS);
-  await tester.sendKeyUpEvent(LogicalKeyboardKey.keyS);
-  await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
-  await tester.pumpAndSettle();
-}
-
-String loadFile(String path) {
-  try {
-    final file = File(path);
-    return file.readAsStringSync();
-  } catch (e) {
-    throw Exception('Failed to load two.bru file: $e');
-  }
-}
-
-void saveFile(String path, String contents) {
-  try {
-    final file = File(path);
-    file.writeAsStringSync(contents);
-  } catch (e) {
-    throw Exception('Failed to save file at $path: $e');
-  }
 }
