@@ -100,6 +100,26 @@ class ExplorerRepo {
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
+  // addNodeToParent adds a node to a parent node and refreshes the explorer, its used
+  // when you click new request on a folder/collection and enter the filename, the node
+  // is unsaved at this point which is why we dont just call refresh()
+  void addNodeToParent(ExplorerNode parentNode, ExplorerNode node) {
+    parentNode.children.add(node);
+
+    _eventBus.fire(EventDisplayExplorerItems(_nodes));
+  }
+
+  // removeUnsavedNode removes an unsaved node from its parent and refreshes the explorer,
+  // this is used when you click new request on a folder/collection but then hit escape
+  // to cancel the rename
+  void removeUnsavedNode(ExplorerNode node) {
+    final parentNode = _findParentNode(node);
+    if (parentNode == null) return;
+    parentNode.children.remove(node);
+
+    _eventBus.fire(EventDisplayExplorerItems(_nodes));
+  }
+
   Future<void> renameNode(ExplorerNode node, String newName) async {
     // Rename a collection/folder
     if (node.type == NodeType.collection || node.type == NodeType.folder) {
@@ -114,7 +134,24 @@ class ExplorerRepo {
     }
 
     // Rename a request
-    if (node.type == NodeType.request) {
+    // This is called when you click new request on a folder/collection and enter the filename
+    // directly in the explorer, then hit enter
+    if (node.type == NodeType.request && !node.isSaved) {
+      final parentNode = _findParentNode(node);
+      if (parentNode == null) return;
+
+      final targetDir = parentNode.dir!;
+      final targetPath = path.join(targetDir.path, newName);
+
+      node.file = File(targetPath);
+      node.name = newName;
+      node.request!.seq = getNextSeq(targetDir.path);
+      node.save();
+      print('==> ExplorerRepo, renameNode, node.request: ${node.file.path}');
+      refresh();
+      openNode(node);
+    }
+    if (node.type == NodeType.request && node.isSaved) {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 

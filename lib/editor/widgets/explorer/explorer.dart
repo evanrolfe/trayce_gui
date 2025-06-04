@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 
 import '../../models/explorer_node.dart';
@@ -18,6 +21,12 @@ const double itemHeight = 22;
 
 class EventNewRequest {
   EventNewRequest();
+}
+
+class EventNewRequestInFolder {
+  final ExplorerNode parentNode;
+
+  EventNewRequestInFolder({required this.parentNode});
 }
 
 class EventCloseCurrentNode {
@@ -60,12 +69,12 @@ class _FileExplorerState extends State<FileExplorer> {
     _focusNode.onKeyEvent = _onKeyUp;
     _renameFocusNode = FocusNode();
     _renameFocusNode.addListener(() {
-      if (!_renameFocusNode.hasFocus) _stopRenaming();
+      if (!_renameFocusNode.hasFocus) _stopRenaming(true);
     });
 
     _renameFocusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.escape) _stopRenaming();
+        if (event.logicalKey == LogicalKeyboardKey.escape) _stopRenaming(true);
       }
       return KeyEventResult.ignored;
     };
@@ -87,9 +96,12 @@ class _FileExplorerState extends State<FileExplorer> {
     });
   }
 
-  void _stopRenaming() {
+  void _stopRenaming(bool isCancelled) {
     if (_renamingNode == null) return;
-    print('stopRenaming, node: ${_renamingNode!.name}');
+    print('stopRenaming, node: ${_renamingNode!.name}, isSaved: ${_renamingNode!.isSaved}');
+    if (!_renamingNode!.isSaved && isCancelled) {
+      context.read<ExplorerRepo>().removeUnsavedNode(_renamingNode!);
+    }
 
     setState(() {
       _renamingNode!.isRenaming = false;
@@ -98,7 +110,7 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   void _renameNode(ExplorerNode node, String newName) {
-    _stopRenaming();
+    _stopRenaming(false);
 
     context.read<ExplorerRepo>().renameNode(node, newName);
   }
@@ -151,6 +163,23 @@ class _FileExplorerState extends State<FileExplorer> {
 
   Future<void> _handleNewRequest() async {
     context.read<EventBus>().fire(EventNewRequest());
+  }
+
+  Future<void> _handleNewRequestInFolder(ExplorerNode parentNode) async {
+    final parentPath = parentNode.dir!.path;
+    print('handleNewRequestInFolder, path: $parentPath');
+    final node = ExplorerNode(
+      file: File(path.join(parentPath, '.bru')),
+      name: ".bru",
+      type: NodeType.request,
+      isDirectory: false,
+      request: Request.blank(),
+      isSaved: false,
+    );
+    // reqNode.save();
+
+    context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
+    _startRenaming(node);
   }
 
   Future<void> _handleRefresh() async {
@@ -258,7 +287,7 @@ class _FileExplorerState extends State<FileExplorer> {
                         }
                       },
                       onSecondaryTapDown: (details) {
-                        showNodeMenu(context, details, node, _startRenaming, _deleteNode);
+                        showNodeMenu(context, details, node, _startRenaming, _deleteNode, _handleNewRequestInFolder);
                       },
                       child: Container(
                         height: itemHeight,

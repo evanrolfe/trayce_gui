@@ -10,6 +10,7 @@ void showNodeMenu(
   ExplorerNode node,
   Function(ExplorerNode) onRename,
   Function(ExplorerNode) onDelete,
+  Function(ExplorerNode) onNewRequestInFolder,
 ) {
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
@@ -32,6 +33,12 @@ void showNodeMenu(
           height: 30,
           child: Text('Close Collection', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerRepo>().closeCollection(node),
+        ),
+      if (node.type == NodeType.folder)
+        PopupMenuItem(
+          height: 30,
+          child: Text('New Request', style: contextMenuTextStyle),
+          onTap: () => onNewRequestInFolder(node),
         ),
       PopupMenuItem(height: 30, child: Text('Rename', style: contextMenuTextStyle), onTap: () => onRename(node)),
       PopupMenuItem(height: 30, child: Text('Delete', style: contextMenuTextStyle), onTap: () => onDelete(node)),

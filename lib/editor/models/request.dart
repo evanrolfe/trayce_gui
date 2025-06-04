@@ -53,7 +53,7 @@ class Request {
       name: '',
       type: 'http',
       seq: 0,
-      method: 'GET',
+      method: 'get',
       url: '',
       params: [],
       headers: [],
