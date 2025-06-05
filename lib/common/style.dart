@@ -13,6 +13,11 @@ const Color statusBarBackground = Color(0xFF333333);
 const Color statusBarText = Color(0xFFD4D4D4);
 const Color statusBarHoverBackground = Color.fromARGB(255, 71, 71, 71);
 
+const Color statusProtocolColor = Colors.grey;
+const Color statusOkColor = Color.fromARGB(255, 67, 153, 69);
+const Color statusWarningColor = Color.fromARGB(255, 235, 158, 44);
+const Color statusErrorColor = Color.fromARGB(255, 209, 57, 46);
+
 final commonButtonStyle = ElevatedButton.styleFrom(
   backgroundColor: Color(0xFF4DB6AC),
   padding: EdgeInsets.symmetric(horizontal: 16),

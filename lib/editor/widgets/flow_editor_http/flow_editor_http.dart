@@ -84,6 +84,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   final CodeLineEditingController _respBodyController = CodeLineEditingController();
   String _selectedMethod = 'GET';
   String? _respStatusMsg;
+  Color _respStatusColor = Colors.green;
   List<Header> _respHeaders = [];
   String _selectedFormat = 'Unformatted';
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
@@ -257,6 +258,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       _response = null;
       setState(() {
         _respStatusMsg = 'Error';
+        _respStatusColor = statusErrorColor;
         _respBodyController.text = 'Error: $e';
         _respHeaders = [];
       });
@@ -269,11 +271,20 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   void displayResponse() {
     if (_response == null) return;
+    final statusCode = _response!.statusCode;
 
     setState(() {
-      _respStatusMsg = '${_response!.statusCode} ${_response!.reasonPhrase}';
       _respHeaders = _response!.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
-
+      _respStatusMsg = '$statusCode ${_response!.reasonPhrase}';
+      if (statusCode < 200) {
+        _respStatusColor = statusProtocolColor;
+      } else if (statusCode >= 200 && statusCode < 300) {
+        _respStatusColor = statusOkColor;
+      } else if (statusCode >= 300 && statusCode < 500) {
+        _respStatusColor = statusWarningColor;
+      } else {
+        _respStatusColor = statusErrorColor;
+      }
       // Format the response body based on the selected format
       if (_selectedFormat == 'JSON') {
         _respBodyController.text = formatJson(_response!.body);
@@ -313,6 +324,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final tabContentBorder = Border(
+      top: BorderSide(width: 0, color: backgroundColor),
+      left: BorderSide(width: 0),
+      right: BorderSide(width: 0),
+      bottom: BorderSide(width: 0, color: backgroundColor),
+    );
+
     return ValueListenableBuilder<double>(
       valueListenable: HttpEditorState.heightNotifier,
       builder: (context, middlePaneHeight, _) {
@@ -444,6 +462,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                 width: constraints.maxWidth,
                                 height: middleHeight,
                                 child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(width: 1),
+                                      left: BorderSide(width: 0),
+                                      right: BorderSide(width: 0),
+                                      bottom: BorderSide(width: 0),
+                                    ),
+                                  ),
                                   child: DefaultTabController(
                                     length: 2,
                                     animationDuration: Duration.zero,
@@ -451,6 +477,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                       children: [
                                         Container(
                                           height: 30,
+                                          decoration: BoxDecoration(border: tabContentBorder),
                                           child: Focus(
                                             focusNode: _topTabFocusNode,
                                             canRequestFocus: true,
@@ -512,6 +539,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 ),
                                               ),
                                               MultiLineCodeEditor(
+                                                border: tabContentBorder,
                                                 controller: _reqBodyController,
                                                 keyCallback: _onKeyUp,
                                                 onFocusChange: () {
@@ -585,7 +613,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 height: 20,
                                                 padding: const EdgeInsets.symmetric(horizontal: 12),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.green,
+                                                  color: _respStatusColor,
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 alignment: Alignment.center,
@@ -646,6 +674,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           controller: _bottomTabController,
                                           children: [
                                             MultiLineCodeEditor(
+                                              border: tabContentBorder,
                                               controller: _respBodyController,
                                               keyCallback: _onKeyUp,
                                               onFocusChange: () {

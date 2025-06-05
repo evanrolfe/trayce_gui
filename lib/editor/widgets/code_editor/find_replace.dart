@@ -6,7 +6,7 @@ import 'package:re_editor/re_editor.dart';
 import '../../../common/style.dart';
 
 const EdgeInsetsGeometry _kDefaultFindMargin = EdgeInsets.only(right: 10);
-const double _kDefaultFindPanelWidth = 360;
+const double _kDefaultFindPanelWidth = 450;
 const double _kDefaultFindPanelHeight = 36;
 const double _kDefaultReplacePanelHeight = _kDefaultFindPanelHeight * 2;
 const double _kDefaultFindIconSize = 16;
@@ -64,7 +64,7 @@ class CodeFindPanelView extends StatelessWidget implements PreferredSizeWidget {
       margin: margin,
       alignment: Alignment.topRight,
       height: preferredSize.height,
-      decoration: const BoxDecoration(),
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SizedBox(
@@ -94,7 +94,7 @@ class CodeFindPanelView extends StatelessWidget implements PreferredSizeWidget {
     return Row(
       children: [
         SizedBox(
-          width: _kDefaultFindPanelWidth / 1.75,
+          width: _kDefaultFindPanelWidth / 1.5,
           height: _kDefaultFindPanelHeight,
           child: Stack(
             alignment: Alignment.center,
