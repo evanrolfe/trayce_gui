@@ -396,7 +396,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           child: SingleLineCodeEditor(
                             key: const Key('flow_editor_http_url_input'),
                             controller: _urlController,
-                            keyCallback: _onKeyUp,
+                            onSavePressed: saveFlow,
+                            onEnterPressed: sendRequest,
                             focusNode: _urlFocusNode,
                             onFocusChange: () {
                               context.read<EventBus>().fire(EditorSelectionChanged(_urlController));
@@ -507,7 +508,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               SingleChildScrollView(
                                                 child: HeadersTable(
                                                   stateManager: _headersController,
-                                                  keyCallback: _onKeyUp,
+                                                  onSavePressed: saveFlow,
                                                 ),
                                               ),
                                               MultiLineCodeEditor(

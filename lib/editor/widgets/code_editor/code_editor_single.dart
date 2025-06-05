@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/dart.dart';
-import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 
@@ -12,9 +11,10 @@ class SingleLineCodeEditor extends StatefulWidget {
   final ScrollController? horizontalScroller;
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
   final VoidCallback? onTabPressed;
+  final VoidCallback? onEnterPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
-  final KeyCallback? keyCallback;
+  final VoidCallback? onSavePressed;
   final VoidCallback? onFocusChange;
 
   const SingleLineCodeEditor({
@@ -24,9 +24,10 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.horizontalScroller,
     this.shortcutOverrideActions,
     this.onTabPressed,
+    this.onEnterPressed,
     this.focusNode,
     this.decoration,
-    this.keyCallback,
+    this.onSavePressed,
     this.onFocusChange,
   });
 
@@ -42,7 +43,23 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     super.initState();
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
-    _focusNode.onKeyEvent = widget.keyCallback;
+
+    _focusNode.onKeyEvent = (node, event) {
+      if (event.logicalKey == LogicalKeyboardKey.keyS && HardwareKeyboard.instance.isControlPressed) {
+        widget.onSavePressed?.call();
+        return KeyEventResult.handled;
+      }
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+        widget.onTabPressed?.call();
+        return KeyEventResult.handled;
+      }
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+        widget.onEnterPressed?.call();
+        // Do not allow new line
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
@@ -56,13 +73,6 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
 
   void _handleFocusChange() {
     if (_focusNode.hasFocus) {
-      _focusNode.onKey = (node, event) {
-        if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
-          widget.onTabPressed?.call();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      };
       widget.onFocusChange?.call();
     }
   }

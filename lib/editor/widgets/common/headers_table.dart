@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/events.dart';
-import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 
 class HeadersTable extends StatelessWidget {
   final HeadersStateManager stateManager;
-  final KeyCallback? keyCallback;
+  final VoidCallback? onSavePressed;
 
-  const HeadersTable({super.key, required this.stateManager, this.keyCallback});
+  const HeadersTable({super.key, required this.stateManager, this.onSavePressed});
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +41,8 @@ class HeadersTable extends StatelessWidget {
                   child: SingleLineCodeEditor(
                     controller: row.keyController,
                     onTabPressed: () => stateManager.handleTabPress(index, true),
+                    onSavePressed: onSavePressed,
                     focusNode: row.keyFocusNode,
-                    keyCallback: keyCallback,
                     onFocusChange: () {
                       context.read<EventBus>().fire(EditorSelectionChanged(row.keyController));
                     },
@@ -57,8 +56,8 @@ class HeadersTable extends StatelessWidget {
                   child: SingleLineCodeEditor(
                     controller: row.valueController,
                     onTabPressed: () => stateManager.handleTabPress(index, false),
+                    onSavePressed: onSavePressed,
                     focusNode: row.valueFocusNode,
-                    keyCallback: keyCallback,
                     onFocusChange: () {
                       context.read<EventBus>().fire(EditorSelectionChanged(row.valueController));
                     },
