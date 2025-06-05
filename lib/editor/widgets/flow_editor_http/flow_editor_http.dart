@@ -596,7 +596,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               const SizedBox(width: 12),
                                               Container(
                                                 width: 120,
-                                                height: 24,
+                                                height: 20,
                                                 decoration: BoxDecoration(
                                                   border: Border.all(color: const Color(0xFF474747), width: 1),
                                                   borderRadius: BorderRadius.circular(4),

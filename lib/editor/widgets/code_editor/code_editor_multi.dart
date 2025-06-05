@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
 import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
+import 'package:trayce/editor/widgets/code_editor/find_replace.dart';
 
 class MultiLineCodeEditor extends StatefulWidget {
   final CodeLineEditingController controller;
@@ -59,12 +61,20 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
       child: CodeEditor(
         controller: widget.controller,
         focusNode: _focusNode,
-        // scrollController: CodeScrollController(
-        //   verticalScroller:
-        //       widget.verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
-        //   horizontalScroller:
-        //       widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
-        // ),
+        findBuilder: (context, controller, readOnly) {
+          controller.findInputFocusNode.onKeyEvent = (node, event) {
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+              controller.close();
+              return KeyEventResult.handled;
+            }
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+              controller.nextMatch();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          };
+          return CodeFindPanelView(controller: controller, readOnly: readOnly);
+        },
         border: widget.border ?? Border.all(width: 0.0),
         style: CodeEditorStyle(
           fontFamily: "monospace",
