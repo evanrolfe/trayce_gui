@@ -55,7 +55,10 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
   Widget build(BuildContext context) {
     return CodeAutocomplete(
       viewBuilder: (context, notifier, onSelected) {
-        return DefaultCodeAutocompleteListView(notifier: notifier, onSelected: onSelected);
+        return DefaultCodeAutocompleteListView(
+          notifier: notifier,
+          onSelected: onSelected,
+        );
       },
       promptsBuilder: DefaultCodeAutocompletePromptsBuilder(language: langJson),
       child: CodeEditor(
@@ -63,11 +66,13 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
         focusNode: _focusNode,
         findBuilder: (context, controller, readOnly) {
           controller.findInputFocusNode.onKeyEvent = (node, event) {
-            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.escape) {
               controller.close();
               return KeyEventResult.handled;
             }
-            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.enter) {
               controller.nextMatch();
               return KeyEventResult.handled;
             }
@@ -95,11 +100,23 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
             child: child,
           );
         },
-        indicatorBuilder: (context, editingController, chunkController, notifier) {
+        indicatorBuilder: (
+          context,
+          editingController,
+          chunkController,
+          notifier,
+        ) {
           return Row(
             children: [
-              DefaultCodeLineNumber(controller: editingController, notifier: notifier),
-              DefaultCodeChunkIndicator(width: 20, controller: chunkController, notifier: notifier),
+              DefaultCodeLineNumber(
+                controller: editingController,
+                notifier: notifier,
+              ),
+              DefaultCodeChunkIndicator(
+                width: 20,
+                controller: chunkController,
+                notifier: notifier,
+              ),
             ],
           );
         },
