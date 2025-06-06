@@ -94,8 +94,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
   late final HeadersStateManager _headersController;
-  late final FocusNode focusNode;
-  late final FocusNode dropdownFocusNode;
+  late final FocusNode _focusNode;
+  late final FocusNode _methodFocusNode;
+  late final FocusNode _formatFocusNode;
   late final FocusNode _topTabFocusNode;
   late final FocusNode _urlFocusNode;
 
@@ -122,15 +123,29 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       _reqBodyController.text = widget.request.body!.toString();
     }
 
-    focusNode = FocusNode();
-    dropdownFocusNode = FocusNode();
+    _focusNode = FocusNode();
+    _methodFocusNode = FocusNode();
+    _formatFocusNode = FocusNode();
     _topTabFocusNode = FocusNode();
     _urlFocusNode = FocusNode();
 
-    focusNode.onKeyEvent = _onKeyUp;
-    dropdownFocusNode.onKeyEvent = _onKeyUp;
+    _focusNode.onKeyEvent = _onKeyUp;
+    _methodFocusNode.onKeyEvent = _onKeyUp;
+    _formatFocusNode.onKeyEvent = _onKeyUp;
     _topTabFocusNode.onKeyEvent = _onKeyUp;
     _urlFocusNode.onKeyEvent = _onKeyUp;
+
+    // Add listener to transfer focus when method dropdown loses focus
+    _methodFocusNode.addListener(() {
+      if (!_methodFocusNode.hasFocus) {
+        _focusNode.requestFocus();
+      }
+    });
+    _formatFocusNode.addListener(() {
+      if (!_formatFocusNode.hasFocus) {
+        _focusNode.requestFocus();
+      }
+    });
 
     // Listen for selection changes
     context.read<EventBus>().on<EditorSelectionChanged>().listen((event) {
@@ -301,7 +316,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     super.didChangeDependencies();
     // Unfocus when the widget is no longer visible
     if (!mounted) {
-      focusNode.unfocus();
+      _focusNode.unfocus();
     }
   }
 
@@ -315,8 +330,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _reqBodyController.dispose();
     _disabledScrollController.dispose();
     _headersController.dispose();
-    focusNode.dispose();
-    dropdownFocusNode.dispose();
+    _focusNode.dispose();
+    _methodFocusNode.dispose();
+    _formatFocusNode.dispose();
     _topTabFocusNode.dispose();
     _urlFocusNode.dispose();
     super.dispose();
@@ -335,11 +351,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       valueListenable: HttpEditorState.heightNotifier,
       builder: (context, middlePaneHeight, _) {
         return Focus(
-          focusNode: focusNode,
+          focusNode: _focusNode,
           canRequestFocus: true,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: () => focusNode.requestFocus(),
+            onTap: () => _focusNode.requestFocus(),
             child: Column(
               children: [
                 // HTTP Label Pane
@@ -383,7 +399,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             ),
                           ),
                           child: DropdownButton2<String>(
-                            focusNode: dropdownFocusNode,
+                            focusNode: _methodFocusNode,
                             value: _selectedMethod,
                             underline: Container(),
                             dropdownStyleData: DropdownStyleData(decoration: dropdownDecoration, width: 100),
@@ -405,7 +421,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                   _selectedMethod = newValue;
                                   _flowModified();
                                 });
-                                focusNode.requestFocus();
+                                _focusNode.requestFocus();
                               }
                             },
                           ),
@@ -631,6 +647,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: DropdownButton2<String>(
+                                                  focusNode: _formatFocusNode,
                                                   value: _selectedFormat,
                                                   underline: Container(),
                                                   dropdownStyleData: DropdownStyleData(

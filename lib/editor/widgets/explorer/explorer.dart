@@ -23,6 +23,10 @@ class EventNewRequest {
   EventNewRequest();
 }
 
+class EventFocusExplorer {
+  EventFocusExplorer();
+}
+
 class EventNewRequestInFolder {
   final ExplorerNode parentNode;
 
@@ -63,6 +67,11 @@ class _FileExplorerState extends State<FileExplorer> {
       setState(() {
         _files = event.nodes;
       });
+    });
+
+    // Subscribe to focus events
+    context.read<EventBus>().on<EventFocusExplorer>().listen((_) {
+      _focusNode.requestFocus();
     });
 
     _focusNode = FocusNode();
@@ -273,6 +282,7 @@ class _FileExplorerState extends State<FileExplorer> {
                     onExit: (_) => setState(() => _hoveredNode = null),
                     child: GestureDetector(
                       onTapDown: (_) {
+                        _focusNode.requestFocus();
                         // We do this instead of using onDoubleTap because that makes single tap way too slow
                         // See: https://stackoverflow.com/questions/71293804/ondoubletap-makes-ontap-very-slow
                         int currMills = DateTime.now().millisecondsSinceEpoch;
@@ -365,6 +375,9 @@ class _FileExplorerState extends State<FileExplorer> {
     return Focus(
       focusNode: _focusNode,
       canRequestFocus: true,
+      onFocusChange: (hasFocus) {
+        print('ExploreronFocusChange: $hasFocus');
+      },
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => _focusNode.requestFocus(),

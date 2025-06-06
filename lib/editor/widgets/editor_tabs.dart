@@ -38,6 +38,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub4;
   late final StreamSubscription _tabsSub5;
   late final StreamSubscription _tabsSub6;
+  late final FocusNode _focusNode;
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
@@ -46,6 +47,9 @@ class _EditorTabsState extends State<EditorTabs> {
   @override
   void initState() {
     super.initState();
+
+    _focusNode = FocusNode();
+    _focusNode.onKeyEvent = _onKeyEventTabBar;
 
     // Called when a request is opened from the explorer
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
@@ -192,6 +196,20 @@ class _EditorTabsState extends State<EditorTabs> {
     });
   }
 
+  KeyEventResult _onKeyEventTabBar(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.keyN && HardwareKeyboard.instance.isControlPressed) {
+        context.read<EventBus>().fire(EventNewRequest());
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyW && HardwareKeyboard.instance.isControlPressed) {
+        _closeCurrentTab();
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
   Future<String?> _getPath() async {
     final config = context.read<Config>();
     late String? path;
@@ -221,6 +239,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub4.cancel();
     _tabsSub5.cancel();
     _tabsSub6.cancel();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -296,21 +315,37 @@ class _EditorTabsState extends State<EditorTabs> {
       width: widget.width,
       child: Column(
         children: [
-          Container(
-            height: tabHeight,
-            decoration: getTabBarDecoration(),
-            child: ReorderableListView(
-              scrollDirection: Axis.horizontal,
-              onReorder: _onReorder,
-              buildDefaultDragHandles: false,
-              children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+          Focus(
+            focusNode: _focusNode,
+            canRequestFocus: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTapDown: (_) => _focusNode.requestFocus(),
+              child: Container(
+                height: tabHeight,
+                decoration: getTabBarDecoration(),
+                child: ReorderableListView(
+                  scrollDirection: Axis.horizontal,
+                  onReorder: _onReorder,
+                  buildDefaultDragHandles: false,
+                  children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+                ),
+              ),
             ),
           ),
           Expanded(
-            child:
-                _tabs.isEmpty
-                    ? const Center(child: Text('No tabs open'))
-                    : IndexedStack(index: _selectedTabIndex, children: _tabs.map((entry) => entry.editor).toList()),
+            child: Focus(
+              focusNode: _focusNode,
+              canRequestFocus: true,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTapDown: (_) => _focusNode.requestFocus(),
+                child:
+                    _tabs.isEmpty
+                        ? const Center(child: Text('No tabs open'))
+                        : IndexedStack(index: _selectedTabIndex, children: _tabs.map((entry) => entry.editor).toList()),
+              ),
+            ),
           ),
         ],
       ),

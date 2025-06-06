@@ -18,6 +18,7 @@ import 'package:trayce/status_bar.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'editor/widgets/editor.dart';
+import 'editor/widgets/explorer/explorer.dart';
 import 'network/repo/flow_repo.dart';
 import 'network/widgets/network.dart';
 
@@ -90,6 +91,11 @@ class _AppState extends State<App> with WindowListener {
     // Unfocus any focused nodes when changing pages
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _selectedIndex = index);
+
+    // Focus the explorer when switching to the editor tab
+    if (index == 1) {
+      context.read<EventBus>().fire(EventFocusExplorer());
+    }
   }
 
   @override
