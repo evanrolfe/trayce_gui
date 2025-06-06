@@ -26,7 +26,7 @@ Collection parseCollection(String collection) {
 
   final query = parseQuery(result);
 
-  final authMode = result.value['auth']['mode'];
+  final authMode = result.value['auth']?['mode'];
   Auth? auth;
   if (authMode != null && authMode != 'none') {
     auth = parseAuth(result, authMode);
