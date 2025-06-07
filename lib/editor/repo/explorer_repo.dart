@@ -135,6 +135,8 @@ class ExplorerRepo {
     // This is called when you click new request on a folder/collection and enter the filename
     // directly in the explorer, then hit enter
     if (node.type == NodeType.request && !node.isSaved) {
+      newName = "$newName.bru";
+
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 

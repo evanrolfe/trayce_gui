@@ -91,17 +91,15 @@ class _FileExplorerState extends State<FileExplorer> {
 
     // final config = context.read<Config>();
     // if (!config.isTest) {
-    //   context.read<ExplorerRepo>().openCollection(
-    //     '/home/evan/Code/trayce/gui/test/support/collection1',
-    //   );
+    //   context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     // }
   }
 
   void _startRenaming(ExplorerNode node) {
     print('startRenaming, node: ${node.name}');
     _renameFocusNode.requestFocus();
-    _renameController.text = node.name;
-    _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.name.length);
+    _renameController.text = node.displayName();
+    _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.displayName().length);
     setState(() {
       node.isRenaming = true;
       _renamingNode = node;
@@ -348,7 +346,7 @@ class _FileExplorerState extends State<FileExplorer> {
                                 ),
                               )
                             else
-                              Text(node.name, style: itemTextStyle),
+                              Text(node.displayName(), style: itemTextStyle),
                           ],
                         ),
                       ),

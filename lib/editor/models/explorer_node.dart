@@ -84,6 +84,10 @@ class ExplorerNode {
     }
   }
 
+  String displayName() {
+    return name.replaceAll('.bru', '');
+  }
+
   void updateChildrenSeq() {
     for (int i = 0; i < children.length; i++) {
       if (children[i].type != NodeType.request) continue;

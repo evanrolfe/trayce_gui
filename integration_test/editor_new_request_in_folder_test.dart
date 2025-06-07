@@ -28,7 +28,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('collection1'), findsOneWidget);
   expect(find.text('hello'), findsOneWidget);
   expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request.bru'), findsOneWidget);
+  expect(find.text('my-request'), findsOneWidget);
 
   // Right-click on the myfolder item
   final myfolderItem = find.text('myfolder');
@@ -42,7 +42,7 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Enter the name of the new request
   final searchField = find.byKey(const Key('explorer_rename_input'));
-  await tester.enterText(searchField, 'i_am_new.bru');
+  await tester.enterText(searchField, 'i_am_new');
   await tester.pumpAndSettle();
 
   // Simulate enter key press

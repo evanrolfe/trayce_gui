@@ -35,7 +35,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('collection1'), findsOneWidget);
   expect(find.text('hello'), findsOneWidget);
   expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request.bru'), findsOneWidget);
+  expect(find.text('my-request'), findsOneWidget);
 
   // Click on the myfolder item
   final myfolderItem = find.text('myfolder');
@@ -43,7 +43,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Right-click on two.bru request
-  final oneReq = find.text('two.bru');
+  final oneReq = find.text('two');
   await tester.tapAt(tester.getCenter(oneReq), buttons: 2);
   await tester.pumpAndSettle();
 

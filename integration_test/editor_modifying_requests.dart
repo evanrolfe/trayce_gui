@@ -35,7 +35,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('collection1'), findsOneWidget);
   expect(find.text('hello'), findsOneWidget);
   expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request.bru'), findsOneWidget);
+  expect(find.text('my-request'), findsOneWidget);
 
   // Click on the myfolder item
   final myfolderItem = find.text('myfolder');
@@ -43,7 +43,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Right-click on one.bru request
-  final oneReq = find.text('one.bru');
+  final oneReq = find.text('one');
   await tester.tapAt(tester.getCenter(oneReq), buttons: kSecondaryButton);
   await tester.pumpAndSettle();
 
@@ -205,7 +205,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Find and click the delete button for the first header row
   final deleteButtons = find.descendant(of: headersTableWidget, matching: find.byIcon(Icons.close));
   await tester.tap(deleteButtons.at(deleteButtons.evaluate().length - 2));
-  await tester.pumpAndSettle(const Duration(seconds: 5));
+  await tester.pumpAndSettle();
 
   // Expect NOT to see a *
   expect(find.text('one.bru*'), findsNothing);
