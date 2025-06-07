@@ -21,8 +21,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 
-  // Find and click the IconButton with the key 'open_collection_btn'
-  final openCollectionBtn = find.byKey(const Key('open_collection_btn'));
+  // Find and click the IconButton with the key 'collection_btn'
+  final openCollectionBtn = find.byKey(const Key('collection_btn'));
   await tester.tap(openCollectionBtn);
   await tester.pumpAndSettle();
 
@@ -205,7 +205,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Find and click the delete button for the first header row
   final deleteButtons = find.descendant(of: headersTableWidget, matching: find.byIcon(Icons.close));
   await tester.tap(deleteButtons.at(deleteButtons.evaluate().length - 2));
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(const Duration(seconds: 5));
 
   // Expect NOT to see a *
   expect(find.text('one.bru*'), findsNothing);

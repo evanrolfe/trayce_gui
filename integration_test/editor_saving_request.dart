@@ -21,8 +21,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 
-  // Find and click the IconButton with the key 'open_collection_btn'
-  final openCollectionBtn = find.byKey(const Key('open_collection_btn'));
+  // Find and click the IconButton with the key 'collection_btn'
+  final openCollectionBtn = find.byKey(const Key('collection_btn'));
   await tester.tap(openCollectionBtn);
   await tester.pumpAndSettle();
 

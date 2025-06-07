@@ -9,6 +9,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/main.dart' as app;
 
 import 'containers_modal_test.dart' as containers_modal_test;
+import 'editor_create_collection_test.dart' as editor_create_collection;
 import 'editor_modifying_requests.dart' as editor_modifying_requests;
 import 'editor_new_request_in_folder_test.dart' as editor_new_request_in_folder;
 import 'editor_saving_request.dart' as editor_saving_request;
@@ -63,6 +64,7 @@ void main() {
       {'func': editor_saving_request.test},
       {'func': editor_sending_a_request.test},
       {'func': editor_new_request_in_folder.test},
+      {'func': editor_create_collection.test},
       {'func': license_key_test.test},
     ];
 

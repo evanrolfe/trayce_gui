@@ -11,6 +11,7 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
@@ -63,14 +64,11 @@ class _FileExplorerState extends State<FileExplorer> {
     super.initState();
 
     // Subscribe to verification events
-    _displaySub = context
-        .read<EventBus>()
-        .on<EventDisplayExplorerItems>()
-        .listen((event) {
-          setState(() {
-            _files = event.nodes;
-          });
-        });
+    _displaySub = context.read<EventBus>().on<EventDisplayExplorerItems>().listen((event) {
+      setState(() {
+        _files = event.nodes;
+      });
+    });
 
     // Subscribe to focus events
     context.read<EventBus>().on<EventFocusExplorer>().listen((_) {
@@ -103,10 +101,7 @@ class _FileExplorerState extends State<FileExplorer> {
     print('startRenaming, node: ${node.name}');
     _renameFocusNode.requestFocus();
     _renameController.text = node.name;
-    _renameController.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: node.name.length,
-    );
+    _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.name.length);
     setState(() {
       node.isRenaming = true;
       _renamingNode = node;
@@ -115,9 +110,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
   void _stopRenaming(bool isCancelled) {
     if (_renamingNode == null) return;
-    print(
-      'stopRenaming, node: ${_renamingNode!.name}, isSaved: ${_renamingNode!.isSaved}',
-    );
+    print('stopRenaming, node: ${_renamingNode!.name}, isSaved: ${_renamingNode!.isSaved}');
     if (!_renamingNode!.isSaved && isCancelled) {
       context.read<ExplorerRepo>().removeUnsavedNode(_renamingNode!);
     }
@@ -144,9 +137,7 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
-    final isCmdPressed =
-        (HardwareKeyboard.instance.isControlPressed ||
-            HardwareKeyboard.instance.isMetaPressed);
+    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
         context.read<EventBus>().fire(EventNewRequest());
@@ -177,10 +168,7 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleNewCollection() async {
-    final path = await _getCollectionPath();
-    if (path != null && mounted) {
-      context.read<ExplorerRepo>().createCollection(path);
-    }
+    showNewCollectionModal(context);
   }
 
   Future<void> _handleNewRequest() async {
@@ -227,18 +215,13 @@ class _FileExplorerState extends State<FileExplorer> {
     return path;
   }
 
-  bool _shouldShowDropLineBelow(
-    ExplorerNode targetNode,
-    List<ExplorerNode?> candidateData,
-  ) {
+  bool _shouldShowDropLineBelow(ExplorerNode targetNode, List<ExplorerNode?> candidateData) {
     if (targetNode.type != NodeType.request) return false;
 
     if (_dropPosition == null || candidateData.isEmpty) return false;
 
     final movedNode = candidateData.first;
-    if (movedNode?.type != NodeType.request &&
-        targetNode.type == NodeType.request)
-      return false;
+    if (movedNode?.type != NodeType.request && targetNode.type == NodeType.request) return false;
 
     return _dropPosition == _files.indexOf(targetNode);
   }
@@ -256,23 +239,10 @@ class _FileExplorerState extends State<FileExplorer> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (node.isDirectory)
-                    const Icon(
-                      Icons.keyboard_arrow_right,
-                      color: textColor,
-                      size: 16,
-                    ),
-                  if (!node.isDirectory)
-                    const Icon(
-                      Icons.insert_drive_file,
-                      color: textColor,
-                      size: 16,
-                    ),
+                  if (node.isDirectory) const Icon(Icons.keyboard_arrow_right, color: textColor, size: 16),
+                  if (!node.isDirectory) const Icon(Icons.insert_drive_file, color: textColor, size: 16),
                   const SizedBox(width: 8),
-                  Text(
-                    node.name,
-                    style: const TextStyle(color: textColor, fontSize: 13),
-                  ),
+                  Text(node.name, style: const TextStyle(color: textColor, fontSize: 13)),
                 ],
               ),
             ),
@@ -282,9 +252,7 @@ class _FileExplorerState extends State<FileExplorer> {
               final targetNode = node;
               final movedNode = details.data;
 
-              if (movedNode.type == NodeType.folder &&
-                  targetNode.type == NodeType.request)
-                return false;
+              if (movedNode.type == NodeType.folder && targetNode.type == NodeType.request) return false;
 
               return true;
             },
@@ -336,20 +304,11 @@ class _FileExplorerState extends State<FileExplorer> {
                         }
                       },
                       onSecondaryTapDown: (details) {
-                        showNodeMenu(
-                          context,
-                          details,
-                          node,
-                          _startRenaming,
-                          _deleteNode,
-                          _handleNewRequestInFolder,
-                        );
+                        showNodeMenu(context, details, node, _startRenaming, _deleteNode, _handleNewRequestInFolder);
                       },
                       child: Container(
                         height: itemHeight,
-                        padding: EdgeInsets.only(
-                          left: indent + fileTreeLeftMargin,
-                        ),
+                        padding: EdgeInsets.only(left: indent + fileTreeLeftMargin),
                         decoration: getItemDecoration(
                           isHovered: _hoveredNode == node,
                           isSelected: _selectedNode == node,
@@ -359,18 +318,11 @@ class _FileExplorerState extends State<FileExplorer> {
                           children: [
                             if (node.isDirectory)
                               Icon(
-                                node.isExpanded
-                                    ? Icons.keyboard_arrow_down
-                                    : Icons.keyboard_arrow_right,
+                                node.isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
                                 color: textColor,
                                 size: 16,
                               ),
-                            if (!node.isDirectory)
-                              const Icon(
-                                Icons.insert_drive_file,
-                                color: fileIconColor,
-                                size: 16,
-                              ),
+                            if (!node.isDirectory) const Icon(Icons.insert_drive_file, color: fileIconColor, size: 16),
                             const SizedBox(width: 8),
                             if (node.isRenaming)
                               Expanded(
@@ -385,10 +337,7 @@ class _FileExplorerState extends State<FileExplorer> {
                                     isDense: true,
                                     contentPadding: EdgeInsets.zero,
                                     border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Color(0xFF474747),
-                                        width: 1,
-                                      ),
+                                      borderSide: BorderSide(color: Color(0xFF474747), width: 1),
                                     ),
                                     fillColor: Color(0xFF2E2E2E),
                                     filled: true,
@@ -409,9 +358,7 @@ class _FileExplorerState extends State<FileExplorer> {
                     Container(
                       height: 1,
                       color: Colors.white,
-                      margin: EdgeInsets.only(
-                        left: indent + fileTreeLeftMargin,
-                      ),
+                      margin: EdgeInsets.only(left: indent + fileTreeLeftMargin),
                     ),
                 ],
               );
@@ -419,9 +366,7 @@ class _FileExplorerState extends State<FileExplorer> {
           ),
         ),
         if (node.isDirectory && node.isExpanded)
-          ...node.children.map(
-            (child) => _buildFileTree(child, indent: indent + 24),
-          ),
+          ...node.children.map((child) => _buildFileTree(child, indent: indent + 24)),
       ],
     );
   }
@@ -453,17 +398,10 @@ class _FileExplorerState extends State<FileExplorer> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Editor',
-                        style: TextStyle(color: textColor, fontSize: 13),
-                      ),
+                      const Text('Editor', style: TextStyle(color: textColor, fontSize: 13)),
                       IconButton(
-                        key: const Key('open_collection_btn'),
-                        icon: const Icon(
-                          Icons.more_horiz,
-                          color: textColor,
-                          size: 16,
-                        ),
+                        key: const Key('collection_btn'),
+                        icon: const Icon(Icons.more_horiz, color: textColor, size: 16),
                         padding: const EdgeInsets.only(right: 5),
                         constraints: const BoxConstraints(),
                         onPressed:

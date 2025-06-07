@@ -51,6 +51,16 @@ const textFieldDecor = InputDecoration(
   constraints: BoxConstraints(maxHeight: 30, minHeight: 30),
 );
 
+const textFieldDecorReadOnly = InputDecoration(
+  isDense: true,
+  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+  border: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1)),
+  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
+  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1)),
+  filled: true,
+  fillColor: Color(0xFF2D2D2D),
+);
+
 const menuItemStyle = ButtonStyle(
   foregroundColor: WidgetStatePropertyAll(lightTextColor),
   backgroundColor: WidgetStatePropertyAll(Color(0xFF333333)),

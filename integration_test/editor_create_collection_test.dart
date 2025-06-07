@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../test/support/helpers.dart';
+
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
@@ -16,25 +18,28 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the PopupMenuItem with the text "Open Collection", to open collection1
-  final openCollectionMenuItem = find.text('Open Collection');
+  final openCollectionMenuItem = find.text('New Collection');
   await tester.tap(openCollectionMenuItem);
   await tester.pumpAndSettle();
 
-  expect(find.text('collection1'), findsOneWidget);
-  expect(find.text('hello'), findsOneWidget);
-  expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request.bru'), findsOneWidget);
+  // Enter collection name
+  final searchField = find.byKey(const Key('new_collection_name_input'));
+  await tester.enterText(searchField, 'testcoll');
 
-  // Find and click the IconButton with the key 'collection_btn'
-  await tester.tap(openCollectionBtn);
+  // Pick a folder
+  final browseBtn = find.byKey(const Key('browse_btn'));
+  await tester.tap(browseBtn);
   await tester.pumpAndSettle();
 
-  // Find and click the PopupMenuItem with the text "Open Collection", to open collection2
-  await tester.tap(openCollectionMenuItem);
+  // Click Create
+  final createBtn = find.byKey(const Key('create_btn'));
+  await tester.tap(createBtn);
   await tester.pumpAndSettle();
 
-  expect(find.text('collection2'), findsOneWidget);
-  expect(find.text('test-request.bru'), findsOneWidget);
+  // Verify the collection is created
+  final collection = find.text('testcoll');
+  expect(collection, findsOneWidget);
 
-  // await tester.pumpAndSettle(const Duration(seconds: 3));
+  // Delete the folder
+  await deleteFolder('./test/support/testcoll');
 }

@@ -37,9 +37,7 @@ class ExplorerRepo {
   void createCollection(String collectionPath) async {
     final collectionDir = Directory(collectionPath);
     if (!collectionDir.existsSync()) {
-      print('collectionDir does not exist: $collectionPath');
-      _eventBus.fire(EventDisplayAlert('the collection path must exist'));
-      return;
+      collectionDir.createSync(recursive: true);
     }
 
     final files = collectionDir.listSync();
