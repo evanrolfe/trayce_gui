@@ -76,7 +76,9 @@ class ExplorerNode {
 
   void save() {
     if (type == NodeType.request) {
+      request!.name = name.replaceAll('.bru', '');
       final bruStr = request!.toBru();
+
       if (!file.existsSync()) {
         file.createSync(recursive: true);
       }

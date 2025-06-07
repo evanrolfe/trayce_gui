@@ -67,7 +67,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state
-  expect(find.text('one.bru*'), findsOneWidget);
+  expect(find.text('one*'), findsOneWidget);
   await tester.pumpAndSettle();
 
   // Change it back to original content
@@ -75,7 +75,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
-  expect(find.text('one.bru*'), findsNothing);
+  expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
   // Expect the file to be unchanged
@@ -92,7 +92,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect to see a *
-  expect(find.text('one.bru*'), findsOneWidget);
+  expect(find.text('one*'), findsOneWidget);
   await tester.pumpAndSettle();
 
   // Change the URL back to the original
@@ -100,7 +100,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
-  expect(find.text('one.bru*'), findsNothing);
+  expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
   // Expect the file to be unchanged
@@ -118,7 +118,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state
-  expect(find.text('one.bru*'), findsOneWidget);
+  expect(find.text('one*'), findsOneWidget);
   await tester.pumpAndSettle();
 
   // Select POST method
@@ -128,7 +128,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
-  expect(find.text('one.bru*'), findsNothing);
+  expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
   // Expect the file to be unchanged
@@ -149,7 +149,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state
-  expect(find.text('one.bru*'), findsOneWidget);
+  expect(find.text('one*'), findsOneWidget);
   await tester.pumpAndSettle();
 
   // Change it back
@@ -157,7 +157,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
-  expect(find.text('one.bru*'), findsNothing);
+  expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
   // Expect the file to be unchanged
@@ -173,7 +173,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state
-  expect(find.text('one.bru*'), findsOneWidget);
+  expect(find.text('one*'), findsOneWidget);
   await tester.pumpAndSettle();
 
   // Check the checkbox of the first header row
@@ -181,7 +181,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
-  expect(find.text('one.bru*'), findsNothing);
+  expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
   // Expect the file to be unchanged
@@ -196,7 +196,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state
-  expect(find.text('one.bru*'), findsOneWidget);
+  expect(find.text('one*'), findsOneWidget);
   await tester.pumpAndSettle();
 
   // ===========================================================================
@@ -208,7 +208,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
-  expect(find.text('one.bru*'), findsNothing);
+  expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
   // Expect the file to be unchanged

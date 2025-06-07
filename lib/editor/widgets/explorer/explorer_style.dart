@@ -14,6 +14,7 @@ const Color headerBackgroundColor = Color(0xFF333333);
 const Color borderColorExplorer = Color(0xFF474747);
 const Color fileIconColor = Color.fromARGB(255, 143, 143, 143);
 const Color selectedItemColor = Color(0xFF2C4C49);
+const Color selectedMenuItemColor = Color.fromARGB(255, 74, 132, 126);
 const Color hoveredItemColor = Color(0xFF2D2D2D);
 const Color dropTargetColor = Colors.teal;
 const int hoverAlpha = 77;
@@ -34,16 +35,16 @@ const Border headerBorder = Border(
 const BoxDecoration headerDecoration = BoxDecoration(color: headerBackgroundColor, border: headerBorder);
 
 BoxDecoration getItemDecoration({bool isHovered = false, bool isSelected = false, bool isDragTarget = false}) {
-  return BoxDecoration(
-    color:
-        isDragTarget
-            ? dropTargetColor.withAlpha(hoverAlpha)
-            : isSelected
-            ? selectedItemColor
-            : isHovered
-            ? hoveredItemColor.withAlpha(hoverAlpha)
-            : null,
-  );
+  Color? color;
+  if (isDragTarget) {
+    color = selectedItemColor;
+  } else if (isSelected) {
+    color = selectedItemColor;
+  } else if (isHovered) {
+    color = hoveredItemColor.withAlpha(hoverAlpha);
+  }
+
+  return BoxDecoration(color: color);
 }
 
 const BoxDecoration transparentDecoration = BoxDecoration(color: Colors.transparent);

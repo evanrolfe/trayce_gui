@@ -52,21 +52,13 @@ class _EditorTabsState extends State<EditorTabs> {
     _focusNode.onKeyEvent = _onKeyEventTabBar;
 
     // Called when a request is opened from the explorer
-    _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((
-      event,
-    ) {
+    _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
         final uuid = const Uuid().v4();
-        final newTab = TabItem(
-          node: event.node,
-          key: ValueKey('tabItem_$uuid'),
-          displayName: event.node.name,
-        );
+        final newTab = TabItem(node: event.node, key: ValueKey('tabItem_$uuid'), displayName: event.node.displayName());
 
         // Check if tab already exists
-        final existingIndex = _tabs.indexWhere(
-          (entry) => entry.tab.getPath() == newTab.getPath(),
-        );
+        final existingIndex = _tabs.indexWhere((entry) => entry.tab.getPath() == newTab.getPath());
         if (existingIndex != -1) {
           _selectedTabIndex = existingIndex;
           return;
@@ -82,10 +74,8 @@ class _EditorTabsState extends State<EditorTabs> {
             // Bit of a round-about way of letting the user save the flow when focused on a tab,
             // it sends this event to FlowEditorHttpp, which then sends the EventSaveRequest back to us,
             // theres probably a better/cleaner way of doing this
-            onSave:
-                () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
-            onNewRequest:
-                () => context.read<EventBus>().fire(EventNewRequest()),
+            onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
+            onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
             onCloseCurrentTab: () => _closeCurrentTab(),
             editor: FlowEditor(
               key: ValueKey('editor_$uuid'),
@@ -100,9 +90,7 @@ class _EditorTabsState extends State<EditorTabs> {
     });
 
     // Called when a request is modified
-    _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((
-      event,
-    ) {
+    _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((event) {
       final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
         return;
@@ -130,10 +118,8 @@ class _EditorTabsState extends State<EditorTabs> {
         _tabs.add(
           _TabEntry(
             tab: newTab,
-            onSave:
-                () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
-            onNewRequest:
-                () => context.read<EventBus>().fire(EventNewRequest()),
+            onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
+            onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
             onCloseCurrentTab: () => _closeCurrentTab(),
             editor: FlowEditor(
               key: ValueKey('editor_$uuid'),
@@ -148,9 +134,7 @@ class _EditorTabsState extends State<EditorTabs> {
     });
 
     // Called when a request is saved (i.e. CTRL+S)
-    _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen((
-      event,
-    ) async {
+    _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen((event) async {
       final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
         return;
@@ -167,11 +151,7 @@ class _EditorTabsState extends State<EditorTabs> {
           event.request.seq = seq;
         }
 
-        final fileName =
-            path
-                .split(Platform.pathSeparator)
-                .where((part) => part.isNotEmpty)
-                .last;
+        final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
         final node = ExplorerNode(
           file: File(path),
           name: fileName,
@@ -201,31 +181,23 @@ class _EditorTabsState extends State<EditorTabs> {
     });
 
     // Called when a node is renamed from the explorer
-    _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen((
-      event,
-    ) {
-      final tab = _tabs.firstWhereOrNull(
-        (entry) => entry.tab.node == event.node,
-      );
+    _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen((event) {
+      final tab = _tabs.firstWhereOrNull((entry) => entry.tab.node == event.node);
       if (tab == null) return;
 
       setState(() {
-        tab.tab.displayName = event.node.name;
+        tab.tab.displayName = event.node.displayName();
       });
     });
 
     // Called when CTRL+W is pressed
-    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((
-      event,
-    ) {
+    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((event) {
       _closeCurrentTab();
     });
   }
 
   KeyEventResult _onKeyEventTabBar(FocusNode node, KeyEvent event) {
-    final isCmdPressed =
-        (HardwareKeyboard.instance.isControlPressed ||
-            HardwareKeyboard.instance.isMetaPressed);
+    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
         context.read<EventBus>().fire(EventNewRequest());
@@ -248,10 +220,7 @@ class _EditorTabsState extends State<EditorTabs> {
       List<XTypeGroup> exts = [
         XTypeGroup(label: 'Trayce', extensions: ['bru']),
       ];
-      final loc = await getSaveLocation(
-        acceptedTypeGroups: exts,
-        suggestedName: 'untitled.bru',
-      );
+      final loc = await getSaveLocation(acceptedTypeGroups: exts, suggestedName: 'untitled.bru');
       if (loc == null) return null;
 
       path = loc.path;
@@ -288,11 +257,9 @@ class _EditorTabsState extends State<EditorTabs> {
       // Update selected index
       if (_selectedTabIndex == oldIndex) {
         _selectedTabIndex = newIndex;
-      } else if (_selectedTabIndex > oldIndex &&
-          _selectedTabIndex <= newIndex) {
+      } else if (_selectedTabIndex > oldIndex && _selectedTabIndex <= newIndex) {
         _selectedTabIndex--;
-      } else if (_selectedTabIndex < oldIndex &&
-          _selectedTabIndex >= newIndex) {
+      } else if (_selectedTabIndex < oldIndex && _selectedTabIndex >= newIndex) {
         _selectedTabIndex++;
       }
 
@@ -364,12 +331,7 @@ class _EditorTabsState extends State<EditorTabs> {
                     scrollDirection: Axis.horizontal,
                     onReorder: _onReorder,
                     buildDefaultDragHandles: false,
-                    children:
-                        _tabs
-                            .asMap()
-                            .entries
-                            .map((entry) => _buildTab(entry.value, entry.key))
-                            .toList(),
+                    children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
                   ),
                 ),
               ),
@@ -385,10 +347,7 @@ class _EditorTabsState extends State<EditorTabs> {
                 child:
                     _tabs.isEmpty
                         ? const Center(child: Text('No tabs open'))
-                        : IndexedStack(
-                          index: _selectedTabIndex,
-                          children: _tabs.map((entry) => entry.editor).toList(),
-                        ),
+                        : IndexedStack(index: _selectedTabIndex, children: _tabs.map((entry) => entry.editor).toList()),
               ),
             ),
           ),
@@ -420,49 +379,31 @@ class _EditorTabsState extends State<EditorTabs> {
               height: tabHeight,
               padding: tabPadding,
               constraints: tabConstraints,
-              decoration: getTabDecoration(
-                isSelected: isSelected,
-                isHovered: isHovered,
-                showTopBorder: true,
-              ),
+              decoration: getTabDecoration(isSelected: isSelected, isHovered: isHovered, showTopBorder: true),
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.insert_drive_file,
-                      size: 16,
-                      color: lightTextColor,
-                    ),
+                    const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
                     const SizedBox(width: 8),
                     Text(tabItem.getDisplayName(), style: tabTextStyle),
                     const SizedBox(width: 8),
                     MouseRegion(
                       cursor: SystemMouseCursors.click,
-                      onEnter:
-                          (_) =>
-                              setState(() => _hoveredCloseButtonIndex = index),
-                      onExit:
-                          (_) =>
-                              setState(() => _hoveredCloseButtonIndex = null),
+                      onEnter: (_) => setState(() => _hoveredCloseButtonIndex = index),
+                      onExit: (_) => setState(() => _hoveredCloseButtonIndex = null),
                       child: GestureDetector(
                         onTap: () => _closeTab(index),
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color:
-                                _hoveredCloseButtonIndex == index
-                                    ? Colors.grey.withOpacity(0.2)
-                                    : Colors.transparent,
+                                _hoveredCloseButtonIndex == index ? Colors.grey.withOpacity(0.2) : Colors.transparent,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Icon(
-                            Icons.close,
-                            size: 16,
-                            color: lightTextColor,
-                          ),
+                          child: const Icon(Icons.close, size: 16, color: lightTextColor),
                         ),
                       ),
                     ),
@@ -492,9 +433,7 @@ class _TabEntry {
     required this.onCloseCurrentTab,
   }) : focusNode = FocusNode() {
     focusNode.onKeyEvent = (node, event) {
-      final isCmdPressed =
-          (HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed);
+      final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
           onSave();

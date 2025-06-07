@@ -7,6 +7,7 @@ const Color lightBackgroundColor = Color(0xFF252526);
 const Color sidebarColor = Color(0xFF333333);
 const Color borderColor = Color(0xFF474747);
 const Color lightButtonColor = Color(0xFF2C2C2C);
+const Color selectedItemColor = Color(0xFF65AE7F);
 
 const Color highlightBorderColor = Color(0xFF4DB6AC);
 const Color statusBarBackground = Color(0xFF333333);

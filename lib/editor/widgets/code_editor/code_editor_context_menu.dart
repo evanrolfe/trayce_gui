@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
+import 'package:trayce/common/context_menu.dart';
 
 import '../../../common/context_menu_style.dart';
 
@@ -21,30 +22,41 @@ class ContextMenuControllerImpl implements SelectionToolbarController {
     showMenu(
       popUpAnimationStyle: contextMenuAnimationStyle,
       context: context,
-      position: RelativeRect.fromSize(
-        anchors.primaryAnchor & const Size(150, double.infinity),
-        MediaQuery.of(context).size,
+      position: RelativeRect.fromLTRB(
+        anchors.primaryAnchor.dx,
+        anchors.primaryAnchor.dy,
+        anchors.primaryAnchor.dx,
+        anchors.primaryAnchor.dy,
       ),
       color: contextMenuColor,
       shape: contextMenuShape,
       items: [
-        PopupMenuItem(
+        CustomPopupMenuItem(
           height: 30,
-          child: Text('Copy', style: contextMenuTextStyle),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('Copy', style: contextMenuTextStyle), Text('Ctrl+C', style: contextMenuTextStyle)],
+          ),
           onTap: () {
             controller.copy();
           },
         ),
-        PopupMenuItem(
+        CustomPopupMenuItem(
           height: 30,
-          child: Text('Cut', style: contextMenuTextStyle),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('Cut', style: contextMenuTextStyle), Text('Ctrl+X', style: contextMenuTextStyle)],
+          ),
           onTap: () {
             controller.cut();
           },
         ),
-        PopupMenuItem(
+        CustomPopupMenuItem(
           height: 30,
-          child: Text('Paste', style: contextMenuTextStyle),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('Paste', style: contextMenuTextStyle), Text('Ctrl+V', style: contextMenuTextStyle)],
+          ),
           onTap: () {
             controller.paste();
           },
