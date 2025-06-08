@@ -45,9 +45,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     _focusNode.addListener(_handleFocusChange);
 
     _focusNode.onKeyEvent = (node, event) {
-      final isCmdPressed =
-          (HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed);
+      final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
 
       if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
         widget.onSavePressed?.call();
@@ -57,8 +55,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
         widget.onTabPressed?.call();
         return KeyEventResult.handled;
       }
-      if (event is KeyDownEvent &&
-          event.logicalKey == LogicalKeyboardKey.enter) {
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
         widget.onEnterPressed?.call();
         // Do not allow new line
         return KeyEventResult.handled;
@@ -88,40 +85,24 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
       decoration: widget.decoration,
       child: CodeAutocomplete(
         viewBuilder: (context, notifier, onSelected) {
-          return DefaultCodeAutocompleteListView(
-            notifier: notifier,
-            onSelected: onSelected,
-          );
+          return DefaultCodeAutocompleteListView(notifier: notifier, onSelected: onSelected);
         },
-        promptsBuilder: DefaultCodeAutocompletePromptsBuilder(
-          language: langDart,
-        ),
+        promptsBuilder: DefaultCodeAutocompletePromptsBuilder(language: langDart),
         child: CodeEditor(
           controller: widget.controller,
           scrollController: CodeScrollController(
             verticalScroller:
-                widget.verticalScroller ??
-                ScrollController(
-                  initialScrollOffset: 0,
-                  keepScrollOffset: false,
-                ),
+                widget.verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
             horizontalScroller:
-                widget.horizontalScroller ??
-                ScrollController(
-                  initialScrollOffset: 0,
-                  keepScrollOffset: false,
-                ),
+                widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
           ),
           border: Border(
             left: BorderSide(color: const Color(0xFF474747), width: 0),
             top: BorderSide(color: const Color(0xFF474747), width: 0),
-            right: BorderSide(color: const Color(0xFF474747), width: 1),
-            bottom: BorderSide(color: const Color(0xFF474747), width: 1),
+            right: BorderSide(color: const Color(0xFF474747), width: 0),
+            bottom: BorderSide(color: const Color(0xFF474747), width: 0),
           ),
-          style: const CodeEditorStyle(
-            fontFamily: "monospace",
-            textColor: Color(0xFFD4D4D4),
-          ),
+          style: const CodeEditorStyle(fontFamily: "monospace", textColor: Color(0xFFD4D4D4)),
           wordWrap: false,
           shortcutOverrideActions: widget.shortcutOverrideActions,
           focusNode: _focusNode,

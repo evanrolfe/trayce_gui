@@ -10,7 +10,7 @@ const double fontSize = 13.0;
 
 // Colors
 const Color textColor = Color(0xFFD4D4D4);
-const Color headerBackgroundColor = Color(0xFF333333);
+const Color headerBackgroundColor = Color(0xFF252526);
 const Color borderColorExplorer = Color(0xFF474747);
 const Color fileIconColor = Color.fromARGB(255, 143, 143, 143);
 const Color selectedItemColor = Color(0xFF2C4C49);
@@ -27,7 +27,7 @@ const TextStyle itemTextStyle = TextStyle(color: textColor, fontSize: fontSize);
 
 // Borders
 const Border headerBorder = Border(
-  top: BorderSide(color: borderColorExplorer, width: 1),
+  // top: BorderSide(color: borderColorExplorer, width: 1),
   bottom: BorderSide(color: borderColorExplorer, width: 1),
 );
 

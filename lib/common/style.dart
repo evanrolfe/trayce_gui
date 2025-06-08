@@ -124,3 +124,9 @@ class NoTransitionBuilder extends PageTransitionsBuilder {
     return child;
   }
 }
+
+// Dialog style
+final dialogShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.circular(3),
+  side: const BorderSide(color: borderColor, width: 1),
+);

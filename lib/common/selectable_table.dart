@@ -114,24 +114,18 @@ class _SelectableTableState<T extends Identifiable> extends State<SelectableTabl
             focusNode: _focusNode,
             // autofocus: true,
             onKeyEvent: (node, event) {
-              // print('===========> KeyPress: ${event.logicalKey}, selectedRow: $selectedRow');
-              // return KeyEventResult.ignored;
               // Handle Arrow Up
               if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                print('===========> ${T.runtimeType} KeyUp: getSelectedRowIndex: ${getSelectedRowIndex()}');
-
                 if (selectedRow == null) {
                   return KeyEventResult.handled;
                 }
 
                 final nextIndex = getSelectedRowIndex() - 1;
                 if (nextIndex < 0) {
-                  print('arrow up nextIndex < 0');
                   return KeyEventResult.handled;
                 }
                 final nextRow = widget.rows[nextIndex];
                 setState(() {
-                  print('arrow up set state');
                   selectedRow = nextRow;
                   widget.onRowSelected(nextRow);
                 });

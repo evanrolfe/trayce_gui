@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trayce/common/style.dart';
 
 class CustomErrorWidget extends StatelessWidget {
   final String errorMessage;
@@ -9,8 +10,8 @@ class CustomErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF252526),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      backgroundColor: lightBackgroundColor,
+      shape: dialogShape,
       child: Container(
         padding: const EdgeInsets.all(16),
         child: Column(

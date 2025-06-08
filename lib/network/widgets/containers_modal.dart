@@ -11,10 +11,7 @@ import '../../common/style.dart';
 import '../../common/utils.dart';
 
 void showContainersModal(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (dialogContext) => const ContainersModal(),
-  );
+  showDialog(context: context, builder: (dialogContext) => const ContainersModal());
 }
 
 class ContainersModal extends StatefulWidget {
@@ -89,16 +86,9 @@ class _ContainersModalState extends State<ContainersModal> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF252526),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Container(
-        width: 800,
-        height: 600,
-        padding: const EdgeInsets.all(16),
-        child: _buildChild(),
-      ),
+      backgroundColor: lightBackgroundColor,
+      shape: dialogShape,
+      child: Container(width: 800, height: 600, padding: const EdgeInsets.all(16), child: _buildChild()),
     );
   }
 
@@ -106,19 +96,13 @@ class _ContainersModalState extends State<ContainersModal> {
     if (!_agentRunning) {
       _commandController.text =
           'docker run --pid=host --privileged -v /var/run/docker.sock:/var/run/docker.sock -t traycer/trayce_agent:latest -s $_machineIp:50051';
-      _commandController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: _commandController.text.length,
-      );
+      _commandController.selection = TextSelection(baseOffset: 0, extentOffset: _commandController.text.length);
 
       return _buildAgentNotRunning();
     }
     if (!_versionOk) {
       _commandController.text = 'docker pull traycer/trayce_agent:latest';
-      _commandController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: _commandController.text.length,
-      );
+      _commandController.selection = TextSelection(baseOffset: 0, extentOffset: _commandController.text.length);
       return _buildIncompatibleVersion();
     }
     return _buildContainerList();
@@ -133,19 +117,11 @@ class _ContainersModalState extends State<ContainersModal> {
           children: [
             const Text(
               'Containers',
-              style: TextStyle(
-                color: Color(0xFFD4D4D4),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
             ),
             IconButton(
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(
-                Icons.close,
-                color: Color(0xFFD4D4D4),
-                size: 20,
-              ),
+              icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               splashRadius: 16,
@@ -155,10 +131,7 @@ class _ContainersModalState extends State<ContainersModal> {
         const SizedBox(height: 16),
         const Text(
           'Select which containers you want to monitor',
-          style: TextStyle(
-            color: Color(0xFFD4D4D4),
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -171,11 +144,7 @@ class _ContainersModalState extends State<ContainersModal> {
               children: [
                 Container(
                   height: 25,
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Color(0xFF474747)),
-                    ),
-                  ),
+                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF474747)))),
                   child: const Row(
                     children: [
                       _HeaderCell(text: 'ID', width: 100),
@@ -194,11 +163,7 @@ class _ContainersModalState extends State<ContainersModal> {
                       final container = _containers[index];
                       return Container(
                         height: 25,
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Color(0xFF474747)),
-                          ),
-                        ),
+                        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF474747)))),
                         child: Row(
                           children: [
                             _Cell(text: container.id.substring(0, 6), width: 100),
@@ -219,26 +184,24 @@ class _ContainersModalState extends State<ContainersModal> {
                                           children: [
                                             Checkbox(
                                               value: _interceptedStates[container.id] ?? false,
-                                              onChanged: canIntercept(container.image)
-                                                  ? (bool? value) => _onContainerInterceptChanged(container.id, value)
-                                                  : null,
+                                              onChanged:
+                                                  canIntercept(container.image)
+                                                      ? (bool? value) =>
+                                                          _onContainerInterceptChanged(container.id, value)
+                                                      : null,
                                               side: const BorderSide(color: Color(0xFFD4D4D4)),
-                                              fillColor: MaterialStateProperty.resolveWith(
-                                                (states) {
-                                                  if (!canIntercept(container.image)) {
-                                                    return Colors.grey;
-                                                  }
-                                                  return states.contains(MaterialState.selected)
-                                                      ? const Color(0xFF4DB6AC)
-                                                      : Colors.transparent;
-                                                },
-                                              ),
+                                              fillColor: MaterialStateProperty.resolveWith((states) {
+                                                if (!canIntercept(container.image)) {
+                                                  return Colors.grey;
+                                                }
+                                                return states.contains(MaterialState.selected)
+                                                    ? const Color(0xFF4DB6AC)
+                                                    : Colors.transparent;
+                                              }),
                                             ),
                                             Text(
                                               _interceptedStates[container.id] ?? false ? 'Yes' : 'No',
-                                              style: const TextStyle(
-                                                color: Color(0xFFD4D4D4),
-                                              ),
+                                              style: const TextStyle(color: Color(0xFFD4D4D4)),
                                             ),
                                           ],
                                         ),
@@ -285,18 +248,10 @@ class _ContainersModalState extends State<ContainersModal> {
           children: [
             const Text(
               'Manage your containers',
-              style: TextStyle(
-                color: Color(0xFFD4D4D4),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
             ),
             IconButton(
-              icon: const Icon(
-                Icons.close,
-                color: Color(0xFFD4D4D4),
-                size: 20,
-              ),
+              icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
               onPressed: () => Navigator.of(context).pop(),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -307,10 +262,7 @@ class _ContainersModalState extends State<ContainersModal> {
         const SizedBox(height: 16),
         const Text(
           'Trayce Agent is on an incompatible version. Please update it by running this command and then restarting the agent:',
-          style: TextStyle(
-            color: Color(0xFFD4D4D4),
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
         ),
         const SizedBox(height: 8),
         Container(
@@ -362,19 +314,11 @@ class _ContainersModalState extends State<ContainersModal> {
           children: [
             const Text(
               'Containers',
-              style: TextStyle(
-                color: Color(0xFFD4D4D4),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
             ),
             IconButton(
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(
-                Icons.close,
-                color: Color(0xFFD4D4D4),
-                size: 20,
-              ),
+              icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               splashRadius: 16,
@@ -384,10 +328,7 @@ class _ContainersModalState extends State<ContainersModal> {
         const SizedBox(height: 16),
         const Text(
           'Trayce Agent is not running! Start it by running this command in the terminal:',
-          style: TextStyle(
-            color: Color(0xFFD4D4D4),
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
         ),
         const SizedBox(height: 16),
         Container(
@@ -436,10 +377,11 @@ class _ContainersModalState extends State<ContainersModal> {
     });
 
     // Get selected container IDs
-    final selectedIds = _containers
-        .where((container) => _interceptedStates[container.id] ?? false)
-        .map((container) => container.id)
-        .toList();
+    final selectedIds =
+        _containers
+            .where((container) => _interceptedStates[container.id] ?? false)
+            .map((container) => container.id)
+            .toList();
 
     context.read<ContainersRepo>().interceptContainers(selectedIds);
   }
@@ -453,23 +395,14 @@ class _HeaderCell extends StatelessWidget {
   final String text;
   final double width;
 
-  const _HeaderCell({
-    required this.text,
-    required this.width,
-  });
+  const _HeaderCell({required this.text, required this.width});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Color(0xFFD4D4D4),
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      child: Text(text, style: const TextStyle(color: Color(0xFFD4D4D4), fontWeight: FontWeight.bold)),
     );
   }
 }
@@ -478,22 +411,14 @@ class _Cell extends StatelessWidget {
   final String text;
   final double width;
 
-  const _Cell({
-    required this.text,
-    required this.width,
-  });
+  const _Cell({required this.text, required this.width});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Color(0xFFD4D4D4),
-        ),
-      ),
+      child: Text(text, style: const TextStyle(color: Color(0xFFD4D4D4))),
     );
   }
 }

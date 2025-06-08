@@ -96,8 +96,8 @@ class _SettingsModalState extends State<SettingsModal> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF252526),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      backgroundColor: lightBackgroundColor,
+      shape: dialogShape,
       child: Container(
         width: 400,
         padding: const EdgeInsets.all(16),

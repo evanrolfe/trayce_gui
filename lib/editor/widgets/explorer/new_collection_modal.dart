@@ -80,8 +80,8 @@ class _NewCollectionModalState extends State<NewCollectionModal> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF252526),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      backgroundColor: lightBackgroundColor,
+      shape: dialogShape,
       child: Container(
         width: 450,
         height: 300,

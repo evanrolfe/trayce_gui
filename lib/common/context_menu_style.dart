@@ -7,4 +7,4 @@ final contextMenuShape = RoundedRectangleBorder(
   side: BorderSide(color: borderColor, width: 0.0),
   borderRadius: BorderRadius.all(Radius.circular(2)),
 );
-final contextMenuTextStyle = TextStyle(color: lightTextColor, fontWeight: FontWeight.normal);
+final contextMenuTextStyle = TextStyle(color: lightTextColor, fontWeight: FontWeight.normal, fontSize: 13);

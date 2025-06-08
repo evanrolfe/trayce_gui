@@ -10,10 +10,7 @@ import '../models/proto_def.dart';
 import '../repo/proto_def_repo.dart';
 
 Future<void> showProtoDefModal(BuildContext context) {
-  return showDialog(
-    context: context,
-    builder: (dialogContext) => const ProtoDefModal(),
-  );
+  return showDialog(context: context, builder: (dialogContext) => const ProtoDefModal());
 }
 
 class ProtoDefModal extends StatefulWidget {
@@ -43,10 +40,8 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF252526),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
+      backgroundColor: lightBackgroundColor,
+      shape: dialogShape,
       child: Container(
         width: 800,
         height: 600,
@@ -59,19 +54,11 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
               children: [
                 const Text(
                   'Proto Definitions',
-                  style: TextStyle(
-                    color: Color(0xFFD4D4D4),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(
-                    Icons.close,
-                    color: Color(0xFFD4D4D4),
-                    size: 20,
-                  ),
+                  icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   splashRadius: 16,
@@ -83,20 +70,13 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
               children: [
                 const Text(
                   'Manage your .proto file definitions',
-                  style: TextStyle(
-                    color: Color(0xFFD4D4D4),
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
                 ),
                 const Spacer(),
                 ElevatedButton(
                   onPressed: () async {
-                    const XTypeGroup typeGroup = XTypeGroup(
-                      label: 'protobuf',
-                      extensions: <String>['proto'],
-                    );
-                    final XFile? file = await openFile(
-                        acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+                    const XTypeGroup typeGroup = XTypeGroup(label: 'protobuf', extensions: <String>['proto']);
+                    final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
 
                     final filePath = file?.path;
 
@@ -127,19 +107,11 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
                 children: [
                   Expanded(
                     child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color(0xFF474747),
-                          width: 1,
-                        ),
-                      ),
+                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 1)),
                       child: SingleChildScrollView(
                         child: Table(
                           border: TableBorder(
-                            horizontalInside: BorderSide(
-                              color: const Color(0xFF474747).withOpacity(0.5),
-                              width: 1,
-                            ),
+                            horizontalInside: BorderSide(color: const Color(0xFF474747).withOpacity(0.5), width: 1),
                           ),
                           columnWidths: const {
                             0: FlexColumnWidth(2), // Name
@@ -149,9 +121,7 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
                           },
                           children: [
                             TableRow(
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2D2D2D),
-                              ),
+                              decoration: const BoxDecoration(color: Color(0xFF2D2D2D)),
                               children: [
                                 _buildHeaderCell('Name'),
                                 _buildHeaderCell('Path'),
@@ -159,14 +129,16 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
                                 _buildHeaderCell('Actions'),
                               ],
                             ),
-                            ..._protoDefs.map((protoDef) => TableRow(
-                                  children: [
-                                    _buildCell(protoDef.name),
-                                    _buildCell(protoDef.filePath),
-                                    _buildCell(protoDef.createdAt.toString()),
-                                    _buildCell('', alignment: Alignment.center),
-                                  ],
-                                )),
+                            ..._protoDefs.map(
+                              (protoDef) => TableRow(
+                                children: [
+                                  _buildCell(protoDef.name),
+                                  _buildCell(protoDef.filePath),
+                                  _buildCell(protoDef.createdAt.toString()),
+                                  _buildCell('', alignment: Alignment.center),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -195,14 +167,7 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
   Widget _buildHeaderCell(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Color(0xFFD4D4D4),
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      child: Text(text, style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -211,13 +176,7 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Align(
         alignment: alignment,
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFFD4D4D4),
-            fontSize: 12,
-          ),
-        ),
+        child: Text(text, style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 12)),
       ),
     );
   }

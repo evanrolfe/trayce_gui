@@ -24,7 +24,7 @@ class HeadersTable extends StatelessWidget {
               Container(
                 width: 30,
                 height: 30,
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 1)),
+                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
                 child: Checkbox(
                   value: row.checkboxState,
                   onChanged: (bool? value) {
@@ -68,7 +68,7 @@ class HeadersTable extends StatelessWidget {
               Container(
                 width: 30,
                 height: 30,
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 1)),
+                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
                 child: IconButton(
                   padding: EdgeInsets.zero,
                   icon: const Icon(Icons.close, size: 16),
