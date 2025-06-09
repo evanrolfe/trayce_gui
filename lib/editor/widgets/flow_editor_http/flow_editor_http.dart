@@ -68,49 +68,31 @@ class FlowEditorHttp extends StatefulWidget {
   final Request request;
   final ValueKey tabKey;
 
-  const FlowEditorHttp({
-    super.key,
-    required this.request,
-    required this.tabKey,
-  });
+  const FlowEditorHttp({super.key, required this.request, required this.tabKey});
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
 }
 
-class _FlowEditorHttpState extends State<FlowEditorHttp>
-    with TickerProviderStateMixin {
+class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStateMixin {
   bool isDividerHovered = false;
   bool _isSending = false;
   late TabController _bottomTabController;
   late TabController _topTabController;
   final CodeLineEditingController _urlController = CodeLineEditingController();
-  final CodeLineEditingController _reqBodyController =
-      CodeLineEditingController();
-  final CodeLineEditingController _respBodyController =
-      CodeLineEditingController();
+  final CodeLineEditingController _reqBodyController = CodeLineEditingController();
+  final CodeLineEditingController _respBodyController = CodeLineEditingController();
   String _selectedMethod = 'GET';
   String? _respStatusMsg;
   Color _respStatusColor = Colors.green;
   List<Header> _respHeaders = [];
   String _selectedFormat = 'Unformatted';
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
-  static const List<String> _httpMethods = [
-    'GET',
-    'POST',
-    'PUT',
-    'DELETE',
-    'PATCH',
-    'HEAD',
-    'OPTIONS',
-  ];
+  static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   http.Response? _response;
 
-  final ScrollController _disabledScrollController = ScrollController(
-    initialScrollOffset: 0,
-    keepScrollOffset: false,
-  );
+  final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
   late final HeadersStateManager _headersController;
   late final FocusNode _focusNode;
   late final FocusNode _methodFocusNode;
@@ -165,12 +147,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
       }
     });
 
+    // Request focus on URL input when widget is first opened
+    _urlFocusNode.requestFocus();
+
     // Listen for selection changes
     context.read<EventBus>().on<EditorSelectionChanged>().listen((event) {
       // Clear URL input selection if it's not the focused editor and has a selection
       if (event.controller != _urlController &&
-          _urlController.selection.baseOffset !=
-              _urlController.selection.extentOffset) {
+          _urlController.selection.baseOffset != _urlController.selection.extentOffset) {
         _urlController.selection = CodeLineSelection.collapsed(
           index: _urlController.selection.baseIndex,
           offset: _urlController.selection.baseOffset,
@@ -178,8 +162,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
       }
       // Clear request body input selection if it's not the focused editor and has a selection
       if (event.controller != _reqBodyController &&
-          _reqBodyController.selection.baseOffset !=
-              _reqBodyController.selection.extentOffset) {
+          _reqBodyController.selection.baseOffset != _reqBodyController.selection.extentOffset) {
         _reqBodyController.selection = CodeLineSelection.collapsed(
           index: _reqBodyController.selection.baseIndex,
           offset: _reqBodyController.selection.baseOffset,
@@ -187,8 +170,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
       }
       // Clear response body input selection if it's not the focused editor and has a selection
       if (event.controller != _respBodyController &&
-          _respBodyController.selection.baseOffset !=
-              _respBodyController.selection.extentOffset) {
+          _respBodyController.selection.baseOffset != _respBodyController.selection.extentOffset) {
         _respBodyController.selection = CodeLineSelection.collapsed(
           index: _respBodyController.selection.baseIndex,
           offset: _respBodyController.selection.baseOffset,
@@ -206,9 +188,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
-    final isCmdPressed =
-        (HardwareKeyboard.instance.isControlPressed ||
-            HardwareKeyboard.instance.isMetaPressed);
+    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
 
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
@@ -231,9 +211,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
     final formReq = _getRequestFromForm();
     final isDifferent = !formReq.equals(widget.request);
 
-    context.read<EventBus>().fire(
-      EventEditorNodeModified(widget.tabKey, isDifferent),
-    );
+    context.read<EventBus>().fire(EventEditorNodeModified(widget.tabKey, isDifferent));
   }
 
   Request _getRequestFromForm() {
@@ -285,8 +263,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
       _response = await req.send();
 
       // Set the selected format
-      final contentType =
-          _response!.headers['content-type']?.toLowerCase() ?? '';
+      final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';
       if (contentType.contains('json')) {
         _selectedFormat = 'JSON';
       } else if (contentType.contains('html') || contentType.contains('xml')) {
@@ -317,10 +294,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
     final statusCode = _response!.statusCode;
 
     setState(() {
-      _respHeaders =
-          _response!.headers.entries
-              .map((e) => Header(name: e.key, value: e.value, enabled: true))
-              .toList();
+      _respHeaders = _response!.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
       _respStatusMsg = '$statusCode ${_response!.reasonPhrase}';
       if (statusCode < 200) {
         _respStatusColor = statusProtocolColor;
@@ -399,11 +373,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'HTTP',
-                        style: TextStyle(
-                          color: Color(0xFFD4D4D4),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -413,17 +383,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                   height: 55,
                   decoration: BoxDecoration(
                     color: lightBackgroundColor,
-                    border: Border(
-                      bottom: BorderSide(color: borderColor, width: 1),
-                    ),
+                    border: Border(bottom: BorderSide(color: borderColor, width: 1)),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      top: 5,
-                      bottom: 20,
-                    ),
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 20),
                     child: Row(
                       children: [
                         Container(
@@ -431,18 +394,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                           height: 30,
                           decoration: BoxDecoration(
                             border: Border(
-                              top: BorderSide(
-                                color: const Color(0xFF474747),
-                                width: 1,
-                              ),
-                              left: BorderSide(
-                                color: const Color(0xFF474747),
-                                width: 1,
-                              ),
-                              bottom: BorderSide(
-                                color: const Color(0xFF474747),
-                                width: 1,
-                              ),
+                              top: BorderSide(color: const Color(0xFF474747), width: 1),
+                              left: BorderSide(color: const Color(0xFF474747), width: 1),
+                              bottom: BorderSide(color: const Color(0xFF474747), width: 1),
                             ),
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(4),
@@ -453,17 +407,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                             focusNode: _methodFocusNode,
                             value: _selectedMethod,
                             underline: Container(),
-                            dropdownStyleData: DropdownStyleData(
-                              decoration: dropdownDecoration,
-                              width: 100,
-                            ),
-                            buttonStyleData: ButtonStyleData(
-                              padding: const EdgeInsets.only(
-                                left: 4,
-                                top: 2,
-                                right: 4,
-                              ),
-                            ),
+                            dropdownStyleData: DropdownStyleData(decoration: dropdownDecoration, width: 100),
+                            buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
                             menuItemStyleData: menuItemStyleData,
                             iconStyleData: iconStyleData,
                             style: textFieldStyle,
@@ -472,12 +417,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                 _httpMethods.map((String method) {
                                   return DropdownMenuItem<String>(
                                     value: method,
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                      ),
-                                      child: Text(method),
-                                    ),
+                                    child: Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text(method)),
                                   );
                                 }).toList(),
                             onChanged: (String? newValue) {
@@ -499,15 +439,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                             onEnterPressed: sendRequest,
                             focusNode: _urlFocusNode,
                             onFocusChange: () {
-                              context.read<EventBus>().fire(
-                                EditorSelectionChanged(_urlController),
-                              );
+                              context.read<EventBus>().fire(EditorSelectionChanged(_urlController));
                             },
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xFF474747),
-                                width: 0,
-                              ),
+                              border: Border.all(color: const Color(0xFF474747), width: 0),
                               color: const Color(0xFF2E2E2E),
                             ),
                           ),
@@ -516,11 +451,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                         ElevatedButton(
                           key: const Key('flow_editor_http_send_btn'),
                           onPressed: sendRequest,
-                          style: commonButtonStyle.copyWith(
-                            minimumSize: WidgetStateProperty.all(
-                              const Size(80, 36),
-                            ),
-                          ),
+                          style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
                           child:
                               _isSending
                                   ? const SizedBox(
@@ -528,9 +459,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                     ),
                                   )
                                   : const Text('Send'),
@@ -543,10 +472,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final middleHeight =
-                          constraints.maxHeight * middlePaneHeight;
-                      final bottomHeight =
-                          constraints.maxHeight * (1 - middlePaneHeight);
+                      final middleHeight = constraints.maxHeight * middlePaneHeight;
+                      final bottomHeight = constraints.maxHeight * (1 - middlePaneHeight);
 
                       return Stack(
                         children: [
@@ -571,94 +498,54 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                       children: [
                                         Container(
                                           height: 30,
-                                          decoration: BoxDecoration(
-                                            border: tabContentBorder,
-                                          ),
+                                          decoration: BoxDecoration(border: tabContentBorder),
                                           child: Focus(
                                             focusNode: _topTabFocusNode,
                                             canRequestFocus: true,
                                             child: TabBar(
                                               controller: _topTabController,
                                               dividerColor: Colors.transparent,
-                                              labelColor: const Color(
-                                                0xFFD4D4D4,
+                                              labelColor: const Color(0xFFD4D4D4),
+                                              unselectedLabelColor: const Color(0xFF808080),
+                                              indicator: const UnderlineTabIndicator(
+                                                borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
                                               ),
-                                              unselectedLabelColor: const Color(
-                                                0xFF808080,
-                                              ),
-                                              indicator:
-                                                  const UnderlineTabIndicator(
-                                                    borderSide: BorderSide(
-                                                      width: 1,
-                                                      color: Color(0xFF4DB6AC),
-                                                    ),
-                                                  ),
                                               labelPadding: EdgeInsets.zero,
                                               padding: EdgeInsets.zero,
                                               isScrollable: true,
                                               tabAlignment: TabAlignment.start,
-                                              labelStyle: const TextStyle(
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                              unselectedLabelStyle:
-                                                  const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                  ),
+                                              labelStyle: const TextStyle(fontWeight: FontWeight.normal),
+                                              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
                                               tabs: [
                                                 GestureDetector(
                                                   onTapDown: (_) {
-                                                    _topTabController.animateTo(
-                                                      0,
-                                                    );
-                                                    _topTabFocusNode
-                                                        .requestFocus();
+                                                    _topTabController.animateTo(0);
+                                                    _topTabFocusNode.requestFocus();
                                                   },
                                                   child: Container(
-                                                    color: Colors.blue
-                                                        .withOpacity(0.0),
-                                                    child: const SizedBox(
-                                                      width: 100,
-                                                      child: Tab(
-                                                        text: 'Headers',
-                                                      ),
-                                                    ),
+                                                    color: Colors.blue.withOpacity(0.0),
+                                                    child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
                                                   ),
                                                 ),
                                                 GestureDetector(
                                                   onTapDown: (_) {
-                                                    _topTabController.animateTo(
-                                                      1,
-                                                    );
-                                                    _topTabFocusNode
-                                                        .requestFocus();
+                                                    _topTabController.animateTo(1);
+                                                    _topTabFocusNode.requestFocus();
                                                   },
                                                   child: Container(
-                                                    color: Colors.blue
-                                                        .withOpacity(0.0),
-                                                    child: const SizedBox(
-                                                      width: 100,
-                                                      child: Tab(text: 'Body'),
-                                                    ),
+                                                    color: Colors.blue.withOpacity(0.0),
+                                                    child: const SizedBox(width: 100, child: Tab(text: 'Body')),
                                                   ),
                                                 ),
                                               ],
-                                              overlayColor:
-                                                  MaterialStateProperty.resolveWith<
-                                                    Color?
-                                                  >((
-                                                    Set<MaterialState> states,
-                                                  ) {
-                                                    if (states.contains(
-                                                      MaterialState.hovered,
-                                                    )) {
-                                                      return hoveredItemColor
-                                                          .withAlpha(
-                                                            hoverAlpha,
-                                                          );
-                                                    }
-                                                    return null;
-                                                  }),
+                                              overlayColor: MaterialStateProperty.resolveWith<Color?>((
+                                                Set<MaterialState> states,
+                                              ) {
+                                                if (states.contains(MaterialState.hovered)) {
+                                                  return hoveredItemColor.withAlpha(hoverAlpha);
+                                                }
+                                                return null;
+                                              }),
                                             ),
                                           ),
                                         ),
@@ -668,8 +555,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                             children: [
                                               SingleChildScrollView(
                                                 child: HeadersTable(
-                                                  stateManager:
-                                                      _headersController,
+                                                  stateManager: _headersController,
                                                   onSavePressed: saveFlow,
                                                 ),
                                               ),
@@ -679,9 +565,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                                 keyCallback: _onKeyUp,
                                                 onFocusChange: () {
                                                   context.read<EventBus>().fire(
-                                                    EditorSelectionChanged(
-                                                      _reqBodyController,
-                                                    ),
+                                                    EditorSelectionChanged(_reqBodyController),
                                                   );
                                                 },
                                               ),
@@ -705,108 +589,58 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                           children: [
                                             Expanded(
                                               child: TabBar(
-                                                controller:
-                                                    _bottomTabController,
-                                                dividerColor:
-                                                    Colors.transparent,
-                                                labelColor: const Color(
-                                                  0xFFD4D4D4,
+                                                controller: _bottomTabController,
+                                                dividerColor: Colors.transparent,
+                                                labelColor: const Color(0xFFD4D4D4),
+                                                unselectedLabelColor: const Color(0xFF808080),
+                                                indicator: const UnderlineTabIndicator(
+                                                  borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
                                                 ),
-                                                unselectedLabelColor:
-                                                    const Color(0xFF808080),
-                                                indicator:
-                                                    const UnderlineTabIndicator(
-                                                      borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Color(
-                                                          0xFF4DB6AC,
-                                                        ),
-                                                      ),
-                                                    ),
                                                 labelPadding: EdgeInsets.zero,
                                                 padding: EdgeInsets.zero,
                                                 isScrollable: true,
-                                                tabAlignment:
-                                                    TabAlignment.start,
-                                                labelStyle: const TextStyle(
-                                                  fontWeight: FontWeight.normal,
-                                                ),
-                                                unselectedLabelStyle:
-                                                    const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.normal,
-                                                    ),
+                                                tabAlignment: TabAlignment.start,
+                                                labelStyle: const TextStyle(fontWeight: FontWeight.normal),
+                                                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
                                                 tabs: [
                                                   GestureDetector(
-                                                    onTapDown:
-                                                        (_) =>
-                                                            _bottomTabController
-                                                                .animateTo(0),
+                                                    onTapDown: (_) => _bottomTabController.animateTo(0),
                                                     child: Container(
-                                                      color: Colors.blue
-                                                          .withOpacity(0.0),
-                                                      child: const SizedBox(
-                                                        width: 100,
-                                                        child: Tab(
-                                                          text: 'Response',
-                                                        ),
-                                                      ),
+                                                      color: Colors.blue.withOpacity(0.0),
+                                                      child: const SizedBox(width: 100, child: Tab(text: 'Response')),
                                                     ),
                                                   ),
                                                   GestureDetector(
-                                                    onTapDown:
-                                                        (_) =>
-                                                            _bottomTabController
-                                                                .animateTo(1),
+                                                    onTapDown: (_) => _bottomTabController.animateTo(1),
                                                     child: Container(
-                                                      color: Colors.blue
-                                                          .withOpacity(0.0),
-                                                      child: const SizedBox(
-                                                        width: 100,
-                                                        child: Tab(
-                                                          text: 'Headers',
-                                                        ),
-                                                      ),
+                                                      color: Colors.blue.withOpacity(0.0),
+                                                      child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
                                                     ),
                                                   ),
                                                 ],
-                                                overlayColor:
-                                                    MaterialStateProperty.resolveWith<
-                                                      Color?
-                                                    >((
-                                                      Set<MaterialState> states,
-                                                    ) {
-                                                      if (states.contains(
-                                                        MaterialState.hovered,
-                                                      )) {
-                                                        return hoveredItemColor
-                                                            .withAlpha(
-                                                              hoverAlpha,
-                                                            );
-                                                      }
-                                                      return null;
-                                                    }),
+                                                overlayColor: MaterialStateProperty.resolveWith<Color?>((
+                                                  Set<MaterialState> states,
+                                                ) {
+                                                  if (states.contains(MaterialState.hovered)) {
+                                                    return hoveredItemColor.withAlpha(hoverAlpha);
+                                                  }
+                                                  return null;
+                                                }),
                                               ),
                                             ),
                                             const SizedBox(width: 12),
                                             if (_respStatusMsg != null) ...[
                                               Container(
                                                 height: 20,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                    ),
+                                                padding: const EdgeInsets.symmetric(horizontal: 12),
                                                 decoration: BoxDecoration(
                                                   color: _respStatusColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
+                                                  borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 alignment: Alignment.center,
                                                 child: Text(
                                                   _respStatusMsg!,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                  ),
+                                                  style: const TextStyle(color: Colors.white),
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
@@ -814,63 +648,38 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                                 width: 120,
                                                 height: 20,
                                                 decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                    color: const Color(
-                                                      0xFF474747,
-                                                    ),
-                                                    width: 1,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
+                                                  border: Border.all(color: const Color(0xFF474747), width: 1),
+                                                  borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: DropdownButton2<String>(
                                                   focusNode: _formatFocusNode,
                                                   value: _selectedFormat,
                                                   underline: Container(),
-                                                  dropdownStyleData:
-                                                      DropdownStyleData(
-                                                        decoration:
-                                                            dropdownDecoration,
-                                                        width: 120,
-                                                      ),
-                                                  buttonStyleData:
-                                                      ButtonStyleData(
-                                                        padding:
-                                                            const EdgeInsets.only(
-                                                              left: 4,
-                                                              top: 2,
-                                                              right: 4,
-                                                            ),
-                                                      ),
-                                                  menuItemStyleData:
-                                                      menuItemStyleData,
+                                                  dropdownStyleData: DropdownStyleData(
+                                                    decoration: dropdownDecoration,
+                                                    width: 120,
+                                                  ),
+                                                  buttonStyleData: ButtonStyleData(
+                                                    padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                                  ),
+                                                  menuItemStyleData: menuItemStyleData,
                                                   iconStyleData: iconStyleData,
                                                   style: textFieldStyle,
                                                   isExpanded: true,
                                                   items:
-                                                      _formatOptions.map((
-                                                        String format,
-                                                      ) {
-                                                        return DropdownMenuItem<
-                                                          String
-                                                        >(
+                                                      _formatOptions.map((String format) {
+                                                        return DropdownMenuItem<String>(
                                                           value: format,
                                                           child: Padding(
-                                                            padding:
-                                                                EdgeInsets.symmetric(
-                                                                  horizontal: 8,
-                                                                ),
+                                                            padding: EdgeInsets.symmetric(horizontal: 8),
                                                             child: Text(format),
                                                           ),
                                                         );
                                                       }).toList(),
-                                                  onChanged: (
-                                                    String? newValue,
-                                                  ) {
+                                                  onChanged: (String? newValue) {
                                                     if (newValue != null) {
                                                       setState(() {
-                                                        _selectedFormat =
-                                                            newValue;
+                                                        _selectedFormat = newValue;
                                                       });
                                                       displayResponse();
                                                     }
@@ -892,20 +701,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                                               keyCallback: _onKeyUp,
                                               onFocusChange: () {
                                                 context.read<EventBus>().fire(
-                                                  EditorSelectionChanged(
-                                                    _respBodyController,
-                                                  ),
+                                                  EditorSelectionChanged(_respBodyController),
                                                 );
                                               },
                                             ),
                                             SingleChildScrollView(
                                               child: Padding(
-                                                padding: const EdgeInsets.all(
-                                                  20.0,
-                                                ),
-                                                child: HeadersTableReadOnly(
-                                                  headers: _respHeaders,
-                                                ),
+                                                padding: const EdgeInsets.all(20.0),
+                                                child: HeadersTableReadOnly(headers: _respHeaders),
                                               ),
                                             ),
                                           ],
@@ -923,43 +726,28 @@ class _FlowEditorHttpState extends State<FlowEditorHttp>
                             top: middleHeight - 1.5,
                             child: MouseRegion(
                               cursor: SystemMouseCursors.resizeRow,
-                              onEnter:
-                                  (_) =>
-                                      setState(() => isDividerHovered = true),
-                              onExit:
-                                  (_) =>
-                                      setState(() => isDividerHovered = false),
+                              onEnter: (_) => setState(() => isDividerHovered = true),
+                              onExit: (_) => setState(() => isDividerHovered = false),
                               child: GestureDetector(
                                 onVerticalDragUpdate: (details) {
-                                  final RenderBox box =
-                                      context.findRenderObject() as RenderBox;
-                                  final localPosition = box.globalToLocal(
-                                    details.globalPosition,
-                                  );
-                                  final newMiddleHeight =
-                                      localPosition.dy / constraints.maxHeight;
+                                  final RenderBox box = context.findRenderObject() as RenderBox;
+                                  final localPosition = box.globalToLocal(details.globalPosition);
+                                  final newMiddleHeight = localPosition.dy / constraints.maxHeight;
 
-                                  if (newMiddleHeight > 0.1 &&
-                                      newMiddleHeight < 0.9) {
+                                  if (newMiddleHeight > 0.1 && newMiddleHeight < 0.9) {
                                     HttpEditorState.saveHeight(newMiddleHeight);
                                   }
                                 },
                                 child: Stack(
                                   children: [
-                                    Container(
-                                      height: 3,
-                                      color: Colors.transparent,
-                                    ),
+                                    Container(height: 3, color: Colors.transparent),
                                     Positioned(
                                       left: 0,
                                       right: 0,
                                       top: 1,
                                       child: Container(
                                         height: 1,
-                                        color:
-                                            isDividerHovered
-                                                ? const Color(0xFF4DB6AC)
-                                                : const Color(0xFF474747),
+                                        color: isDividerHovered ? const Color(0xFF4DB6AC) : const Color(0xFF474747),
                                       ),
                                     ),
                                   ],

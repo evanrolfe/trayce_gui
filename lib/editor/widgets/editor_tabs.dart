@@ -143,13 +143,16 @@ class _EditorTabsState extends State<EditorTabs> {
       final tab = _tabs[index].tab;
       if (tab.node == null) {
         // Creating a new request
-        final path = await _getPath();
+        String? path = await _getPath();
         if (path == null) return;
 
         if (mounted) {
           final seq = context.read<ExplorerRepo>().getNextSeq(path);
           event.request.seq = seq;
         }
+
+        // Ensure the path ends with .bru
+        path = ensureExt(path);
 
         final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
         final node = ExplorerNode(
@@ -163,7 +166,7 @@ class _EditorTabsState extends State<EditorTabs> {
         node.save();
         tab.node = node;
         tab.isNew = false;
-        tab.displayName = fileName;
+        tab.displayName = node.displayName();
 
         // Refresh the explorer
         if (mounted) {
@@ -308,6 +311,13 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _closeCurrentTab() {
     _closeTab(_selectedTabIndex);
+  }
+
+  String ensureExt(String path) {
+    if (!path.endsWith('.bru')) {
+      return '$path.bru';
+    }
+    return path;
   }
 
   @override

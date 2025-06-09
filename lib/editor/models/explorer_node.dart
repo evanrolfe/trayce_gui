@@ -84,6 +84,7 @@ class ExplorerNode {
       }
       file.writeAsStringSync(bruStr);
     }
+    isSaved = true;
   }
 
   String displayName() {
