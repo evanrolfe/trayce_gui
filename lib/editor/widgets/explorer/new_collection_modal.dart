@@ -110,17 +110,45 @@ class _NewCollectionModalState extends State<NewCollectionModal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 100,
+                  width: 120,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-                      const Text('Name:', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+                      Row(
+                        children: [
+                          const Text('Name:', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+                          const SizedBox(width: 4),
+                          Tooltip(
+                            message: 'Enter a name of your collection',
+                            child: const Icon(Icons.help_outline, color: Color(0xFFD4D4D4), size: 16),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 24),
-                      const Text('Location:', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+                      Row(
+                        children: [
+                          const Text('Location:', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+                          const SizedBox(width: 4),
+                          Tooltip(
+                            message:
+                                'Trayce stores collections on your local file system.\nChoose the location where you want to store your collection.',
+                            child: const Icon(Icons.help_outline, color: Color(0xFFD4D4D4), size: 16),
+                          ),
+                        ],
+                      ),
                       if (_nameController.text.isNotEmpty) ...[
                         const SizedBox(height: 24),
-                        const Text('Folder Name:', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+                        Row(
+                          children: [
+                            const Text('Folder Name:', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: 'The name of the folder used to store this collection.',
+                              child: const Icon(Icons.help_outline, color: Color(0xFFD4D4D4), size: 16),
+                            ),
+                          ],
+                        ),
                       ],
                     ],
                   ),
