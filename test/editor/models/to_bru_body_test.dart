@@ -193,4 +193,28 @@ body:file {
     // print("--->${result.toBru()}<----");
     expect(result.toBru(), input);
   });
+
+  //   test('body to bru - empty', () async {
+  //     // Load the BRU file
+  //     final input = '''meta {
+  //   name: Send Bulk SMS
+  //   type: http
+  //   seq: 1
+  // }
+
+  // post {
+  //   url: https://api.textlocal.in/send/:id
+  //   body: json
+  // }
+
+  // body:json {
+
+  // }
+  // ''';
+
+  //     // Parse the BRU data
+  //     final result = parseRequest(input);
+  //     // print("--->${result.toBru()}<----");
+  //     expect(result.toBru(), input);
+  //   });
 }

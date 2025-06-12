@@ -9,6 +9,20 @@ import 'script.dart';
 import 'utils.dart';
 import 'variable.dart';
 
+enum BodyType { none, text, json, xml, sparql, graphql, formUrlEncoded, multipartForm, file }
+
+final bodyTypeEnumToBru = {
+  BodyType.none: '',
+  BodyType.text: 'text',
+  BodyType.json: 'json',
+  BodyType.xml: 'xml',
+  BodyType.sparql: 'sparql',
+  BodyType.graphql: 'graphql',
+  BodyType.formUrlEncoded: 'form-urlencoded',
+  BodyType.multipartForm: 'multipart-form',
+  BodyType.file: 'file',
+};
+
 class Request {
   String name;
   String type;
@@ -17,7 +31,7 @@ class Request {
   String url;
   String? tests;
   String? docs;
-  Body? body;
+  BodyType bodyType;
   Auth? auth;
 
   List<Param> params;
@@ -30,13 +44,23 @@ class Request {
 
   Script? script;
 
+  // All Body types
+  Body? bodyText;
+  Body? bodyJson;
+  Body? bodyXml;
+  Body? bodySparql;
+  Body? bodyGraphql;
+  Body? bodyFormUrlEncoded;
+  Body? bodyMultipartForm;
+  Body? bodyFile;
+
   Request({
     required this.name,
     required this.type,
     required this.seq,
     required this.method,
     required this.url,
-    this.body,
+    required this.bodyType,
     this.auth,
     required this.params,
     required this.headers,
@@ -46,6 +70,16 @@ class Request {
     this.script,
     this.tests,
     this.docs,
+
+    // All Body types
+    this.bodyText,
+    this.bodyJson,
+    this.bodyXml,
+    this.bodySparql,
+    this.bodyGraphql,
+    this.bodyFormUrlEncoded,
+    this.bodyMultipartForm,
+    this.bodyFile,
   });
 
   static Request blank() {
@@ -55,6 +89,7 @@ class Request {
       seq: 0,
       method: 'get',
       url: '',
+      bodyType: BodyType.none,
       params: [],
       headers: [],
       requestVars: [],
@@ -74,11 +109,11 @@ class Request {
     bru += '}\n\n';
 
     // Convert request to bru
-    bru += '${method} {\n';
+    bru += '$method {\n';
     bru += '  url: $url';
 
-    if (body != null) {
-      bru += '\n  body: ${body!.type}';
+    if (bodyType != BodyType.none) {
+      bru += '\n  body: ${bodyTypeEnumToBru[bodyType]}';
     }
 
     if (auth != null) {
@@ -108,9 +143,30 @@ class Request {
       bru += '\n${auth!.toBru()}\n';
     }
 
-    // Convert body to bru
-    if (body != null) {
-      bru += '\n${body!.toBru()}\n';
+    // Convert body(s) to bru
+    if (bodyText != null) {
+      bru += '\n${bodyText!.toBru()}\n';
+    }
+    if (bodyJson != null) {
+      bru += '\n${bodyJson!.toBru()}\n';
+    }
+    if (bodyXml != null) {
+      bru += '\n${bodyXml!.toBru()}\n';
+    }
+    if (bodySparql != null) {
+      bru += '\n${bodySparql!.toBru()}\n';
+    }
+    if (bodyGraphql != null) {
+      bru += '\n${bodyGraphql!.toBru()}\n';
+    }
+    if (bodyFormUrlEncoded != null) {
+      bru += '\n${bodyFormUrlEncoded!.toBru()}\n';
+    }
+    if (bodyMultipartForm != null) {
+      bru += '\n${bodyMultipartForm!.toBru()}\n';
+    }
+    if (bodyFile != null) {
+      bru += '\n${bodyFile!.toBru()}\n';
     }
 
     // Convert variables to bru
@@ -156,23 +212,29 @@ class Request {
     //         docs != other.docs
 
     if (name != other.name || type != other.type || seq != other.seq || method != other.method || url != other.url) {
+      print("!= 0");
       return false;
     }
 
     // Compare body
-    if ((body == null) != (other.body == null)) {
+    if (bodyType != other.bodyType) {
       return false;
     }
-    if (body != null && !body!.equals(other.body!)) {
-      return false;
+
+    final body = getBody();
+    final otherBody = other.getBody();
+    if (body != null && otherBody != null) {
+      if (!body.equals(otherBody)) return false;
     }
 
     // Compare headers
     if (headers.length != other.headers.length) {
+      print("!= 3");
       return false;
     }
     for (var i = 0; i < headers.length; i++) {
       if (!headers[i].equals(other.headers[i])) {
+        print("!= 4");
         return false;
       }
     }
@@ -217,14 +279,38 @@ class Request {
 
     request.headers.addAll(Map.fromEntries(headers.map((h) => MapEntry(h.name, h.value))));
 
+    final body = getBody();
     if (body != null) {
-      request.body = body!.toString();
+      request.body = body.toString();
     }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
     return response;
+  }
+
+  Body? getBody() {
+    switch (bodyType) {
+      case BodyType.json:
+        return bodyJson;
+      case BodyType.text:
+        return bodyText;
+      case BodyType.xml:
+        return bodyXml;
+      case BodyType.sparql:
+        return bodySparql;
+      case BodyType.graphql:
+        return bodyGraphql;
+      case BodyType.formUrlEncoded:
+        return bodyFormUrlEncoded;
+      case BodyType.multipartForm:
+        return bodyMultipartForm;
+      case BodyType.file:
+        return bodyFile;
+      case BodyType.none:
+        return null;
+    }
   }
 
   void copyValuesFrom(Request request) {
@@ -237,9 +323,34 @@ class Request {
     docs = request.docs;
 
     // Copy body if it exists
-    body = request.body;
+    bodyType = request.bodyType;
+    if (request.bodyJson != null) {
+      bodyJson = request.bodyJson!.deepCopy();
+    }
+    if (request.bodyText != null) {
+      bodyText = request.bodyText!.deepCopy();
+    }
+    if (request.bodyXml != null) {
+      bodyXml = request.bodyXml!.deepCopy();
+    }
+    if (request.bodySparql != null) {
+      bodySparql = request.bodySparql!.deepCopy();
+    }
+    if (request.bodyGraphql != null) {
+      bodyGraphql = request.bodyGraphql!.deepCopy();
+    }
+    if (request.bodyFormUrlEncoded != null) {
+      bodyFormUrlEncoded = request.bodyFormUrlEncoded!.deepCopy();
+    }
+    if (request.bodyMultipartForm != null) {
+      bodyMultipartForm = request.bodyMultipartForm!.deepCopy();
+    }
+    if (request.bodyFile != null) {
+      bodyFile = request.bodyFile!.deepCopy();
+    }
 
     // Copy auth if it exists
+    // TODO: This should deep copy the auth
     auth = request.auth;
 
     // Copy params
@@ -257,6 +368,45 @@ class Request {
 
     // Copy script if it exists
     script = request.script;
+  }
+
+  void setBodyContent(String content) {
+    switch (bodyType) {
+      case BodyType.json:
+        bodyJson ??= JsonBody(content: '');
+        bodyJson?.setContent(content);
+        break;
+      case BodyType.text:
+        bodyText ??= TextBody(content: '');
+        bodyText?.setContent(content);
+        break;
+      case BodyType.xml:
+        bodyXml ??= XmlBody(content: '');
+        bodyXml?.setContent(content);
+        break;
+      case BodyType.sparql:
+        bodySparql ??= SparqlBody(content: '');
+        bodySparql?.setContent(content);
+        break;
+      case BodyType.graphql:
+        bodyGraphql ??= GraphqlBody(query: '', variables: '');
+        bodyGraphql?.setContent(content);
+        break;
+      case BodyType.formUrlEncoded:
+        bodyFormUrlEncoded ??= FormUrlEncodedBody(params: []);
+        bodyFormUrlEncoded?.setContent(content);
+        break;
+      case BodyType.multipartForm:
+        bodyMultipartForm ??= MultipartFormBody(params: []);
+        bodyMultipartForm?.setContent(content);
+        break;
+      case BodyType.file:
+        bodyFile ??= FileBody(files: []);
+        bodyFile?.setContent(content);
+        break;
+      case BodyType.none:
+        break;
+    }
   }
 }
 

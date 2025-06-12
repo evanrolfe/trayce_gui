@@ -163,10 +163,11 @@ class _EditorTabsState extends State<EditorTabs> {
           request: event.request,
         );
 
-        node.save();
         tab.node = node;
         tab.isNew = false;
         tab.displayName = node.displayName();
+
+        tab.node!.save();
 
         // Refresh the explorer
         if (mounted) {

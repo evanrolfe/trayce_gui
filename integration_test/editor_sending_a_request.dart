@@ -55,8 +55,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Select POST method
-  final methodDropdown = find.byType(DropdownButton2<String>);
-  await tester.tap(methodDropdown.first);
+  final methodDropdown = find.byKey(const Key('flow_editor_http_method_dropdown')).first;
+  await tester.tap(methodDropdown);
   await tester.pumpAndSettle();
   await tester.tap(find.text('POST'));
   await tester.pumpAndSettle();
@@ -75,10 +75,16 @@ Future<void> test(WidgetTester tester, Database db) async {
   headersManager.rows[1].valueController.text = 'application/json';
   await tester.pumpAndSettle();
 
-  // Set the body
+  // Set the body type
   await tester.tap(find.text('Body'));
   await tester.pumpAndSettle();
 
+  final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+  await tester.tap(bodyTypeDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('JSON'));
+  await tester.pumpAndSettle();
+  // Set the body content
   final bodyEditor = tester.widget<MultiLineCodeEditor>(find.byType(MultiLineCodeEditor).first);
   bodyEditor.controller.text = 'helloworld';
   await tester.pumpAndSettle();
@@ -100,7 +106,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(responseEditor.controller.text, expectedFormattedJson);
 
   // Assert that the formatting is "JSON"
-  final formatDropdown = find.byType(DropdownButton2<String>).last;
+  final formatDropdown = find.byKey(const Key('flow_editor_http_format_dropdown')).first;
   expect(tester.widget<DropdownButton2<String>>(formatDropdown).value, 'JSON');
 
   // ===========================================================================

@@ -1,4 +1,3 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -109,7 +108,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // ===========================================================================
   // Change the Method
   // ===========================================================================
-  final methodDropdown = find.byType(DropdownButton2<String>);
+  final methodDropdown = find.byKey(const Key('flow_editor_http_method_dropdown')).first;
 
   // Select DELETE method
   await tester.tap(methodDropdown);

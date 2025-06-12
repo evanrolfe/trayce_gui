@@ -8,6 +8,7 @@ abstract class Body {
   String toString();
   void setContent(String value);
   bool equals(Body other);
+  Body deepCopy();
 }
 
 class JsonBody extends Body {
@@ -36,6 +37,11 @@ class JsonBody extends Body {
   @override
   void setContent(String value) {
     content = value;
+  }
+
+  @override
+  Body deepCopy() {
+    return JsonBody(content: content);
   }
 }
 
@@ -66,6 +72,11 @@ class TextBody extends Body {
   void setContent(String value) {
     content = value;
   }
+
+  @override
+  Body deepCopy() {
+    return TextBody(content: content);
+  }
 }
 
 class XmlBody extends Body {
@@ -95,6 +106,11 @@ class XmlBody extends Body {
   void setContent(String value) {
     content = value;
   }
+
+  @override
+  Body deepCopy() {
+    return XmlBody(content: content);
+  }
 }
 
 class SparqlBody extends Body {
@@ -123,6 +139,11 @@ class SparqlBody extends Body {
   @override
   void setContent(String value) {
     content = value;
+  }
+
+  @override
+  Body deepCopy() {
+    return SparqlBody(content: content);
   }
 }
 
@@ -157,6 +178,11 @@ class GraphqlBody extends Body {
   @override
   void setContent(String value) {
     query = value;
+  }
+
+  @override
+  Body deepCopy() {
+    return GraphqlBody(query: query, variables: variables);
   }
 }
 
@@ -205,6 +231,11 @@ class FormUrlEncodedBody extends Body {
   void setContent(String value) {
     // params = value;
   }
+
+  @override
+  Body deepCopy() {
+    return FormUrlEncodedBody(params: params);
+  }
 }
 
 class MultipartFormBody extends Body {
@@ -251,6 +282,11 @@ class MultipartFormBody extends Body {
   @override
   void setContent(String value) {
     // TODO
+  }
+
+  @override
+  Body deepCopy() {
+    return MultipartFormBody(params: params);
   }
 }
 
@@ -337,5 +373,10 @@ class FileBody extends Body {
   @override
   void setContent(String value) {
     // TODO
+  }
+
+  @override
+  Body deepCopy() {
+    return FileBody(files: files);
   }
 }

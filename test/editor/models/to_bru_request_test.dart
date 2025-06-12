@@ -15,4 +15,15 @@ void main() {
     final bru = request.toBru();
     expect(bru, bruData);
   });
+
+  test('parsing multiple bodies', () async {
+    // Load the BRU file
+    final bruFile = File('test/editor/models/fixtures/request_saved.bru');
+    final bruData = await bruFile.readAsString();
+
+    // Parse the BRU data
+    final request = parseRequest(bruData);
+    final bru = request.toBru();
+    expect(bru, bruData);
+  });
 }

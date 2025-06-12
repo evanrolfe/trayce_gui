@@ -89,10 +89,10 @@ class _FileExplorerState extends State<FileExplorer> {
       return KeyEventResult.ignored;
     };
 
-    // final config = context.read<Config>();
-    // if (!config.isTest) {
-    //   context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
-    // }
+    final config = context.read<Config>();
+    if (!config.isTest) {
+      context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+    }
   }
 
   void _startRenaming(ExplorerNode node) {
@@ -374,9 +374,6 @@ class _FileExplorerState extends State<FileExplorer> {
     return Focus(
       focusNode: _focusNode,
       canRequestFocus: true,
-      onFocusChange: (hasFocus) {
-        print('ExploreronFocusChange: $hasFocus');
-      },
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => _focusNode.requestFocus(),

@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/events.dart';
-import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
@@ -75,25 +74,36 @@ class FlowEditorHttp extends StatefulWidget {
 }
 
 class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStateMixin {
+  // Static form options
+  static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
+  static const List<String> _bodyTypeOptions = ['No Body', 'Text', 'JSON', 'XML'];
+  static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+
+  // State variables
   bool isDividerHovered = false;
   bool _isSending = false;
+
+  // Form input controllers
   late TabController _bottomTabController;
   late TabController _topTabController;
   final CodeLineEditingController _urlController = CodeLineEditingController();
   final CodeLineEditingController _reqBodyController = CodeLineEditingController();
   final CodeLineEditingController _respBodyController = CodeLineEditingController();
+  final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
+  late final HeadersStateManager _headersController;
+
+  // Request vars
   String _selectedMethod = 'GET';
   String? _respStatusMsg;
   Color _respStatusColor = Colors.green;
   List<Header> _respHeaders = [];
   String _selectedFormat = 'Unformatted';
-  static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
-  static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+  String _selectedBodyType = 'Text';
+  late final Request _formRequest; // the request as it appears in the format
 
   http.Response? _response;
 
-  final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
-  late final HeadersStateManager _headersController;
+  // Focus nodes
   late final FocusNode _focusNode;
   late final FocusNode _methodFocusNode;
   late final FocusNode _formatFocusNode;
@@ -106,22 +116,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     _bottomTabController = TabController(length: 2, vsync: this);
     _topTabController = TabController(length: 2, vsync: this);
+    _topTabController.addListener(() {
+      setState(() {}); // This will trigger a rebuild when the tab changes
+    });
     HttpEditorState.initialize();
-
-    // Add listener to _urlController
-    _urlController.addListener(_flowModified);
-    _reqBodyController.addListener(_flowModified);
-
-    _selectedMethod = widget.request.method.toUpperCase();
-    _urlController.text = widget.request.url;
-    _headersController = HeadersStateManager(
-      onStateChanged: () => setState(() {}),
-      initialRows: widget.request.headers,
-      onModified: _flowModified,
-    );
-    if (widget.request.body != null) {
-      _reqBodyController.text = widget.request.body!.toString();
-    }
+    _initFormRequest();
 
     _focusNode = FocusNode();
     _methodFocusNode = FocusNode();
@@ -187,6 +186,41 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     });
   }
 
+  void _initFormRequest() {
+    _formRequest = Request.blank();
+    _formRequest.copyValuesFrom(widget.request);
+
+    print('===> bodyType: ${widget.request.bodyType}');
+    switch (_formRequest.bodyType) {
+      case BodyType.text:
+        _selectedBodyType = _bodyTypeOptions[1];
+      case BodyType.json:
+        _selectedBodyType = _bodyTypeOptions[2];
+      case BodyType.xml:
+        _selectedBodyType = _bodyTypeOptions[3];
+        break;
+      default:
+        _selectedBodyType = _bodyTypeOptions[0];
+    }
+
+    final body = _formRequest.getBody();
+    if (body != null) {
+      _reqBodyController.text = body.toString();
+    }
+
+    // Add listener to _urlController
+    _urlController.addListener(_urlModified);
+    _reqBodyController.addListener(_reqBodyModified);
+
+    _selectedMethod = _formRequest.method.toUpperCase();
+    _urlController.text = _formRequest.url;
+    _headersController = HeadersStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: _formRequest.headers,
+      onModified: _headersModified,
+    );
+  }
+
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
     final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
 
@@ -208,49 +242,62 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   }
 
   void _flowModified() {
-    final formReq = _getRequestFromForm();
-    final isDifferent = !formReq.equals(widget.request);
+    final isDifferent = !_formRequest.equals(widget.request);
 
     context.read<EventBus>().fire(EventEditorNodeModified(widget.tabKey, isDifferent));
   }
 
-  Request _getRequestFromForm() {
-    List<Header> headers = [];
-    try {
-      headers = _headersController.getHeaders();
-    } catch (e) {
-      // _headersController not initialized yet
-    }
+  void _urlModified() {
+    _formRequest.url = _urlController.text;
+    _flowModified();
+  }
 
-    TextBody? body;
-    if (_reqBodyController.text.isNotEmpty) {
-      body = TextBody(content: _reqBodyController.text);
-    }
+  void _methodModified() {
+    _formRequest.method = _selectedMethod.toLowerCase();
+    _flowModified();
+  }
 
-    final formReq = Request(
-      name: widget.request.name,
-      type: widget.request.type,
-      seq: widget.request.seq,
-      method: _selectedMethod.toLowerCase(),
-      url: _urlController.text,
-      body: body,
-      headers: headers,
-      params: [], // todo
-      requestVars: [], // todo
-      responseVars: [], // todo
-      assertions: [], // todo
-      script: null, // todo
-      tests: null, // todo
-      docs: null, // todo
-    );
+  void _headersModified() {
+    _formRequest.headers = _headersController.getHeaders();
+    _flowModified();
+  }
 
-    return formReq;
+  void _reqBodyModified() {
+    final bodyContent = _reqBodyController.text;
+    if (bodyContent == _formRequest.getBody()?.toString()) return;
+    _formRequest.setBodyContent(bodyContent);
+    _flowModified();
+  }
+
+  void _bodyTypeModified(String? newValue) {
+    if (newValue == null) return;
+
+    _reqBodyController.removeListener(_reqBodyModified);
+    setState(() {
+      if (newValue == _bodyTypeOptions[0]) {
+        _reqBodyController.text = '';
+        _formRequest.bodyType = BodyType.none;
+      } else if (newValue == _bodyTypeOptions[1]) {
+        _reqBodyController.text = _formRequest.bodyText?.toString() ?? '';
+        _formRequest.bodyType = BodyType.text;
+      } else if (newValue == _bodyTypeOptions[2]) {
+        _reqBodyController.text = _formRequest.bodyJson?.toString() ?? '';
+        _formRequest.bodyType = BodyType.json;
+      } else if (newValue == _bodyTypeOptions[3]) {
+        _reqBodyController.text = _formRequest.bodyXml?.toString() ?? '';
+        _formRequest.bodyType = BodyType.xml;
+      }
+
+      _selectedBodyType = newValue;
+    });
+    _reqBodyController.addListener(_reqBodyModified);
+
+    _flowModified();
   }
 
   Future<void> saveFlow() async {
-    final newRequest = _getRequestFromForm();
-    widget.request.copyValuesFrom(newRequest);
-    context.read<EventBus>().fire(EventSaveRequest(newRequest, widget.tabKey));
+    context.read<EventBus>().fire(EventSaveRequest(_formRequest, widget.tabKey));
+    widget.request.copyValuesFrom(_formRequest);
   }
 
   Future<void> sendRequest() async {
@@ -259,8 +306,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     });
 
     try {
-      final req = _getRequestFromForm();
-      _response = await req.send();
+      _response = await _formRequest.send();
 
       // Set the selected format
       final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';
@@ -404,6 +450,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             ),
                           ),
                           child: DropdownButton2<String>(
+                            key: const Key('flow_editor_http_method_dropdown'),
                             focusNode: _methodFocusNode,
                             value: _selectedMethod,
                             underline: Container(),
@@ -424,7 +471,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                               if (newValue != null) {
                                 setState(() {
                                   _selectedMethod = newValue;
-                                  _flowModified();
+                                  _methodModified();
                                 });
                                 _focusNode.requestFocus();
                               }
@@ -502,50 +549,100 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           child: Focus(
                                             focusNode: _topTabFocusNode,
                                             canRequestFocus: true,
-                                            child: TabBar(
-                                              controller: _topTabController,
-                                              dividerColor: Colors.transparent,
-                                              labelColor: const Color(0xFFD4D4D4),
-                                              unselectedLabelColor: const Color(0xFF808080),
-                                              indicator: const UnderlineTabIndicator(
-                                                borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                                              ),
-                                              labelPadding: EdgeInsets.zero,
-                                              padding: EdgeInsets.zero,
-                                              isScrollable: true,
-                                              tabAlignment: TabAlignment.start,
-                                              labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                              tabs: [
-                                                GestureDetector(
-                                                  onTapDown: (_) {
-                                                    _topTabController.animateTo(0);
-                                                    _topTabFocusNode.requestFocus();
-                                                  },
-                                                  child: Container(
-                                                    color: Colors.blue.withOpacity(0.0),
-                                                    child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TabBar(
+                                                    controller: _topTabController,
+                                                    dividerColor: Colors.transparent,
+                                                    labelColor: const Color(0xFFD4D4D4),
+                                                    unselectedLabelColor: const Color(0xFF808080),
+                                                    indicator: const UnderlineTabIndicator(
+                                                      borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
+                                                    ),
+                                                    labelPadding: EdgeInsets.zero,
+                                                    padding: EdgeInsets.zero,
+                                                    isScrollable: true,
+                                                    tabAlignment: TabAlignment.start,
+                                                    labelStyle: const TextStyle(fontWeight: FontWeight.normal),
+                                                    unselectedLabelStyle: const TextStyle(
+                                                      fontWeight: FontWeight.normal,
+                                                    ),
+                                                    tabs: [
+                                                      GestureDetector(
+                                                        onTapDown: (_) {
+                                                          _topTabController.animateTo(0);
+                                                          _topTabFocusNode.requestFocus();
+                                                        },
+                                                        child: Container(
+                                                          color: Colors.blue.withOpacity(0.0),
+                                                          child: const SizedBox(
+                                                            width: 100,
+                                                            child: Tab(text: 'Headers'),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      GestureDetector(
+                                                        onTapDown: (_) {
+                                                          _topTabController.animateTo(1);
+                                                          _topTabFocusNode.requestFocus();
+                                                        },
+                                                        child: Container(
+                                                          color: Colors.blue.withOpacity(0.0),
+                                                          child: const SizedBox(width: 100, child: Tab(text: 'Body')),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                    overlayColor: MaterialStateProperty.resolveWith<Color?>((
+                                                      Set<MaterialState> states,
+                                                    ) {
+                                                      if (states.contains(MaterialState.hovered)) {
+                                                        return hoveredItemColor.withAlpha(hoverAlpha);
+                                                      }
+                                                      return null;
+                                                    }),
                                                   ),
                                                 ),
-                                                GestureDetector(
-                                                  onTapDown: (_) {
-                                                    _topTabController.animateTo(1);
-                                                    _topTabFocusNode.requestFocus();
-                                                  },
-                                                  child: Container(
-                                                    color: Colors.blue.withOpacity(0.0),
-                                                    child: const SizedBox(width: 100, child: Tab(text: 'Body')),
+                                                if (_topTabController.index == 1) ...[
+                                                  const SizedBox(width: 12),
+                                                  Container(
+                                                    width: 120,
+                                                    height: 20,
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(color: const Color(0xFF474747), width: 1),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: DropdownButton2<String>(
+                                                      key: const Key('flow_editor_http_body_type_dropdown'),
+                                                      value: _selectedBodyType,
+                                                      underline: Container(),
+                                                      dropdownStyleData: DropdownStyleData(
+                                                        decoration: dropdownDecoration,
+                                                        width: 120,
+                                                      ),
+                                                      buttonStyleData: ButtonStyleData(
+                                                        padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                                      ),
+                                                      menuItemStyleData: menuItemStyleData,
+                                                      iconStyleData: iconStyleData,
+                                                      style: textFieldStyle,
+                                                      isExpanded: true,
+                                                      items:
+                                                          _bodyTypeOptions.map((String format) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: format,
+                                                              child: Padding(
+                                                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                                                child: Text(format),
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                      onChanged: _bodyTypeModified,
+                                                    ),
                                                   ),
-                                                ),
+                                                  const SizedBox(width: 20),
+                                                ],
                                               ],
-                                              overlayColor: MaterialStateProperty.resolveWith<Color?>((
-                                                Set<MaterialState> states,
-                                              ) {
-                                                if (states.contains(MaterialState.hovered)) {
-                                                  return hoveredItemColor.withAlpha(hoverAlpha);
-                                                }
-                                                return null;
-                                              }),
                                             ),
                                           ),
                                         ),
@@ -652,6 +749,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: DropdownButton2<String>(
+                                                  key: const Key('flow_editor_http_format_dropdown'),
                                                   focusNode: _formatFocusNode,
                                                   value: _selectedFormat,
                                                   underline: Container(),
