@@ -190,7 +190,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _formRequest = Request.blank();
     _formRequest.copyValuesFrom(widget.request);
 
-    print('===> bodyType: ${widget.request.bodyType}');
     switch (_formRequest.bodyType) {
       case BodyType.text:
         _selectedBodyType = _bodyTypeOptions[1];

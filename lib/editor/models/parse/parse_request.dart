@@ -95,7 +95,6 @@ Request parseRequest(String request) {
     default:
       bodyType = BodyType.none;
   }
-  print('===> url: $url, bodyType: $bodyType');
   final auth = parseAuth(result, authType);
 
   final assertions = parseAssertions(result);

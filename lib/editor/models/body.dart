@@ -9,6 +9,7 @@ abstract class Body {
   void setContent(String value);
   bool equals(Body other);
   Body deepCopy();
+  bool isEmpty();
 }
 
 class JsonBody extends Body {
@@ -42,6 +43,15 @@ class JsonBody extends Body {
   @override
   Body deepCopy() {
     return JsonBody(content: content);
+  }
+
+  static JsonBody blank() {
+    return JsonBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
   }
 }
 
@@ -77,6 +87,15 @@ class TextBody extends Body {
   Body deepCopy() {
     return TextBody(content: content);
   }
+
+  static TextBody blank() {
+    return TextBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
+  }
 }
 
 class XmlBody extends Body {
@@ -111,6 +130,15 @@ class XmlBody extends Body {
   Body deepCopy() {
     return XmlBody(content: content);
   }
+
+  static XmlBody blank() {
+    return XmlBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
+  }
 }
 
 class SparqlBody extends Body {
@@ -144,6 +172,15 @@ class SparqlBody extends Body {
   @override
   Body deepCopy() {
     return SparqlBody(content: content);
+  }
+
+  static SparqlBody blank() {
+    return SparqlBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
   }
 }
 
@@ -183,6 +220,15 @@ class GraphqlBody extends Body {
   @override
   Body deepCopy() {
     return GraphqlBody(query: query, variables: variables);
+  }
+
+  static GraphqlBody blank() {
+    return GraphqlBody(query: '', variables: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return query.isEmpty;
   }
 }
 
@@ -236,6 +282,15 @@ class FormUrlEncodedBody extends Body {
   Body deepCopy() {
     return FormUrlEncodedBody(params: params);
   }
+
+  static FormUrlEncodedBody blank() {
+    return FormUrlEncodedBody(params: []);
+  }
+
+  @override
+  bool isEmpty() {
+    return params.isEmpty;
+  }
 }
 
 class MultipartFormBody extends Body {
@@ -287,6 +342,15 @@ class MultipartFormBody extends Body {
   @override
   Body deepCopy() {
     return MultipartFormBody(params: params);
+  }
+
+  static MultipartFormBody blank() {
+    return MultipartFormBody(params: []);
+  }
+
+  @override
+  bool isEmpty() {
+    return params.isEmpty;
   }
 }
 
@@ -378,5 +442,14 @@ class FileBody extends Body {
   @override
   Body deepCopy() {
     return FileBody(files: files);
+  }
+
+  static FileBody blank() {
+    return FileBody(files: []);
+  }
+
+  @override
+  bool isEmpty() {
+    return files.isEmpty;
   }
 }

@@ -194,27 +194,29 @@ body:file {
     expect(result.toBru(), input);
   });
 
-  //   test('body to bru - empty', () async {
-  //     // Load the BRU file
-  //     final input = '''meta {
-  //   name: Send Bulk SMS
-  //   type: http
-  //   seq: 1
-  // }
+  test('body to bru - empty', () async {
+    // Load the BRU file
+    final input = '''meta {
+  name: Send Bulk SMS
+  type: http
+  seq: 1
+}
 
-  // post {
-  //   url: https://api.textlocal.in/send/:id
-  //   body: json
-  // }
+post {
+  url: https://api.textlocal.in/send/:id
+  body: json
+}
+''';
 
-  // body:json {
+    // Parse the BRU data
+    final result = parseRequest(input);
+    expect(result.toBru(), input);
+    expect(result.getBody(), isNull);
 
-  // }
-  // ''';
-
-  //     // Parse the BRU data
-  //     final result = parseRequest(input);
-  //     // print("--->${result.toBru()}<----");
-  //     expect(result.toBru(), input);
-  //   });
+    // Now set the body to 'asdf' then back to an empty string
+    result.setBodyContent('asdf');
+    result.setBodyContent('');
+    // Check that body: json block isn't included in the resulting .bru
+    expect(result.toBru(), input);
+  });
 }

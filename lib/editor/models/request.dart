@@ -144,28 +144,28 @@ class Request {
     }
 
     // Convert body(s) to bru
-    if (bodyText != null) {
+    if (bodyText != null && !bodyText!.isEmpty()) {
       bru += '\n${bodyText!.toBru()}\n';
     }
-    if (bodyJson != null) {
+    if (bodyJson != null && !bodyJson!.isEmpty()) {
       bru += '\n${bodyJson!.toBru()}\n';
     }
-    if (bodyXml != null) {
+    if (bodyXml != null && !bodyXml!.isEmpty()) {
       bru += '\n${bodyXml!.toBru()}\n';
     }
-    if (bodySparql != null) {
+    if (bodySparql != null && !bodySparql!.isEmpty()) {
       bru += '\n${bodySparql!.toBru()}\n';
     }
-    if (bodyGraphql != null) {
+    if (bodyGraphql != null && !bodyGraphql!.isEmpty()) {
       bru += '\n${bodyGraphql!.toBru()}\n';
     }
-    if (bodyFormUrlEncoded != null) {
+    if (bodyFormUrlEncoded != null && !bodyFormUrlEncoded!.isEmpty()) {
       bru += '\n${bodyFormUrlEncoded!.toBru()}\n';
     }
-    if (bodyMultipartForm != null) {
+    if (bodyMultipartForm != null && !bodyMultipartForm!.isEmpty()) {
       bru += '\n${bodyMultipartForm!.toBru()}\n';
     }
-    if (bodyFile != null) {
+    if (bodyFile != null && !bodyFile!.isEmpty()) {
       bru += '\n${bodyFile!.toBru()}\n';
     }
 
@@ -212,7 +212,6 @@ class Request {
     //         docs != other.docs
 
     if (name != other.name || type != other.type || seq != other.seq || method != other.method || url != other.url) {
-      print("!= 0");
       return false;
     }
 
@@ -229,12 +228,10 @@ class Request {
 
     // Compare headers
     if (headers.length != other.headers.length) {
-      print("!= 3");
       return false;
     }
     for (var i = 0; i < headers.length; i++) {
       if (!headers[i].equals(other.headers[i])) {
-        print("!= 4");
         return false;
       }
     }
