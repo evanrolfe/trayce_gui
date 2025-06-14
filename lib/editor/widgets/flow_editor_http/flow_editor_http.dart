@@ -247,17 +247,17 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   }
 
   void _urlModified() {
-    _formRequest.url = _urlController.text;
+    _formRequest.setUrl(_urlController.text);
     _flowModified();
   }
 
   void _methodModified() {
-    _formRequest.method = _selectedMethod.toLowerCase();
+    _formRequest.setMethod(_selectedMethod.toLowerCase());
     _flowModified();
   }
 
   void _headersModified() {
-    _formRequest.headers = _headersController.getHeaders();
+    _formRequest.setHeaders(_headersController.getHeaders());
     _flowModified();
   }
 
@@ -275,16 +275,16 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     setState(() {
       if (newValue == _bodyTypeOptions[0]) {
         _reqBodyController.text = '';
-        _formRequest.bodyType = BodyType.none;
+        _formRequest.setBodyType(BodyType.none);
       } else if (newValue == _bodyTypeOptions[1]) {
         _reqBodyController.text = _formRequest.bodyText?.toString() ?? '';
-        _formRequest.bodyType = BodyType.text;
+        _formRequest.setBodyType(BodyType.text);
       } else if (newValue == _bodyTypeOptions[2]) {
         _reqBodyController.text = _formRequest.bodyJson?.toString() ?? '';
-        _formRequest.bodyType = BodyType.json;
+        _formRequest.setBodyType(BodyType.json);
       } else if (newValue == _bodyTypeOptions[3]) {
         _reqBodyController.text = _formRequest.bodyXml?.toString() ?? '';
-        _formRequest.bodyType = BodyType.xml;
+        _formRequest.setBodyType(BodyType.xml);
       }
 
       _selectedBodyType = newValue;

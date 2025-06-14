@@ -274,7 +274,7 @@ class Request {
   Future<http.Response> send() async {
     final request = http.Request(method, Uri.parse(url));
 
-    request.headers.addAll(Map.fromEntries(headers.map((h) => MapEntry(h.name, h.value))));
+    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
 
     final body = getBody();
     if (body != null) {
@@ -365,6 +365,22 @@ class Request {
 
     // Copy script if it exists
     script = request.script;
+  }
+
+  void setUrl(String url) {
+    this.url = url;
+  }
+
+  void setMethod(String method) {
+    this.method = method;
+  }
+
+  void setHeaders(List<Header> headers) {
+    this.headers = headers;
+  }
+
+  void setBodyType(BodyType bodyType) {
+    this.bodyType = bodyType;
   }
 
   void setBodyContent(String content) {

@@ -403,7 +403,7 @@ packages:
     source: hosted
     version: "2.3.1"
   http_multi_server:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http_multi_server
       sha256: aa6199f908078bb1c5efb8d8638d4ae191aac11b311132c3ef48ce352fb52ef8
