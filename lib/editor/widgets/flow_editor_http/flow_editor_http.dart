@@ -106,6 +106,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   // Focus nodes
   late final FocusNode _focusNode;
   late final FocusNode _methodFocusNode;
+  late final FocusNode _bodyTypeFocusNode;
   late final FocusNode _formatFocusNode;
   late final FocusNode _topTabFocusNode;
   late final FocusNode _urlFocusNode;
@@ -124,12 +125,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     _focusNode = FocusNode();
     _methodFocusNode = FocusNode();
+    _bodyTypeFocusNode = FocusNode();
     _formatFocusNode = FocusNode();
     _topTabFocusNode = FocusNode();
     _urlFocusNode = FocusNode();
 
     _focusNode.onKeyEvent = _onKeyUp;
     _methodFocusNode.onKeyEvent = _onKeyUp;
+    _bodyTypeFocusNode.onKeyEvent = _onKeyUp;
     _formatFocusNode.onKeyEvent = _onKeyUp;
     _topTabFocusNode.onKeyEvent = _onKeyUp;
     _urlFocusNode.onKeyEvent = _onKeyUp;
@@ -137,6 +140,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     // Add listener to transfer focus when method dropdown loses focus
     _methodFocusNode.addListener(() {
       if (!_methodFocusNode.hasFocus) {
+        _focusNode.requestFocus();
+      }
+    });
+    _bodyTypeFocusNode.addListener(() {
+      if (!_bodyTypeFocusNode.hasFocus) {
         _focusNode.requestFocus();
       }
     });
@@ -382,6 +390,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _headersController.dispose();
     _focusNode.dispose();
     _methodFocusNode.dispose();
+    _bodyTypeFocusNode.dispose();
     _formatFocusNode.dispose();
     _topTabFocusNode.dispose();
     _urlFocusNode.dispose();
@@ -613,6 +622,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     ),
                                                     child: DropdownButton2<String>(
                                                       key: const Key('flow_editor_http_body_type_dropdown'),
+                                                      focusNode: _bodyTypeFocusNode,
                                                       value: _selectedBodyType,
                                                       underline: Container(),
                                                       dropdownStyleData: DropdownStyleData(

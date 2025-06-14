@@ -42,8 +42,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Right-click on two.bru request
-  final oneReq = find.text('two');
-  await tester.tapAt(tester.getCenter(oneReq), buttons: 2);
+  final twoReq = find.text('two');
+  await tester.tapAt(tester.getCenter(twoReq), buttons: 2);
   await tester.pumpAndSettle();
 
   // Click open on context menu
@@ -79,6 +79,33 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Expect the file to be unchanged
   expect(loadFile(twoBruPath), contains('ivechanged!'));
+
+  // ===========================================================================
+  // Change the request body type
+  // ===========================================================================
+  await tester.tap(find.text('Body'));
+  await tester.pumpAndSettle();
+
+  // Select JSON body type
+  final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+  await tester.tap(bodyTypeDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('JSON'));
+  await tester.pumpAndSettle();
+
+  // Expect to see a *
+  expect(find.text('two*'), findsOneWidget);
+
+  // Press Ctrl+S
+  await pressCtrlS(tester);
+  await tester.pumpAndSettle();
+
+  // Expect NOT to see a *
+  expect(find.text('two*'), findsNothing);
+  await tester.pumpAndSettle();
+
+  // Expect the file to be unchanged
+  expect(loadFile(twoBruPath), contains('body: json'));
 
   // ===========================================================================
   // Change the URL

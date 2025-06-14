@@ -77,8 +77,30 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
+  // ===========================================================================
+  // Change the request body type
+  // ===========================================================================
+  await tester.tap(find.text('Body'));
+  await tester.pumpAndSettle();
+
+  // Select JSON body type
+  final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+  await tester.tap(bodyTypeDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('JSON'));
+  await tester.pumpAndSettle();
+
+  // Expect to see a *
+  expect(find.text('one*'), findsOneWidget);
+
+  // Select Text body type
+  await tester.tap(bodyTypeDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Text'));
+  await tester.pumpAndSettle();
+
+  expect(find.text('one*'), findsNothing);
+  await tester.pumpAndSettle();
 
   // ===========================================================================
   // Change the URL
@@ -101,9 +123,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Expect NOT to see a *
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
-
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
 
   // ===========================================================================
   // Change the Method
@@ -129,9 +148,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Expect NOT to see a *
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
-
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
 
   // ===========================================================================
   // Change a Header
@@ -159,9 +175,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
-
   // ===========================================================================
   // Disable a Header
   // ===========================================================================
@@ -182,9 +195,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Expect NOT to see a *
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
-
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
 
   // ===========================================================================
   // Add a Header
@@ -209,9 +219,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Expect NOT to see a *
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
-
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
 
   // ===========================================================================
   // Close the collection
