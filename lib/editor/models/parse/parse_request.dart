@@ -147,7 +147,7 @@ int parseSeq(Result<dynamic> result) {
   return seq;
 }
 
-Param _createParam(MapEntry<String, dynamic> entry, String type) {
+Param _createParam(MapEntry<String, dynamic> entry, ParamType type) {
   final enabled = !(entry.key.startsWith('~'));
   final name = enabled ? entry.key : entry.key.substring(1);
   return Param(name: name, value: entry.value.toString(), type: type, enabled: enabled);
@@ -156,10 +156,14 @@ Param _createParam(MapEntry<String, dynamic> entry, String type) {
 List<Param> parseParams(Result<dynamic> result) {
   List<Param> params = [];
   if (result.value['params:query'] != null) {
-    params.addAll((result.value['params:query'] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'query')));
+    params.addAll(
+      (result.value['params:query'] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.query)),
+    );
   }
   if (result.value['params:path'] != null) {
-    params.addAll((result.value['params:path'] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'path')));
+    params.addAll(
+      (result.value['params:path'] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.path)),
+    );
   }
   return params;
 }
@@ -324,7 +328,7 @@ Body? parseBodyFormUrlEncoded(Result<dynamic> result) {
 
   List<Param> params = [];
   if (result.value[bodyKey] != null) {
-    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'form')));
+    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.form)));
   }
   return FormUrlEncodedBody(params: params);
 }
@@ -335,7 +339,7 @@ Body? parseBodyMultipartForm(Result<dynamic> result) {
 
   List<Param> params = [];
   if (result.value[bodyKey] != null) {
-    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'form')));
+    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.form)));
   }
   return MultipartFormBody(params: params);
 }

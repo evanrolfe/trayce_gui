@@ -3,6 +3,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
@@ -157,5 +158,37 @@ void main() {
     expect(mockServer.sentRequestBody, '<hello>world</hello>');
     // expect(mockServer.sentRequest!.headers['content-type'], 'application/json');
     expect(mockServer.sentRequest!.headers['x-trayce-token'], null);
+  });
+
+  test('sending a POST request with form-urlencoded body', () async {
+    mockServer.newHandler('POST', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}/test_endpoint';
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.formUrlEncoded,
+      bodyFormUrlEncoded: FormUrlEncodedBody(
+        params: [
+          Param(name: 'hello', value: 'world', type: ParamType.form, enabled: true),
+          Param(name: 'howare', value: 'you?', type: ParamType.form, enabled: true),
+        ],
+      ),
+      params: [],
+      headers: [Header(name: 'x-trayce-token', value: 'abcd1234', enabled: false)],
+      requestVars: [],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final response = await request.send();
+
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+
+    expect(mockServer.sentRequestBody, 'hello=world&howare=you%3F');
   });
 }

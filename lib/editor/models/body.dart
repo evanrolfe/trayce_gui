@@ -270,7 +270,10 @@ class FormUrlEncodedBody extends Body {
 
   @override
   String toString() {
-    return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+    return params
+        .where((p) => p.enabled)
+        .map((p) => '${Uri.encodeComponent(p.name)}=${Uri.encodeComponent(getValueString(p.value))}')
+        .join('&');
   }
 
   @override

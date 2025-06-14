@@ -123,12 +123,12 @@ class Request {
     bru += '\n}\n';
 
     // Convert params to bru
-    final queryParams = params.where((p) => p.type == 'query').toList();
+    final queryParams = params.where((p) => p.type == ParamType.query).toList();
     if (queryParams.isNotEmpty) {
       bru += '\n${queryParamsToBru(queryParams)}\n';
     }
 
-    final pathParams = params.where((p) => p.type == 'path').toList();
+    final pathParams = params.where((p) => p.type == ParamType.path).toList();
     if (pathParams.isNotEmpty) {
       bru += '\n${pathParamsToBru(pathParams)}\n';
     }

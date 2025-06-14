@@ -59,7 +59,7 @@ List<Param> parseQuery(Result<dynamic> result) {
       (result.value['query'] as Map<String, dynamic>).entries.map((e) {
         final enabled = !(e.key.startsWith('~'));
         final name = enabled ? e.key : e.key.substring(1);
-        return Param(name: name, value: e.value.toString(), type: 'query', enabled: enabled);
+        return Param(name: name, value: e.value.toString(), type: ParamType.query, enabled: enabled);
       }),
     );
   }
