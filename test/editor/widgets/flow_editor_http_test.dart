@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,10 +8,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/common/headers_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
@@ -115,6 +118,22 @@ body:text {
 }
 ''';
 
+final expectedBru8 = '''meta {
+  name: Test Request
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://example.com
+  body: form-urlencoded
+}
+
+body:form-urlencoded {
+  XXXX: YYYY
+}
+''';
+
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 const expectedFormattedJson = '''{
   "message": "Hello, World!",
@@ -163,6 +182,72 @@ void main() {
 
   tearDownAll(() async {
     await db.close();
+  });
+
+  group('Loading a request', () {
+    testWidgets('a request with body: form-urlencoded', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.formUrlEncoded,
+        bodyFormUrlEncoded: FormUrlEncodedBody(
+          params: [
+            Param(name: 'XXXX', value: 'YYYY', type: ParamType.form, enabled: true),
+            Param(name: 'ZZZZ', value: 'WWWW', type: ParamType.form, enabled: false),
+          ],
+        ),
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Verify method, url
+      expect(find.text('HTTP'), findsOneWidget);
+      expect(find.text('GET'), findsOneWidget);
+      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      expect(urlInput.controller.text, 'https://example.com');
+      await tester.pumpAndSettle();
+
+      // Verify request body type
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+      expect(tester.widget<DropdownButton2<String>>(bodyTypeDropdown).value, 'Form URL Encoded');
+
+      // Verify request body
+      final formTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+      final tableManager = formTable.stateManager;
+
+      expect(tableManager.rows.length, 3);
+      expect(tableManager.rows[0].keyController.text, 'XXXX');
+      expect(tableManager.rows[0].valueController.text, 'YYYY');
+      expect(tableManager.rows[0].checkboxState, true);
+
+      expect(tableManager.rows[1].keyController.text, 'ZZZZ');
+      expect(tableManager.rows[1].valueController.text, 'WWWW');
+      expect(tableManager.rows[1].checkboxState, false);
+
+      expect(tableManager.rows[2].keyController.text, '');
+      expect(tableManager.rows[2].valueController.text, '');
+      expect(tableManager.rows[2].checkboxState, false);
+
+      // tableManager.rows[0].keyController.text = 'XXXX';
+      // tableManager.rows[0].valueController.text = 'YYYY';
+      // tableManager.rows[0].checkboxState = true;
+      await tester.pumpAndSettle();
+    });
   });
 
   group('Modifying the request body', () {
@@ -378,7 +463,6 @@ void main() {
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
-      expect(find.text('HTTP'), findsOneWidget);
       expect(find.text('GET'), findsOneWidget);
 
       final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
@@ -409,6 +493,61 @@ void main() {
       expect(request.bodyType, BodyType.none);
       expect(request.getBody(), isNull);
       expect(request.toBru(), expectedBru7);
+    });
+
+    testWidgets('setting form-urlencoded body', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.none,
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Set the body to a text body
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+      await tester.tap(bodyTypeDropdown);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Form URL Encoded'));
+      await tester.pumpAndSettle();
+
+      // Change the form url encoded params
+      final headersTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+      final headersManager = headersTable.stateManager;
+      headersManager.rows[0].keyController.text = 'XXXX';
+      headersManager.rows[0].valueController.text = 'YYYY';
+      await tester.pumpAndSettle();
+
+      // Save the request
+      await tester.tap(find.byKey(Key('flow_editor_http_url_input')));
+      await tester.pumpAndSettle();
+      await pressCtrlS(tester);
+      await tester.pumpAndSettle();
+
+      expect(request.bodyType, BodyType.formUrlEncoded);
+
+      final body = request.getBody() as FormUrlEncodedBody;
+      expect(body.params.length, 1);
+      expect(body.params[0].name, 'XXXX');
+      expect(body.params[0].value, 'YYYY');
+      expect(body.params[0].enabled, true);
+      expect(request.getBody(), request.bodyFormUrlEncoded);
+      expect(request.toBru(), expectedBru8);
     });
   });
 }

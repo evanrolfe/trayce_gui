@@ -294,6 +294,10 @@ class FormUrlEncodedBody extends Body {
   bool isEmpty() {
     return params.isEmpty;
   }
+
+  void setParams(List<Param> params) {
+    this.params = params;
+  }
 }
 
 class MultipartFormBody extends Body {

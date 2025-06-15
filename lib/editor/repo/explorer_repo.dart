@@ -324,6 +324,10 @@ class ExplorerRepo {
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
   }
 
+  void openNode(ExplorerNode node) {
+    _eventBus.fire(EventOpenExplorerNode(node));
+  }
+
   // _refreshNodes syncs the children of two nodes - any nodes which exist in refreshNodes
   // but not in existingNodes are added, and any nodes which exist in existingNodes
   // but not in refreshedNodes are removed
@@ -427,10 +431,6 @@ class ExplorerRepo {
       return true;
     }
     return false;
-  }
-
-  void openNode(ExplorerNode node) {
-    _eventBus.fire(EventOpenExplorerNode(node));
   }
 
   // _sortNodes recursively sorts the children of a node by seq value

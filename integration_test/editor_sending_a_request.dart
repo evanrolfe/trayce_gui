@@ -84,9 +84,10 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
   await tester.tap(find.text('JSON'));
   await tester.pumpAndSettle();
+
   // Set the body content
   final bodyEditor = tester.widget<MultiLineCodeEditor>(find.byType(MultiLineCodeEditor).first);
-  bodyEditor.controller.text = 'helloworld';
+  bodyEditor.controller.text = '{"hello": "world"}';
   await tester.pumpAndSettle();
 
   // ===========================================================================
@@ -100,7 +101,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.method, 'POST');
   expect(sentRequest!.headers['X-Auth-Token'], '1234abcd');
   expect(sentRequest!.headers['Content-Type'], 'application/json; charset=utf-8');
-  expect(sentRequestBody, 'helloworld');
+  expect(sentRequestBody, '{"hello": "world"}');
 
   final responseEditor = tester.widget<MultiLineCodeEditor>(find.byType(MultiLineCodeEditor).last);
   expect(responseEditor.controller.text, expectedFormattedJson);

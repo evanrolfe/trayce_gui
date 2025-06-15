@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 
 class HeadersTable extends StatelessWidget {
@@ -158,6 +159,17 @@ class HeadersStateManager {
     }).toList();
   }
 
+  List<Param> getParams() {
+    return _rows.where((row) => !row.isEmpty()).map((row) {
+      return Param(
+        name: row.keyController.text,
+        value: row.valueController.text,
+        type: ParamType.form,
+        enabled: row.checkboxState,
+      );
+    }).toList();
+  }
+
   List<HeaderRow> _convertHeadersToRows(List<Header> headers) {
     return headers.asMap().entries.map((entry) {
       final index = entry.key;
@@ -178,6 +190,7 @@ class HeadersStateManager {
         keyFocusNode: FocusNode(),
         valueFocusNode: FocusNode(),
         checkboxState: header.enabled,
+        newRow: false,
       );
 
       row.keyFocusNode.addListener(() {
@@ -211,9 +224,12 @@ class HeadersStateManager {
 
       final hasTextChanged = currentKeyText != previousKeyText || currentValueText != previousValueText;
 
-      if (hasTextChanged && previousKeyText.isEmpty && previousValueText.isEmpty && !row.checkboxState) {
+      if (hasTextChanged && previousKeyText.isEmpty && previousValueText.isEmpty && !row.checkboxState && row.newRow) {
         row.checkboxState = true;
-        onStateChanged();
+        // Schedule state change for next frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          onStateChanged();
+        });
       }
 
       if (isKey) {
@@ -232,6 +248,7 @@ class HeadersStateManager {
       valueController: CodeLineEditingController(),
       keyFocusNode: FocusNode(),
       valueFocusNode: FocusNode(),
+      newRow: true,
     );
 
     row.keyFocusNode.addListener(() {
@@ -306,6 +323,7 @@ class HeaderRow {
   final FocusNode keyFocusNode;
   final FocusNode valueFocusNode;
   bool checkboxState;
+  bool newRow;
   String previousKeyText;
   String previousValueText;
 
@@ -314,6 +332,7 @@ class HeaderRow {
     required this.valueController,
     required this.keyFocusNode,
     required this.valueFocusNode,
+    required this.newRow,
     this.checkboxState = false,
     this.previousKeyText = '',
     this.previousValueText = '',

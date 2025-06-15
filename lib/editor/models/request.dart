@@ -421,6 +421,11 @@ class Request {
         break;
     }
   }
+
+  void setBodyFormURLEncodedContent(List<Param> params) {
+    bodyFormUrlEncoded ??= FormUrlEncodedBody(params: []);
+    (bodyFormUrlEncoded as FormUrlEncodedBody).setParams(params);
+  }
 }
 
 String queryParamsToBru(List<Param> params) {

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
@@ -76,7 +77,7 @@ class FlowEditorHttp extends StatefulWidget {
 class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStateMixin {
   // Static form options
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
-  static const List<String> _bodyTypeOptions = ['No Body', 'Text', 'JSON', 'XML'];
+  static const List<String> _bodyTypeOptions = ['No Body', 'Text', 'JSON', 'XML', 'Form URL Encoded'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   // State variables
@@ -91,6 +92,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   final CodeLineEditingController _respBodyController = CodeLineEditingController();
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
   late final HeadersStateManager _headersController;
+  late final HeadersStateManager _formUrlEncodedController;
 
   // Request vars
   String _selectedMethod = 'GET';
@@ -185,6 +187,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       }
       // Clear all header selections
       _headersController.clearAllSelections();
+      _formUrlEncodedController.clearAllSelections();
     });
 
     context.read<EventBus>().on<EventSaveIntent>().listen((event) {
@@ -205,7 +208,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
         _selectedBodyType = _bodyTypeOptions[2];
       case BodyType.xml:
         _selectedBodyType = _bodyTypeOptions[3];
-        break;
+      case BodyType.formUrlEncoded:
+        _selectedBodyType = _bodyTypeOptions[4];
       default:
         _selectedBodyType = _bodyTypeOptions[0];
     }
@@ -225,6 +229,18 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       onStateChanged: () => setState(() {}),
       initialRows: _formRequest.headers,
       onModified: _headersModified,
+    );
+
+    // Convert the params to Headers for the HeaderStateManager
+    List<Header> paramsForManager = [];
+    if (_formRequest.bodyFormUrlEncoded != null) {
+      final params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
+      paramsForManager = params.map((p) => Header(name: p.name, value: p.value, enabled: p.enabled)).toList();
+    }
+    _formUrlEncodedController = HeadersStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: paramsForManager,
+      onModified: _formUrlEncodedModified,
     );
   }
 
@@ -269,6 +285,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _flowModified();
   }
 
+  void _formUrlEncodedModified() {
+    final params = _formUrlEncodedController.getParams();
+    _formRequest.setBodyFormURLEncodedContent(params);
+    _flowModified();
+  }
+
   void _reqBodyModified() {
     final bodyContent = _reqBodyController.text;
     if (bodyContent == _formRequest.getBody()?.toString()) return;
@@ -293,6 +315,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       } else if (newValue == _bodyTypeOptions[3]) {
         _reqBodyController.text = _formRequest.bodyXml?.toString() ?? '';
         _formRequest.setBodyType(BodyType.xml);
+      } else if (newValue == _bodyTypeOptions[4]) {
+        _formRequest.setBodyType(BodyType.formUrlEncoded);
       }
 
       _selectedBodyType = newValue;
@@ -388,6 +412,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _reqBodyController.dispose();
     _disabledScrollController.dispose();
     _headersController.dispose();
+    _formUrlEncodedController.dispose();
     _focusNode.dispose();
     _methodFocusNode.dispose();
     _bodyTypeFocusNode.dispose();
@@ -399,6 +424,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    int bodyTypeIndex = 0;
+
+    if (_selectedBodyType == _bodyTypeOptions[4]) {
+      bodyTypeIndex = 1;
+    }
+
     final tabContentBorder = Border(
       top: BorderSide(width: 0, color: backgroundColor),
       left: BorderSide(width: 0),
@@ -665,15 +696,24 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   onSavePressed: saveFlow,
                                                 ),
                                               ),
-                                              MultiLineCodeEditor(
-                                                border: tabContentBorder,
-                                                controller: _reqBodyController,
-                                                keyCallback: _onKeyUp,
-                                                onFocusChange: () {
-                                                  context.read<EventBus>().fire(
-                                                    EditorSelectionChanged(_reqBodyController),
-                                                  );
-                                                },
+                                              IndexedStack(
+                                                index: bodyTypeIndex,
+                                                children: [
+                                                  MultiLineCodeEditor(
+                                                    border: tabContentBorder,
+                                                    controller: _reqBodyController,
+                                                    keyCallback: _onKeyUp,
+                                                    onFocusChange: () {
+                                                      context.read<EventBus>().fire(
+                                                        EditorSelectionChanged(_reqBodyController),
+                                                      );
+                                                    },
+                                                  ),
+                                                  HeadersTable(
+                                                    stateManager: _formUrlEncodedController,
+                                                    onSavePressed: saveFlow,
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),

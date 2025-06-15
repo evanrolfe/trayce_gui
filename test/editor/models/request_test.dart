@@ -53,7 +53,6 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     final url = '${mockServer.url().toString()}/test_endpoint';
-    print('====> Sending request to $url');
 
     final request = Request(
       name: 'Test Request',
