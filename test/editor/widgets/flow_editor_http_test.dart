@@ -13,7 +13,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
@@ -227,7 +227,7 @@ void main() {
       expect(tester.widget<DropdownButton2<String>>(bodyTypeDropdown).value, 'Form URL Encoded');
 
       // Verify request body
-      final formTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+      final formTable = tester.widget<FormTable>(find.byType(FormTable));
       final tableManager = formTable.stateManager;
 
       expect(tableManager.rows.length, 3);
@@ -527,7 +527,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Change the form url encoded params
-      final headersTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+      final headersTable = tester.widget<FormTable>(find.byType(FormTable));
       final headersManager = headersTable.stateManager;
       headersManager.rows[0].keyController.text = 'XXXX';
       headersManager.rows[0].valueController.text = 'YYYY';

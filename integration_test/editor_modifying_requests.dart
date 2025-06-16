@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/form_table.dart';
 
 import '../test/support/helpers.dart';
 
@@ -156,7 +156,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
 
-  final headersTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+  final headersTable = tester.widget<FormTable>(find.byType(FormTable));
   final headersManager = headersTable.stateManager;
 
   // Change the key text of the first header row
@@ -179,7 +179,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Disable a Header
   // ===========================================================================
   // Un-check the checkbox of the first header row
-  final headersTableWidget = find.byType(HeadersTable);
+  final headersTableWidget = find.byType(FormTable);
   final checkbox = find.descendant(of: headersTableWidget, matching: find.byType(Checkbox));
   await tester.tap(checkbox.first);
   await tester.pumpAndSettle();

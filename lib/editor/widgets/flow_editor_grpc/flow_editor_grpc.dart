@@ -4,7 +4,7 @@ import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
@@ -55,7 +55,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
   final CodeLineEditingController _responseController = CodeLineEditingController();
   final CodeLineEditingController _urlController = CodeLineEditingController();
   final CodeLineEditingController _bodyController = CodeLineEditingController();
-  late final HeadersStateManager _headersController;
+  late final FormTableStateManager _headersController;
   String _selectedMethod = 'GET';
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
@@ -68,7 +68,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
     _bottomTabController = TabController(length: 3, vsync: this);
     GrpcEditorState.initialize();
 
-    _headersController = HeadersStateManager(onStateChanged: () => setState(() {}), initialRows: []);
+    _headersController = FormTableStateManager(onStateChanged: () => setState(() {}), initialRows: []);
   }
 
   @override
@@ -284,7 +284,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                                         controller: _topTabController,
                                         children: [
                                           MultiLineCodeEditor(controller: _bodyController),
-                                          SingleChildScrollView(child: HeadersTable(stateManager: _headersController)),
+                                          SingleChildScrollView(child: FormTable(stateManager: _headersController)),
                                         ],
                                       ),
                                     ),

@@ -7,95 +7,129 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 
-class HeadersTable extends StatelessWidget {
-  final HeadersStateManager stateManager;
+class FormTable extends StatelessWidget {
+  final FormTableStateManager stateManager;
   final VoidCallback? onSavePressed;
 
-  const HeadersTable({super.key, required this.stateManager, this.onSavePressed});
+  const FormTable({super.key, required this.stateManager, this.onSavePressed});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 20),
       child: Column(
-        children: List.generate(stateManager.rows.length, (index) {
-          final row = stateManager.rows[index];
-          return Row(
+        children: [
+          // Static header row
+          Row(
             children: [
               Container(
                 width: 30,
                 height: 30,
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
-                child: Checkbox(
-                  value: row.checkboxState,
-                  onChanged: (bool? value) {
-                    stateManager.setCheckboxState(index, value ?? false);
-                  },
-                  side: BorderSide.none,
-                  activeColor: const Color(0xFF4DB6AC),
+                // decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
+                child: Tooltip(
+                  message: 'Enable/Disable',
+                  child: const Icon(Icons.help_outline, size: 16, color: Color(0xFF666666)),
                 ),
               ),
               const SizedBox(width: 0),
               Expanded(
-                child: SizedBox(
+                child: Container(
                   height: 30,
-                  child: SingleLineCodeEditor(
-                    controller: row.keyController,
-                    onTabPressed: () => stateManager.handleTabPress(index, true),
-                    onSavePressed: onSavePressed,
-                    focusNode: row.keyFocusNode,
-                    onFocusChange: () {
-                      context.read<EventBus>().fire(EditorSelectionChanged(row.keyController));
-                    },
-                  ),
+                  alignment: Alignment.centerLeft,
+                  child: const Text('Key', style: TextStyle(color: Color(0xFF666666))),
                 ),
               ),
               const SizedBox(width: 0),
               Expanded(
-                child: SizedBox(
+                child: Container(
                   height: 30,
-                  child: SingleLineCodeEditor(
-                    controller: row.valueController,
-                    onTabPressed: () => stateManager.handleTabPress(index, false),
-                    onSavePressed: onSavePressed,
-                    focusNode: row.valueFocusNode,
-                    onFocusChange: () {
-                      context.read<EventBus>().fire(EditorSelectionChanged(row.valueController));
-                    },
-                  ),
+                  alignment: Alignment.centerLeft,
+                  child: const Text('Value', style: TextStyle(color: Color(0xFF666666))),
                 ),
               ),
-              const SizedBox(width: 0),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.close, size: 16),
-                  onPressed: () {
-                    if (stateManager.rows.length > 1) {
-                      stateManager.deleteRow(index);
-                    }
-                  },
-                ),
-              ),
+              const SizedBox(width: 30),
             ],
-          );
-        }),
+          ),
+          // Existing rows
+          ...List.generate(stateManager.rows.length, (index) {
+            final row = stateManager.rows[index];
+            return Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
+                  child: Checkbox(
+                    value: row.checkboxState,
+                    onChanged: (bool? value) {
+                      stateManager.setCheckboxState(index, value ?? false);
+                    },
+                    side: BorderSide.none,
+                    activeColor: const Color(0xFF4DB6AC),
+                  ),
+                ),
+                const SizedBox(width: 0),
+                Expanded(
+                  child: SizedBox(
+                    height: 30,
+                    child: SingleLineCodeEditor(
+                      controller: row.keyController,
+                      onTabPressed: () => stateManager.handleTabPress(index, true),
+                      onSavePressed: onSavePressed,
+                      focusNode: row.keyFocusNode,
+                      onFocusChange: () {
+                        context.read<EventBus>().fire(EditorSelectionChanged(row.keyController));
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 0),
+                Expanded(
+                  child: SizedBox(
+                    height: 30,
+                    child: SingleLineCodeEditor(
+                      controller: row.valueController,
+                      onTabPressed: () => stateManager.handleTabPress(index, false),
+                      onSavePressed: onSavePressed,
+                      focusNode: row.valueFocusNode,
+                      onFocusChange: () {
+                        context.read<EventBus>().fire(EditorSelectionChanged(row.valueController));
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 0),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.close, size: 16),
+                    onPressed: () {
+                      if (stateManager.rows.length > 1) {
+                        stateManager.deleteRow(index);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          }),
+        ],
       ),
     );
   }
 }
 
-class HeadersStateManager {
+class FormTableStateManager {
   late final List<HeaderRow> _rows;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final CodeLineEditingController? urlController;
   final CodeLineEditingController? bodyController;
 
-  HeadersStateManager({
+  FormTableStateManager({
     required this.onStateChanged,
     List<Header>? initialRows,
     this.onModified,

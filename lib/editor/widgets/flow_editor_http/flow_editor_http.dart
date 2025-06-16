@@ -12,7 +12,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
@@ -91,8 +91,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   final CodeLineEditingController _reqBodyController = CodeLineEditingController();
   final CodeLineEditingController _respBodyController = CodeLineEditingController();
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
-  late final HeadersStateManager _headersController;
-  late final HeadersStateManager _formUrlEncodedController;
+  late final FormTableStateManager _headersController;
+  late final FormTableStateManager _formUrlEncodedController;
 
   // Request vars
   String _selectedMethod = 'GET';
@@ -225,7 +225,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     _selectedMethod = _formRequest.method.toUpperCase();
     _urlController.text = _formRequest.url;
-    _headersController = HeadersStateManager(
+    _headersController = FormTableStateManager(
       onStateChanged: () => setState(() {}),
       initialRows: _formRequest.headers,
       onModified: _headersModified,
@@ -237,7 +237,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       final params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
       paramsForManager = params.map((p) => Header(name: p.name, value: p.value, enabled: p.enabled)).toList();
     }
-    _formUrlEncodedController = HeadersStateManager(
+    _formUrlEncodedController = FormTableStateManager(
       onStateChanged: () => setState(() {}),
       initialRows: paramsForManager,
       onModified: _formUrlEncodedModified,
@@ -691,7 +691,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             controller: _topTabController,
                                             children: [
                                               SingleChildScrollView(
-                                                child: HeadersTable(
+                                                child: FormTable(
                                                   stateManager: _headersController,
                                                   onSavePressed: saveFlow,
                                                 ),
@@ -709,7 +709,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       );
                                                     },
                                                   ),
-                                                  HeadersTable(
+                                                  FormTable(
                                                     stateManager: _formUrlEncodedController,
                                                     onSavePressed: saveFlow,
                                                   ),

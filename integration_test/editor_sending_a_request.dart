@@ -7,7 +7,7 @@ import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/form_table.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 const expectedFormattedJson = '''{
@@ -64,7 +64,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Set a header
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
-  final headersTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+  final headersTable = tester.widget<FormTable>(find.byType(FormTable));
   final headersManager = headersTable.stateManager;
 
   headersManager.rows[0].keyController.text = 'X-Auth-Token';
