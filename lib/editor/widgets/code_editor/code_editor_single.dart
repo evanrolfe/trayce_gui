@@ -16,7 +16,7 @@ class SingleLineCodeEditor extends StatefulWidget {
   final BoxDecoration? decoration;
   final VoidCallback? onSavePressed;
   final VoidCallback? onFocusChange;
-
+  final Border? border;
   const SingleLineCodeEditor({
     super.key,
     required this.controller,
@@ -29,6 +29,7 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.decoration,
     this.onSavePressed,
     this.onFocusChange,
+    this.border,
   });
 
   @override
@@ -96,12 +97,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
             horizontalScroller:
                 widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
           ),
-          border: Border(
-            left: BorderSide(color: const Color(0xFF474747), width: 0),
-            top: BorderSide(color: const Color(0xFF474747), width: 0),
-            right: BorderSide(color: const Color(0xFF474747), width: 0),
-            bottom: BorderSide(color: const Color(0xFF474747), width: 0),
-          ),
+          border: widget.border,
           style: const CodeEditorStyle(fontFamily: "monospace", textColor: Color(0xFFD4D4D4)),
           wordWrap: false,
           shortcutOverrideActions: widget.shortcutOverrideActions,
