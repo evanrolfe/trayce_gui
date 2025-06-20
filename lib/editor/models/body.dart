@@ -1,3 +1,5 @@
+import 'package:trayce/editor/models/multipart_file.dart';
+
 import 'param.dart';
 import 'utils.dart';
 
@@ -303,16 +305,16 @@ class FormUrlEncodedBody extends Body {
 class MultipartFormBody extends Body {
   @override
   final String type = 'multipart-form';
-  List<Param> params;
+  List<MultipartFile> files;
 
-  MultipartFormBody({required this.params});
+  MultipartFormBody({required this.files});
 
   @override
   bool equals(Body other) {
     if (other is! MultipartFormBody) return false;
-    if (params.length != other.params.length) return false;
-    for (var i = 0; i < params.length; i++) {
-      if (!params[i].equals(other.params[i])) return false;
+    if (files.length != other.files.length) return false;
+    for (var i = 0; i < files.length; i++) {
+      if (!files[i].equals(other.files[i])) return false;
     }
     return true;
   }
@@ -321,15 +323,16 @@ class MultipartFormBody extends Body {
   String toBru() {
     var bru = 'body:multipart-form {\n';
 
-    final enabledParams = params.where((p) => p.enabled).toList();
+    final enabledParams = files.where((p) => p.enabled).toList();
     if (enabledParams.isNotEmpty) {
-      bru += '${indentString(enabledParams.map((item) => '${item.name}: ${getValueString(item.value)}').join('\n'))}\n';
+      bru +=
+          '${indentString(enabledParams.map((item) => '${item.name}: ${getValueString(item.toBru())}').join('\n'))}\n';
     }
 
-    final disabledParams = params.where((p) => !p.enabled).toList();
+    final disabledParams = files.where((p) => !p.enabled).toList();
     if (disabledParams.isNotEmpty) {
       bru +=
-          '${indentString(disabledParams.map((item) => '~${item.name}: ${getValueString(item.value)}').join('\n'))}\n';
+          '${indentString(disabledParams.map((item) => '~${item.name}: ${getValueString(item.toBru())}').join('\n'))}\n';
     }
 
     bru += '}';
@@ -338,7 +341,7 @@ class MultipartFormBody extends Body {
 
   @override
   String toString() {
-    return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+    return files.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
   }
 
   @override
@@ -348,16 +351,20 @@ class MultipartFormBody extends Body {
 
   @override
   Body deepCopy() {
-    return MultipartFormBody(params: params);
+    return MultipartFormBody(files: files);
   }
 
   static MultipartFormBody blank() {
-    return MultipartFormBody(params: []);
+    return MultipartFormBody(files: []);
   }
 
   @override
   bool isEmpty() {
-    return params.isEmpty;
+    return files.isEmpty;
+  }
+
+  void setFiles(List<MultipartFile> files) {
+    this.files = files;
   }
 }
 

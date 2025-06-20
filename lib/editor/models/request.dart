@@ -1,4 +1,6 @@
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
 
 import 'assertion.dart';
 import 'auth.dart';
@@ -272,6 +274,10 @@ class Request {
   }
 
   Future<http.Response> send() async {
+    if (bodyType == BodyType.multipartForm) {
+      return _sendMultipart();
+    }
+
     final request = http.Request(method, Uri.parse(url));
 
     request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
@@ -279,6 +285,29 @@ class Request {
     final body = getBody();
     if (body != null) {
       request.body = body.toString();
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return response;
+  }
+
+  Future<http.Response> _sendMultipart() async {
+    final request = http.MultipartRequest(method, Uri.parse(url));
+    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
+
+    final multipartBody = bodyMultipartForm as MultipartFormBody;
+    for (var file in multipartBody.files) {
+      if (file.enabled) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            file.name,
+            file.value,
+            contentType: file.contentType != null ? MediaType.parse(file.contentType!) : null,
+          ),
+        );
+      }
     }
 
     final streamedResponse = await request.send();
@@ -410,7 +439,7 @@ class Request {
         bodyFormUrlEncoded?.setContent(content);
         break;
       case BodyType.multipartForm:
-        bodyMultipartForm ??= MultipartFormBody(params: []);
+        bodyMultipartForm ??= MultipartFormBody(files: []);
         bodyMultipartForm?.setContent(content);
         break;
       case BodyType.file:
@@ -425,6 +454,11 @@ class Request {
   void setBodyFormURLEncodedContent(List<Param> params) {
     bodyFormUrlEncoded ??= FormUrlEncodedBody(params: []);
     (bodyFormUrlEncoded as FormUrlEncodedBody).setParams(params);
+  }
+
+  void setBodyMultipartFormContent(List<MultipartFile> files) {
+    bodyMultipartForm ??= MultipartFormBody(files: []);
+    (bodyMultipartForm as MultipartFormBody).setFiles(files);
   }
 }
 

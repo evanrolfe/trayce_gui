@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/parse/parse_request.dart';
 
 void main() {
@@ -156,14 +157,26 @@ post {
 }
 
 body:multipart-form {
-  apikey: secret
-  numbers: +91998877665
-  ~message: hello
+  apikey: @file(/home/trayce/mykey.txt) @contentType(txt)
+  ~db: @file(/home/trayce/db.sql)
 }
 ''';
 
     // Parse the BRU data
     final result = parseRequest(input);
+
+    final body = result.getBody() as MultipartFormBody;
+    expect(body.files.length, 2);
+    expect(body.files[0].name, 'apikey');
+    expect(body.files[0].value, '/home/trayce/mykey.txt');
+    expect(body.files[0].contentType, 'txt');
+    expect(body.files[0].enabled, true);
+
+    expect(body.files[1].name, 'db');
+    expect(body.files[1].value, '/home/trayce/db.sql');
+    expect(body.files[1].contentType, isNull);
+    expect(body.files[1].enabled, false);
+
     // print("--->${result.toBru()}<----");
     expect(result.toBru(), input);
   });

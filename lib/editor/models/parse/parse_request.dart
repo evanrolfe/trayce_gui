@@ -1,4 +1,5 @@
 import 'package:petitparser/petitparser.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
 
 import '../assertion.dart';
 import '../auth.dart';
@@ -151,6 +152,20 @@ Param _createParam(MapEntry<String, dynamic> entry, ParamType type) {
   final enabled = !(entry.key.startsWith('~'));
   final name = enabled ? entry.key : entry.key.substring(1);
   return Param(name: name, value: entry.value.toString(), type: type, enabled: enabled);
+}
+
+MultipartFile _createMultipartFile(MapEntry<String, dynamic> entry) {
+  final value = entry.value.toString();
+  final enabled = !(entry.key.startsWith('~'));
+
+  // Extract file path and content type using regex
+  final filePathMatch = RegExp(r'@file\(([^)]+)\)').firstMatch(value);
+  final contentTypeMatch = RegExp(r'@contentType\(([^)]+)\)').firstMatch(value);
+  final filePath = filePathMatch?.group(1) ?? '';
+  final contentType = contentTypeMatch?.group(1);
+
+  final name = enabled ? entry.key : entry.key.substring(1);
+  return MultipartFile(name: name, value: filePath, contentType: contentType, enabled: enabled);
 }
 
 List<Param> parseParams(Result<dynamic> result) {
@@ -337,11 +352,11 @@ Body? parseBodyMultipartForm(Result<dynamic> result) {
   const bodyKey = 'body:multipart-form';
   if (result.value[bodyKey] == null) return null;
 
-  List<Param> params = [];
+  List<MultipartFile> params = [];
   if (result.value[bodyKey] != null) {
-    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.form)));
+    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createMultipartFile(e)));
   }
-  return MultipartFormBody(params: params);
+  return MultipartFormBody(files: params);
 }
 
 Body? parseBodyFile(Result<dynamic> result) {

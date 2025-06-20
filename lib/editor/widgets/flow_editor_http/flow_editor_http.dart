@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
@@ -13,6 +14,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
+import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
@@ -77,7 +79,7 @@ class FlowEditorHttp extends StatefulWidget {
 class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStateMixin {
   // Static form options
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
-  static const List<String> _bodyTypeOptions = ['No Body', 'Text', 'JSON', 'XML', 'Form URL Encoded'];
+  static const List<String> _bodyTypeOptions = ['No Body', 'Text', 'JSON', 'XML', 'Form URL Encoded', 'Multipart Form'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   // State variables
@@ -93,6 +95,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
   late final FormTableStateManager _headersController;
   late final FormTableStateManager _formUrlEncodedController;
+  late final FormTableStateManager _multipartFormController;
 
   // Request vars
   String _selectedMethod = 'GET';
@@ -188,6 +191,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       // Clear all header selections
       _headersController.clearAllSelections();
       _formUrlEncodedController.clearAllSelections();
+      _multipartFormController.clearAllSelections();
     });
 
     context.read<EventBus>().on<EventSaveIntent>().listen((event) {
@@ -210,6 +214,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
         _selectedBodyType = _bodyTypeOptions[3];
       case BodyType.formUrlEncoded:
         _selectedBodyType = _bodyTypeOptions[4];
+      case BodyType.multipartForm:
+        _selectedBodyType = _bodyTypeOptions[5];
       default:
         _selectedBodyType = _bodyTypeOptions[0];
     }
@@ -219,6 +225,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       _reqBodyController.text = body.toString();
     }
 
+    final config = context.read<Config>();
     // Add listener to _urlController
     _urlController.addListener(_urlModified);
     _reqBodyController.addListener(_reqBodyModified);
@@ -229,9 +236,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       onStateChanged: () => setState(() {}),
       initialRows: _formRequest.headers,
       onModified: _headersModified,
+      config: config,
     );
 
-    // Convert the params to Headers for the HeaderStateManager
+    // Convert the params to Headers for the FormTableStateManager
     List<Header> paramsForManager = [];
     if (_formRequest.bodyFormUrlEncoded != null) {
       final params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
@@ -241,7 +249,21 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       onStateChanged: () => setState(() {}),
       initialRows: paramsForManager,
       onModified: _formUrlEncodedModified,
+      config: config,
     );
+
+    // Set the multi part files on the FormTableStateManager
+    _multipartFormController = FormTableStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: [],
+      onModified: _multipartFormModified,
+      config: config,
+    );
+
+    if (_formRequest.bodyMultipartForm != null) {
+      final filesForManager = (_formRequest.bodyMultipartForm as MultipartFormBody).files;
+      _multipartFormController.setMultipartFiles(filesForManager);
+    }
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
@@ -291,6 +313,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _flowModified();
   }
 
+  void _multipartFormModified() {
+    final files = _multipartFormController.getMultipartFiles();
+    _formRequest.setBodyMultipartFormContent(files);
+    _flowModified();
+  }
+
   void _reqBodyModified() {
     final bodyContent = _reqBodyController.text;
     if (bodyContent == _formRequest.getBody()?.toString()) return;
@@ -317,6 +345,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
         _formRequest.setBodyType(BodyType.xml);
       } else if (newValue == _bodyTypeOptions[4]) {
         _formRequest.setBodyType(BodyType.formUrlEncoded);
+      } else if (newValue == _bodyTypeOptions[5]) {
+        _formRequest.setBodyType(BodyType.multipartForm);
       }
 
       _selectedBodyType = newValue;
@@ -413,6 +443,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _disabledScrollController.dispose();
     _headersController.dispose();
     _formUrlEncodedController.dispose();
+    _multipartFormController.dispose();
     _focusNode.dispose();
     _methodFocusNode.dispose();
     _bodyTypeFocusNode.dispose();
@@ -428,6 +459,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     if (_selectedBodyType == _bodyTypeOptions[4]) {
       bodyTypeIndex = 1;
+    } else if (_selectedBodyType == _bodyTypeOptions[5]) {
+      bodyTypeIndex = 2;
     }
 
     final tabContentBorder = Border(
@@ -712,6 +745,17 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   FormTable(
                                                     stateManager: _formUrlEncodedController,
                                                     onSavePressed: saveFlow,
+                                                  ),
+                                                  FormTable(
+                                                    stateManager: _multipartFormController,
+                                                    onSavePressed: saveFlow,
+                                                    columns: [
+                                                      FormTableColumn.enabled,
+                                                      FormTableColumn.key,
+                                                      FormTableColumn.valueFile,
+                                                      FormTableColumn.contentType,
+                                                      FormTableColumn.delete,
+                                                    ],
                                                   ),
                                                 ],
                                               ),

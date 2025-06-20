@@ -75,9 +75,8 @@ body:form-urlencoded {
 }
 
 body:multipart-form {
-  apikey: secret
-  numbers: +91998877665
-  ~message: hello
+  apikey: @file(/home/trayce/test.txt)
+  ~message: @file(/home/trayce/secrets.txt)
 }
 
 body:file {

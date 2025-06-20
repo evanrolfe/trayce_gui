@@ -1,10 +1,13 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
+import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
@@ -68,7 +71,11 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
     _bottomTabController = TabController(length: 3, vsync: this);
     GrpcEditorState.initialize();
 
-    _headersController = FormTableStateManager(onStateChanged: () => setState(() {}), initialRows: []);
+    _headersController = FormTableStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: [],
+      config: context.read<Config>(),
+    );
   }
 
   @override

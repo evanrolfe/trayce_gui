@@ -8,6 +8,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
@@ -134,6 +135,38 @@ body:form-urlencoded {
 }
 ''';
 
+final expectedBru9 = '''meta {
+  name: Test Request
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://example.com
+  body: multipart-form
+}
+
+body:multipart-form {
+  XXXX: @file(/home/trayce/x.txt) @contentType(text/plain)
+}
+''';
+
+final expectedBru10 = '''meta {
+  name: Test Request
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://example.com
+  body: multipart-form
+}
+
+body:multipart-form {
+  XXXX: @file(/home/trayce/x.txt)
+}
+''';
+
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 const expectedFormattedJson = '''{
   "message": "Hello, World!",
@@ -243,9 +276,75 @@ void main() {
       expect(tableManager.rows[2].valueController.text, '');
       expect(tableManager.rows[2].checkboxState, false);
 
-      // tableManager.rows[0].keyController.text = 'XXXX';
-      // tableManager.rows[0].valueController.text = 'YYYY';
-      // tableManager.rows[0].checkboxState = true;
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a request with body: form-multipart', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.multipartForm,
+        bodyMultipartForm: MultipartFormBody(
+          files: [
+            MultipartFile(name: 'XXXX', value: '/home/trayce/x.txt', enabled: true),
+            MultipartFile(name: 'ZZZZ', value: '/home/trayce/y.txt', enabled: false),
+            MultipartFile(name: 'YYYY', value: '/home/trayce/z.txt', enabled: true, contentType: 'text/plain'),
+          ],
+        ),
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Verify method, url
+      expect(find.text('HTTP'), findsOneWidget);
+      expect(find.text('GET'), findsOneWidget);
+      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      expect(urlInput.controller.text, 'https://example.com');
+      await tester.pumpAndSettle();
+
+      // Verify request body type
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+      expect(tester.widget<DropdownButton2<String>>(bodyTypeDropdown).value, 'Multipart Form');
+
+      // Verify request body
+      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final tableManager = formTable.stateManager;
+
+      expect(tableManager.rows.length, 4);
+      expect(tableManager.rows[0].keyController.text, 'XXXX');
+      expect(tableManager.rows[0].valueFile, '/home/trayce/x.txt');
+      expect(tableManager.rows[0].contentTypeController.text, '');
+      expect(tableManager.rows[0].checkboxState, true);
+
+      expect(tableManager.rows[1].keyController.text, 'ZZZZ');
+      expect(tableManager.rows[1].valueFile, '/home/trayce/y.txt');
+      expect(tableManager.rows[1].contentTypeController.text, '');
+      expect(tableManager.rows[1].checkboxState, false);
+
+      expect(tableManager.rows[2].keyController.text, 'YYYY');
+      expect(tableManager.rows[2].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows[2].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows[2].checkboxState, true);
+
+      expect(tableManager.rows[3].keyController.text, '');
+      expect(tableManager.rows[3].valueFile, isNull);
+      expect(tableManager.rows[3].checkboxState, false);
+
       await tester.pumpAndSettle();
     });
   });
@@ -548,6 +647,120 @@ void main() {
       expect(body.params[0].enabled, true);
       expect(request.getBody(), request.bodyFormUrlEncoded);
       expect(request.toBru(), expectedBru8);
+    });
+
+    testWidgets('setting form-multipart body', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.none,
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Set the body to a text body
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+      await tester.tap(bodyTypeDropdown);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Multipart Form'));
+      await tester.pumpAndSettle();
+
+      // Change the form url encoded params
+      final headersTable = tester.widget<FormTable>(find.byType(FormTable));
+      final headersManager = headersTable.stateManager;
+      headersManager.rows[0].keyController.text = 'XXXX';
+      headersManager.rows[0].valueFile = '/home/trayce/x.txt';
+      headersManager.rows[0].contentTypeController.text = 'text/plain';
+      await tester.pumpAndSettle();
+
+      // Save the request
+      await tester.tap(find.byKey(Key('flow_editor_http_url_input')));
+      await tester.pumpAndSettle();
+      await pressCtrlS(tester);
+      await tester.pumpAndSettle();
+
+      expect(request.bodyType, BodyType.multipartForm);
+
+      final body = request.getBody() as MultipartFormBody;
+      expect(body.files.length, 1);
+      expect(body.files[0].name, 'XXXX');
+      expect(body.files[0].value, '/home/trayce/x.txt');
+      expect(body.files[0].enabled, true);
+      expect(body.files[0].contentType, 'text/plain');
+      expect(request.getBody(), request.bodyMultipartForm);
+      expect(request.toBru(), expectedBru9);
+    });
+
+    testWidgets('setting form-multipart body without content type', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.none,
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Set the body to a text body
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+      await tester.tap(bodyTypeDropdown);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Multipart Form'));
+      await tester.pumpAndSettle();
+
+      // Change the form url encoded params
+      final headersTable = tester.widget<FormTable>(find.byType(FormTable));
+      final headersManager = headersTable.stateManager;
+      headersManager.rows[0].keyController.text = 'XXXX';
+      headersManager.rows[0].valueFile = '/home/trayce/x.txt';
+      headersManager.rows[0].contentTypeController.text = '';
+      await tester.pumpAndSettle();
+
+      // Save the request
+      await tester.tap(find.byKey(Key('flow_editor_http_url_input')));
+      await tester.pumpAndSettle();
+      await pressCtrlS(tester);
+      await tester.pumpAndSettle();
+
+      expect(request.bodyType, BodyType.multipartForm);
+
+      final body = request.getBody() as MultipartFormBody;
+      expect(body.files.length, 1);
+      expect(body.files[0].name, 'XXXX');
+      expect(body.files[0].value, '/home/trayce/x.txt');
+      expect(body.files[0].enabled, true);
+      expect(body.files[0].contentType, isNull);
+      expect(request.getBody(), request.bodyMultipartForm);
+      expect(request.toBru(), expectedBru10);
     });
   });
 }
