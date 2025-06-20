@@ -7,7 +7,7 @@ class MultipartFile {
   MultipartFile({required this.name, required this.value, required this.enabled, this.contentType});
 
   bool equals(MultipartFile other) {
-    return name == other.name && value == other.value && enabled == other.enabled;
+    return name == other.name && value == other.value && contentType == other.contentType && enabled == other.enabled;
   }
 
   String toBru() {

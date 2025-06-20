@@ -209,6 +209,7 @@ class FormTable extends StatelessWidget {
               border: Border(top: borderSide, left: borderSide, right: borderSide, bottom: borderBottom),
             ),
             child: IconButton(
+              key: Key('form_table_delete_row_$index'),
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.close, size: 16),
               onPressed: () {

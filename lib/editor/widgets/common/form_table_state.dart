@@ -13,16 +13,12 @@ class FormTableStateManager {
   late List<FormTableRow> _rows;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
-  final CodeLineEditingController? urlController;
-  final CodeLineEditingController? bodyController;
   final Config config;
 
   FormTableStateManager({
     required this.onStateChanged,
     List<Header>? initialRows,
     this.onModified,
-    this.urlController,
-    this.bodyController,
     required this.config,
   }) {
     // TODO: This should somehow accept either params or multipart files
@@ -47,31 +43,32 @@ class FormTableStateManager {
         index: row.valueController.selection.baseIndex,
         offset: row.valueController.selection.baseOffset,
       );
+      row.contentTypeController.selection = CodeLineSelection.collapsed(
+        index: row.contentTypeController.selection.baseIndex,
+        offset: row.contentTypeController.selection.baseOffset,
+      );
     }
   }
 
-  void _clearOtherSelections(FormTableRow focusedRow, bool isKey) {
-    // Clear URL input selection if it exists
-    if (urlController != null) {
-      urlController!.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-    }
-
-    // Clear body input selection if it exists
-    if (bodyController != null) {
-      bodyController!.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-    }
-
+  void _clearOtherSelections(FormTableRow focusedRow, FocusNode focusedNode) {
     for (var row in _rows) {
       if (row != focusedRow) {
         // Clear selections in other rows
         row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
         row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+        row.contentTypeController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
       } else {
+        // TODO: Refactor this and so it doesn't rely on so many if else ifs
         // Clear selection in the other editor of the same row
-        if (isKey) {
-          row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-        } else {
+        if (focusedNode == row.valueFocusNode) {
           row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+          row.contentTypeController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+        } else if (focusedNode == row.keyFocusNode) {
+          row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+          row.contentTypeController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+        } else if (focusedNode == row.contentTypeFocusNode) {
+          row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
+          row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
         }
       }
     }
@@ -136,13 +133,19 @@ class FormTableStateManager {
 
           row.keyFocusNode.addListener(() {
             if (row.keyFocusNode.hasFocus) {
-              _clearOtherSelections(row, true);
+              _clearOtherSelections(row, row.keyFocusNode);
             }
           });
 
           row.valueFocusNode.addListener(() {
             if (row.valueFocusNode.hasFocus) {
-              _clearOtherSelections(row, false);
+              _clearOtherSelections(row, row.valueFocusNode);
+            }
+          });
+
+          row.contentTypeFocusNode.addListener(() {
+            if (row.contentTypeFocusNode.hasFocus) {
+              _clearOtherSelections(row, row.contentTypeFocusNode);
             }
           });
 
@@ -182,13 +185,19 @@ class FormTableStateManager {
 
       row.keyFocusNode.addListener(() {
         if (row.keyFocusNode.hasFocus) {
-          _clearOtherSelections(row, true);
+          _clearOtherSelections(row, row.keyFocusNode);
         }
       });
 
       row.valueFocusNode.addListener(() {
         if (row.valueFocusNode.hasFocus) {
-          _clearOtherSelections(row, false);
+          _clearOtherSelections(row, row.valueFocusNode);
+        }
+      });
+
+      row.contentTypeFocusNode.addListener(() {
+        if (row.contentTypeFocusNode.hasFocus) {
+          _clearOtherSelections(row, row.contentTypeFocusNode);
         }
       });
 
@@ -208,10 +217,20 @@ class FormTableStateManager {
       final currentValueText = row.valueController.text;
       final previousKeyText = row.previousKeyText;
       final previousValueText = row.previousValueText;
+      final currentContentTypeText = row.contentTypeController.text;
+      final previousContentTypeText = row.previousContentTypeText;
 
-      final hasTextChanged = currentKeyText != previousKeyText || currentValueText != previousValueText;
+      final hasTextChanged =
+          currentKeyText != previousKeyText ||
+          currentValueText != previousValueText ||
+          currentContentTypeText != previousContentTypeText;
 
-      if (hasTextChanged && previousKeyText.isEmpty && previousValueText.isEmpty && !row.checkboxState && row.newRow) {
+      if (hasTextChanged &&
+          previousKeyText.isEmpty &&
+          previousValueText.isEmpty &&
+          previousContentTypeText.isEmpty &&
+          !row.checkboxState &&
+          row.newRow) {
         row.checkboxState = true;
         // Schedule state change for next frame
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -219,11 +238,9 @@ class FormTableStateManager {
         });
       }
 
-      if (isKey) {
-        row.previousKeyText = currentKeyText;
-      } else {
-        row.previousValueText = currentValueText;
-      }
+      row.previousKeyText = currentKeyText;
+      row.previousValueText = currentValueText;
+      row.previousContentTypeText = currentContentTypeText;
 
       onModified?.call();
     });
@@ -242,13 +259,19 @@ class FormTableStateManager {
 
     row.keyFocusNode.addListener(() {
       if (row.keyFocusNode.hasFocus) {
-        _clearOtherSelections(row, true);
+        _clearOtherSelections(row, row.keyFocusNode);
       }
     });
 
     row.valueFocusNode.addListener(() {
       if (row.valueFocusNode.hasFocus) {
-        _clearOtherSelections(row, false);
+        _clearOtherSelections(row, row.valueFocusNode);
+      }
+    });
+
+    row.contentTypeFocusNode.addListener(() {
+      if (row.contentTypeFocusNode.hasFocus) {
+        _clearOtherSelections(row, row.contentTypeFocusNode);
       }
     });
 
@@ -257,9 +280,12 @@ class FormTableStateManager {
     final index = _rows.length - 1;
     _setupControllerListener(row.keyController, index, true);
     _setupControllerListener(row.valueController, index, false);
+    _setupControllerListener(row.contentTypeController, index, false);
     onStateChanged();
   }
 
+  // There is a bug with the Re-Editor which prevents me from doing _rows.removeAt(index)
+  // so instead i have to do this work around where we swap rows and delete the last one
   void deleteRow(int index) {
     if (_rows.length <= 1) return;
     if (index >= _rows.length - 1) return;
@@ -320,16 +346,6 @@ class FormTableStateManager {
 
     return path;
   }
-
-  // Future<void> _onBrowse() async {
-  //   final path = await _getCollectionPath();
-  //   print('path: $path');
-  //   if (path != null) {
-  //     setState(() {
-  //       _locationController.text = path;
-  //     });
-  //   }
-  // }
 
   void dispose() {
     for (var row in _rows) {

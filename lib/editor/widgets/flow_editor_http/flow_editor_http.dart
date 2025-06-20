@@ -742,20 +742,24 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       );
                                                     },
                                                   ),
-                                                  FormTable(
-                                                    stateManager: _formUrlEncodedController,
-                                                    onSavePressed: saveFlow,
+                                                  SingleChildScrollView(
+                                                    child: FormTable(
+                                                      stateManager: _formUrlEncodedController,
+                                                      onSavePressed: saveFlow,
+                                                    ),
                                                   ),
-                                                  FormTable(
-                                                    stateManager: _multipartFormController,
-                                                    onSavePressed: saveFlow,
-                                                    columns: [
-                                                      FormTableColumn.enabled,
-                                                      FormTableColumn.key,
-                                                      FormTableColumn.valueFile,
-                                                      FormTableColumn.contentType,
-                                                      FormTableColumn.delete,
-                                                    ],
+                                                  SingleChildScrollView(
+                                                    child: FormTable(
+                                                      stateManager: _multipartFormController,
+                                                      onSavePressed: saveFlow,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.valueFile,
+                                                        FormTableColumn.contentType,
+                                                        FormTableColumn.delete,
+                                                      ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),

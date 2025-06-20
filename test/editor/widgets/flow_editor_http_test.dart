@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
@@ -346,6 +347,176 @@ void main() {
       expect(tableManager.rows[3].checkboxState, false);
 
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('a request with body: form-multipart - deleting a row', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.multipartForm,
+        bodyMultipartForm: MultipartFormBody(
+          files: [
+            MultipartFile(name: 'XXXX', value: '/home/trayce/x.txt', enabled: true),
+            MultipartFile(name: 'ZZZZ', value: '/home/trayce/y.txt', enabled: false),
+            MultipartFile(name: 'YYYY', value: '/home/trayce/z.txt', enabled: true, contentType: 'text/plain'),
+          ],
+        ),
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Verify request body type
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      // Delete the middle row
+      await tester.tap(find.byKey(Key('form_table_delete_row_1')));
+      await tester.pumpAndSettle();
+
+      // Verify request body
+      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final tableManager = formTable.stateManager;
+
+      expect(tableManager.rows.length, 3);
+      expect(tableManager.rows[0].keyController.text, 'XXXX');
+      expect(tableManager.rows[0].valueFile, '/home/trayce/x.txt');
+      expect(tableManager.rows[0].contentTypeController.text, '');
+      expect(tableManager.rows[0].checkboxState, true);
+
+      expect(tableManager.rows[1].keyController.text, 'YYYY');
+      expect(tableManager.rows[1].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows[1].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows[1].checkboxState, true);
+
+      expect(tableManager.rows[2].keyController.text, '');
+      expect(tableManager.rows[2].valueFile, isNull);
+      expect(tableManager.rows[2].checkboxState, false);
+
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a request with body: form-multipart - typing in a new row', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.multipartForm,
+        bodyMultipartForm: MultipartFormBody(
+          files: [
+            MultipartFile(name: 'XXXX', value: '/home/trayce/x.txt', enabled: true),
+            MultipartFile(name: 'ZZZZ', value: '/home/trayce/z.txt', enabled: true, contentType: 'text/plain'),
+          ],
+        ),
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Verify request body type
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      // Verify request body
+      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final tableManager = formTable.stateManager;
+
+      // Enter text in the new row
+      tableManager.rows[2].contentTypeController.text = 'hello';
+      await tester.pumpAndSettle();
+
+      expect(tableManager.rows.length, 4);
+      expect(tableManager.rows[0].keyController.text, 'XXXX');
+      expect(tableManager.rows[0].valueFile, '/home/trayce/x.txt');
+      expect(tableManager.rows[0].contentTypeController.text, '');
+      expect(tableManager.rows[0].checkboxState, true);
+
+      expect(tableManager.rows[1].keyController.text, 'ZZZZ');
+      expect(tableManager.rows[1].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows[1].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows[1].checkboxState, true);
+
+      expect(tableManager.rows[2].keyController.text, '');
+      expect(tableManager.rows[2].valueFile, isNull);
+      expect(tableManager.rows[2].contentTypeController.text, 'hello');
+      expect(tableManager.rows[2].checkboxState, true);
+
+      expect(tableManager.rows[3].keyController.text, '');
+      expect(tableManager.rows[3].valueFile, isNull);
+      expect(tableManager.rows[3].contentTypeController.text, '');
+      expect(tableManager.rows[3].checkboxState, false);
+
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a request with body: form-multipart - modifying the key of a row', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.multipartForm,
+        bodyMultipartForm: MultipartFormBody(
+          files: [
+            MultipartFile(name: 'XXXX', value: '/home/trayce/x.txt', enabled: true),
+            MultipartFile(name: 'ZZZZ', value: '/home/trayce/z.txt', enabled: true, contentType: 'text/plain'),
+          ],
+        ),
+        params: [],
+        headers: [],
+        requestVars: [],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = createTestWidget(child: FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Verify request body type
+      await tester.tap(find.text('Body'));
+      await tester.pumpAndSettle();
+
+      // Verify request body
+      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final tableManager = formTable.stateManager;
+
+      EventEditorNodeModified? eventReceived;
+      eventBus.on<EventEditorNodeModified>().listen((event) {
+        eventReceived = event;
+      });
+
+      // Enter text in the new row
+      tableManager.rows[0].contentTypeController.text = 'changed';
+      await tester.pumpAndSettle();
+
+      expect(eventReceived, isNotNull);
+      expect(eventReceived!.isDifferent, true);
+      expect(eventReceived!.tabKey, tabKey);
     });
   });
 
