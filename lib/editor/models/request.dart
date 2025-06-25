@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
@@ -224,7 +226,14 @@ class Request {
 
     final body = getBody();
     final otherBody = other.getBody();
-    if (body != null && otherBody != null) {
+
+    final bodyEmpty = body == null || body.isEmpty();
+    final otherBodyEmpty = otherBody == null || otherBody.isEmpty();
+
+    if (bodyEmpty && !otherBodyEmpty) return false;
+    if (!bodyEmpty && otherBodyEmpty) return false;
+
+    if (!bodyEmpty && !otherBodyEmpty) {
       if (!body.equals(otherBody)) return false;
     }
 
@@ -278,6 +287,10 @@ class Request {
       return _sendMultipart();
     }
 
+    if (bodyType == BodyType.file) {
+      return _sendFile();
+    }
+
     final request = http.Request(method, Uri.parse(url));
 
     request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
@@ -307,6 +320,26 @@ class Request {
             contentType: file.contentType != null ? MediaType.parse(file.contentType!) : null,
           ),
         );
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return response;
+  }
+
+  Future<http.Response> _sendFile() async {
+    final request = http.Request(method, Uri.parse(url));
+
+    final body = bodyFile as FileBody;
+    final selectedFile = body.selectedFile();
+    if (selectedFile != null) {
+      final data = await File(selectedFile.filePath).readAsBytes();
+      request.bodyBytes = data;
+
+      if (selectedFile.contentType != null) {
+        request.headers['content-type'] = selectedFile.contentType!;
       }
     }
 
@@ -459,6 +492,11 @@ class Request {
   void setBodyMultipartFormContent(List<MultipartFile> files) {
     bodyMultipartForm ??= MultipartFormBody(files: []);
     (bodyMultipartForm as MultipartFormBody).setFiles(files);
+  }
+
+  void setBodyFilesContent(List<FileBodyItem> files) {
+    bodyFile ??= FileBody(files: []);
+    (bodyFile as FileBody).setFiles(files);
   }
 }
 

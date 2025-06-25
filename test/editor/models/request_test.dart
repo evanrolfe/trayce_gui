@@ -17,6 +17,7 @@ class HttpTestServer {
   String? sentRequestBody;
   List<int>? sentRequestBytes;
   List<List<int>>? sentFiles;
+  Map<String, String>? sentHeaders;
 
   HttpTestServer(this.server);
 
@@ -39,23 +40,21 @@ class HttpTestServer {
     server.handler.expect(method, path, (request) async {
       sentRequest = request;
       sentRequestBody = await request.readAsString();
+      sentHeaders = request.headers;
+
       return shelf.Response.ok(jsonResponse, headers: {"content-type": "application/json"});
     });
   }
 
-  newMultipartHandler(String method, String path) {
+  newFileHandler(String method, String path) {
     sentRequest = null;
     sentRequestBody = null;
     sentRequestBytes = null;
 
     server.handler.expect(method, path, (request) async {
       sentRequest = request;
-      // For multipart requests, store the raw bytes instead of trying to decode as string
       sentFiles = await request.read().toList();
-
-      // Verify content-type is multipart
-      final contentType = request.headers['content-type'] ?? '';
-      expect(contentType.startsWith('multipart/form-data'), true);
+      sentHeaders = request.headers;
 
       return shelf.Response.ok(jsonResponse, headers: {"content-type": "application/json"});
     });
@@ -216,7 +215,7 @@ void main() {
   });
 
   test('sending a POST request with multipart-form body', () async {
-    mockServer.newMultipartHandler('POST', '/test_endpoint');
+    mockServer.newFileHandler('POST', '/test_endpoint');
     final currentDir = Directory.current.path;
 
     final url = '${mockServer.url().toString()}/test_endpoint';
@@ -245,9 +244,53 @@ void main() {
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
 
+    final contentType = mockServer.sentHeaders!['content-type'] ?? '';
+    expect(contentType.startsWith('multipart/form-data'), true);
+
     expect(mockServer.sentFiles, isNotNull);
     expect(mockServer.sentFiles!.length, 2);
     expect(mockServer.sentFiles![0].length, 93105);
     expect(mockServer.sentFiles![1].length, 255);
+  });
+
+  test('sending a POST request with binary file body', () async {
+    mockServer.newFileHandler('POST', '/test_endpoint');
+    final currentDir = Directory.current.path;
+
+    final url = '${mockServer.url().toString()}/test_endpoint';
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.file,
+      bodyFile: FileBody(
+        files: [
+          FileBodyItem(filePath: '$currentDir/VERSION', contentType: 'text/plain', selected: true),
+          FileBodyItem(filePath: '$currentDir/schema.sql', contentType: 'text/plain', selected: false),
+        ],
+      ),
+      params: [],
+      headers: [Header(name: 'x-trayce-token', value: 'abcd1234', enabled: false)],
+      requestVars: [],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final response = await request.send();
+
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+
+    final contentType = mockServer.sentHeaders!['content-type'] ?? '';
+    expect(contentType.startsWith('text/plain'), true);
+
+    // final data = mockServer.sentFiles![0];
+    // final dataString = String.fromCharCodes(data);
+
+    expect(mockServer.sentFiles, isNotNull);
+    expect(mockServer.sentFiles!.length, 1);
+    expect(mockServer.sentFiles![0].length, 6);
   });
 }

@@ -168,6 +168,16 @@ MultipartFile _createMultipartFile(MapEntry<String, dynamic> entry) {
   return MultipartFile(name: name, value: filePath, contentType: contentType, enabled: enabled);
 }
 
+FileBodyItem _createFile(String value, bool selected) {
+  // Extract file path and content type using regex
+  final filePathMatch = RegExp(r'@file\(([^)]+)\)').firstMatch(value);
+  final contentTypeMatch = RegExp(r'@contentType\(([^)]+)\)').firstMatch(value);
+  final filePath = filePathMatch?.group(1) ?? '';
+  final contentType = contentTypeMatch?.group(1);
+
+  return FileBodyItem(filePath: filePath, contentType: contentType, selected: selected);
+}
+
 List<Param> parseParams(Result<dynamic> result) {
   List<Param> params = [];
   if (result.value['params:query'] != null) {
@@ -352,29 +362,26 @@ Body? parseBodyMultipartForm(Result<dynamic> result) {
   const bodyKey = 'body:multipart-form';
   if (result.value[bodyKey] == null) return null;
 
-  List<MultipartFile> params = [];
+  List<MultipartFile> files = [];
   if (result.value[bodyKey] != null) {
-    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createMultipartFile(e)));
+    files.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createMultipartFile(e)));
   }
-  return MultipartFormBody(files: params);
+  return MultipartFormBody(files: files);
 }
 
 Body? parseBodyFile(Result<dynamic> result) {
   const bodyKey = 'body:file';
   if (result.value[bodyKey] == null) return null;
+  final bodyFiles = result.value['body:file'];
 
   List<FileBodyItem> files = [];
-  final bodyFiles = result.value['body:file'];
-  if (bodyFiles != null) {
-    if (bodyFiles['file'] != null) {
-      final selectedFiles = bodyFiles['file'] as List<String>;
-      files.addAll(selectedFiles.map((e) => FileBodyItem.fromBruLine(e, true)));
-    }
-    if (bodyFiles['~file'] != null) {
-      final unSelectedFiles = bodyFiles['~file'] as List<dynamic>;
-      files.addAll(unSelectedFiles.map((e) => FileBodyItem.fromBruLine(e, false)));
-    }
+  if (bodyFiles['file'] != null) {
+    files.addAll((bodyFiles['file'] as List<String>).map((e) => _createFile(e, true)));
   }
+  if (bodyFiles['~file'] != null) {
+    files.addAll((bodyFiles['~file'] as List<String>).map((e) => _createFile(e, false)));
+  }
+
   return FileBody(files: files);
 }
 

@@ -291,7 +291,9 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                                         controller: _topTabController,
                                         children: [
                                           MultiLineCodeEditor(controller: _bodyController),
-                                          SingleChildScrollView(child: FormTable(stateManager: _headersController)),
+                                          SingleChildScrollView(
+                                            child: FormTable(stateManager: _headersController, focusNode: FocusNode()),
+                                          ),
                                         ],
                                       ),
                                     ),

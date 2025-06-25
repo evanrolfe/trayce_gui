@@ -11,11 +11,13 @@ class FormTable extends StatelessWidget {
   final FormTableStateManager stateManager;
   final VoidCallback? onSavePressed;
   final List<FormTableColumn> columns;
+  final FocusNode focusNode;
 
   const FormTable({
     super.key,
     required this.stateManager,
     this.onSavePressed,
+    required this.focusNode,
     this.columns = const [FormTableColumn.enabled, FormTableColumn.key, FormTableColumn.value, FormTableColumn.delete],
   });
 
@@ -73,6 +75,17 @@ class FormTable extends StatelessWidget {
                     child: const Text('Content-Type', style: TextStyle(color: Color(0xFF666666))),
                   ),
                 ),
+
+              if (columns.contains(FormTableColumn.selected))
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
+                    height: 30,
+                    alignment: Alignment.centerLeft,
+                    child: const Text('Selected', style: TextStyle(color: Color(0xFF666666))),
+                  ),
+                ),
+
               if (columns.contains(FormTableColumn.delete))
                 Container(
                   width: 30,
@@ -114,6 +127,7 @@ class FormTable extends StatelessWidget {
             child: Checkbox(
               value: row.checkboxState,
               onChanged: (bool? value) {
+                FocusScope.of(context).requestFocus(focusNode);
                 stateManager.setCheckboxState(index, value ?? false);
               },
               side: BorderSide.none,
@@ -172,9 +186,8 @@ class FormTable extends StatelessWidget {
                         )
                         : ElevatedButton(
                           onPressed: () {
-                            if (stateManager.rows.length > 1) {
-                              stateManager.uploadValueFile(index);
-                            }
+                            FocusScope.of(context).requestFocus(focusNode);
+                            stateManager.uploadValueFile(index);
                           },
                           style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
                           child: const Text('Browse', style: TextStyle(color: Color(0xFF666666))),
@@ -201,6 +214,33 @@ class FormTable extends StatelessWidget {
             ),
           ),
 
+        if (columns.contains(FormTableColumn.selected))
+          Expanded(
+            child: SizedBox(
+              height: 30,
+              child: Container(
+                height: 30,
+                decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide, bottom: borderBottom)),
+                child: Radio<int>(
+                  value: index,
+                  groupValue: stateManager.selectedRowIndex,
+                  onChanged: (int? value) {
+                    if (value != null) {
+                      stateManager.setSelectedRowIndex(value);
+                    }
+                    FocusScope.of(context).requestFocus(focusNode);
+                  },
+                  activeColor: const Color(0xFF4DB6AC),
+                  fillColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.hovered)) return lightTextColor;
+                    return null;
+                  }),
+                  materialTapTargetSize: MaterialTapTargetSize.values[1],
+                ),
+              ),
+            ),
+          ),
+
         if (columns.contains(FormTableColumn.delete))
           Container(
             width: 30,
@@ -210,12 +250,19 @@ class FormTable extends StatelessWidget {
             ),
             child: IconButton(
               key: Key('form_table_delete_row_$index'),
+              // focusNode: focusNode,
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.close, size: 16),
+              style: IconButton.styleFrom(
+                foregroundColor: const Color(0xFF666666),
+                hoverColor: Color(0xFF2D2D2D),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+              ),
               onPressed: () {
                 if (stateManager.rows.length > 1) {
                   stateManager.deleteRow(index);
                 }
+                FocusScope.of(context).requestFocus(focusNode);
               },
             ),
           ),

@@ -2,18 +2,20 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 
-enum FormTableColumn { enabled, delete, key, value, valueFile, contentType }
+enum FormTableColumn { enabled, selected, delete, key, value, valueFile, contentType }
 
 class FormTableStateManager {
   late List<FormTableRow> _rows;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final Config config;
+  int? selectedRowIndex; // Track which row is selected for radio buttons
 
   FormTableStateManager({
     required this.onStateChanged,
@@ -104,6 +106,16 @@ class FormTableStateManager {
     }).toList();
   }
 
+  List<FileBodyItem> getFiles() {
+    return _rows.where((row) => !row.isEmpty()).toList().asMap().entries.map((entry) {
+      final index = entry.key;
+      final row = entry.value;
+      final contentType = row.contentTypeController.text.isEmpty ? null : row.contentTypeController.text;
+
+      return FileBodyItem(filePath: row.valueFile ?? '', contentType: contentType, selected: index == selectedRowIndex);
+    }).toList();
+  }
+
   void setMultipartFiles(List<MultipartFile> files) {
     _rows =
         files.asMap().entries.map((entry) {
@@ -151,6 +163,43 @@ class FormTableStateManager {
 
           return row;
         }).toList();
+
+    _addNewRow();
+  }
+
+  void setFiles(List<FileBodyItem> files) {
+    _rows =
+        files.asMap().entries.map((entry) {
+          final index = entry.key;
+          final file = entry.value;
+
+          final contentTypeController = CodeLineEditingController();
+
+          contentTypeController.text = file.contentType ?? '';
+
+          _setupControllerListener(contentTypeController, index, false);
+
+          final row = FormTableRow(
+            keyController: CodeLineEditingController(),
+            valueController: CodeLineEditingController(),
+            contentTypeController: contentTypeController,
+            valueFile: file.filePath,
+            keyFocusNode: FocusNode(),
+            valueFocusNode: FocusNode(),
+            contentTypeFocusNode: FocusNode(),
+            newRow: false,
+          );
+
+          row.contentTypeFocusNode.addListener(() {
+            if (row.contentTypeFocusNode.hasFocus) {
+              _clearOtherSelections(row, row.contentTypeFocusNode);
+            }
+          });
+
+          return row;
+        }).toList();
+
+    selectedRowIndex = files.indexWhere((file) => file.selected == true);
 
     _addNewRow();
   }
@@ -325,11 +374,24 @@ class FormTableStateManager {
     onModified?.call();
   }
 
+  void setSelectedRowIndex(int index) {
+    selectedRowIndex = index;
+    onStateChanged();
+    onModified?.call();
+  }
+
   void uploadValueFile(int index) async {
     final path = await _getFilePath();
     if (path == null) return;
 
+    if (index >= _rows.length) return;
+    final row = _rows[index];
+
     _rows[index].valueFile = path;
+
+    if (index == _rows.length - 1) {
+      _addNewRow();
+    }
 
     onStateChanged();
     onModified?.call();

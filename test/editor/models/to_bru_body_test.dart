@@ -196,13 +196,28 @@ post {
 
 body:file {
   file: @file(path/to/file1.json) @contentType(application/json)
-  ~file: @file(path/to/file2.json) @contentType(application/json)
+  ~file: @file(path/to/file2.json)
   ~file: @file(path/to/file3.json) @contentType(application/json)
 }
 ''';
 
     // Parse the BRU data
     final result = parseRequest(input);
+
+    final body = result.getBody() as FileBody;
+    expect(body.files.length, 3);
+    expect(body.files[0].filePath, 'path/to/file1.json');
+    expect(body.files[0].contentType, 'application/json');
+    expect(body.files[0].selected, true);
+
+    expect(body.files[1].filePath, 'path/to/file2.json');
+    expect(body.files[1].contentType, isNull);
+    expect(body.files[1].selected, false);
+
+    expect(body.files[2].filePath, 'path/to/file3.json');
+    expect(body.files[2].contentType, 'application/json');
+    expect(body.files[2].selected, false);
+
     // print("--->${result.toBru()}<----");
     expect(result.toBru(), input);
   });

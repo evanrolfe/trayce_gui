@@ -9,6 +9,7 @@ class FormTableRow {
   final FocusNode keyFocusNode;
   final FocusNode valueFocusNode;
   final FocusNode contentTypeFocusNode;
+  final FocusNode formFocusNode = FocusNode();
   bool checkboxState;
   bool newRow;
   String previousKeyText;
@@ -36,6 +37,7 @@ class FormTableRow {
     contentTypeController.dispose();
     keyFocusNode.dispose();
     valueFocusNode.dispose();
+    formFocusNode.dispose();
   }
 
   void swapWith(FormTableRow otherRow) {

@@ -370,30 +370,10 @@ class MultipartFormBody extends Body {
 
 class FileBodyItem {
   String filePath;
-  String contentType;
+  String? contentType;
   bool selected;
 
-  FileBodyItem({required this.filePath, required this.contentType, required this.selected});
-
-  static FileBodyItem fromBruLine(String line, bool selected) {
-    // Default values
-    String filePath = '';
-    String contentType = '';
-
-    // Extract file path
-    final fileMatch = RegExp(r'@file\((.*?)\)').firstMatch(line);
-    if (fileMatch != null && fileMatch.groupCount >= 1) {
-      filePath = fileMatch.group(1) ?? '';
-    }
-
-    // Extract content type
-    final contentTypeMatch = RegExp(r'@contentType\((.*?)\)').firstMatch(line);
-    if (contentTypeMatch != null && contentTypeMatch.groupCount >= 1) {
-      contentType = contentTypeMatch.group(1) ?? '';
-    }
-
-    return FileBodyItem(filePath: filePath, contentType: contentType, selected: selected);
-  }
+  FileBodyItem({required this.filePath, this.contentType, required this.selected});
 
   @override
   String toString() {
@@ -402,6 +382,14 @@ class FileBodyItem {
 
   bool equals(FileBodyItem other) {
     return filePath == other.filePath && contentType == other.contentType && selected == other.selected;
+  }
+
+  String toBru() {
+    String bru = '@file($filePath)';
+    if (contentType != null) {
+      bru += ' @contentType($contentType)';
+    }
+    return bru;
   }
 }
 
@@ -426,20 +414,17 @@ class FileBody extends Body {
   String toBru() {
     var bru = 'body:file {\n';
 
-    if (files.isNotEmpty) {
-      bru += indentString(
-        files
-            .map((item) {
-              final selected = item.selected ? '' : '~';
-              final contentType = item.contentType.isNotEmpty ? ' @contentType(${item.contentType})' : '';
-              final value = '@file(${item.filePath})';
-              return '${selected}file: $value$contentType';
-            })
-            .join('\n'),
-      );
+    final selectedFiles = files.where((p) => p.selected).toList();
+    if (selectedFiles.isNotEmpty) {
+      bru += '${indentString(selectedFiles.map((item) => 'file: ${getValueString(item.toBru())}').join('\n'))}\n';
     }
 
-    bru += '\n}';
+    final unselectedFiles = files.where((p) => !p.selected).toList();
+    if (unselectedFiles.isNotEmpty) {
+      bru += '${indentString(unselectedFiles.map((item) => '~file: ${getValueString(item.toBru())}').join('\n'))}\n';
+    }
+
+    bru += '}';
     return bru;
   }
 
@@ -465,5 +450,13 @@ class FileBody extends Body {
   @override
   bool isEmpty() {
     return files.isEmpty;
+  }
+
+  void setFiles(List<FileBodyItem> files) {
+    this.files = files;
+  }
+
+  FileBodyItem? selectedFile() {
+    return files.where((p) => p.selected).toList().first;
   }
 }
