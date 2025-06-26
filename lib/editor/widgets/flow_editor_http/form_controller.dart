@@ -7,6 +7,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 class FormController {
   static const List<String> bodyTypeOptions = [
@@ -31,6 +32,7 @@ class FormController {
   late final FormTableStateManager multipartFormController;
   late final FormTableStateManager fileController;
 
+  final EditorFocusManager _focusManager;
   final EventBus eventBus;
   final Config config;
 
@@ -43,7 +45,15 @@ class FormController {
   // _tabKey is the tab key of this editor tab, and it used in sending events back to the tabbar so it knows which tab the events relate to
   final ValueKey _tabKey;
 
-  FormController(this._formRequest, this._widgetRequest, this.eventBus, this._tabKey, this.config, this.setState) {
+  FormController(
+    this._formRequest,
+    this._widgetRequest,
+    this.eventBus,
+    this._tabKey,
+    this.config,
+    this.setState,
+    this._focusManager,
+  ) {
     selectedMethod = _formRequest.method.toUpperCase();
 
     // URL
@@ -81,6 +91,8 @@ class FormController {
       initialRows: _formRequest.headers,
       onModified: _headersModified,
       config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
     );
 
     // Form URL Encoded
@@ -95,6 +107,8 @@ class FormController {
       initialRows: paramsForManager,
       onModified: _formUrlEncodedModified,
       config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
     );
 
     // Multipart Form
@@ -104,6 +118,8 @@ class FormController {
       initialRows: [],
       onModified: _multipartFormModified,
       config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
     );
 
     if (_formRequest.bodyMultipartForm != null) {
@@ -117,45 +133,14 @@ class FormController {
       initialRows: [],
       onModified: _fileModified,
       config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
     );
 
     if (_formRequest.bodyFile != null) {
       final filesForManager = (_formRequest.bodyFile as FileBody).files;
       fileController.setFiles(filesForManager);
     }
-
-    // Listen for selection changes
-    eventBus.on<EditorSelectionChanged>().listen((event) {
-      // Clear URL input selection if it's not the focused editor and has a selection
-      if (event.controller != urlController &&
-          urlController.selection.baseOffset != urlController.selection.extentOffset) {
-        urlController.selection = CodeLineSelection.collapsed(
-          index: urlController.selection.baseIndex,
-          offset: urlController.selection.baseOffset,
-        );
-      }
-      // Clear request body input selection if it's not the focused editor and has a selection
-      if (event.controller != reqBodyController &&
-          reqBodyController.selection.baseOffset != reqBodyController.selection.extentOffset) {
-        reqBodyController.selection = CodeLineSelection.collapsed(
-          index: reqBodyController.selection.baseIndex,
-          offset: reqBodyController.selection.baseOffset,
-        );
-      }
-      // Clear response body input selection if it's not the focused editor and has a selection
-      if (event.controller != respBodyController &&
-          respBodyController.selection.baseOffset != respBodyController.selection.extentOffset) {
-        respBodyController.selection = CodeLineSelection.collapsed(
-          index: respBodyController.selection.baseIndex,
-          offset: respBodyController.selection.baseOffset,
-        );
-      }
-      // Clear all header selections
-      headersController.clearAllSelections();
-      formUrlEncodedController.clearAllSelections();
-      multipartFormController.clearAllSelections();
-      fileController.clearAllSelections();
-    });
   }
 
   void _urlModified() {

@@ -1,4 +1,5 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
@@ -10,6 +11,7 @@ import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 import '../../../common/dropdown_style.dart';
 import '../../../common/style.dart';
@@ -44,7 +46,8 @@ class GrpcEditorState {
 }
 
 class FlowEditorGrpc extends StatefulWidget {
-  const FlowEditorGrpc({super.key});
+  const FlowEditorGrpc({super.key, required this.tabKey});
+  final ValueKey tabKey;
 
   @override
   State<FlowEditorGrpc> createState() => _FlowEditorGrpcState();
@@ -63,6 +66,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   final ScrollController _disabledScrollController = ScrollController(initialScrollOffset: 0, keepScrollOffset: false);
+  late final EditorFocusManager _focusManager;
 
   @override
   void initState() {
@@ -71,10 +75,14 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
     _bottomTabController = TabController(length: 3, vsync: this);
     GrpcEditorState.initialize();
 
+    _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
+
     _headersController = FormTableStateManager(
       onStateChanged: () => setState(() {}),
       initialRows: [],
       config: context.read<Config>(),
+      focusManager: _focusManager,
+      eventBus: context.read<EventBus>(),
     );
   }
 
@@ -151,6 +159,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                     SizedBox(
                       width: 300,
                       child: SingleLineCodeEditor(
+                        key: Key('grpc_url_${widget.tabKey}'),
                         controller: _urlController,
                         decoration: BoxDecoration(
                           color: const Color(0xFF2E2E2E),
@@ -290,10 +299,11 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                                       child: TabBarView(
                                         controller: _topTabController,
                                         children: [
-                                          MultiLineCodeEditor(controller: _bodyController),
-                                          SingleChildScrollView(
-                                            child: FormTable(stateManager: _headersController, focusNode: FocusNode()),
+                                          MultiLineCodeEditor(
+                                            controller: _bodyController,
+                                            focusNode: _focusManager.editorFocusNode,
                                           ),
+                                          SingleChildScrollView(child: FormTable(stateManager: _headersController)),
                                         ],
                                       ),
                                     ),
@@ -380,7 +390,10 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                                       controller: _bottomTabController,
                                       children: [
                                         Padding(padding: const EdgeInsets.only(top: 20), child: GrpcStream()),
-                                        MultiLineCodeEditor(controller: _responseController),
+                                        MultiLineCodeEditor(
+                                          controller: _responseController,
+                                          focusNode: _focusManager.editorFocusNode,
+                                        ),
                                         Padding(padding: const EdgeInsets.all(20.0), child: HeadersTableReadOnly()),
                                       ],
                                     ),

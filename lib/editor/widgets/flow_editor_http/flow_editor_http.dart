@@ -1,12 +1,10 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
-import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
@@ -14,7 +12,6 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
-import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
@@ -29,6 +26,12 @@ class EventSaveIntent {
   final ValueKey tabKey;
 
   const EventSaveIntent(this.tabKey);
+}
+
+class EventSendRequest {
+  final ValueKey tabKey;
+
+  EventSendRequest(this.tabKey);
 }
 
 class EventSaveRequest {
@@ -100,7 +103,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
   http.Response? _response;
 
-  late final HttpFocusManager _focusManager;
+  late final EditorFocusManager _focusManager;
 
   @override
   void initState() {
@@ -121,6 +124,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     void setStateCallback() => setState(() {});
     final config = context.read<Config>();
 
+    // Init the focus manager
+    _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
+    _focusManager.urlFocusNode.requestFocus(); // Request focus on URL input when widget is first opened
+
     _formController = FormController(
       _formRequest,
       widget.request,
@@ -128,37 +135,20 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       widget.tabKey,
       config,
       setStateCallback,
+      _focusManager,
     );
-
-    // Init the focus manager
-    _focusManager = HttpFocusManager(_onKeyUp);
-    _focusManager.urlFocusNode.requestFocus(); // Request focus on URL input when widget is first opened
 
     context.read<EventBus>().on<EventSaveIntent>().listen((event) {
       if (event.tabKey == widget.tabKey) {
         saveFlow();
       }
     });
-  }
 
-  KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
-    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
-
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
-        saveFlow();
-        return KeyEventResult.handled;
+    context.read<EventBus>().on<EventSendRequest>().listen((event) {
+      if (event.tabKey == widget.tabKey) {
+        sendRequest();
       }
-      if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
-        context.read<EventBus>().fire(EventNewRequest());
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.keyW && isCmdPressed) {
-        context.read<EventBus>().fire(EventCloseCurrentNode());
-        return KeyEventResult.handled;
-      }
-    }
-    return KeyEventResult.ignored;
+    });
   }
 
   Future<void> saveFlow() async {
@@ -358,9 +348,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             onSavePressed: saveFlow,
                             onEnterPressed: sendRequest,
                             focusNode: _focusManager.urlFocusNode,
-                            onFocusChange: () {
-                              context.read<EventBus>().fire(EditorSelectionChanged(_formController.urlController));
-                            },
                             decoration: BoxDecoration(
                               border: Border.all(color: const Color(0xFF474747), width: 1),
                               borderRadius: const BorderRadius.only(
@@ -532,7 +519,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 child: FormTable(
                                                   stateManager: _formController.headersController,
                                                   onSavePressed: saveFlow,
-                                                  focusNode: _focusManager.checkboxFocusNode,
                                                 ),
                                               ),
                                               IndexedStack(
@@ -547,21 +533,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ),
                                                   // Text editor for text/json/xml
                                                   MultiLineCodeEditor(
+                                                    focusNode: _focusManager.reqBodyFocusNode,
                                                     border: tabContentBorder,
                                                     controller: _formController.reqBodyController,
-                                                    keyCallback: _onKeyUp,
-                                                    onFocusChange: () {
-                                                      context.read<EventBus>().fire(
-                                                        EditorSelectionChanged(_formController.reqBodyController),
-                                                      );
-                                                    },
                                                   ),
                                                   // Form Table Form URL Encoded
                                                   SingleChildScrollView(
                                                     child: FormTable(
                                                       stateManager: _formController.formUrlEncodedController,
                                                       onSavePressed: saveFlow,
-                                                      focusNode: _focusManager.checkboxFocusNode,
                                                     ),
                                                   ),
                                                   // Form Table Multi Part Form
@@ -576,7 +556,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                         FormTableColumn.contentType,
                                                         FormTableColumn.delete,
                                                       ],
-                                                      focusNode: _focusManager.checkboxFocusNode,
                                                     ),
                                                   ),
                                                   // Form Table File
@@ -590,7 +569,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                         FormTableColumn.selected,
                                                         FormTableColumn.delete,
                                                       ],
-                                                      focusNode: _focusManager.checkboxFocusNode,
                                                     ),
                                                   ),
                                                 ],
@@ -723,14 +701,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           controller: _bottomTabController,
                                           children: [
                                             MultiLineCodeEditor(
+                                              focusNode: _focusManager.respBodyFocusNode,
                                               border: tabContentBorder,
                                               controller: _formController.respBodyController,
-                                              keyCallback: _onKeyUp,
-                                              onFocusChange: () {
-                                                context.read<EventBus>().fire(
-                                                  EditorSelectionChanged(_formController.respBodyController),
-                                                );
-                                              },
                                             ),
                                             SingleChildScrollView(
                                               child: Padding(

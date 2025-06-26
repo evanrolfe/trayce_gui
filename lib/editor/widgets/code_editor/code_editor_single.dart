@@ -1,7 +1,9 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/dart.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 
@@ -10,25 +12,21 @@ class SingleLineCodeEditor extends StatefulWidget {
   final ScrollController? verticalScroller;
   final ScrollController? horizontalScroller;
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
-  final VoidCallback? onTabPressed;
   final VoidCallback? onEnterPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
   final VoidCallback? onSavePressed;
-  final VoidCallback? onFocusChange;
   final Border? border;
   const SingleLineCodeEditor({
-    super.key,
+    required super.key,
     required this.controller,
     this.verticalScroller,
     this.horizontalScroller,
     this.shortcutOverrideActions,
-    this.onTabPressed,
     this.onEnterPressed,
     this.focusNode,
     this.decoration,
     this.onSavePressed,
-    this.onFocusChange,
     this.border,
   });
 
@@ -45,39 +43,30 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
 
-    _focusNode.onKeyEvent = (node, event) {
-      final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
-
-      if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
-        widget.onSavePressed?.call();
-        return KeyEventResult.handled;
+    final eventBus = context.read<EventBus>();
+    eventBus.on<EditorInputFocused>().listen((event) {
+      if (event.key != widget.key &&
+          widget.controller.selection.baseOffset != widget.controller.selection.extentOffset) {
+        print('Clearing selection on ${event.key}');
+        widget.controller.selection = CodeLineSelection.collapsed(
+          index: widget.controller.selection.baseIndex,
+          offset: widget.controller.selection.baseOffset,
+        );
+        return;
       }
-      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
-        widget.onTabPressed?.call();
-        return KeyEventResult.handled;
-      }
-      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
-        widget.onEnterPressed?.call();
-        // Do not allow new line
-        return KeyEventResult.handled;
-      }
-      return KeyEventResult.ignored;
-    };
+    });
   }
 
   @override
   void dispose() {
     _focusNode.removeListener(_handleFocusChange);
-    if (widget.focusNode == null) {
-      _focusNode.dispose();
-    }
     super.dispose();
   }
 
   void _handleFocusChange() {
-    if (_focusNode.hasFocus) {
-      widget.onFocusChange?.call();
-    }
+    final eventBus = context.read<EventBus>();
+    final key = widget.key ?? const Key('default');
+    eventBus.fire(EditorInputFocused(key));
   }
 
   @override

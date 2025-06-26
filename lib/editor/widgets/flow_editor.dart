@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trayce/editor/models/request.dart';
 
-import 'flow_editor_grpc/flow_editor_grpc.dart';
+// import 'flow_editor_grpc/flow_editor_grpc.dart';
 import 'flow_editor_http/flow_editor_http.dart';
 
 class FlowEditor extends StatefulWidget {
@@ -25,8 +25,8 @@ class _FlowEditorState extends State<FlowEditor> {
     switch (widget.flowType) {
       case 'http':
         return FlowEditorHttp(request: widget.request, tabKey: widget.tabKey);
-      case 'grpc':
-        return FlowEditorGrpc();
+      // case 'grpc':
+      //   return FlowEditorGrpc();
       default:
         return Center(
           child: Text('Unsupported flow type: ${widget.flowType}', style: const TextStyle(color: Color(0xFFD4D4D4))),

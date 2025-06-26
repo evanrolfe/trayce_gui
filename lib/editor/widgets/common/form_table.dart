@@ -1,7 +1,4 @@
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:trayce/common/events.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
@@ -11,13 +8,11 @@ class FormTable extends StatelessWidget {
   final FormTableStateManager stateManager;
   final VoidCallback? onSavePressed;
   final List<FormTableColumn> columns;
-  final FocusNode focusNode;
 
   const FormTable({
     super.key,
     required this.stateManager,
     this.onSavePressed,
-    required this.focusNode,
     this.columns = const [FormTableColumn.enabled, FormTableColumn.key, FormTableColumn.value, FormTableColumn.delete],
   });
 
@@ -102,14 +97,21 @@ class FormTable extends StatelessWidget {
           // Existing rows
           ...List.generate(stateManager.rows.length, (index) {
             final row = stateManager.rows[index];
-            return _buildRow(context, index, row, borderSide);
+            final rowFocusNodes = stateManager.focusManager.getRowFocusNodes(index);
+            return _buildRow(context, index, row, rowFocusNodes, borderSide);
           }),
         ],
       ),
     );
   }
 
-  Widget _buildRow(BuildContext context, int index, FormTableRow row, BorderSide borderSide) {
+  Widget _buildRow(
+    BuildContext context,
+    int index,
+    FormTableRow row,
+    Map<String, FocusNode> rowFocusNodes,
+    BorderSide borderSide,
+  ) {
     late BorderSide borderBottom;
     if (index == stateManager.rows.length - 1) {
       borderBottom = BorderSide(color: borderColor, width: 1);
@@ -127,7 +129,7 @@ class FormTable extends StatelessWidget {
             child: Checkbox(
               value: row.checkboxState,
               onChanged: (bool? value) {
-                FocusScope.of(context).requestFocus(focusNode);
+                FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
                 stateManager.setCheckboxState(index, value ?? false);
               },
               side: BorderSide.none,
@@ -143,12 +145,8 @@ class FormTable extends StatelessWidget {
                 key: Key('form_table_key_$index'),
                 border: Border(top: borderSide, left: borderSide, bottom: borderBottom),
                 controller: row.keyController,
-                onTabPressed: () => stateManager.handleTabPress(index, true),
                 onSavePressed: onSavePressed,
-                focusNode: row.keyFocusNode,
-                onFocusChange: () {
-                  context.read<EventBus>().fire(EditorSelectionChanged(row.keyController));
-                },
+                focusNode: rowFocusNodes['key']!,
               ),
             ),
           ),
@@ -161,12 +159,8 @@ class FormTable extends StatelessWidget {
                 key: Key('form_table_value_$index'),
                 border: Border(top: borderSide, left: borderSide, bottom: borderBottom),
                 controller: row.valueController,
-                onTabPressed: () => stateManager.handleTabPress(index, false),
                 onSavePressed: onSavePressed,
-                focusNode: row.valueFocusNode,
-                onFocusChange: () {
-                  context.read<EventBus>().fire(EditorSelectionChanged(row.valueController));
-                },
+                focusNode: rowFocusNodes['value']!,
               ),
             ),
           ),
@@ -186,7 +180,7 @@ class FormTable extends StatelessWidget {
                         )
                         : ElevatedButton(
                           onPressed: () {
-                            FocusScope.of(context).requestFocus(focusNode);
+                            FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
                             stateManager.uploadValueFile(index);
                           },
                           style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
@@ -204,12 +198,8 @@ class FormTable extends StatelessWidget {
                 key: Key('form_table_content_type_$index'),
                 border: Border(top: borderSide, left: borderSide, bottom: borderBottom),
                 controller: row.contentTypeController,
-                onTabPressed: () => stateManager.handleTabPress(index, false),
                 onSavePressed: onSavePressed,
-                focusNode: row.contentTypeFocusNode,
-                onFocusChange: () {
-                  context.read<EventBus>().fire(EditorSelectionChanged(row.valueController));
-                },
+                focusNode: rowFocusNodes['contentType']!,
               ),
             ),
           ),
@@ -228,7 +218,7 @@ class FormTable extends StatelessWidget {
                     if (value != null) {
                       stateManager.setSelectedRowIndex(value);
                     }
-                    FocusScope.of(context).requestFocus(focusNode);
+                    FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
                   },
                   activeColor: const Color(0xFF4DB6AC),
                   fillColor: WidgetStateProperty.resolveWith((states) {
@@ -262,7 +252,7 @@ class FormTable extends StatelessWidget {
                 if (stateManager.rows.length > 1) {
                   stateManager.deleteRow(index);
                 }
-                FocusScope.of(context).requestFocus(focusNode);
+                FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
               },
             ),
           ),

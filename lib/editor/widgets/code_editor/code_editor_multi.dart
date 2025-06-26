@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
-import 'package:trayce/common/types.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 import 'package:trayce/editor/widgets/code_editor/find_replace.dart';
@@ -14,8 +13,8 @@ class MultiLineCodeEditor extends StatefulWidget {
   final ScrollController? horizontalScroller;
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
   final Border? border;
-  final KeyCallback? keyCallback;
   final VoidCallback? onFocusChange;
+  final FocusNode focusNode;
 
   const MultiLineCodeEditor({
     super.key,
@@ -24,8 +23,8 @@ class MultiLineCodeEditor extends StatefulWidget {
     this.horizontalScroller,
     this.shortcutOverrideActions,
     this.border,
-    this.keyCallback,
     this.onFocusChange,
+    required this.focusNode,
   });
 
   @override
@@ -33,21 +32,14 @@ class MultiLineCodeEditor extends StatefulWidget {
 }
 
 class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
-  late final FocusNode _focusNode;
-
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-    _focusNode.onKeyEvent = widget.keyCallback;
-    _focusNode.addListener(() {
-      widget.onFocusChange?.call();
-    });
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    // focusNode.dispose();
     super.dispose();
   }
 
@@ -55,24 +47,19 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
   Widget build(BuildContext context) {
     return CodeAutocomplete(
       viewBuilder: (context, notifier, onSelected) {
-        return DefaultCodeAutocompleteListView(
-          notifier: notifier,
-          onSelected: onSelected,
-        );
+        return DefaultCodeAutocompleteListView(notifier: notifier, onSelected: onSelected);
       },
       promptsBuilder: DefaultCodeAutocompletePromptsBuilder(language: langJson),
       child: CodeEditor(
         controller: widget.controller,
-        focusNode: _focusNode,
+        focusNode: widget.focusNode,
         findBuilder: (context, controller, readOnly) {
           controller.findInputFocusNode.onKeyEvent = (node, event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.escape) {
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
               controller.close();
               return KeyEventResult.handled;
             }
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.enter) {
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
               controller.nextMatch();
               return KeyEventResult.handled;
             }
@@ -100,23 +87,11 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
             child: child,
           );
         },
-        indicatorBuilder: (
-          context,
-          editingController,
-          chunkController,
-          notifier,
-        ) {
+        indicatorBuilder: (context, editingController, chunkController, notifier) {
           return Row(
             children: [
-              DefaultCodeLineNumber(
-                controller: editingController,
-                notifier: notifier,
-              ),
-              DefaultCodeChunkIndicator(
-                width: 20,
-                controller: chunkController,
-                notifier: notifier,
-              ),
+              DefaultCodeLineNumber(controller: editingController, notifier: notifier),
+              DefaultCodeChunkIndicator(width: 20, controller: chunkController, notifier: notifier),
             ],
           );
         },

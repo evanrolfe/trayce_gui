@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 
 class FormTableRow {
@@ -6,10 +5,6 @@ class FormTableRow {
   final CodeLineEditingController valueController;
   final CodeLineEditingController contentTypeController;
   String? valueFile;
-  final FocusNode keyFocusNode;
-  final FocusNode valueFocusNode;
-  final FocusNode contentTypeFocusNode;
-  final FocusNode formFocusNode = FocusNode();
   bool checkboxState;
   bool newRow;
   String previousKeyText;
@@ -20,9 +15,6 @@ class FormTableRow {
     required this.keyController,
     required this.valueController,
     required this.contentTypeController,
-    required this.keyFocusNode,
-    required this.valueFocusNode,
-    required this.contentTypeFocusNode,
     required this.newRow,
     this.checkboxState = false,
     this.previousKeyText = '',
@@ -35,9 +27,6 @@ class FormTableRow {
     keyController.dispose();
     valueController.dispose();
     contentTypeController.dispose();
-    keyFocusNode.dispose();
-    valueFocusNode.dispose();
-    formFocusNode.dispose();
   }
 
   void swapWith(FormTableRow otherRow) {

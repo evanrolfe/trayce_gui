@@ -127,6 +127,7 @@ class _GrpcStreamState extends State<GrpcStream> {
                       child: MultiLineCodeEditor(
                         controller: _messageController,
                         border: Border(top: BorderSide(color: borderColor, width: 1)),
+                        focusNode: FocusNode(),
                       ),
                     ),
                   ],

@@ -1,3 +1,4 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
@@ -7,6 +8,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 enum FormTableColumn { enabled, selected, delete, key, value, valueFile, contentType }
 
@@ -16,12 +18,16 @@ class FormTableStateManager {
   final VoidCallback? onModified;
   final Config config;
   int? selectedRowIndex; // Track which row is selected for radio buttons
+  final EditorFocusManager focusManager;
+  final EventBus eventBus;
 
   FormTableStateManager({
     required this.onStateChanged,
     List<Header>? initialRows,
     this.onModified,
     required this.config,
+    required this.focusManager,
+    required this.eventBus,
   }) {
     // TODO: This should somehow accept either params or multipart files
     if (initialRows != null) {
@@ -49,30 +55,6 @@ class FormTableStateManager {
         index: row.contentTypeController.selection.baseIndex,
         offset: row.contentTypeController.selection.baseOffset,
       );
-    }
-  }
-
-  void _clearOtherSelections(FormTableRow focusedRow, FocusNode focusedNode) {
-    for (var row in _rows) {
-      if (row != focusedRow) {
-        // Clear selections in other rows
-        row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-        row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-        row.contentTypeController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-      } else {
-        // TODO: Refactor this and so it doesn't rely on so many if else ifs
-        // Clear selection in the other editor of the same row
-        if (focusedNode == row.valueFocusNode) {
-          row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-          row.contentTypeController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-        } else if (focusedNode == row.keyFocusNode) {
-          row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-          row.contentTypeController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-        } else if (focusedNode == row.contentTypeFocusNode) {
-          row.keyController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-          row.valueController.selection = CodeLineSelection.collapsed(index: 0, offset: 0);
-        }
-      }
     }
   }
 
@@ -136,30 +118,9 @@ class FormTableStateManager {
             valueController: CodeLineEditingController(),
             contentTypeController: contentTypeController,
             valueFile: file.value,
-            keyFocusNode: FocusNode(),
-            valueFocusNode: FocusNode(),
-            contentTypeFocusNode: FocusNode(),
             checkboxState: file.enabled,
             newRow: false,
           );
-
-          row.keyFocusNode.addListener(() {
-            if (row.keyFocusNode.hasFocus) {
-              _clearOtherSelections(row, row.keyFocusNode);
-            }
-          });
-
-          row.valueFocusNode.addListener(() {
-            if (row.valueFocusNode.hasFocus) {
-              _clearOtherSelections(row, row.valueFocusNode);
-            }
-          });
-
-          row.contentTypeFocusNode.addListener(() {
-            if (row.contentTypeFocusNode.hasFocus) {
-              _clearOtherSelections(row, row.contentTypeFocusNode);
-            }
-          });
 
           return row;
         }).toList();
@@ -184,17 +145,8 @@ class FormTableStateManager {
             valueController: CodeLineEditingController(),
             contentTypeController: contentTypeController,
             valueFile: file.filePath,
-            keyFocusNode: FocusNode(),
-            valueFocusNode: FocusNode(),
-            contentTypeFocusNode: FocusNode(),
             newRow: false,
           );
-
-          row.contentTypeFocusNode.addListener(() {
-            if (row.contentTypeFocusNode.hasFocus) {
-              _clearOtherSelections(row, row.contentTypeFocusNode);
-            }
-          });
 
           return row;
         }).toList();
@@ -225,30 +177,10 @@ class FormTableStateManager {
         keyController: keyController,
         valueController: valueController,
         contentTypeController: contentTypeController,
-        keyFocusNode: FocusNode(),
-        valueFocusNode: FocusNode(),
-        contentTypeFocusNode: FocusNode(),
         checkboxState: header.enabled,
         newRow: false,
       );
-
-      row.keyFocusNode.addListener(() {
-        if (row.keyFocusNode.hasFocus) {
-          _clearOtherSelections(row, row.keyFocusNode);
-        }
-      });
-
-      row.valueFocusNode.addListener(() {
-        if (row.valueFocusNode.hasFocus) {
-          _clearOtherSelections(row, row.valueFocusNode);
-        }
-      });
-
-      row.contentTypeFocusNode.addListener(() {
-        if (row.contentTypeFocusNode.hasFocus) {
-          _clearOtherSelections(row, row.contentTypeFocusNode);
-        }
-      });
+      focusManager.createRowFocusNodes();
 
       return row;
     }).toList();
@@ -300,29 +232,8 @@ class FormTableStateManager {
       keyController: CodeLineEditingController(),
       valueController: CodeLineEditingController(),
       contentTypeController: CodeLineEditingController(),
-      keyFocusNode: FocusNode(),
-      valueFocusNode: FocusNode(),
-      contentTypeFocusNode: FocusNode(),
       newRow: true,
     );
-
-    row.keyFocusNode.addListener(() {
-      if (row.keyFocusNode.hasFocus) {
-        _clearOtherSelections(row, row.keyFocusNode);
-      }
-    });
-
-    row.valueFocusNode.addListener(() {
-      if (row.valueFocusNode.hasFocus) {
-        _clearOtherSelections(row, row.valueFocusNode);
-      }
-    });
-
-    row.contentTypeFocusNode.addListener(() {
-      if (row.contentTypeFocusNode.hasFocus) {
-        _clearOtherSelections(row, row.contentTypeFocusNode);
-      }
-    });
 
     _rows.add(row);
 
@@ -330,6 +241,7 @@ class FormTableStateManager {
     _setupControllerListener(row.keyController, index, true);
     _setupControllerListener(row.valueController, index, false);
     _setupControllerListener(row.contentTypeController, index, false);
+    focusManager.createRowFocusNodes();
     onStateChanged();
   }
 
@@ -354,18 +266,6 @@ class FormTableStateManager {
     _rows.last.setEmpty();
     onStateChanged();
     onModified?.call();
-  }
-
-  void handleTabPress(int row, bool isKey) {
-    if (isKey) {
-      _rows[row].valueFocusNode.requestFocus();
-    } else {
-      if (row < _rows.length - 1) {
-        _rows[row + 1].keyFocusNode.requestFocus();
-      } else {
-        _rows[0].keyFocusNode.requestFocus();
-      }
-    }
   }
 
   void setCheckboxState(int index, bool value) {
