@@ -12,6 +12,7 @@ void showNodeMenu(
   Function(ExplorerNode) onRename,
   Function(ExplorerNode) onDelete,
   Function(ExplorerNode) onNewRequestInFolder,
+  Function(ExplorerNode) onNewFolder,
 ) {
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
@@ -31,6 +32,15 @@ void showNodeMenu(
             children: [Text('New Request', style: contextMenuTextStyle), Text('Ctrl+N', style: contextMenuTextStyle)],
           ),
           onTap: () => onNewRequestInFolder(node),
+        ),
+      if (node.type == NodeType.collection || node.type == NodeType.folder)
+        CustomPopupMenuItem(
+          height: 30,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('New Folder', style: contextMenuTextStyle)],
+          ),
+          onTap: () => onNewFolder(node),
         ),
       if (node.type == NodeType.request)
         CustomPopupMenuItem(

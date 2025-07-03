@@ -1,0 +1,18 @@
+meta {
+  type: folder
+}
+
+headers {
+  content-type: application/json
+  Authorization: Bearer 123
+  ~transaction-id: {{transactionId}}
+}
+
+auth {
+  mode: basic
+}
+
+auth:basic {
+  username: john
+  password: secret
+}

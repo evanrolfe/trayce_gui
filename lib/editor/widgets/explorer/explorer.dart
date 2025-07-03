@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
+import 'package:trayce/editor/models/folder.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
@@ -196,6 +197,28 @@ class _FileExplorerState extends State<FileExplorer> {
     _startRenaming(node);
   }
 
+  Future<void> _handleNewFolder(ExplorerNode parentNode) async {
+    final parentPath = parentNode.dir!.path;
+    final node = ExplorerNode(
+      file: File(path.join(parentPath, 'new_folder', 'folder.bru')),
+      dir: Directory(path.join(parentPath, 'new_folder')),
+      name: "new_folder",
+      type: NodeType.folder,
+      folder: Folder.blank(),
+      isDirectory: true,
+      isSaved: false,
+    );
+
+    if (!parentNode.isExpanded) {
+      setState(() {
+        parentNode.isExpanded = true;
+      });
+    }
+
+    context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
+    _startRenaming(node);
+  }
+
   Future<void> _handleRefresh() async {
     context.read<ExplorerRepo>().refresh();
   }
@@ -302,7 +325,15 @@ class _FileExplorerState extends State<FileExplorer> {
                         }
                       },
                       onSecondaryTapDown: (details) {
-                        showNodeMenu(context, details, node, _startRenaming, _deleteNode, _handleNewRequestInFolder);
+                        showNodeMenu(
+                          context,
+                          details,
+                          node,
+                          _startRenaming,
+                          _deleteNode,
+                          _handleNewRequestInFolder,
+                          _handleNewFolder,
+                        );
                       },
                       child: Container(
                         height: itemHeight,

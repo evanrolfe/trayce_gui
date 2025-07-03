@@ -1,4 +1,5 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
@@ -29,8 +30,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the PopupMenuItem with the text "Open Collection"
-  final openCollectionMenuItem = find.text('New Request');
-  await tester.tap(openCollectionMenuItem);
+  final newRequestMenuItem = find.text('New Request');
+  await tester.tap(newRequestMenuItem);
   await tester.pumpAndSettle();
 
   // ===========================================================================
@@ -119,6 +120,83 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   expect(responseEditor.controller.text, jsonResponse);
+
+  // Clear the sent request for the next test to use
+  sentRequest = null;
+  sentRequestBody = null;
+
+  // ===========================================================================
+  // Open a collection
+  // ===========================================================================
+  // Find and click the IconButton with the key 'collection_btn'
+  await tester.tap(openCollectionBtn);
+  await tester.pumpAndSettle();
+
+  // Find and click the PopupMenuItem with the text "Open Collection"
+  final openCollectionMenuItem = find.text('Open Collection');
+  await tester.tap(openCollectionMenuItem);
+  await tester.pumpAndSettle();
+
+  expect(find.text('collection1'), findsOneWidget);
+  expect(find.text('hello'), findsOneWidget);
+  expect(find.text('myfolder'), findsOneWidget);
+  expect(find.text('my-request'), findsOneWidget);
+
+  // Click on the myfolder item
+  final myfolderItem = find.text('myfolder');
+  await tester.tap(myfolderItem);
+  await tester.pumpAndSettle();
+
+  // Right-click on one.bru request
+  final oneReq = find.text('one');
+  await tester.tapAt(tester.getCenter(oneReq), buttons: kSecondaryButton);
+  await tester.pumpAndSettle();
+
+  // Click open on context menu
+  final openItem = find.text('Open');
+  await tester.tap(openItem);
+  await tester.pumpAndSettle();
+
+  // ===========================================================================
+  // Change the URL, Method, Body & Headers
+  // ===========================================================================
+  // Change the URL
+  final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')).last);
+  urlInput2.controller.text = path.join(server.url.toString(), 'test_endpoint');
+  await tester.pumpAndSettle();
+
+  // Set a header
+  await tester.tap(find.text('Headers').first);
+  await tester.pumpAndSettle();
+  final headersTable2 = tester.widget<FormTable>(find.byType(FormTable));
+  final headersManager2 = headersTable2.stateManager;
+
+  headersManager2.rows[2].keyController.text = 'HI';
+  headersManager2.rows[2].valueController.text = 'ivebeensetontehform';
+  await tester.pumpAndSettle();
+
+  // ===========================================================================
+  // Send a request
+  // ===========================================================================
+  server.handler.expect("POST", "/test_endpoint", (request) async {
+    sentRequest = request;
+    sentRequestBody = await sentRequest!.readAsString();
+
+    return shelf.Response.ok(jsonResponse, headers: {"content-type": "application/json"});
+  });
+
+  await tester.tap(sendBtn);
+  await tester.pumpAndSettle();
+
+  // Che
+  expect(sentRequest!.method, 'POST');
+  // expect(sentRequest!.headers['X-Auth-Token'], '1234abcd');
+  expect(sentRequest!.headers['hello'], 'world');
+  expect(sentRequest!.headers['hey'], "i'm from the folder");
+  expect(sentRequest!.headers['heythere'], "im the collection");
+  expect(sentRequest!.headers['HI'], "ivebeensetontehform");
+  // expect(sentRequest!.headers['Content-Type'], 'application/json; charset=utf-8');
+  expect(sentRequestBody, '{"hello": "world"}');
 
   await server.close();
 }

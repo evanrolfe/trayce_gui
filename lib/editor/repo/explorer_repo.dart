@@ -120,7 +120,18 @@ class ExplorerRepo {
 
   Future<void> renameNode(ExplorerNode node, String newName) async {
     // Rename a collection/folder
-    if (node.type == NodeType.collection || node.type == NodeType.folder) {
+    if ((node.type == NodeType.collection || node.type == NodeType.folder) && !node.isSaved) {
+      final targetDir = node.dir!;
+      final targetPath = path.join(path.dirname(targetDir.path), newName);
+
+      node.dir = Directory(targetPath);
+      node.file = File(path.join(targetPath, 'folder.bru'));
+      node.name = newName;
+
+      node.save();
+    }
+
+    if ((node.type == NodeType.collection || node.type == NodeType.folder) && node.isSaved) {
       final targetDir = node.dir!;
       final targetPath = path.join(path.dirname(targetDir.path), newName);
 
@@ -146,7 +157,6 @@ class ExplorerRepo {
       node.name = newName;
       node.request!.seq = getNextSeq(targetDir.path);
       node.save();
-      print('==> ExplorerRepo, renameNode, node.request: ${node.file.path}');
       refresh();
       openNode(node);
     }
@@ -484,6 +494,18 @@ class ExplorerRepo {
     }
 
     return highestSeq + 1;
+  }
+
+  // getNodeHierarchy returns the parent, grandparent and so on of a given node, ending at the collection
+  List<ExplorerNode> getNodeHierarchy(ExplorerNode node) {
+    final hierarchy = <ExplorerNode>[];
+    ExplorerNode? currentNode = node;
+    while (currentNode != null) {
+      hierarchy.add(currentNode);
+      currentNode = _findParentNode(currentNode);
+    }
+
+    return hierarchy;
   }
 
   bool _comparePaths(String path1, String path2) {

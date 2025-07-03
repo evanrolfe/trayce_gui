@@ -5,8 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
@@ -70,10 +73,11 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
+  final ExplorerNode? node;
   final Request request;
   final ValueKey tabKey;
 
-  const FlowEditorHttp({super.key, required this.request, required this.tabKey});
+  const FlowEditorHttp({super.key, this.node, required this.request, required this.tabKey});
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
@@ -92,18 +96,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   late TabController _bottomTabController;
   late TabController _topTabController;
   late final FormController _formController;
+  late final EditorFocusManager _focusManager;
 
-  // Request vars
-  // TODO: Move these to the form controller, also rename it to editor controller
+  // Response vars
   String? _respStatusMsg;
   Color _respStatusColor = Colors.green;
   List<Header> _respHeaders = [];
   String _selectedFormat = 'Unformatted';
-  late final Request _formRequest; // the request as it appears in the format
-
+  late final Request _formRequest; // the request as it appears in the form
   http.Response? _response;
-
-  late final EditorFocusManager _focusManager;
 
   @override
   void initState() {
@@ -163,7 +164,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     FocusScope.of(context).requestFocus(_focusManager.editorFocusNode);
 
     try {
-      _response = await _formRequest.send();
+      final explorerRepo = context.read<ExplorerRepo>();
+      List<ExplorerNode> nodeHierarchy = [];
+      if (widget.node != null) nodeHierarchy = explorerRepo.getNodeHierarchy(widget.node!);
+
+      _response = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy).send();
 
       // Set the selected format
       final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';
