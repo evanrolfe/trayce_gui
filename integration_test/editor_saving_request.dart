@@ -266,8 +266,12 @@ Future<void> test(WidgetTester tester, Database db) async {
   saveFile(twoBruPath, originalTwoBru);
 
   // ===========================================================================
-  // Close the collection
+  // Close the collection and request
   // ===========================================================================
+  // Close the open request tab
+  await pressCtrlW(tester);
+  await tester.pumpAndSettle();
+
   // Right-click on collection1
   final coll1 = find.text('collection1');
   await tester.tapAt(tester.getCenter(coll1), buttons: kSecondaryButton);

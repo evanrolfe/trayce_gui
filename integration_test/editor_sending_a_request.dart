@@ -10,6 +10,8 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
+import 'helpers.dart';
+
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 const expectedFormattedJson = '''{
   "message": "Hello, World!",
@@ -190,13 +192,22 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   // Che
   expect(sentRequest!.method, 'POST');
-  // expect(sentRequest!.headers['X-Auth-Token'], '1234abcd');
   expect(sentRequest!.headers['hello'], 'world');
   expect(sentRequest!.headers['hey'], "i'm from the folder");
   expect(sentRequest!.headers['heythere'], "im the collection");
   expect(sentRequest!.headers['HI'], "ivebeensetontehform");
-  // expect(sentRequest!.headers['Content-Type'], 'application/json; charset=utf-8');
   expect(sentRequestBody, '{"hello": "world"}');
+
+  // ===========================================================================
+  // Close the request
+  // ===========================================================================
+  // Close the open request tab
+  await pressCtrlW(tester);
+  await tester.pumpAndSettle();
+
+  final yesBtn = find.byKey(const Key('confirm_dialog_yes_btn'));
+  await tester.tap(yesBtn);
+  await tester.pumpAndSettle();
 
   await server.close();
 }

@@ -18,8 +18,14 @@ Future<bool> showConfirmDialog({
         title: Text(title, style: const TextStyle(color: lightTextColor, fontSize: 16, fontWeight: FontWeight.bold)),
         content: Text(message, style: const TextStyle(color: lightTextColor, fontSize: 14)),
         actions: [
-          TextButton(style: commonButtonStyle, onPressed: () => Navigator.of(context).pop(false), child: Text(noText)),
           TextButton(
+            key: const Key('confirm_dialog_no_btn'),
+            style: commonButtonStyle,
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(noText),
+          ),
+          TextButton(
+            key: const Key('confirm_dialog_yes_btn'),
             style: commonButtonStyle,
             onPressed: () {
               Navigator.of(context).pop(true);

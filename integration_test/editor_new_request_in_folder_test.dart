@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../test/support/helpers.dart';
+import 'helpers.dart';
 
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
@@ -70,8 +71,12 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(newReqFile, isNotEmpty);
 
   // ===========================================================================
-  // Close the collection
+  // Close the collection and request
   // ===========================================================================
+  // Close the open request tab
+  await pressCtrlW(tester);
+  await tester.pumpAndSettle();
+
   // Delete the new request file
   await deleteFile('test/support/collection1/myfolder/i_am_new.bru');
 
