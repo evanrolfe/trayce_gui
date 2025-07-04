@@ -10,7 +10,7 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
-import 'helpers.dart';
+import '../test/support/helpers.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 const expectedFormattedJson = '''{

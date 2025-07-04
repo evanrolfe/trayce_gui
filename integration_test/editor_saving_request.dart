@@ -7,7 +7,6 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
 import '../test/support/helpers.dart';
-import 'helpers.dart';
 
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();

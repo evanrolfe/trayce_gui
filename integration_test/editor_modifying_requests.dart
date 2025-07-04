@@ -7,13 +7,9 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
 import '../test/support/helpers.dart';
-import 'helpers.dart';
 
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
-
-  final oneBruPath = 'test/support/collection1/myfolder/one.bru';
-  final originalOneBru = loadFile(oneBruPath);
 
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
