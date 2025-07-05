@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
 class CustomPopupMenuItem<T> extends PopupMenuItem<T> {
+  final bool shouldPop;
+
   const CustomPopupMenuItem({
     super.key,
     super.value,
@@ -12,6 +14,7 @@ class CustomPopupMenuItem<T> extends PopupMenuItem<T> {
     super.mouseCursor,
     required super.child,
     super.onTap,
+    this.shouldPop = false,
   });
 
   @override
@@ -25,7 +28,9 @@ class _CustomPopupMenuItemState<T> extends PopupMenuItemState<T, CustomPopupMenu
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.pop(context);
+          if (widget.shouldPop) {
+            Navigator.pop(context);
+          }
           widget.onTap?.call();
         },
         hoverColor: selectedMenuItemColor,
