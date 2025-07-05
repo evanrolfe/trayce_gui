@@ -47,7 +47,6 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     eventBus.on<EditorInputFocused>().listen((event) {
       if (event.key != widget.key &&
           widget.controller.selection.baseOffset != widget.controller.selection.extentOffset) {
-        print('Clearing selection on ${event.key}');
         widget.controller.selection = CodeLineSelection.collapsed(
           index: widget.controller.selection.baseIndex,
           offset: widget.controller.selection.baseOffset,

@@ -69,6 +69,14 @@ class ExplorerNode {
   ValueKey get key => ValueKey(file.path);
 
   void save() {
+    if (type == NodeType.collection) {
+      final bruStr = collection!.toBru();
+      if (!file.existsSync()) {
+        file.createSync(recursive: true);
+      }
+      file.writeAsStringSync(bruStr);
+    }
+
     if (type == NodeType.folder) {
       final bruStr = folder!.toBru();
       if (!file.existsSync()) {

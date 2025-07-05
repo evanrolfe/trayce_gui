@@ -21,6 +21,9 @@ const expectedFormattedJson = '''{
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
+  final folderBruPath = 'test/support/collection1/myfolder/folder.bru';
+  final originalFolderBru = loadFile(folderBruPath);
+
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
   await tester.tap(networkTab);
@@ -178,6 +181,35 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // ===========================================================================
+  // Change a folder Header
+  // ===========================================================================
+  // Right-click on the myfolder item
+  await tester.tapAt(tester.getCenter(myfolderItem), buttons: 2);
+  await tester.pumpAndSettle();
+
+  // Click open on context menu
+  final settingsItem = find.text('Settings');
+  await tester.tap(settingsItem);
+  await tester.pumpAndSettle();
+
+  final headersTable3 = tester.widget<FormTable>(find.byType(FormTable).last);
+  final headersManager3 = headersTable3.stateManager;
+
+  // Change the key text of the first header row
+  expect(headersManager3.rows.length, 4);
+
+  headersManager3.rows[0].keyController.text = 'changed-by-test';
+  headersManager3.rows[0].valueController.text = 'changed-by-test';
+  await tester.pumpAndSettle();
+
+  // Save the changes
+  await tester.tap(find.byKey(Key('save_btn')));
+  await tester.pumpAndSettle();
+
+  // Expect the file to be changed
+  expect(loadFile(folderBruPath), contains('changed-by-test'));
+
+  // ===========================================================================
   // Send a request
   // ===========================================================================
   server.handler.expect("POST", "/test_endpoint", (request) async {
@@ -190,10 +222,10 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(sendBtn);
   await tester.pumpAndSettle();
 
-  // Che
+  // Check the headers
   expect(sentRequest!.method, 'POST');
   expect(sentRequest!.headers['hello'], 'world');
-  expect(sentRequest!.headers['hey'], "i'm from the folder");
+  expect(sentRequest!.headers['changed-by-test'], "changed-by-test");
   expect(sentRequest!.headers['heythere'], "im the collection");
   expect(sentRequest!.headers['HI'], "ivebeensetontehform");
   expect(sentRequestBody, '{"hello": "world"}');
@@ -201,6 +233,9 @@ Future<void> test(WidgetTester tester, Database db) async {
   // ===========================================================================
   // Close the request
   // ===========================================================================
+  // Restore the original file
+  saveFile(folderBruPath, originalFolderBru);
+
   // Close the open request tab
   await pressCtrlW(tester);
   await tester.pumpAndSettle();

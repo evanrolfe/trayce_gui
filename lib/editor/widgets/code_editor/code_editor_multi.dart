@@ -1,8 +1,11 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 import 'package:trayce/editor/widgets/code_editor/find_replace.dart';
@@ -32,15 +35,37 @@ class MultiLineCodeEditor extends StatefulWidget {
 }
 
 class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
+  late final FocusNode _focusNode;
   @override
   void initState() {
     super.initState();
+
+    _focusNode = widget.focusNode;
+    _focusNode.addListener(_handleFocusChange);
+
+    final eventBus = context.read<EventBus>();
+    eventBus.on<EditorInputFocused>().listen((event) {
+      if (event.key != widget.key &&
+          widget.controller.selection.baseOffset != widget.controller.selection.extentOffset) {
+        widget.controller.selection = CodeLineSelection.collapsed(
+          index: widget.controller.selection.baseIndex,
+          offset: widget.controller.selection.baseOffset,
+        );
+        return;
+      }
+    });
   }
 
   @override
   void dispose() {
-    // focusNode.dispose();
+    _focusNode.removeListener(_handleFocusChange);
     super.dispose();
+  }
+
+  void _handleFocusChange() {
+    final eventBus = context.read<EventBus>();
+    final key = widget.key ?? const Key('default');
+    eventBus.fire(EditorInputFocused(key));
   }
 
   @override

@@ -13,6 +13,7 @@ import 'package:trayce/editor/models/folder.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
+import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
@@ -219,6 +220,10 @@ class _FileExplorerState extends State<FileExplorer> {
     _startRenaming(node);
   }
 
+  void _openNodeSettings(ExplorerNode node) {
+    showNodeSettingsModal(context, node);
+  }
+
   Future<void> _handleRefresh() async {
     context.read<ExplorerRepo>().refresh();
   }
@@ -333,6 +338,7 @@ class _FileExplorerState extends State<FileExplorer> {
                           _deleteNode,
                           _handleNewRequestInFolder,
                           _handleNewFolder,
+                          _openNodeSettings,
                         );
                       },
                       child: Container(
