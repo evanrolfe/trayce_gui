@@ -34,15 +34,15 @@ void main() {
       final finalReq = SendRequest(request: reqThree.request!, nodeHierarchy: hierarchy).getFinalRequest();
 
       // Verify the headers
-      expect(finalReq.headers.length, 4);
-      expect(finalReq.headers[0].name, 'heythere');
-      expect(finalReq.headers[0].value, "im the collection");
-      expect(finalReq.headers[1].name, 'hey');
-      expect(finalReq.headers[1].value, "i'm from the folder");
-      expect(finalReq.headers[2].name, 'X-Auth-Token');
-      expect(finalReq.headers[2].value, 'abcd1234');
-      expect(finalReq.headers[3].name, 'hello');
-      expect(finalReq.headers[3].value, 'world');
+      expect(finalReq.headers.length, 5);
+      expect(finalReq.headers[0].name, 'D');
+      expect(finalReq.headers[0].value, "set from collection");
+      expect(finalReq.headers[1].name, 'changed-by-test');
+      expect(finalReq.headers[1].value, "changed-by-test");
+      expect(finalReq.headers[2].name, 'C');
+      expect(finalReq.headers[2].value, 'set from folder');
+      expect(finalReq.headers[3].name, 'A');
+      expect(finalReq.headers[3].value, 'set from request');
     });
   });
 }

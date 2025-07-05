@@ -164,7 +164,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Change it back
-  headersManager.rows[0].keyController.text = 'hello';
+  headersManager.rows[0].keyController.text = 'X-Auth-Token';
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *

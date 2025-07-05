@@ -176,8 +176,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   final headersTable2 = tester.widget<FormTable>(find.byType(FormTable));
   final headersManager2 = headersTable2.stateManager;
 
-  headersManager2.rows[2].keyController.text = 'HI';
-  headersManager2.rows[2].valueController.text = 'ivebeensetontehform';
+  headersManager2.rows[1].keyController.text = 'A';
+  headersManager2.rows[1].valueController.text = 'added-on-form';
   await tester.pumpAndSettle();
 
   // ===========================================================================
@@ -198,8 +198,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Change the key text of the first header row
   expect(headersManager3.rows.length, 4);
 
-  headersManager3.rows[0].keyController.text = 'changed-by-test';
-  headersManager3.rows[0].valueController.text = 'changed-by-test';
+  headersManager3.rows[0].keyController.text = 'E';
+  headersManager3.rows[0].valueController.text = 'added-by-test';
   await tester.pumpAndSettle();
 
   // Save the changes
@@ -207,7 +207,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect the file to be changed
-  expect(loadFile(folderBruPath), contains('changed-by-test'));
+  expect(loadFile(folderBruPath), contains('added-by-test'));
 
   // ===========================================================================
   // Send a request
@@ -222,12 +222,19 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(sendBtn);
   await tester.pumpAndSettle();
 
+  // print("=====> headers:");
+  // for (final header in sentRequest!.headers.entries) {
+  //   print("${header.key}: ${header.value}");
+  // }
+
   // Check the headers
   expect(sentRequest!.method, 'POST');
-  expect(sentRequest!.headers['hello'], 'world');
-  expect(sentRequest!.headers['changed-by-test'], "changed-by-test");
-  expect(sentRequest!.headers['heythere'], "im the collection");
-  expect(sentRequest!.headers['HI'], "ivebeensetontehform");
+  expect(sentRequest!.headers['a'], "set from collection");
+  expect(sentRequest!.headers['b'], "set from folder");
+  expect(sentRequest!.headers['c'], "set from folder");
+  expect(sentRequest!.headers['d'], "set from collection");
+  expect(sentRequest!.headers['e'], "added-by-test");
+  expect(sentRequest!.headers['x-auth-token'], "abcd1234");
   expect(sentRequestBody, '{"hello": "world"}');
 
   // ===========================================================================

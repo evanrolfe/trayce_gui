@@ -16,6 +16,20 @@ class FormTable extends StatelessWidget {
     this.columns = const [FormTableColumn.enabled, FormTableColumn.key, FormTableColumn.value, FormTableColumn.delete],
   });
 
+  Widget _buildHeaderCell(String text) {
+    final borderSide = BorderSide(color: borderColor, width: 1);
+
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
+        height: 30,
+        alignment: Alignment.centerLeft,
+        child: Text(text, style: TextStyle(color: Color(0xFF666666), fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final borderSide = BorderSide(color: borderColor, width: 1);
@@ -40,46 +54,15 @@ class FormTable extends StatelessWidget {
                 ),
 
               const SizedBox(width: 0),
-              if (columns.contains(FormTableColumn.key))
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
-                    height: 30,
-                    alignment: Alignment.centerLeft,
-                    child: const Text('Key', style: TextStyle(color: Color(0xFF666666))),
-                  ),
-                ),
+              if (columns.contains(FormTableColumn.key)) _buildHeaderCell('Key'),
               const SizedBox(width: 0),
 
               if (columns.contains(FormTableColumn.value) || columns.contains(FormTableColumn.valueFile))
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
-                    height: 30,
-                    alignment: Alignment.centerLeft,
-                    child: const Text('Value', style: TextStyle(color: Color(0xFF666666))),
-                  ),
-                ),
+                _buildHeaderCell('Value'),
 
-              if (columns.contains(FormTableColumn.contentType))
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
-                    height: 30,
-                    alignment: Alignment.centerLeft,
-                    child: const Text('Content-Type', style: TextStyle(color: Color(0xFF666666))),
-                  ),
-                ),
+              if (columns.contains(FormTableColumn.contentType)) _buildHeaderCell('Content-Type'),
 
-              if (columns.contains(FormTableColumn.selected))
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
-                    height: 30,
-                    alignment: Alignment.centerLeft,
-                    child: const Text('Selected', style: TextStyle(color: Color(0xFF666666))),
-                  ),
-                ),
+              if (columns.contains(FormTableColumn.selected)) _buildHeaderCell('Selected'),
 
               if (columns.contains(FormTableColumn.delete))
                 Container(
