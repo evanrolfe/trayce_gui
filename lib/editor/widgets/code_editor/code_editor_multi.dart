@@ -1,9 +1,11 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/json.dart';
 import 'package:re_highlight/styles/rainbow.dart';
-import 'package:trayce/common/types.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 import 'package:trayce/editor/widgets/code_editor/find_replace.dart';
@@ -14,8 +16,8 @@ class MultiLineCodeEditor extends StatefulWidget {
   final ScrollController? horizontalScroller;
   final Map<Type, Action<Intent>>? shortcutOverrideActions;
   final Border? border;
-  final KeyCallback? keyCallback;
   final VoidCallback? onFocusChange;
+  final FocusNode focusNode;
 
   const MultiLineCodeEditor({
     super.key,
@@ -24,8 +26,8 @@ class MultiLineCodeEditor extends StatefulWidget {
     this.horizontalScroller,
     this.shortcutOverrideActions,
     this.border,
-    this.keyCallback,
     this.onFocusChange,
+    required this.focusNode,
   });
 
   @override
@@ -34,45 +36,55 @@ class MultiLineCodeEditor extends StatefulWidget {
 
 class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
   late final FocusNode _focusNode;
-
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-    _focusNode.onKeyEvent = widget.keyCallback;
-    _focusNode.addListener(() {
-      widget.onFocusChange?.call();
+
+    _focusNode = widget.focusNode;
+    _focusNode.addListener(_handleFocusChange);
+
+    final eventBus = context.read<EventBus>();
+    eventBus.on<EditorInputFocused>().listen((event) {
+      if (event.key != widget.key &&
+          widget.controller.selection.baseOffset != widget.controller.selection.extentOffset) {
+        widget.controller.selection = CodeLineSelection.collapsed(
+          index: widget.controller.selection.baseIndex,
+          offset: widget.controller.selection.baseOffset,
+        );
+        return;
+      }
     });
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    _focusNode.removeListener(_handleFocusChange);
     super.dispose();
+  }
+
+  void _handleFocusChange() {
+    final eventBus = context.read<EventBus>();
+    final key = widget.key ?? const Key('default');
+    eventBus.fire(EditorInputFocused(key));
   }
 
   @override
   Widget build(BuildContext context) {
     return CodeAutocomplete(
       viewBuilder: (context, notifier, onSelected) {
-        return DefaultCodeAutocompleteListView(
-          notifier: notifier,
-          onSelected: onSelected,
-        );
+        return DefaultCodeAutocompleteListView(notifier: notifier, onSelected: onSelected);
       },
       promptsBuilder: DefaultCodeAutocompletePromptsBuilder(language: langJson),
       child: CodeEditor(
         controller: widget.controller,
-        focusNode: _focusNode,
+        focusNode: widget.focusNode,
         findBuilder: (context, controller, readOnly) {
           controller.findInputFocusNode.onKeyEvent = (node, event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.escape) {
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
               controller.close();
               return KeyEventResult.handled;
             }
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.enter) {
+            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
               controller.nextMatch();
               return KeyEventResult.handled;
             }
@@ -100,23 +112,11 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
             child: child,
           );
         },
-        indicatorBuilder: (
-          context,
-          editingController,
-          chunkController,
-          notifier,
-        ) {
+        indicatorBuilder: (context, editingController, chunkController, notifier) {
           return Row(
             children: [
-              DefaultCodeLineNumber(
-                controller: editingController,
-                notifier: notifier,
-              ),
-              DefaultCodeChunkIndicator(
-                width: 20,
-                controller: chunkController,
-                notifier: notifier,
-              ),
+              DefaultCodeLineNumber(controller: editingController, notifier: notifier),
+              DefaultCodeChunkIndicator(width: 20, controller: chunkController, notifier: notifier),
             ],
           );
         },

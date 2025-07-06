@@ -6,7 +6,7 @@ import 'script.dart';
 import 'utils.dart';
 import 'variable.dart';
 
-class Collection {
+class Folder {
   String type;
 
   Map<String, dynamic>? meta;
@@ -24,7 +24,7 @@ class Collection {
   String? tests;
   String? docs;
 
-  Collection({
+  Folder({
     required this.type,
     this.meta,
     required this.headers,
@@ -42,7 +42,7 @@ class Collection {
 
     // Convert meta to bru
     bru += 'meta {\n';
-    bru += '  type: collection\n';
+    bru += '  type: folder\n';
     bru += '}\n';
 
     // Convert headers to bru
@@ -92,21 +92,13 @@ class Collection {
     return bru;
   }
 
-  static String getBrunoJson(String name) {
-    return '''{
-  "version": "1",
-  "name": "$name",
-  "type": "collection",
-  "ignore": [
-      "node_modules",
-      ".git"
-  ]
+  static String getDefaultFolderBru() {
+    return '''meta {
+  type: folder
 }''';
   }
 
-  static String getDefaultCollectionBru() {
-    return '''meta {
-  type: collection
-}''';
+  static Folder blank() {
+    return Folder(type: 'folder', headers: [], query: [], requestVars: [], responseVars: []);
   }
 }

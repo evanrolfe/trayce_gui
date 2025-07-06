@@ -35,9 +35,25 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tapAt(tester.getCenter(myfolderItem), buttons: kSecondaryButton);
   await tester.pumpAndSettle();
 
+  // Click New Folder on context menu
+  await tester.tap(find.text('New Folder'));
+  await tester.pumpAndSettle();
+
+  // Enter the name of the new request
+  final renameField = find.byKey(const Key('explorer_rename_input'));
+  await tester.enterText(renameField, 'testfolder');
+  await tester.pumpAndSettle();
+
+  // Simulate enter key press
+  await tester.testTextInput.receiveAction(TextInputAction.done);
+  await tester.pumpAndSettle();
+
+  // Right-click on the testfolder item
+  await tester.tapAt(tester.getCenter(find.text('testfolder')), buttons: kSecondaryButton);
+  await tester.pumpAndSettle();
+
   // Click New Request on context menu
-  final newReqItem = find.text('New Request');
-  await tester.tap(newReqItem);
+  await tester.tap(find.text('New Request'));
   await tester.pumpAndSettle();
 
   // Enter the name of the new request
@@ -50,12 +66,16 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Verify the file has been created
-  final newReqFile = loadFile('test/support/collection1/myfolder/i_am_new.bru');
+  final newReqFile = loadFile('test/support/collection1/myfolder/testfolder/i_am_new.bru');
   expect(newReqFile, isNotEmpty);
 
   // ===========================================================================
-  // Close the collection
+  // Close the collection and request
   // ===========================================================================
+  // Close the open request tab
+  await pressCtrlW(tester);
+  await tester.pumpAndSettle();
+
   // Delete the new request file
   await deleteFile('test/support/collection1/myfolder/i_am_new.bru');
 
@@ -69,7 +89,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(closeItem);
   await tester.pumpAndSettle();
 
-  // await tester.pumpAndSettle(const Duration(seconds: 5));
+  await deleteFolder('test/support/collection1/myfolder/testfolder');
 }
 
 Future<void> pressCtrlS(WidgetTester tester) async {

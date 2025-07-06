@@ -30,10 +30,59 @@ auth:bearer {
   token: 123
 }
 
+body:text {
+  This is a text body
+}
+
 body:json {
   {
     "hello": "world"
   }
+}
+
+body:xml {
+  <html></html>
+}
+
+body:sparql {
+  SELECT * WHERE {
+    ?subject ?predicate ?object .
+  }
+  LIMIT 10
+}
+
+body:graphql {
+  {
+    launchesPast {
+      launch_site {
+        site_name
+      }
+      launch_success
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "limit": 5
+  }
+}
+
+body:form-urlencoded {
+  apikey: secret
+  numbers: +91998877665
+  ~message: hello
+}
+
+body:multipart-form {
+  apikey: @file(/home/trayce/test.txt)
+  ~message: @file(/home/trayce/secrets.txt)
+}
+
+body:file {
+  file: @file(path/to/file.json) @contentType(application/json)
+  file: @file(path/to/file.json) @contentType(application/json)
+  ~file: @file(path/to/file2.json) @contentType(application/json)
 }
 
 vars:pre-request {

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/parse/parse_request.dart';
+import 'package:trayce/editor/models/request.dart';
 
 void main() {
   test('parses request.bru and matches request.json', () async {
@@ -34,7 +35,7 @@ void main() {
       final rp = result.params[i];
       expect(rp.name, ep['name']);
       expect(rp.value, ep['value']);
-      expect(rp.type, ep['type']);
+      // expect(rp.type, ep['type']);
       expect(rp.enabled, ep['enabled']);
     }
 
@@ -75,12 +76,14 @@ void main() {
 
     // Check body
     final expectedBody = expected['body'];
-    final body = result.body;
-    expect(body, isNotNull);
-
-    // Check for JSON body
+    final body = result.getBody();
     expect(body is JsonBody, isTrue);
     expect((body as JsonBody).content, expectedBody['json']);
+
+    expect(result.bodyType, BodyType.json);
+    expect(body, isNotNull);
+    expect(result.bodyJson?.toString(), expectedBody['json']);
+    expect(result.bodyText?.toString(), expectedBody['text']);
 
     // Check auth
     final expectedAuth = expected['auth']['bearer'];

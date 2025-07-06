@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
 
 import 'assertion.dart';
 import 'auth.dart';
@@ -9,6 +13,20 @@ import 'script.dart';
 import 'utils.dart';
 import 'variable.dart';
 
+enum BodyType { none, text, json, xml, sparql, graphql, formUrlEncoded, multipartForm, file }
+
+final bodyTypeEnumToBru = {
+  BodyType.none: '',
+  BodyType.text: 'text',
+  BodyType.json: 'json',
+  BodyType.xml: 'xml',
+  BodyType.sparql: 'sparql',
+  BodyType.graphql: 'graphql',
+  BodyType.formUrlEncoded: 'form-urlencoded',
+  BodyType.multipartForm: 'multipart-form',
+  BodyType.file: 'file',
+};
+
 class Request {
   String name;
   String type;
@@ -17,7 +35,7 @@ class Request {
   String url;
   String? tests;
   String? docs;
-  Body? body;
+  BodyType bodyType;
   Auth? auth;
 
   List<Param> params;
@@ -30,13 +48,23 @@ class Request {
 
   Script? script;
 
+  // All Body types
+  Body? bodyText;
+  Body? bodyJson;
+  Body? bodyXml;
+  Body? bodySparql;
+  Body? bodyGraphql;
+  Body? bodyFormUrlEncoded;
+  Body? bodyMultipartForm;
+  Body? bodyFile;
+
   Request({
     required this.name,
     required this.type,
     required this.seq,
     required this.method,
     required this.url,
-    this.body,
+    required this.bodyType,
     this.auth,
     required this.params,
     required this.headers,
@@ -46,6 +74,16 @@ class Request {
     this.script,
     this.tests,
     this.docs,
+
+    // All Body types
+    this.bodyText,
+    this.bodyJson,
+    this.bodyXml,
+    this.bodySparql,
+    this.bodyGraphql,
+    this.bodyFormUrlEncoded,
+    this.bodyMultipartForm,
+    this.bodyFile,
   });
 
   static Request blank() {
@@ -55,6 +93,7 @@ class Request {
       seq: 0,
       method: 'get',
       url: '',
+      bodyType: BodyType.none,
       params: [],
       headers: [],
       requestVars: [],
@@ -74,11 +113,11 @@ class Request {
     bru += '}\n\n';
 
     // Convert request to bru
-    bru += '${method} {\n';
+    bru += '$method {\n';
     bru += '  url: $url';
 
-    if (body != null) {
-      bru += '\n  body: ${body!.type}';
+    if (bodyType != BodyType.none) {
+      bru += '\n  body: ${bodyTypeEnumToBru[bodyType]}';
     }
 
     if (auth != null) {
@@ -88,12 +127,12 @@ class Request {
     bru += '\n}\n';
 
     // Convert params to bru
-    final queryParams = params.where((p) => p.type == 'query').toList();
+    final queryParams = params.where((p) => p.type == ParamType.query).toList();
     if (queryParams.isNotEmpty) {
       bru += '\n${queryParamsToBru(queryParams)}\n';
     }
 
-    final pathParams = params.where((p) => p.type == 'path').toList();
+    final pathParams = params.where((p) => p.type == ParamType.path).toList();
     if (pathParams.isNotEmpty) {
       bru += '\n${pathParamsToBru(pathParams)}\n';
     }
@@ -108,9 +147,30 @@ class Request {
       bru += '\n${auth!.toBru()}\n';
     }
 
-    // Convert body to bru
-    if (body != null) {
-      bru += '\n${body!.toBru()}\n';
+    // Convert body(s) to bru
+    if (bodyText != null && !bodyText!.isEmpty()) {
+      bru += '\n${bodyText!.toBru()}\n';
+    }
+    if (bodyJson != null && !bodyJson!.isEmpty()) {
+      bru += '\n${bodyJson!.toBru()}\n';
+    }
+    if (bodyXml != null && !bodyXml!.isEmpty()) {
+      bru += '\n${bodyXml!.toBru()}\n';
+    }
+    if (bodySparql != null && !bodySparql!.isEmpty()) {
+      bru += '\n${bodySparql!.toBru()}\n';
+    }
+    if (bodyGraphql != null && !bodyGraphql!.isEmpty()) {
+      bru += '\n${bodyGraphql!.toBru()}\n';
+    }
+    if (bodyFormUrlEncoded != null && !bodyFormUrlEncoded!.isEmpty()) {
+      bru += '\n${bodyFormUrlEncoded!.toBru()}\n';
+    }
+    if (bodyMultipartForm != null && !bodyMultipartForm!.isEmpty()) {
+      bru += '\n${bodyMultipartForm!.toBru()}\n';
+    }
+    if (bodyFile != null && !bodyFile!.isEmpty()) {
+      bru += '\n${bodyFile!.toBru()}\n';
     }
 
     // Convert variables to bru
@@ -160,11 +220,21 @@ class Request {
     }
 
     // Compare body
-    if ((body == null) != (other.body == null)) {
+    if (bodyType != other.bodyType) {
       return false;
     }
-    if (body != null && !body!.equals(other.body!)) {
-      return false;
+
+    final body = getBody();
+    final otherBody = other.getBody();
+
+    final bodyEmpty = body == null || body.isEmpty();
+    final otherBodyEmpty = otherBody == null || otherBody.isEmpty();
+
+    if (bodyEmpty && !otherBodyEmpty) return false;
+    if (!bodyEmpty && otherBodyEmpty) return false;
+
+    if (!bodyEmpty && !otherBodyEmpty) {
+      if (!body.equals(otherBody)) return false;
     }
 
     // Compare headers
@@ -213,18 +283,93 @@ class Request {
   }
 
   Future<http.Response> send() async {
+    if (bodyType == BodyType.multipartForm) {
+      return _sendMultipart();
+    }
+
+    if (bodyType == BodyType.file) {
+      return _sendFile();
+    }
+
     final request = http.Request(method, Uri.parse(url));
 
-    request.headers.addAll(Map.fromEntries(headers.map((h) => MapEntry(h.name, h.value))));
+    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
 
+    final body = getBody();
     if (body != null) {
-      request.body = body!.toString();
+      request.body = body.toString();
     }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
     return response;
+  }
+
+  Future<http.Response> _sendMultipart() async {
+    final request = http.MultipartRequest(method, Uri.parse(url));
+    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
+
+    final multipartBody = bodyMultipartForm as MultipartFormBody;
+    for (var file in multipartBody.files) {
+      if (file.enabled) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            file.name,
+            file.value,
+            contentType: file.contentType != null ? MediaType.parse(file.contentType!) : null,
+          ),
+        );
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return response;
+  }
+
+  Future<http.Response> _sendFile() async {
+    final request = http.Request(method, Uri.parse(url));
+
+    final body = bodyFile as FileBody;
+    final selectedFile = body.selectedFile();
+    if (selectedFile != null) {
+      final data = await File(selectedFile.filePath).readAsBytes();
+      request.bodyBytes = data;
+
+      if (selectedFile.contentType != null) {
+        request.headers['content-type'] = selectedFile.contentType!;
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return response;
+  }
+
+  Body? getBody() {
+    switch (bodyType) {
+      case BodyType.json:
+        return bodyJson;
+      case BodyType.text:
+        return bodyText;
+      case BodyType.xml:
+        return bodyXml;
+      case BodyType.sparql:
+        return bodySparql;
+      case BodyType.graphql:
+        return bodyGraphql;
+      case BodyType.formUrlEncoded:
+        return bodyFormUrlEncoded;
+      case BodyType.multipartForm:
+        return bodyMultipartForm;
+      case BodyType.file:
+        return bodyFile;
+      case BodyType.none:
+        return null;
+    }
   }
 
   void copyValuesFrom(Request request) {
@@ -237,9 +382,34 @@ class Request {
     docs = request.docs;
 
     // Copy body if it exists
-    body = request.body;
+    bodyType = request.bodyType;
+    if (request.bodyJson != null) {
+      bodyJson = request.bodyJson!.deepCopy();
+    }
+    if (request.bodyText != null) {
+      bodyText = request.bodyText!.deepCopy();
+    }
+    if (request.bodyXml != null) {
+      bodyXml = request.bodyXml!.deepCopy();
+    }
+    if (request.bodySparql != null) {
+      bodySparql = request.bodySparql!.deepCopy();
+    }
+    if (request.bodyGraphql != null) {
+      bodyGraphql = request.bodyGraphql!.deepCopy();
+    }
+    if (request.bodyFormUrlEncoded != null) {
+      bodyFormUrlEncoded = request.bodyFormUrlEncoded!.deepCopy();
+    }
+    if (request.bodyMultipartForm != null) {
+      bodyMultipartForm = request.bodyMultipartForm!.deepCopy();
+    }
+    if (request.bodyFile != null) {
+      bodyFile = request.bodyFile!.deepCopy();
+    }
 
     // Copy auth if it exists
+    // TODO: This should deep copy the auth
     auth = request.auth;
 
     // Copy params
@@ -257,6 +427,76 @@ class Request {
 
     // Copy script if it exists
     script = request.script;
+  }
+
+  void setUrl(String url) {
+    this.url = url;
+  }
+
+  void setMethod(String method) {
+    this.method = method;
+  }
+
+  void setHeaders(List<Header> headers) {
+    this.headers = headers;
+  }
+
+  void setBodyType(BodyType bodyType) {
+    this.bodyType = bodyType;
+  }
+
+  void setBodyContent(String content) {
+    switch (bodyType) {
+      case BodyType.json:
+        bodyJson ??= JsonBody(content: '');
+        bodyJson?.setContent(content);
+        break;
+      case BodyType.text:
+        bodyText ??= TextBody(content: '');
+        bodyText?.setContent(content);
+        break;
+      case BodyType.xml:
+        bodyXml ??= XmlBody(content: '');
+        bodyXml?.setContent(content);
+        break;
+      case BodyType.sparql:
+        bodySparql ??= SparqlBody(content: '');
+        bodySparql?.setContent(content);
+        break;
+      case BodyType.graphql:
+        bodyGraphql ??= GraphqlBody(query: '', variables: '');
+        bodyGraphql?.setContent(content);
+        break;
+      case BodyType.formUrlEncoded:
+        bodyFormUrlEncoded ??= FormUrlEncodedBody(params: []);
+        bodyFormUrlEncoded?.setContent(content);
+        break;
+      case BodyType.multipartForm:
+        bodyMultipartForm ??= MultipartFormBody(files: []);
+        bodyMultipartForm?.setContent(content);
+        break;
+      case BodyType.file:
+        bodyFile ??= FileBody(files: []);
+        bodyFile?.setContent(content);
+        break;
+      case BodyType.none:
+        break;
+    }
+  }
+
+  void setBodyFormURLEncodedContent(List<Param> params) {
+    bodyFormUrlEncoded ??= FormUrlEncodedBody(params: []);
+    (bodyFormUrlEncoded as FormUrlEncodedBody).setParams(params);
+  }
+
+  void setBodyMultipartFormContent(List<MultipartFile> files) {
+    bodyMultipartForm ??= MultipartFormBody(files: []);
+    (bodyMultipartForm as MultipartFormBody).setFiles(files);
+  }
+
+  void setBodyFilesContent(List<FileBodyItem> files) {
+    bodyFile ??= FileBody(files: []);
+    (bodyFile as FileBody).setFiles(files);
   }
 }
 

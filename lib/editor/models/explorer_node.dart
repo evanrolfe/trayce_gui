@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:trayce/editor/models/collection.dart';
+import 'package:trayce/editor/models/folder.dart';
 import 'package:trayce/editor/models/parse/parse_collection.dart';
+import 'package:trayce/editor/models/parse/parse_folder.dart';
 import 'package:trayce/editor/models/parse/parse_request.dart';
 import 'package:trayce/editor/models/request.dart';
 
@@ -19,7 +21,8 @@ class ExplorerNode {
   bool isRenaming;
   bool isSaved;
 
-  late Collection collection;
+  late Collection? collection;
+  late Folder? folder;
   late Request? request;
 
   ExplorerNode({
@@ -33,6 +36,7 @@ class ExplorerNode {
     this.isRenaming = false,
     this.isSaved = true,
     Request? request,
+    Folder? folder,
   }) {
     if (type == NodeType.collection) {
       final collectionStr = file.readAsStringSync();
@@ -40,8 +44,12 @@ class ExplorerNode {
     }
 
     if (type == NodeType.folder) {
-      // final folderStr = file.readAsStringSync();
-      print("Loaded folder from ${file.path}, but parsing not implemented yet");
+      if (folder != null) {
+        this.folder = folder;
+      } else {
+        final folderStr = file.readAsStringSync();
+        this.folder = parseFolder(folderStr);
+      }
     }
 
     if (type == NodeType.request) {
@@ -58,23 +66,25 @@ class ExplorerNode {
     }
   }
 
-  // Request? getRequest() {
-  //   if (type != NodeType.request) return null;
-
-  //   final requestStr = file.readAsStringSync();
-  //   return parseRequest(requestStr);
-  // }
-
-  Collection? getCollection() {
-    if (type != NodeType.collection) return null;
-
-    final collectionStr = file.readAsStringSync();
-    return parseCollection(collectionStr);
-  }
-
   ValueKey get key => ValueKey(file.path);
 
   void save() {
+    if (type == NodeType.collection) {
+      final bruStr = collection!.toBru();
+      if (!file.existsSync()) {
+        file.createSync(recursive: true);
+      }
+      file.writeAsStringSync(bruStr);
+    }
+
+    if (type == NodeType.folder) {
+      final bruStr = folder!.toBru();
+      if (!file.existsSync()) {
+        file.createSync(recursive: true);
+      }
+      file.writeAsStringSync(bruStr);
+    }
+
     if (type == NodeType.request) {
       request!.name = name.replaceAll('.bru', '');
       final bruStr = request!.toBru();

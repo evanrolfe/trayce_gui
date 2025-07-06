@@ -29,7 +29,7 @@ void main() {
 
       expect(event.nodes[0].name, 'collection1');
       expect(event.nodes[0].type, NodeType.collection);
-      final collection = event.nodes[0].getCollection();
+      final collection = event.nodes[0].collection;
       expect(collection?.type, 'collection');
       final collectionAuth = collection?.auth as BasicAuth;
       expect(collectionAuth.username, 'asdf');
@@ -92,6 +92,24 @@ void main() {
 
       final seq = explorerRepo.getNextSeq(collection1Path);
       expect(seq, 2);
+    });
+  });
+
+  group('getNodeHierarchy()', () {
+    test('returns the node hierarchy', () async {
+      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      explorerRepo.openCollection(collection1Path);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      final reqThree = event.nodes[0].children[1].children[2];
+      expect(reqThree.name, 'three.bru');
+
+      final hierarchy = explorerRepo.getNodeHierarchy(reqThree);
+      expect(hierarchy.length, 3);
+      expect(hierarchy[0].name, 'three.bru');
+      expect(hierarchy[1].name, 'myfolder');
+      expect(hierarchy[2].name, 'collection1');
     });
   });
 

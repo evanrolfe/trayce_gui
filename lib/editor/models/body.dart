@@ -1,3 +1,5 @@
+import 'package:trayce/editor/models/multipart_file.dart';
+
 import 'param.dart';
 import 'utils.dart';
 
@@ -8,6 +10,8 @@ abstract class Body {
   String toString();
   void setContent(String value);
   bool equals(Body other);
+  Body deepCopy();
+  bool isEmpty();
 }
 
 class JsonBody extends Body {
@@ -36,6 +40,20 @@ class JsonBody extends Body {
   @override
   void setContent(String value) {
     content = value;
+  }
+
+  @override
+  Body deepCopy() {
+    return JsonBody(content: content);
+  }
+
+  static JsonBody blank() {
+    return JsonBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
   }
 }
 
@@ -66,6 +84,20 @@ class TextBody extends Body {
   void setContent(String value) {
     content = value;
   }
+
+  @override
+  Body deepCopy() {
+    return TextBody(content: content);
+  }
+
+  static TextBody blank() {
+    return TextBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
+  }
 }
 
 class XmlBody extends Body {
@@ -95,6 +127,20 @@ class XmlBody extends Body {
   void setContent(String value) {
     content = value;
   }
+
+  @override
+  Body deepCopy() {
+    return XmlBody(content: content);
+  }
+
+  static XmlBody blank() {
+    return XmlBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
+  }
 }
 
 class SparqlBody extends Body {
@@ -123,6 +169,20 @@ class SparqlBody extends Body {
   @override
   void setContent(String value) {
     content = value;
+  }
+
+  @override
+  Body deepCopy() {
+    return SparqlBody(content: content);
+  }
+
+  static SparqlBody blank() {
+    return SparqlBody(content: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return content.isEmpty;
   }
 }
 
@@ -157,6 +217,20 @@ class GraphqlBody extends Body {
   @override
   void setContent(String value) {
     query = value;
+  }
+
+  @override
+  Body deepCopy() {
+    return GraphqlBody(query: query, variables: variables);
+  }
+
+  static GraphqlBody blank() {
+    return GraphqlBody(query: '', variables: '');
+  }
+
+  @override
+  bool isEmpty() {
+    return query.isEmpty;
   }
 }
 
@@ -198,28 +272,49 @@ class FormUrlEncodedBody extends Body {
 
   @override
   String toString() {
-    return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+    return params
+        .where((p) => p.enabled)
+        .map((p) => '${Uri.encodeComponent(p.name)}=${Uri.encodeComponent(getValueString(p.value))}')
+        .join('&');
   }
 
   @override
   void setContent(String value) {
     // params = value;
   }
+
+  @override
+  Body deepCopy() {
+    return FormUrlEncodedBody(params: params);
+  }
+
+  static FormUrlEncodedBody blank() {
+    return FormUrlEncodedBody(params: []);
+  }
+
+  @override
+  bool isEmpty() {
+    return params.isEmpty;
+  }
+
+  void setParams(List<Param> params) {
+    this.params = params;
+  }
 }
 
 class MultipartFormBody extends Body {
   @override
   final String type = 'multipart-form';
-  List<Param> params;
+  List<MultipartFile> files;
 
-  MultipartFormBody({required this.params});
+  MultipartFormBody({required this.files});
 
   @override
   bool equals(Body other) {
     if (other is! MultipartFormBody) return false;
-    if (params.length != other.params.length) return false;
-    for (var i = 0; i < params.length; i++) {
-      if (!params[i].equals(other.params[i])) return false;
+    if (files.length != other.files.length) return false;
+    for (var i = 0; i < files.length; i++) {
+      if (!files[i].equals(other.files[i])) return false;
     }
     return true;
   }
@@ -228,15 +323,16 @@ class MultipartFormBody extends Body {
   String toBru() {
     var bru = 'body:multipart-form {\n';
 
-    final enabledParams = params.where((p) => p.enabled).toList();
+    final enabledParams = files.where((p) => p.enabled).toList();
     if (enabledParams.isNotEmpty) {
-      bru += '${indentString(enabledParams.map((item) => '${item.name}: ${getValueString(item.value)}').join('\n'))}\n';
+      bru +=
+          '${indentString(enabledParams.map((item) => '${item.name}: ${getValueString(item.toBru())}').join('\n'))}\n';
     }
 
-    final disabledParams = params.where((p) => !p.enabled).toList();
+    final disabledParams = files.where((p) => !p.enabled).toList();
     if (disabledParams.isNotEmpty) {
       bru +=
-          '${indentString(disabledParams.map((item) => '~${item.name}: ${getValueString(item.value)}').join('\n'))}\n';
+          '${indentString(disabledParams.map((item) => '~${item.name}: ${getValueString(item.toBru())}').join('\n'))}\n';
     }
 
     bru += '}';
@@ -245,41 +341,39 @@ class MultipartFormBody extends Body {
 
   @override
   String toString() {
-    return params.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
+    return files.map((p) => '${p.name}: ${getValueString(p.value)}').join('&');
   }
 
   @override
   void setContent(String value) {
     // TODO
   }
+
+  @override
+  Body deepCopy() {
+    return MultipartFormBody(files: files);
+  }
+
+  static MultipartFormBody blank() {
+    return MultipartFormBody(files: []);
+  }
+
+  @override
+  bool isEmpty() {
+    return files.isEmpty;
+  }
+
+  void setFiles(List<MultipartFile> files) {
+    this.files = files;
+  }
 }
 
 class FileBodyItem {
   String filePath;
-  String contentType;
+  String? contentType;
   bool selected;
 
-  FileBodyItem({required this.filePath, required this.contentType, required this.selected});
-
-  static FileBodyItem fromBruLine(String line, bool selected) {
-    // Default values
-    String filePath = '';
-    String contentType = '';
-
-    // Extract file path
-    final fileMatch = RegExp(r'@file\((.*?)\)').firstMatch(line);
-    if (fileMatch != null && fileMatch.groupCount >= 1) {
-      filePath = fileMatch.group(1) ?? '';
-    }
-
-    // Extract content type
-    final contentTypeMatch = RegExp(r'@contentType\((.*?)\)').firstMatch(line);
-    if (contentTypeMatch != null && contentTypeMatch.groupCount >= 1) {
-      contentType = contentTypeMatch.group(1) ?? '';
-    }
-
-    return FileBodyItem(filePath: filePath, contentType: contentType, selected: selected);
-  }
+  FileBodyItem({required this.filePath, this.contentType, required this.selected});
 
   @override
   String toString() {
@@ -288,6 +382,14 @@ class FileBodyItem {
 
   bool equals(FileBodyItem other) {
     return filePath == other.filePath && contentType == other.contentType && selected == other.selected;
+  }
+
+  String toBru() {
+    String bru = '@file($filePath)';
+    if (contentType != null) {
+      bru += ' @contentType($contentType)';
+    }
+    return bru;
   }
 }
 
@@ -312,20 +414,17 @@ class FileBody extends Body {
   String toBru() {
     var bru = 'body:file {\n';
 
-    if (files.isNotEmpty) {
-      bru += indentString(
-        files
-            .map((item) {
-              final selected = item.selected ? '' : '~';
-              final contentType = item.contentType.isNotEmpty ? ' @contentType(${item.contentType})' : '';
-              final value = '@file(${item.filePath})';
-              return '${selected}file: $value$contentType';
-            })
-            .join('\n'),
-      );
+    final selectedFiles = files.where((p) => p.selected).toList();
+    if (selectedFiles.isNotEmpty) {
+      bru += '${indentString(selectedFiles.map((item) => 'file: ${getValueString(item.toBru())}').join('\n'))}\n';
     }
 
-    bru += '\n}';
+    final unselectedFiles = files.where((p) => !p.selected).toList();
+    if (unselectedFiles.isNotEmpty) {
+      bru += '${indentString(unselectedFiles.map((item) => '~file: ${getValueString(item.toBru())}').join('\n'))}\n';
+    }
+
+    bru += '}';
     return bru;
   }
 
@@ -337,5 +436,27 @@ class FileBody extends Body {
   @override
   void setContent(String value) {
     // TODO
+  }
+
+  @override
+  Body deepCopy() {
+    return FileBody(files: files);
+  }
+
+  static FileBody blank() {
+    return FileBody(files: []);
+  }
+
+  @override
+  bool isEmpty() {
+    return files.isEmpty;
+  }
+
+  void setFiles(List<FileBodyItem> files) {
+    this.files = files;
+  }
+
+  FileBodyItem? selectedFile() {
+    return files.where((p) => p.selected).toList().first;
   }
 }

@@ -81,6 +81,7 @@ class _EditorTabsState extends State<EditorTabs> {
               key: ValueKey('editor_$uuid'),
               tabKey: newTab.key,
               flowType: 'http',
+              node: event.node,
               request: event.node.request!,
             ),
           ),
@@ -125,6 +126,7 @@ class _EditorTabsState extends State<EditorTabs> {
               key: ValueKey('editor_$uuid'),
               tabKey: tabKey,
               flowType: 'http',
+              node: null,
               request: Request.blank(),
             ),
           ),
@@ -163,10 +165,11 @@ class _EditorTabsState extends State<EditorTabs> {
           request: event.request,
         );
 
-        node.save();
         tab.node = node;
         tab.isNew = false;
         tab.displayName = node.displayName();
+
+        tab.node!.save();
 
         // Refresh the explorer
         if (mounted) {

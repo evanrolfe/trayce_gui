@@ -57,6 +57,7 @@ dependencies:
   petitparser: ^5.0.0
   http: ^1.2.0
   html: ^0.15.6
+  http_multi_server: ^3.2.2
 
 dev_dependencies:
   mocktail: ^1.0.0

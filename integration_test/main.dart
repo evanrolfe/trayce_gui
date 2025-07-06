@@ -60,10 +60,10 @@ void main() {
       {'func': grpc_parsing_test.test},
       {'func': containers_modal_test.test},
       {'func': flow_table_test.test},
+      {'func': editor_new_request_in_folder.test},
       {'func': editor_modifying_requests.test},
       {'func': editor_saving_request.test},
       {'func': editor_sending_a_request.test},
-      {'func': editor_new_request_in_folder.test},
       {'func': editor_create_collection.test},
       {'func': license_key_test.test},
     ];

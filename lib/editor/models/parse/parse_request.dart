@@ -1,4 +1,5 @@
 import 'package:petitparser/petitparser.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
 
 import '../assertion.dart';
 import '../auth.dart';
@@ -25,7 +26,7 @@ Request parseRequest(String request) {
   // Parse meta
   String? method;
   String? url;
-  String? bodyType;
+  String? bodyTypeStr;
   String? authType;
   Map<String, dynamic>? methodBlock;
   if (result.value != null) {
@@ -36,7 +37,7 @@ Request parseRequest(String request) {
         url = methodBlock?['url'];
         // Extract bodyType if present
         if (methodBlock != null && methodBlock.containsKey('body')) {
-          bodyType = methodBlock['body']?.toString();
+          bodyTypeStr = methodBlock['body']?.toString();
         }
         // Extract authType if present
         if (methodBlock != null && methodBlock.containsKey('auth')) {
@@ -57,8 +58,44 @@ Request parseRequest(String request) {
 
   final responseVars = parseResponseVars(result);
 
-  final body = parseBody(result, bodyType);
+  final bodyJson = parseBodyJSON(result);
+  final bodyText = parseBodyText(result);
+  final bodyXml = parseBodyXML(result);
+  final bodySparql = parseBodySparql(result);
+  final bodyGraphql = parseBodyGraphql(result);
+  final bodyFormUrlEncoded = parseBodyFormUrlEncoded(result);
+  final bodyMultipartForm = parseBodyMultipartForm(result);
+  final bodyFile = parseBodyFile(result);
 
+  BodyType bodyType;
+  switch (bodyTypeStr) {
+    case 'json':
+      bodyType = BodyType.json;
+      break;
+    case 'text':
+      bodyType = BodyType.text;
+      break;
+    case 'xml':
+      bodyType = BodyType.xml;
+      break;
+    case 'sparql':
+      bodyType = BodyType.sparql;
+      break;
+    case 'graphql':
+      bodyType = BodyType.graphql;
+      break;
+    case 'form-urlencoded':
+      bodyType = BodyType.formUrlEncoded;
+      break;
+    case 'multipart-form':
+      bodyType = BodyType.multipartForm;
+      break;
+    case 'file':
+      bodyType = BodyType.file;
+      break;
+    default:
+      bodyType = BodyType.none;
+  }
   final auth = parseAuth(result, authType);
 
   final assertions = parseAssertions(result);
@@ -75,7 +112,6 @@ Request parseRequest(String request) {
     seq: seq,
     method: method ?? '',
     url: url ?? '',
-    body: body,
     auth: auth,
     params: params,
     headers: headers,
@@ -85,6 +121,17 @@ Request parseRequest(String request) {
     script: script,
     tests: tests,
     docs: docs,
+
+    bodyType: bodyType,
+
+    bodyText: bodyText,
+    bodyJson: bodyJson,
+    bodyXml: bodyXml,
+    bodySparql: bodySparql,
+    bodyGraphql: bodyGraphql,
+    bodyFormUrlEncoded: bodyFormUrlEncoded,
+    bodyMultipartForm: bodyMultipartForm,
+    bodyFile: bodyFile,
   );
 }
 
@@ -101,19 +148,47 @@ int parseSeq(Result<dynamic> result) {
   return seq;
 }
 
-Param _createParam(MapEntry<String, dynamic> entry, String type) {
+Param _createParam(MapEntry<String, dynamic> entry, ParamType type) {
   final enabled = !(entry.key.startsWith('~'));
   final name = enabled ? entry.key : entry.key.substring(1);
   return Param(name: name, value: entry.value.toString(), type: type, enabled: enabled);
 }
 
+MultipartFile _createMultipartFile(MapEntry<String, dynamic> entry) {
+  final value = entry.value.toString();
+  final enabled = !(entry.key.startsWith('~'));
+
+  // Extract file path and content type using regex
+  final filePathMatch = RegExp(r'@file\(([^)]+)\)').firstMatch(value);
+  final contentTypeMatch = RegExp(r'@contentType\(([^)]+)\)').firstMatch(value);
+  final filePath = filePathMatch?.group(1) ?? '';
+  final contentType = contentTypeMatch?.group(1);
+
+  final name = enabled ? entry.key : entry.key.substring(1);
+  return MultipartFile(name: name, value: filePath, contentType: contentType, enabled: enabled);
+}
+
+FileBodyItem _createFile(String value, bool selected) {
+  // Extract file path and content type using regex
+  final filePathMatch = RegExp(r'@file\(([^)]+)\)').firstMatch(value);
+  final contentTypeMatch = RegExp(r'@contentType\(([^)]+)\)').firstMatch(value);
+  final filePath = filePathMatch?.group(1) ?? '';
+  final contentType = contentTypeMatch?.group(1);
+
+  return FileBodyItem(filePath: filePath, contentType: contentType, selected: selected);
+}
+
 List<Param> parseParams(Result<dynamic> result) {
   List<Param> params = [];
   if (result.value['params:query'] != null) {
-    params.addAll((result.value['params:query'] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'query')));
+    params.addAll(
+      (result.value['params:query'] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.query)),
+    );
   }
   if (result.value['params:path'] != null) {
-    params.addAll((result.value['params:path'] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'path')));
+    params.addAll(
+      (result.value['params:path'] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.path)),
+    );
   }
   return params;
 }
@@ -221,101 +296,93 @@ String? parseDocs(Result<dynamic> result) {
   return docs;
 }
 
-Body? parseBody(Result<dynamic> result, String? bodyType) {
-  if (bodyType == null) return null;
+Body? parseBodyJSON(Result<dynamic> result) {
+  const bodyKey = 'body:json';
+  if (result.value[bodyKey] == null) return null;
 
-  // Map bodyType to the correct key in the parsed result
-  String? bodyKey;
-  switch (bodyType) {
-    case 'json':
-      bodyKey = 'body:json';
-      break;
-    case 'text':
-      bodyKey = 'body:text';
-      break;
-    case 'xml':
-      bodyKey = 'body:xml';
-      break;
-    case 'sparql':
-      bodyKey = 'body:sparql';
-      break;
-    case 'graphql':
-      bodyKey = 'body:graphql';
-      break;
-    case 'form-urlencoded':
-      bodyKey = 'body:form-urlencoded';
-      break;
-    case 'multipart-form':
-      bodyKey = 'body:multipart-form';
-      break;
-    case 'file':
-      bodyKey = 'body:file';
-      break;
-    default:
-      bodyKey = null;
+  final bodyBlock = result.value[bodyKey];
+  final content = outdentString(bodyBlock['content']);
+
+  return JsonBody(content: content);
+}
+
+Body? parseBodyText(Result<dynamic> result) {
+  const bodyKey = 'body:text';
+  if (result.value[bodyKey] == null) return null;
+
+  final bodyBlock = result.value[bodyKey];
+  final content = outdentString(bodyBlock['content']);
+
+  return TextBody(content: content);
+}
+
+Body? parseBodyXML(Result<dynamic> result) {
+  const bodyKey = 'body:xml';
+  if (result.value[bodyKey] == null) return null;
+
+  final bodyBlock = result.value[bodyKey];
+  final content = outdentString(bodyBlock['content']);
+
+  return XmlBody(content: content);
+}
+
+Body? parseBodySparql(Result<dynamic> result) {
+  const bodyKey = 'body:sparql';
+  if (result.value[bodyKey] == null) return null;
+
+  final bodyBlock = result.value[bodyKey];
+  final content = outdentString(bodyBlock['content']);
+
+  return SparqlBody(content: content);
+}
+
+Body? parseBodyGraphql(Result<dynamic> result) {
+  const bodyKey = 'body:graphql';
+  if (result.value[bodyKey] == null) return null;
+
+  final bodyBlock = result.value[bodyKey];
+  final content = outdentString(bodyBlock['content']);
+
+  final graphqlVars = result.value['body:graphql:vars']?['content'] ?? '';
+  return GraphqlBody(query: content, variables: outdentString(graphqlVars));
+}
+
+Body? parseBodyFormUrlEncoded(Result<dynamic> result) {
+  const bodyKey = 'body:form-urlencoded';
+  if (result.value[bodyKey] == null) return null;
+
+  List<Param> params = [];
+  if (result.value[bodyKey] != null) {
+    params.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createParam(e, ParamType.form)));
+  }
+  return FormUrlEncodedBody(params: params);
+}
+
+Body? parseBodyMultipartForm(Result<dynamic> result) {
+  const bodyKey = 'body:multipart-form';
+  if (result.value[bodyKey] == null) return null;
+
+  List<MultipartFile> files = [];
+  if (result.value[bodyKey] != null) {
+    files.addAll((result.value[bodyKey] as Map<String, dynamic>).entries.map((e) => _createMultipartFile(e)));
+  }
+  return MultipartFormBody(files: files);
+}
+
+Body? parseBodyFile(Result<dynamic> result) {
+  const bodyKey = 'body:file';
+  if (result.value[bodyKey] == null) return null;
+  final bodyFiles = result.value['body:file'];
+
+  List<FileBodyItem> files = [];
+  if (bodyFiles['file'] != null) {
+    files.addAll((bodyFiles['file'] as List<String>).map((e) => _createFile(e, true)));
+  }
+  if (bodyFiles['~file'] != null) {
+    files.addAll((bodyFiles['~file'] as List<String>).map((e) => _createFile(e, false)));
   }
 
-  Body? body;
-  if (bodyKey != null && result.value[bodyKey] != null) {
-    final bodyBlock = result.value[bodyKey];
-    final content = outdentString(bodyBlock['content']);
-    // Now instantiate the correct Body subclass
-    switch (bodyType) {
-      case 'json':
-        body = JsonBody(content: content);
-        break;
-      case 'text':
-        body = TextBody(content: content);
-        break;
-      case 'xml':
-        body = XmlBody(content: content);
-        break;
-      case 'sparql':
-        body = SparqlBody(content: content);
-        break;
-      case 'graphql':
-        final graphqlVars = result.value['body:graphql:vars']?['content'] ?? '';
-        body = GraphqlBody(query: content, variables: outdentString(graphqlVars));
-        break;
-      case 'form-urlencoded':
-        List<Param> params = [];
-        if (result.value['body:form-urlencoded'] != null) {
-          params.addAll(
-            (result.value['body:form-urlencoded'] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'form')),
-          );
-        }
-        body = FormUrlEncodedBody(params: params);
-        break;
-      case 'multipart-form':
-        List<Param> params = [];
-        if (result.value['body:multipart-form'] != null) {
-          params.addAll(
-            (result.value['body:multipart-form'] as Map<String, dynamic>).entries.map((e) => _createParam(e, 'form')),
-          );
-        }
-        body = MultipartFormBody(params: params);
-        break;
-      case 'file':
-        List<FileBodyItem> files = [];
-        final bodyFiles = result.value['body:file'];
-        if (bodyFiles != null) {
-          if (bodyFiles['file'] != null) {
-            final selectedFiles = bodyFiles['file'] as List<String>;
-            files.addAll(selectedFiles.map((e) => FileBodyItem.fromBruLine(e, true)));
-          }
-          if (bodyFiles['~file'] != null) {
-            final unSelectedFiles = bodyFiles['~file'] as List<dynamic>;
-            files.addAll(unSelectedFiles.map((e) => FileBodyItem.fromBruLine(e, false)));
-          }
-        }
-        body = FileBody(files: files);
-        break;
-      default:
-        // You can add more cases as needed
-        break;
-    }
-  }
-  return body;
+  return FileBody(files: files);
 }
 
 Auth? parseAuth(Result<dynamic> result, String? authType) {

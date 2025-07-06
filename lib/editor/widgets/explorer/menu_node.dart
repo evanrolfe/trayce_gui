@@ -12,6 +12,8 @@ void showNodeMenu(
   Function(ExplorerNode) onRename,
   Function(ExplorerNode) onDelete,
   Function(ExplorerNode) onNewRequestInFolder,
+  Function(ExplorerNode) onNewFolder,
+  Function(ExplorerNode) onOpenNodeSettings,
 ) {
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
@@ -26,26 +28,59 @@ void showNodeMenu(
       if (node.type == NodeType.collection || node.type == NodeType.folder)
         CustomPopupMenuItem(
           height: 30,
+          shouldPop: true,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [Text('New Request', style: contextMenuTextStyle), Text('Ctrl+N', style: contextMenuTextStyle)],
           ),
           onTap: () => onNewRequestInFolder(node),
         ),
+      if (node.type == NodeType.collection || node.type == NodeType.folder)
+        CustomPopupMenuItem(
+          height: 30,
+          shouldPop: true,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('New Folder', style: contextMenuTextStyle)],
+          ),
+          onTap: () => onNewFolder(node),
+        ),
+      if (node.type == NodeType.collection || node.type == NodeType.folder)
+        CustomPopupMenuItem(
+          height: 30,
+          shouldPop: true,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('Settings', style: contextMenuTextStyle)],
+          ),
+          onTap: () => onOpenNodeSettings(node),
+        ),
       if (node.type == NodeType.request)
         CustomPopupMenuItem(
           height: 30,
+          shouldPop: true,
           child: Text('Open', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerRepo>().openNode(node),
         ),
       if (node.type == NodeType.collection)
         CustomPopupMenuItem(
           height: 30,
+          shouldPop: true,
           child: Text('Close Collection', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerRepo>().closeCollection(node),
         ),
-      CustomPopupMenuItem(height: 30, child: Text('Rename', style: contextMenuTextStyle), onTap: () => onRename(node)),
-      CustomPopupMenuItem(height: 30, child: Text('Delete', style: contextMenuTextStyle), onTap: () => onDelete(node)),
+      CustomPopupMenuItem(
+        height: 30,
+        shouldPop: true,
+        child: Text('Rename', style: contextMenuTextStyle),
+        onTap: () => onRename(node),
+      ),
+      CustomPopupMenuItem(
+        height: 30,
+        shouldPop: true,
+        child: Text('Delete', style: contextMenuTextStyle),
+        onTap: () => onDelete(node),
+      ),
     ],
   );
 }

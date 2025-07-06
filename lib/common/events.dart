@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:re_editor/re_editor.dart';
 
 class EventDisplayAlert {
   final String message;
@@ -14,8 +13,8 @@ class EventEditorNodeModified {
   EventEditorNodeModified(this.tabKey, this.isDifferent);
 }
 
-class EditorSelectionChanged {
-  final CodeLineEditingController controller;
+class EditorInputFocused {
+  final Key key;
 
-  EditorSelectionChanged(this.controller);
+  EditorInputFocused(this.key);
 }

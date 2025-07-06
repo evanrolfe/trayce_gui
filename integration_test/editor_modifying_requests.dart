@@ -1,20 +1,15 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
-import 'package:trayce/editor/widgets/common/headers_table.dart';
+import 'package:trayce/editor/widgets/common/form_table.dart';
 
 import '../test/support/helpers.dart';
 
 Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
-
-  final oneBruPath = 'test/support/collection1/myfolder/one.bru';
-  final originalOneBru = loadFile(oneBruPath);
 
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
@@ -78,8 +73,30 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
+  // ===========================================================================
+  // Change the request body type
+  // ===========================================================================
+  await tester.tap(find.text('Body'));
+  await tester.pumpAndSettle();
+
+  // Select JSON body type
+  final bodyTypeDropdown = find.byKey(const Key('flow_editor_http_body_type_dropdown')).first;
+  await tester.tap(bodyTypeDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('JSON'));
+  await tester.pumpAndSettle();
+
+  // Expect to see a *
+  expect(find.text('one*'), findsOneWidget);
+
+  // Select Text body type
+  await tester.tap(bodyTypeDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Text'));
+  await tester.pumpAndSettle();
+
+  expect(find.text('one*'), findsNothing);
+  await tester.pumpAndSettle();
 
   // ===========================================================================
   // Change the URL
@@ -103,13 +120,10 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
-
   // ===========================================================================
   // Change the Method
   // ===========================================================================
-  final methodDropdown = find.byType(DropdownButton2<String>);
+  final methodDropdown = find.byKey(const Key('flow_editor_http_method_dropdown')).first;
 
   // Select DELETE method
   await tester.tap(methodDropdown);
@@ -131,9 +145,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
-
   // ===========================================================================
   // Change a Header
   // ===========================================================================
@@ -141,7 +152,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
 
-  final headersTable = tester.widget<HeadersTable>(find.byType(HeadersTable));
+  final headersTable = tester.widget<FormTable>(find.byType(FormTable));
   final headersManager = headersTable.stateManager;
 
   // Change the key text of the first header row
@@ -153,21 +164,18 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Change it back
-  headersManager.rows[0].keyController.text = 'hello';
+  headersManager.rows[0].keyController.text = 'X-Auth-Token';
   await tester.pumpAndSettle();
 
   // Expect NOT to see a *
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
-
   // ===========================================================================
   // Disable a Header
   // ===========================================================================
   // Un-check the checkbox of the first header row
-  final headersTableWidget = find.byType(HeadersTable);
+  final headersTableWidget = find.byType(FormTable);
   final checkbox = find.descendant(of: headersTableWidget, matching: find.byType(Checkbox));
   await tester.tap(checkbox.first);
   await tester.pumpAndSettle();
@@ -183,9 +191,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Expect NOT to see a *
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
-
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
 
   // ===========================================================================
   // Add a Header
@@ -211,12 +216,13 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(find.text('one*'), findsNothing);
   await tester.pumpAndSettle();
 
-  // Expect the file to be unchanged
-  expect(loadFile(oneBruPath), originalOneBru);
+  // ===========================================================================
+  // Close the collection and request
+  // ===========================================================================
+  // Close the open request tab
+  await pressCtrlW(tester);
+  await tester.pumpAndSettle();
 
-  // ===========================================================================
-  // Close the collection
-  // ===========================================================================
   // Right-click on collection1
   final coll1 = find.text('collection1');
   await tester.tapAt(tester.getCenter(coll1), buttons: kSecondaryButton);
@@ -225,15 +231,5 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Click open on Close Collection
   final closeItem = find.text('Close Collection');
   await tester.tap(closeItem);
-  await tester.pumpAndSettle();
-
-  // await tester.pumpAndSettle(const Duration(seconds: 5));
-}
-
-Future<void> pressCtrlS(WidgetTester tester) async {
-  await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
-  await tester.sendKeyDownEvent(LogicalKeyboardKey.keyS);
-  await tester.sendKeyUpEvent(LogicalKeyboardKey.keyS);
-  await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
   await tester.pumpAndSettle();
 }

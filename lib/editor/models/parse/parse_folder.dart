@@ -1,21 +1,20 @@
-import 'package:petitparser/petitparser.dart';
+import 'package:trayce/editor/models/parse/parse_collection.dart';
 
 import '../auth.dart';
-import '../collection.dart';
-import '../param.dart';
+import '../folder.dart';
 import 'grammar_collection.dart';
 import 'parse_request.dart';
 
-Collection parseCollection(String collection) {
+Folder parseFolder(String folderBru) {
   final bruParser = BruCollectionGrammar().build();
-  final result = bruParser.parse(collection.trim());
+  final result = bruParser.parse(folderBru.trim());
 
   if (!result.isSuccess) {
     throw Exception(result.message);
   }
 
   // Parse meta
-  final meta = result.value['meta'] ?? {'type': 'collection'};
+  final meta = result.value['meta'] ?? {'type': 'folder'};
   final type = meta['type'] ?? '';
 
   final headers = parseHeaders(result);
@@ -38,7 +37,7 @@ Collection parseCollection(String collection) {
 
   final docs = parseDocs(result);
 
-  return Collection(
+  return Folder(
     type: type,
     meta: meta,
     headers: headers,
@@ -50,18 +49,4 @@ Collection parseCollection(String collection) {
     tests: tests,
     docs: docs,
   );
-}
-
-List<Param> parseQuery(Result<dynamic> result) {
-  List<Param> query = [];
-  if (result.value['query'] != null) {
-    query.addAll(
-      (result.value['query'] as Map<String, dynamic>).entries.map((e) {
-        final enabled = !(e.key.startsWith('~'));
-        final name = enabled ? e.key : e.key.substring(1);
-        return Param(name: name, value: e.value.toString(), type: ParamType.query, enabled: enabled);
-      }),
-    );
-  }
-  return query;
 }

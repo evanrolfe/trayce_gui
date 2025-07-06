@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:trayce/common/file_menu_style.dart';
+import 'package:trayce/common/context_menu.dart';
+import 'package:trayce/common/context_menu_style.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/settings.dart';
 
@@ -94,37 +95,51 @@ class AppMenuBar extends StatelessWidget {
             children: [
               SubmenuButton(
                 style: menuButtonStyle,
-                menuStyle: fileSubmenuStyle,
+                menuStyle: MenuStyle(
+                  backgroundColor: WidgetStatePropertyAll(contextMenuColor),
+                  shape: WidgetStatePropertyAll(contextMenuShape),
+                  elevation: WidgetStatePropertyAll(0),
+                ),
                 alignmentOffset: const Offset(0, 0),
                 menuChildren: [
-                  MenuItemButton(
-                    style: fileMenuItemStyle,
-                    onPressed: _handleOpen,
-                    shortcut: const SingleActivator(LogicalKeyboardKey.keyO, control: true),
-                    child: const Text('Open'),
+                  CustomPopupMenuItem(
+                    onTap: _handleOpen,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Open', style: contextMenuTextStyle),
+                        Text('Ctrl+O', style: contextMenuTextStyle),
+                      ],
+                    ),
                   ),
-                  MenuItemButton(
-                    style: fileMenuItemStyle,
-                    onPressed: _handleSave,
-                    shortcut: const SingleActivator(LogicalKeyboardKey.keyS, control: true),
-                    child: const Text('Save As'),
+                  CustomPopupMenuItem(
+                    onTap: _handleSave,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Save As', style: contextMenuTextStyle),
+                        Text('Ctrl+S', style: contextMenuTextStyle),
+                      ],
+                    ),
                   ),
-                  MenuItemButton(
-                    style: fileMenuItemStyle,
-                    onPressed: () => showSettingsModal(context),
-                    child: const Text('Settings'),
+                  CustomPopupMenuItem(
+                    onTap: () => showSettingsModal(context),
+                    child: Text('Settings', style: contextMenuTextStyle),
                   ),
                 ],
                 child: const Text('File'),
               ),
               SubmenuButton(
                 style: menuButtonStyle,
-                menuStyle: fileSubmenuStyle,
+                menuStyle: MenuStyle(
+                  backgroundColor: WidgetStatePropertyAll(contextMenuColor),
+                  shape: WidgetStatePropertyAll(contextMenuShape),
+                  elevation: WidgetStatePropertyAll(0),
+                ),
                 alignmentOffset: const Offset(0, 0),
                 menuChildren: [
-                  MenuItemButton(
-                    style: fileMenuItemStyle,
-                    onPressed: () {
+                  CustomPopupMenuItem(
+                    onTap: () {
                       showAboutDialog(
                         context: context,
                         applicationName: 'Trayce',
@@ -132,7 +147,7 @@ class AppMenuBar extends StatelessWidget {
                         applicationIcon: const Icon(Icons.track_changes),
                       );
                     },
-                    child: const Text('About'),
+                    child: Text('About', style: contextMenuTextStyle),
                   ),
                 ],
                 child: const Text('Help'),
