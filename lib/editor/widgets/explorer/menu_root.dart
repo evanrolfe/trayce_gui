@@ -25,22 +25,30 @@ void showRootMenu(
       CustomPopupMenuItem(
         height: 30,
         onTap: onOpenCollection,
+        shouldPop: true,
         child: Text('Open Collection', style: contextMenuTextStyle),
       ),
       CustomPopupMenuItem(
         height: 30,
         onTap: onNewCollection,
+        shouldPop: true,
         child: Text('New Collection', style: contextMenuTextStyle),
       ),
       CustomPopupMenuItem(
         height: 30,
         onTap: onNewRequest,
+        shouldPop: true,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [Text('New Request', style: contextMenuTextStyle), Text('Ctrl+N', style: contextMenuTextStyle)],
         ),
       ),
-      CustomPopupMenuItem(height: 30, onTap: onRefresh, child: Text('Refresh', style: contextMenuTextStyle)),
+      CustomPopupMenuItem(
+        height: 30,
+        onTap: onRefresh,
+        shouldPop: true,
+        child: Text('Refresh', style: contextMenuTextStyle),
+      ),
     ],
   );
 }
