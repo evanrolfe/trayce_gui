@@ -24,6 +24,9 @@ Future<void> test(WidgetTester tester, Database db) async {
   final folderBruPath = 'test/support/collection1/myfolder/folder.bru';
   final originalFolderBru = loadFile(folderBruPath);
 
+  final collectionBruPath = 'test/support/collection1/collection.bru';
+  final originalCollectionBru = loadFile(collectionBruPath);
+
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
   await tester.tap(networkTab);
@@ -210,6 +213,36 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(loadFile(folderBruPath), contains('added-by-test'));
 
   // ===========================================================================
+  // Change a collection Header
+  // ===========================================================================
+  // Right-click on the myfolder item
+  final collectionItem = find.text('collection1');
+  await tester.tapAt(tester.getCenter(collectionItem), buttons: 2);
+  await tester.pumpAndSettle();
+
+  // Click open on context menu
+  final settingsItem2 = find.text('Settings');
+  await tester.tap(settingsItem2);
+  await tester.pumpAndSettle();
+
+  final headersTable4 = tester.widget<FormTable>(find.byType(FormTable).last);
+  final headersManager4 = headersTable4.stateManager;
+
+  // Change the key text of the first header row
+  expect(headersManager4.rows.length, 5);
+
+  headersManager4.rows[4].keyController.text = 'F';
+  headersManager4.rows[4].valueController.text = 'added-by-test-collection';
+  await tester.pumpAndSettle(const Duration(seconds: 3));
+
+  // Save the changes
+  await tester.tap(find.byKey(Key('save_btn')));
+  await tester.pumpAndSettle();
+
+  // Expect the file to be changed
+  expect(loadFile(collectionBruPath), contains('added-by-test-collection'));
+
+  // ===========================================================================
   // Send a request
   // ===========================================================================
   server.handler.expect("POST", "/test_endpoint", (request) async {
@@ -234,6 +267,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.headers['c'], "set from folder");
   expect(sentRequest!.headers['d'], "set from collection");
   expect(sentRequest!.headers['e'], "added-by-test");
+  expect(sentRequest!.headers['f'], "added-by-test-collection");
   expect(sentRequest!.headers['x-auth-token'], "abcd1234");
   expect(sentRequestBody, '{"hello": "world"}');
 
@@ -242,6 +276,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // ===========================================================================
   // Restore the original file
   saveFile(folderBruPath, originalFolderBru);
+  saveFile(collectionBruPath, originalCollectionBru);
 
   // Close the open request tab
   await pressCtrlW(tester);

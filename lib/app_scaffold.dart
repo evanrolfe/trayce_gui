@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:trayce/common/style.dart';
 
 const Color textColor = Color(0xFFD4D4D4);
 const Color sidebarColor = Color(0xFF333333);
@@ -66,7 +67,7 @@ class _AppScaffoldState extends State<AppScaffold> {
         decoration: BoxDecoration(
           color: hoverColor,
           borderRadius: BorderRadius.all(Radius.circular(4)),
-          border: Border.all(color: hoverColor, width: 0),
+          border: Border.all(color: highlightBorderColor, width: 1),
           //   border: Border.all(width: 0),
         ),
         child: Center(child: Text(text, style: const TextStyle(color: textColor, fontSize: 13))),
