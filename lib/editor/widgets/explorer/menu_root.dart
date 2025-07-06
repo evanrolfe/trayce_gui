@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:trayce/common/context_menu.dart';
 import 'package:trayce/common/context_menu_style.dart';
@@ -11,7 +13,10 @@ void showRootMenu(
   VoidCallback onNewRequest,
   VoidCallback onRefresh,
 ) {
-  final anchors = TextSelectionToolbarAnchors(primaryAnchor: Offset(width + 40, itemHeight + 32));
+  int heightOffset = 0;
+  if (Platform.isLinux) heightOffset = 32;
+
+  final anchors = TextSelectionToolbarAnchors(primaryAnchor: Offset(width + 40, itemHeight));
   showMenu(
     popUpAnimationStyle: contextMenuAnimationStyle,
     context: context,
