@@ -15,7 +15,7 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
-import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
 
@@ -113,7 +113,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     // Init the tab controllers
     _bottomTabController = TabController(length: 2, vsync: this);
-    _topTabController = TabController(length: 2, vsync: this);
+    _topTabController = TabController(length: 3, vsync: this);
     _topTabController.addListener(() {
       setState(() {}); // This will trigger a rebuild when the tab changes
     });
@@ -350,7 +350,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           child: SingleLineCodeEditor(
                             key: const Key('flow_editor_http_url_input'),
                             controller: _formController.urlController,
-                            onSavePressed: saveFlow,
                             onEnterPressed: sendRequest,
                             focusNode: _focusManager.urlFocusNode,
                             decoration: BoxDecoration(
@@ -421,55 +420,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             child: Row(
                                               children: [
                                                 Expanded(
-                                                  child: TabBar(
+                                                  child: InlineTabBar(
                                                     controller: _topTabController,
-                                                    dividerColor: Colors.transparent,
-                                                    labelColor: const Color(0xFFD4D4D4),
-                                                    unselectedLabelColor: const Color(0xFF808080),
-                                                    indicator: const UnderlineTabIndicator(
-                                                      borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                                                    ),
-                                                    labelPadding: EdgeInsets.zero,
-                                                    padding: EdgeInsets.zero,
-                                                    isScrollable: true,
-                                                    tabAlignment: TabAlignment.start,
-                                                    labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                                    unselectedLabelStyle: const TextStyle(
-                                                      fontWeight: FontWeight.normal,
-                                                    ),
-                                                    tabs: [
-                                                      GestureDetector(
-                                                        onTapDown: (_) {
-                                                          _topTabController.animateTo(0);
-                                                          _focusManager.topTabFocusNode.requestFocus();
-                                                        },
-                                                        child: Container(
-                                                          color: Colors.blue.withOpacity(0.0),
-                                                          child: const SizedBox(
-                                                            width: 100,
-                                                            child: Tab(text: 'Headers'),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      GestureDetector(
-                                                        onTapDown: (_) {
-                                                          _topTabController.animateTo(1);
-                                                          _focusManager.topTabFocusNode.requestFocus();
-                                                        },
-                                                        child: Container(
-                                                          color: Colors.blue.withOpacity(0.0),
-                                                          child: const SizedBox(width: 100, child: Tab(text: 'Body')),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                    overlayColor: MaterialStateProperty.resolveWith<Color?>((
-                                                      Set<MaterialState> states,
-                                                    ) {
-                                                      if (states.contains(MaterialState.hovered)) {
-                                                        return hoveredItemColor.withAlpha(hoverAlpha);
-                                                      }
-                                                      return null;
-                                                    }),
+                                                    tabTitles: const ['Headers', 'Body', 'Variables'],
+                                                    focusNode: _focusManager.topTabFocusNode,
                                                   ),
                                                 ),
                                                 if (_topTabController.index == 1) ...[
@@ -521,10 +475,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             controller: _topTabController,
                                             children: [
                                               SingleChildScrollView(
-                                                child: FormTable(
-                                                  stateManager: _formController.headersController,
-                                                  onSavePressed: saveFlow,
-                                                ),
+                                                child: FormTable(stateManager: _formController.headersController),
                                               ),
                                               IndexedStack(
                                                 index: bodyTypeIndex,
@@ -546,14 +497,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   SingleChildScrollView(
                                                     child: FormTable(
                                                       stateManager: _formController.formUrlEncodedController,
-                                                      onSavePressed: saveFlow,
                                                     ),
                                                   ),
                                                   // Form Table Multi Part Form
                                                   SingleChildScrollView(
                                                     child: FormTable(
                                                       stateManager: _formController.multipartFormController,
-                                                      onSavePressed: saveFlow,
                                                       columns: [
                                                         FormTableColumn.enabled,
                                                         FormTableColumn.key,
@@ -567,7 +516,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   SingleChildScrollView(
                                                     child: FormTable(
                                                       stateManager: _formController.fileController,
-                                                      onSavePressed: saveFlow,
                                                       columns: [
                                                         FormTableColumn.valueFile,
                                                         FormTableColumn.contentType,
@@ -577,6 +525,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     ),
                                                   ),
                                                 ],
+                                              ),
+                                              SingleChildScrollView(
+                                                child: FormTable(stateManager: _formController.varsController),
                                               ),
                                             ],
                                           ),
@@ -597,44 +548,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                         child: Row(
                                           children: [
                                             Expanded(
-                                              child: TabBar(
+                                              child: InlineTabBar(
                                                 controller: _bottomTabController,
-                                                dividerColor: Colors.transparent,
-                                                labelColor: const Color(0xFFD4D4D4),
-                                                unselectedLabelColor: const Color(0xFF808080),
-                                                indicator: const UnderlineTabIndicator(
-                                                  borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                                                ),
-                                                labelPadding: EdgeInsets.zero,
-                                                padding: EdgeInsets.zero,
-                                                isScrollable: true,
-                                                tabAlignment: TabAlignment.start,
-                                                labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                                tabs: [
-                                                  GestureDetector(
-                                                    onTapDown: (_) => _bottomTabController.animateTo(0),
-                                                    child: Container(
-                                                      color: Colors.blue.withOpacity(0.0),
-                                                      child: const SizedBox(width: 100, child: Tab(text: 'Response')),
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTapDown: (_) => _bottomTabController.animateTo(1),
-                                                    child: Container(
-                                                      color: Colors.blue.withOpacity(0.0),
-                                                      child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
-                                                    ),
-                                                  ),
-                                                ],
-                                                overlayColor: MaterialStateProperty.resolveWith<Color?>((
-                                                  Set<MaterialState> states,
-                                                ) {
-                                                  if (states.contains(MaterialState.hovered)) {
-                                                    return hoveredItemColor.withAlpha(hoverAlpha);
-                                                  }
-                                                  return null;
-                                                }),
+                                                tabTitles: const ['Response', 'Headers'],
+                                                focusNode: _focusManager.topTabFocusNode,
                                               ),
                                             ),
                                             const SizedBox(width: 12),

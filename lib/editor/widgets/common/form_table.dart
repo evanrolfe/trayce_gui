@@ -6,13 +6,11 @@ import 'package:trayce/editor/widgets/common/form_table_state.dart';
 
 class FormTable extends StatelessWidget {
   final FormTableStateManager stateManager;
-  final VoidCallback? onSavePressed;
   final List<FormTableColumn> columns;
 
   const FormTable({
     super.key,
     required this.stateManager,
-    this.onSavePressed,
     this.columns = const [FormTableColumn.enabled, FormTableColumn.key, FormTableColumn.value, FormTableColumn.delete],
   });
 
@@ -128,7 +126,6 @@ class FormTable extends StatelessWidget {
                 key: Key('form_table_key_$index'),
                 border: Border(top: borderSide, left: borderSide, bottom: borderBottom),
                 controller: row.keyController,
-                onSavePressed: onSavePressed,
                 focusNode: rowFocusNodes['key']!,
               ),
             ),
@@ -142,7 +139,6 @@ class FormTable extends StatelessWidget {
                 key: Key('form_table_value_$index'),
                 border: Border(top: borderSide, left: borderSide, bottom: borderBottom),
                 controller: row.valueController,
-                onSavePressed: onSavePressed,
                 focusNode: rowFocusNodes['value']!,
               ),
             ),
@@ -181,7 +177,6 @@ class FormTable extends StatelessWidget {
                 key: Key('form_table_content_type_$index'),
                 border: Border(top: borderSide, left: borderSide, bottom: borderBottom),
                 controller: row.contentTypeController,
-                onSavePressed: onSavePressed,
                 focusNode: rowFocusNodes['contentType']!,
               ),
             ),

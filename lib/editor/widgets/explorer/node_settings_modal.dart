@@ -7,7 +7,7 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
-import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 Future<void> showNodeSettingsModal(BuildContext context, ExplorerNode node) {
@@ -115,40 +115,10 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                       child: Row(
                         children: [
                           Expanded(
-                            child: TabBar(
+                            child: InlineTabBar(
                               controller: _tabController,
-                              dividerColor: Colors.transparent,
-                              labelColor: const Color(0xFFD4D4D4),
-                              unselectedLabelColor: const Color(0xFF808080),
-                              indicator: const UnderlineTabIndicator(
-                                borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                              ),
-                              labelPadding: EdgeInsets.zero,
-                              padding: EdgeInsets.zero,
-                              isScrollable: true,
-                              tabAlignment: TabAlignment.start,
-                              labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                              tabs: [
-                                GestureDetector(
-                                  onTapDown: (_) {
-                                    _tabController.animateTo(0);
-                                  },
-                                  child: Container(child: const SizedBox(width: 100, child: Tab(text: 'Headers'))),
-                                ),
-                                GestureDetector(
-                                  onTapDown: (_) {
-                                    _tabController.animateTo(1);
-                                  },
-                                  child: Container(child: const SizedBox(width: 100, child: Tab(text: 'Variables'))),
-                                ),
-                              ],
-                              overlayColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-                                if (states.contains(MaterialState.hovered)) {
-                                  return hoveredItemColor.withAlpha(hoverAlpha);
-                                }
-                                return null;
-                              }),
+                              tabTitles: const ['Headers', 'Variables'],
+                              focusNode: FocusNode(),
                             ),
                           ),
                           const SizedBox(width: 20),
@@ -161,14 +131,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            SingleChildScrollView(
-                              child: FormTable(
-                                stateManager: _formTableStateManager,
-                                onSavePressed: () {
-                                  // TODO: Add save functionality
-                                },
-                              ),
-                            ),
+                            SingleChildScrollView(child: FormTable(stateManager: _formTableStateManager)),
                             const Center(child: Text('Todo', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16))),
                           ],
                         ),

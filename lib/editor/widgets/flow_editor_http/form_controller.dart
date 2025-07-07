@@ -28,6 +28,7 @@ class FormController {
   final CodeLineEditingController respBodyController = CodeLineEditingController();
 
   late final FormTableStateManager headersController;
+  late final FormTableStateManager varsController;
   late final FormTableStateManager formUrlEncodedController;
   late final FormTableStateManager multipartFormController;
   late final FormTableStateManager fileController;
@@ -90,6 +91,16 @@ class FormController {
       onStateChanged: setState,
       initialRows: _formRequest.headers,
       onModified: _headersModified,
+      config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
+    );
+
+    // Vars
+    varsController = FormTableStateManager(
+      onStateChanged: setState,
+      initialRows: [],
+      onModified: _varsModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
@@ -197,6 +208,10 @@ class FormController {
   void _headersModified() {
     _formRequest.setHeaders(headersController.getHeaders());
     _flowModified();
+  }
+
+  void _varsModified() {
+    print('varsModified');
   }
 
   void _formUrlEncodedModified() {

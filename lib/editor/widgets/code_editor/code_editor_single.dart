@@ -15,7 +15,6 @@ class SingleLineCodeEditor extends StatefulWidget {
   final VoidCallback? onEnterPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
-  final VoidCallback? onSavePressed;
   final Border? border;
   const SingleLineCodeEditor({
     required super.key,
@@ -26,7 +25,6 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.onEnterPressed,
     this.focusNode,
     this.decoration,
-    this.onSavePressed,
     this.border,
   });
 
