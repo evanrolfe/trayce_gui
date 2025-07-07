@@ -7,6 +7,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
+import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
@@ -72,6 +73,12 @@ class FormTableStateManager {
         type: ParamType.form,
         enabled: row.checkboxState,
       );
+    }).toList();
+  }
+
+  List<Variable> getVars() {
+    return _rows.where((row) => !row.isEmpty()).map((row) {
+      return Variable(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
     }).toList();
   }
 

@@ -5,6 +5,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
@@ -208,6 +209,54 @@ void main() {
 
       expect(tableManager.rows[2].valueFile, isNull);
       expect(tableManager.rows[2].contentTypeController.text, '');
+
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a request with vars', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request(
+        name: 'Test Request',
+        type: 'http',
+        seq: 1,
+        method: 'get',
+        url: 'https://example.com',
+        bodyType: BodyType.none,
+        params: [],
+        headers: [],
+        requestVars: [
+          Variable(name: 'A', value: 'set-in-request1', enabled: true),
+          Variable(name: 'B', value: 'set-in-request2', enabled: false),
+        ],
+        responseVars: [],
+        assertions: [],
+      );
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = await deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Click on variables tab
+      await tester.tap(find.text('Variables'));
+      await tester.pumpAndSettle();
+
+      // Verify variables
+      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final tableManager = formTable.stateManager;
+
+      expect(tableManager.rows.length, 3);
+      expect(tableManager.rows[0].keyController.text, 'A');
+      expect(tableManager.rows[0].valueController.text, 'set-in-request1');
+      expect(tableManager.rows[0].checkboxState, true);
+
+      expect(tableManager.rows[1].keyController.text, 'B');
+      expect(tableManager.rows[1].valueController.text, 'set-in-request2');
+      expect(tableManager.rows[1].checkboxState, false);
+
+      expect(tableManager.rows[2].keyController.text, '');
+      expect(tableManager.rows[2].valueController.text, '');
+      expect(tableManager.rows[2].checkboxState, false);
 
       await tester.pumpAndSettle();
     });

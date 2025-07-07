@@ -238,9 +238,8 @@ class Request {
     }
 
     // Compare headers
-    if (headers.length != other.headers.length) {
-      return false;
-    }
+    if (headers.length != other.headers.length) return false;
+
     for (var i = 0; i < headers.length; i++) {
       if (!headers[i].equals(other.headers[i])) {
         return false;
@@ -258,6 +257,14 @@ class Request {
     // }
 
     // Compare request variables
+    if (requestVars.length != other.requestVars.length) return false;
+
+    for (var i = 0; i < requestVars.length; i++) {
+      if (!requestVars[i].equals(other.requestVars[i])) {
+        return false;
+      }
+    }
+
     // if (requestVars.length != other.requestVars.length) return false;
     // for (var i = 0; i < requestVars.length; i++) {
     //   if (!requestVars[i].equals(other.requestVars[i])) return false;
@@ -439,6 +446,10 @@ class Request {
 
   void setHeaders(List<Header> headers) {
     this.headers = headers;
+  }
+
+  void setRequestVars(List<Variable> vars) {
+    requestVars = vars;
   }
 
   void setBodyType(BodyType bodyType) {
