@@ -5,6 +5,7 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
@@ -25,6 +26,7 @@ class NodeSettingsModal extends StatefulWidget {
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
   late TabController _tabController;
   late FormTableStateManager _formTableStateManager;
+  late FormTableStateManager _varsController;
   late String _title;
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
 
     _title = widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';
 
+    // Headers
     List<Header> headers = [];
     if (widget.node.type == NodeType.folder) {
       headers = widget.node.folder?.headers ?? [];
@@ -51,14 +54,42 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       focusManager: focusManager,
       eventBus: eventBus,
     );
+
+    // Vars
+    List<Variable> vars = [];
+    if (widget.node.type == NodeType.folder) {
+      vars = widget.node.folder?.requestVars ?? [];
+    } else if (widget.node.type == NodeType.collection) {
+      vars = widget.node.collection?.requestVars ?? [];
+    }
+
+    // Convert the params to Headers for the FormTableStateManager
+    List<Header> varsForManager = [];
+    varsForManager = vars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
+    _varsController = FormTableStateManager(
+      onStateChanged: () => setState(() {}),
+      initialRows: varsForManager,
+      config: config,
+      focusManager: focusManager,
+      eventBus: eventBus,
+    );
   }
 
   Future<void> _onSave() async {
+    // Save Headers
     if (widget.node.type == NodeType.folder) {
       widget.node.folder!.headers = _formTableStateManager.getHeaders();
     } else if (widget.node.type == NodeType.collection) {
       widget.node.collection!.headers = _formTableStateManager.getHeaders();
     }
+
+    // Save Variables
+    if (widget.node.type == NodeType.folder) {
+      widget.node.folder!.requestVars = _varsController.getVars();
+    } else if (widget.node.type == NodeType.collection) {
+      widget.node.collection!.requestVars = _varsController.getVars();
+    }
+
     widget.node.save();
     Navigator.of(context).pop();
   }
@@ -67,6 +98,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
   void dispose() {
     _tabController.dispose();
     _formTableStateManager.dispose();
+    _varsController.dispose();
     super.dispose();
   }
 
@@ -132,7 +164,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                           controller: _tabController,
                           children: [
                             SingleChildScrollView(child: FormTable(stateManager: _formTableStateManager)),
-                            const Center(child: Text('Todo', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16))),
+                            SingleChildScrollView(child: FormTable(stateManager: _varsController)),
                           ],
                         ),
                       ),

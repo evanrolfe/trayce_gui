@@ -166,7 +166,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // ===========================================================================
-  // Change the URL, Method, Body & Headers
+  // Change a header+variable on the request
   // ===========================================================================
   // Change the URL
   final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')).last);
@@ -183,8 +183,17 @@ Future<void> test(WidgetTester tester, Database db) async {
   headersManager2.rows[1].valueController.text = 'added-on-form';
   await tester.pumpAndSettle();
 
+  // Set a variable
+  await tester.tap(find.text('Variables').first);
+  await tester.pumpAndSettle();
+  final varsManager = tester.widget<FormTable>(find.byType(FormTable)).stateManager;
+
+  varsManager.rows[0].keyController.text = 'A_var';
+  varsManager.rows[0].valueController.text = 'added-on-form';
+  await tester.pumpAndSettle();
+
   // ===========================================================================
-  // Change a folder Header
+  // Change a folder header+variable
   // ===========================================================================
   // Right-click on the myfolder item
   await tester.tapAt(tester.getCenter(myfolderItem), buttons: 2);
@@ -205,15 +214,26 @@ Future<void> test(WidgetTester tester, Database db) async {
   headersManager3.rows[0].valueController.text = 'added-by-test';
   await tester.pumpAndSettle();
 
+  // Set a variable
+  await tester.tap(find.text('Variables').last);
+  await tester.pumpAndSettle();
+  final varsManager3 = tester.widget<FormTable>(find.byType(FormTable).last).stateManager;
+
+  varsManager3.rows[0].keyController.text = 'B_var';
+  varsManager3.rows[0].valueController.text = 'added-on-folder';
+  await tester.pumpAndSettle();
+
   // Save the changes
   await tester.tap(find.byKey(Key('save_btn')));
   await tester.pumpAndSettle();
 
   // Expect the file to be changed
-  expect(loadFile(folderBruPath), contains('added-by-test'));
+  final folderBru = loadFile(folderBruPath);
+  expect(folderBru, contains('E: added-by-test'));
+  expect(folderBru, contains('B_var: added-on-folder'));
 
   // ===========================================================================
-  // Change a collection Header
+  // Change a collection Header+Variable
   // ===========================================================================
   // Right-click on the myfolder item
   final collectionItem = find.text('collection1');
@@ -233,14 +253,25 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   headersManager4.rows[4].keyController.text = 'F';
   headersManager4.rows[4].valueController.text = 'added-by-test-collection';
-  await tester.pumpAndSettle(const Duration(seconds: 3));
+  await tester.pumpAndSettle();
+
+  // Set a variable
+  await tester.tap(find.text('Variables').last);
+  await tester.pumpAndSettle();
+  final varsManager4 = tester.widget<FormTable>(find.byType(FormTable).last).stateManager;
+
+  varsManager4.rows[0].keyController.text = 'C_var';
+  varsManager4.rows[0].valueController.text = 'added-on-collection';
+  await tester.pumpAndSettle();
 
   // Save the changes
   await tester.tap(find.byKey(Key('save_btn')));
   await tester.pumpAndSettle();
 
   // Expect the file to be changed
-  expect(loadFile(collectionBruPath), contains('added-by-test-collection'));
+  final collectionBru = loadFile(collectionBruPath);
+  expect(collectionBru, contains('F: added-by-test-collection'));
+  expect(collectionBru, contains('C_var: added-on-collection'));
 
   // ===========================================================================
   // Send a request
