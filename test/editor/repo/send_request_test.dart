@@ -43,6 +43,20 @@ void main() {
       expect(finalReq.headers[2].value, 'set from folder');
       expect(finalReq.headers[3].name, 'A');
       expect(finalReq.headers[3].value, 'set from request');
+
+      // Verify the variables
+      print('finalReq.requestVars:');
+      for (final reqvar in finalReq.requestVars) {
+        print('  ${reqvar.name}: ${reqvar.value}');
+      }
+
+      expect(finalReq.requestVars.length, 3);
+      expect(finalReq.requestVars[0].name, 'C_var');
+      expect(finalReq.requestVars[0].value, 'set from collection');
+      expect(finalReq.requestVars[1].name, 'B_var');
+      expect(finalReq.requestVars[1].value, 'set from folder');
+      expect(finalReq.requestVars[2].name, 'A_var');
+      expect(finalReq.requestVars[2].value, 'set from request');
     });
   });
 }

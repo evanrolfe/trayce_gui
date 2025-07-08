@@ -22,27 +22,42 @@ class SendRequest {
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
       final node = nodeHierarchy[i];
 
-      // Add headers from collection
+      // Add headers, vars from collection
       if (node.type == NodeType.collection && node.collection != null) {
         for (final header in node.collection!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
+
+        for (final reqvar in node.collection!.requestVars) {
+          finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+          finalReq.requestVars.add(reqvar);
+        }
       }
 
-      // Add headers from folder
+      // Add headers, vars from folder
       if (node.type == NodeType.folder && node.folder != null) {
         for (final header in node.folder!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
+
+        for (final reqvar in node.folder!.requestVars) {
+          finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+          finalReq.requestVars.add(reqvar);
+        }
       }
 
-      // Add headers from request
+      // Add headers, vars from request
       if (node.type == NodeType.request && node.request != null) {
         for (final header in node.request!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
+        }
+
+        for (final reqvar in node.request!.requestVars) {
+          finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+          finalReq.requestVars.add(reqvar);
         }
       }
     }

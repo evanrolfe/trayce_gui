@@ -34,8 +34,8 @@ void main() {
       final collectionAuth = collection?.auth as BasicAuth;
       expect(collectionAuth.username, 'asdf');
       expect(collectionAuth.password, 'asdf');
-      expect(collection?.requestVars[0].name, 'xxx');
-      expect(collection?.requestVars[0].value, 'yyy');
+      expect(collection?.requestVars[0].name, 'A_var');
+      expect(collection?.requestVars[0].value, 'set from collection');
 
       expect(event.nodes[0].children[0].name, 'hello');
       expect(event.nodes[0].children[0].type, NodeType.folder);
