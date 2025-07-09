@@ -25,7 +25,7 @@ class NodeSettingsModal extends StatefulWidget {
 
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
   late TabController _tabController;
-  late FormTableStateManager _formTableStateManager;
+  late FormTableStateManager _headersController;
   late FormTableStateManager _varsController;
   late String _title;
   @override
@@ -47,7 +47,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       headers = widget.node.collection?.headers ?? [];
     }
 
-    _formTableStateManager = FormTableStateManager(
+    _headersController = FormTableStateManager(
       initialRows: headers,
       onStateChanged: () => setState(() {}),
       config: config,
@@ -78,9 +78,9 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
   Future<void> _onSave() async {
     // Save Headers
     if (widget.node.type == NodeType.folder) {
-      widget.node.folder!.headers = _formTableStateManager.getHeaders();
+      widget.node.folder!.headers = _headersController.getHeaders();
     } else if (widget.node.type == NodeType.collection) {
-      widget.node.collection!.headers = _formTableStateManager.getHeaders();
+      widget.node.collection!.headers = _headersController.getHeaders();
     }
 
     // Save Variables
@@ -97,7 +97,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
   @override
   void dispose() {
     _tabController.dispose();
-    _formTableStateManager.dispose();
+    _headersController.dispose();
     _varsController.dispose();
     super.dispose();
   }
@@ -163,7 +163,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            SingleChildScrollView(child: FormTable(stateManager: _formTableStateManager)),
+                            SingleChildScrollView(child: FormTable(stateManager: _headersController)),
                             SingleChildScrollView(child: FormTable(stateManager: _varsController)),
                           ],
                         ),

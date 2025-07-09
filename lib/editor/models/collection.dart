@@ -1,3 +1,5 @@
+import 'package:trayce/editor/models/environment.dart';
+
 import 'auth.dart';
 import 'header.dart';
 import 'param.dart';
@@ -8,7 +10,7 @@ import 'variable.dart';
 
 class Collection {
   String type;
-
+  List<Environment> environments;
   Map<String, dynamic>? meta;
 
   List<Header> headers;
@@ -26,6 +28,7 @@ class Collection {
 
   Collection({
     required this.type,
+    required this.environments,
     this.meta,
     required this.headers,
     required this.query,

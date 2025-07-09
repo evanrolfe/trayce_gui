@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +10,14 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
+import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/tab_item.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 import 'package:uuid/uuid.dart';
@@ -43,6 +47,28 @@ class _EditorTabsState extends State<EditorTabs> {
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
   final List<_TabEntry> _tabs = [];
+  final Map<Collection, List<_TabEntry>> _tabsMap = {};
+  Collection? _currentCollection;
+
+  // Environment dropdown state
+  String _selectedEnvironment = 'No Environment';
+  static const List<String> _environmentOptions = ['No Environment', 'Dev', 'Configure'];
+
+  List<_TabEntry> currentTabs() {
+    return _tabsMap[_currentCollection] ?? [];
+  }
+
+  void addTab(_TabEntry tab) {
+    if (_currentCollection == null) return;
+
+    final tabs = _tabsMap[_currentCollection];
+
+    if (tabs == null) {
+      _tabsMap[_currentCollection!] = [tab];
+    } else {
+      tabs.add(tab);
+    }
+  }
 
   @override
   void initState() {
@@ -54,11 +80,18 @@ class _EditorTabsState extends State<EditorTabs> {
     // Called when a request is opened from the explorer
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
+        _currentCollection = event.collection;
+        print("=========> 0  current collection: $_currentCollection");
         final uuid = const Uuid().v4();
-        final newTab = TabItem(node: event.node, key: ValueKey('tabItem_$uuid'), displayName: event.node.displayName());
+        final newTab = TabItem(
+          node: event.node,
+          collection: event.collection,
+          key: ValueKey('tabItem_$uuid'),
+          displayName: event.node.displayName(),
+        );
 
         // Check if tab already exists
-        final existingIndex = _tabs.indexWhere((entry) => entry.tab.getPath() == newTab.getPath());
+        final existingIndex = currentTabs().indexWhere((entry) => entry.tab.getPath() == newTab.getPath());
         if (existingIndex != -1) {
           _selectedTabIndex = existingIndex;
           return;
@@ -68,7 +101,8 @@ class _EditorTabsState extends State<EditorTabs> {
 
         // Add new tab
         final tabKey = newTab.key;
-        _tabs.add(
+        print("=========  adding tab: ${newTab.displayName}");
+        addTab(
           _TabEntry(
             tab: newTab,
             // Bit of a round-about way of letting the user save the flow when focused on a tab,
@@ -86,37 +120,43 @@ class _EditorTabsState extends State<EditorTabs> {
             ),
           ),
         );
-        _selectedTabIndex = _tabs.length - 1;
+        _selectedTabIndex = currentTabs().length - 1;
       });
     });
 
     // Called when a request is modified
     _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((event) {
-      final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
+      final index = currentTabs().indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
         return;
       }
 
       setState(() {
-        _tabs[index].tab.isModified = event.isDifferent;
+        currentTabs()[index].tab.isModified = event.isDifferent;
       });
     });
 
     // Called when a new request is created (i.e. CTRL+N)
     _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen((event) {
+      if (_currentCollection == null) {
+        print('WARNING: cant create a new request without an open collection');
+        return;
+      }
+
       setState(() {
-        final newTabCount = _tabs.where((entry) => entry.tab.isNew).length;
+        final newTabCount = currentTabs().where((entry) => entry.tab.isNew).length;
 
         // Add new tab
         final uuid = const Uuid().v4();
         final newTab = TabItem(
           node: null,
+          collection: _currentCollection!,
           isNew: true,
           key: ValueKey('tabItem_$uuid'),
           displayName: 'Untitled-$newTabCount',
         );
         final tabKey = newTab.key;
-        _tabs.add(
+        addTab(
           _TabEntry(
             tab: newTab,
             onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
@@ -131,18 +171,18 @@ class _EditorTabsState extends State<EditorTabs> {
             ),
           ),
         );
-        _selectedTabIndex = _tabs.length - 1;
+        _selectedTabIndex = currentTabs().length - 1;
       });
     });
 
     // Called when a request is saved (i.e. CTRL+S)
     _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen((event) async {
-      final index = _tabs.indexWhere((entry) => entry.tab.key == event.tabKey);
+      final index = currentTabs().indexWhere((entry) => entry.tab.key == event.tabKey);
       if (index == -1) {
         return;
       }
 
-      final tab = _tabs[index].tab;
+      final tab = currentTabs()[index].tab;
       if (tab.node == null) {
         // Creating a new request
         String? path = await _getPath();
@@ -182,13 +222,13 @@ class _EditorTabsState extends State<EditorTabs> {
       }
 
       setState(() {
-        _tabs[index].tab.isModified = false;
+        currentTabs()[index].tab.isModified = false;
       });
     });
 
     // Called when a node is renamed from the explorer
     _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen((event) {
-      final tab = _tabs.firstWhereOrNull((entry) => entry.tab.node == event.node);
+      final tab = currentTabs().firstWhereOrNull((entry) => entry.tab.node == event.node);
       if (tab == null) return;
 
       setState(() {
@@ -257,8 +297,8 @@ class _EditorTabsState extends State<EditorTabs> {
       }
 
       // Reorder the tab entry
-      final item = _tabs.removeAt(oldIndex);
-      _tabs.insert(newIndex, item);
+      final item = currentTabs().removeAt(oldIndex);
+      currentTabs().insert(newIndex, item);
 
       // Update selected index
       if (_selectedTabIndex == oldIndex) {
@@ -270,14 +310,14 @@ class _EditorTabsState extends State<EditorTabs> {
       }
 
       // Ensure selected index is valid
-      if (_selectedTabIndex >= _tabs.length) {
-        _selectedTabIndex = _tabs.length - 1;
+      if (_selectedTabIndex >= currentTabs().length) {
+        _selectedTabIndex = currentTabs().length - 1;
       }
     });
   }
 
   void _closeTab(int index) {
-    final tab = _tabs[index];
+    final tab = currentTabs()[index];
 
     if (tab.tab.isModified) {
       showConfirmDialog(
@@ -293,11 +333,11 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _closeTabNoConfirm(int index) {
     setState(() {
-      _tabs.removeAt(index);
+      currentTabs().removeAt(index);
       _hoveredCloseButtonIndex = null;
       _hoveredTabIndex = null;
 
-      if (_tabs.isEmpty) {
+      if (currentTabs().isEmpty) {
         _selectedTabIndex = 0;
       } else {
         // If we're closing the selected tab or a tab before it, adjust the index
@@ -305,8 +345,8 @@ class _EditorTabsState extends State<EditorTabs> {
           _selectedTabIndex = _selectedTabIndex > 0 ? _selectedTabIndex - 1 : 0;
         }
         // Ensure the selected index is within bounds
-        if (_selectedTabIndex >= _tabs.length) {
-          _selectedTabIndex = _tabs.length - 1;
+        if (_selectedTabIndex >= currentTabs().length) {
+          _selectedTabIndex = currentTabs().length - 1;
         }
       }
     });
@@ -340,11 +380,84 @@ class _EditorTabsState extends State<EditorTabs> {
                 child: Container(
                   height: tabHeight,
                   decoration: getTabBarDecoration(),
-                  child: ReorderableListView(
-                    scrollDirection: Axis.horizontal,
-                    onReorder: _onReorder,
-                    buildDefaultDragHandles: false,
-                    children: _tabs.asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ReorderableListView(
+                          scrollDirection: Axis.horizontal,
+                          onReorder: _onReorder,
+                          buildDefaultDragHandles: false,
+                          children:
+                              currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+                        ),
+                      ),
+                      Container(
+                        width: 30,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: IconButton(
+                          key: const Key('editor_tabs_eye_button'),
+                          onPressed: () {
+                            // TODO: Handle eye button press
+                          },
+                          icon: const Icon(Icons.visibility, size: 16, color: lightTextColor),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                              side: const BorderSide(color: Color(0xFF474747), width: 1),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 150,
+                        height: 20,
+                        margin: const EdgeInsets.only(left: 2, right: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFF474747), width: 1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: DropdownButton2<String>(
+                          key: const Key('editor_tabs_env_dropdown'),
+                          value: _selectedEnvironment,
+                          underline: Container(),
+                          dropdownStyleData: DropdownStyleData(
+                            decoration: dropdownDecoration,
+                            width: 150,
+                            openInterval: Interval(0.0, 0.0),
+                          ),
+                          buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
+                          menuItemStyleData: menuItemStyleData,
+                          iconStyleData: iconStyleData,
+                          style: textFieldStyle,
+                          isExpanded: true,
+                          items:
+                              _environmentOptions.map((String environment) {
+                                return DropdownMenuItem<String>(
+                                  value: environment,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Text(environment),
+                                  ),
+                                );
+                              }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue == null) return;
+
+                            if (newValue == 'Configure') {
+                              showEnvironmentsModal(context);
+                            } else {
+                              setState(() {
+                                _selectedEnvironment = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -358,9 +471,12 @@ class _EditorTabsState extends State<EditorTabs> {
                 behavior: HitTestBehavior.translucent,
                 onTapDown: (_) => _focusNode.requestFocus(),
                 child:
-                    _tabs.isEmpty
+                    currentTabs().isEmpty
                         ? const Center(child: Text('No tabs open'))
-                        : IndexedStack(index: _selectedTabIndex, children: _tabs.map((entry) => entry.editor).toList()),
+                        : IndexedStack(
+                          index: _selectedTabIndex,
+                          children: currentTabs().map((entry) => entry.editor).toList(),
+                        ),
               ),
             ),
           ),

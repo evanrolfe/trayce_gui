@@ -10,7 +10,7 @@ void main() {
     final bruData = await bruFile.readAsString();
 
     // Parse the BRU data
-    final environment = parseEnvironment(bruData);
+    final environment = parseEnvironment(bruData, bruFile);
 
     final bru = environment.toBru();
     expect(bru, bruData);

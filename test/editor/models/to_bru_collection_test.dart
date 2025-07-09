@@ -10,7 +10,7 @@ void main() {
     final bruData = await bruFile.readAsString();
 
     // Parse the BRU data
-    final collection = parseCollection(bruData);
+    final collection = parseCollection(bruData, []);
 
     final bru = collection.toBru();
     expect(bru, bruData);

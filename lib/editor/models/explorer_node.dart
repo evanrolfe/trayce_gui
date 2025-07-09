@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/collection.dart';
+import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/folder.dart';
 import 'package:trayce/editor/models/parse/parse_collection.dart';
+import 'package:trayce/editor/models/parse/parse_environment.dart';
 import 'package:trayce/editor/models/parse/parse_folder.dart';
 import 'package:trayce/editor/models/parse/parse_request.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -39,8 +42,22 @@ class ExplorerNode {
     Folder? folder,
   }) {
     if (type == NodeType.collection) {
+      // Load environments
+      List<Environment> environments = [];
+      final envPath = path.join(dir!.path, 'environments');
+
+      // Load all *.bru files from the environments directory
+      final envDir = Directory(envPath);
+      if (envDir.existsSync()) {
+        final envFiles = envDir.listSync().whereType<File>().where((file) => file.path.endsWith('.bru'));
+        for (final envFile in envFiles) {
+          final env = parseEnvironmentFile(envFile);
+          environments.add(env);
+        }
+      }
+
       final collectionStr = file.readAsStringSync();
-      collection = parseCollection(collectionStr);
+      collection = parseCollection(collectionStr, environments);
     }
 
     if (type == NodeType.folder) {

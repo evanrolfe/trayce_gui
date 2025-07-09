@@ -1,11 +1,14 @@
+import 'dart:io';
+
 import 'request.dart';
 import 'utils.dart';
 import 'variable.dart';
 
 class Environment {
   List<Variable> vars;
+  File file;
 
-  Environment({required this.vars});
+  Environment({required this.vars, required this.file});
 
   String toBru() {
     var bru = '';
@@ -29,5 +32,14 @@ class Environment {
     }
 
     return bru;
+  }
+
+  String fileName() {
+    final fileName = file.path.split('/').last;
+    final dotIndex = fileName.lastIndexOf('.');
+    if (dotIndex == -1) {
+      return fileName;
+    }
+    return fileName.substring(0, dotIndex);
   }
 }

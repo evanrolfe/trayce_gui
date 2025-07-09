@@ -16,8 +16,9 @@ class EventDisplayExplorerItems {
 
 class EventOpenExplorerNode {
   final ExplorerNode node;
+  final Collection collection;
 
-  EventOpenExplorerNode(this.node);
+  EventOpenExplorerNode(this.node, this.collection);
 }
 
 class EventExplorerNodeRenamed {
@@ -335,7 +336,10 @@ class ExplorerRepo {
   }
 
   void openNode(ExplorerNode node) {
-    _eventBus.fire(EventOpenExplorerNode(node));
+    final collectionNode = _findRootNodeOf(node);
+    if (collectionNode == null) return;
+
+    _eventBus.fire(EventOpenExplorerNode(node, collectionNode.collection!));
   }
 
   // _refreshNodes syncs the children of two nodes - any nodes which exist in refreshNodes
@@ -527,6 +531,18 @@ class ExplorerRepo {
       if (foundParent != null) {
         return foundParent;
       }
+    }
+    return null;
+  }
+
+  // _findRootNodeOf finds the root collection node of a given node by traversing up its ancestors
+  ExplorerNode? _findRootNodeOf(ExplorerNode node) {
+    ExplorerNode? currentNode = node;
+    while (currentNode != null) {
+      if (currentNode.type == NodeType.collection) {
+        return currentNode;
+      }
+      currentNode = _findParentNode(currentNode);
     }
     return null;
   }

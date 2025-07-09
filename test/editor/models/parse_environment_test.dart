@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/parse/parse_environment.dart';
 import 'package:trayce/editor/models/variable.dart';
@@ -8,7 +10,7 @@ void main() {
       final input = '''vars {
 }''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, isEmpty);
     });
 
@@ -17,7 +19,7 @@ void main() {
   url: http://localhost:3000
 }''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -34,7 +36,7 @@ void main() {
   ~token: secret
 }''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -62,7 +64,7 @@ void main() {
 
 ''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -86,7 +88,7 @@ vars {
 }
 ''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -117,7 +119,7 @@ vars:secret [
 ]
 ''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -136,7 +138,7 @@ vars:secret [
   token
 ]''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -164,7 +166,7 @@ vars:secret [
 ]
 ''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -198,7 +200,7 @@ vars {
 vars:secret [access_key]
 ''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')
@@ -222,7 +224,7 @@ vars {
 vars:secret [access_key,access_secret,    access_password  ]
 ''';
 
-      final env = parseEnvironment(input);
+      final env = parseEnvironment(input, File('test/editor/models/fixtures/environment.bru'));
       expect(env.vars, [
         isA<Variable>()
             .having((v) => v.name, 'name', 'url')

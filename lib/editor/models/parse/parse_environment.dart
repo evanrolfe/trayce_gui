@@ -1,10 +1,17 @@
+import 'dart:io';
+
 import '../environment.dart';
 import '../variable.dart';
 import 'grammar_environment.dart';
 
-Environment parseEnvironment(String environment) {
+Environment parseEnvironmentFile(File envFile) {
+  final envBru = envFile.readAsStringSync();
+  return parseEnvironment(envBru, envFile);
+}
+
+Environment parseEnvironment(String envBru, File envFile) {
   final bruParser = BruEnvironmentGrammar().build();
-  final result = bruParser.parse(environment.trim());
+  final result = bruParser.parse(envBru.trim());
 
   if (!result.isSuccess) {
     throw Exception(result.message);
@@ -51,5 +58,5 @@ Environment parseEnvironment(String environment) {
     }
   }
 
-  return Environment(vars: envVars + envSecrets);
+  return Environment(vars: envVars + envSecrets, file: envFile);
 }

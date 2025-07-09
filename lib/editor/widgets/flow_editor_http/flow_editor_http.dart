@@ -323,7 +323,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             focusNode: _focusManager.methodFocusNode,
                             value: _formController.selectedMethod,
                             underline: Container(),
-                            dropdownStyleData: DropdownStyleData(decoration: dropdownDecoration, width: 100),
+                            dropdownStyleData: DropdownStyleData(
+                              decoration: dropdownDecoration,
+                              width: 100,
+                              openInterval: Interval(0.0, 0.0),
+                            ),
                             buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
                             menuItemStyleData: menuItemStyleData,
                             iconStyleData: iconStyleData,
@@ -443,6 +447,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       dropdownStyleData: DropdownStyleData(
                                                         decoration: dropdownDecoration,
                                                         width: 150,
+                                                        openInterval: Interval(0.0, 0.0),
                                                       ),
                                                       buttonStyleData: ButtonStyleData(
                                                         padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
@@ -585,6 +590,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   dropdownStyleData: DropdownStyleData(
                                                     decoration: dropdownDecoration,
                                                     width: 120,
+                                                    openInterval: Interval(0.0, 0.0),
                                                   ),
                                                   buttonStyleData: ButtonStyleData(
                                                     padding: const EdgeInsets.only(left: 4, top: 2, right: 4),

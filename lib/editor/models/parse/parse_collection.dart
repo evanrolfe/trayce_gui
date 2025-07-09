@@ -2,11 +2,12 @@ import 'package:petitparser/petitparser.dart';
 
 import '../auth.dart';
 import '../collection.dart';
+import '../environment.dart';
 import '../param.dart';
 import 'grammar_collection.dart';
 import 'parse_request.dart';
 
-Collection parseCollection(String collection) {
+Collection parseCollection(String collection, List<Environment> environments) {
   final bruParser = BruCollectionGrammar().build();
   final result = bruParser.parse(collection.trim());
 
@@ -40,6 +41,7 @@ Collection parseCollection(String collection) {
 
   return Collection(
     type: type,
+    environments: environments,
     meta: meta,
     headers: headers,
     query: query,
