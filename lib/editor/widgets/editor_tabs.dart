@@ -51,8 +51,7 @@ class _EditorTabsState extends State<EditorTabs> {
   Collection? _currentCollection;
 
   // Environment dropdown state
-  String _selectedEnvironment = 'No Environment';
-  static const List<String> _environmentOptions = ['No Environment', 'Dev', 'Configure'];
+  final Map<Collection, String> _selectedEnvironment = {};
 
   List<_TabEntry> currentTabs() {
     return _tabsMap[_currentCollection] ?? [];
@@ -70,6 +69,18 @@ class _EditorTabsState extends State<EditorTabs> {
     }
   }
 
+  String getSelectedEnvironment() {
+    if (_currentCollection == null) return 'No Environment';
+
+    return _selectedEnvironment[_currentCollection!] ?? 'No Environment';
+  }
+
+  void selectEnvironment(String environment) {
+    if (_currentCollection == null) return;
+
+    _selectedEnvironment[_currentCollection!] = environment;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -81,7 +92,6 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
         _currentCollection = event.collection;
-        print("=========> 0  current collection: $_currentCollection");
         final uuid = const Uuid().v4();
         final newTab = TabItem(
           node: event.node,
@@ -101,7 +111,6 @@ class _EditorTabsState extends State<EditorTabs> {
 
         // Add new tab
         final tabKey = newTab.key;
-        print("=========  adding tab: ${newTab.displayName}");
         addTab(
           _TabEntry(
             tab: newTab,
@@ -365,6 +374,12 @@ class _EditorTabsState extends State<EditorTabs> {
 
   @override
   Widget build(BuildContext context) {
+    final environments = ['No Environment'];
+    if (_currentCollection != null) {
+      environments.addAll(_currentCollection!.environments.map((e) => e.fileName()));
+    }
+    environments.add('Configure');
+
     return SizedBox(
       width: widget.width,
       child: Column(
@@ -422,7 +437,7 @@ class _EditorTabsState extends State<EditorTabs> {
                         ),
                         child: DropdownButton2<String>(
                           key: const Key('editor_tabs_env_dropdown'),
-                          value: _selectedEnvironment,
+                          value: getSelectedEnvironment(),
                           underline: Container(),
                           dropdownStyleData: DropdownStyleData(
                             decoration: dropdownDecoration,
@@ -435,23 +450,24 @@ class _EditorTabsState extends State<EditorTabs> {
                           style: textFieldStyle,
                           isExpanded: true,
                           items:
-                              _environmentOptions.map((String environment) {
+                              environments.map((String envFileName) {
                                 return DropdownMenuItem<String>(
-                                  value: environment,
+                                  value: envFileName,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    child: Text(environment),
+                                    child: Text(envFileName),
                                   ),
                                 );
                               }).toList(),
                           onChanged: (String? newValue) {
                             if (newValue == null) return;
+                            if (_currentCollection == null) return;
 
                             if (newValue == 'Configure') {
-                              showEnvironmentsModal(context);
+                              showEnvironmentsModal(context, _currentCollection!);
                             } else {
                               setState(() {
-                                _selectedEnvironment = newValue;
+                                selectEnvironment(newValue);
                               });
                             }
                           },

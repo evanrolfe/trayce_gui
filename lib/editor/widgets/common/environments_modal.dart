@@ -3,16 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/editor/models/collection.dart';
+import 'package:trayce/editor/models/environment.dart';
+import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
-Future<void> showEnvironmentsModal(BuildContext context) {
-  return showDialog(context: context, builder: (dialogContext) => EnvironmentsModal());
+Future<void> showEnvironmentsModal(BuildContext context, Collection collection) {
+  return showDialog(context: context, builder: (dialogContext) => EnvironmentsModal(collection: collection));
 }
 
 class EnvironmentsModal extends StatefulWidget {
-  const EnvironmentsModal({super.key});
+  final Collection collection;
+
+  const EnvironmentsModal({super.key, required this.collection});
 
   @override
   State<EnvironmentsModal> createState() => _EnvironmentsModalState();
@@ -21,8 +26,11 @@ class EnvironmentsModal extends StatefulWidget {
 class _EnvironmentsModalState extends State<EnvironmentsModal> {
   late FormTableStateManager _varsController;
   late String _title;
-  late List<String> _environments;
+  late List<Environment> _environments;
   late int _selectedEnvironmentIndex;
+  int? _hoveredEnvironmentIndex;
+  bool _isEditingFilename = false;
+  late TextEditingController _filenameController;
   @override
   void initState() {
     super.initState();
@@ -32,28 +40,41 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
     _title = 'Environments';
-    _environments = ['Dev', 'Test', 'Prod'];
+    _environments = widget.collection.environments;
     _selectedEnvironmentIndex = 0;
-    //  widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';
+    _filenameController = TextEditingController(text: _environments[_selectedEnvironmentIndex].fileName());
 
     // Vars
-    // List<Variable> vars = [];
-    // if (widget.node.type == NodeType.folder) {
-    //   vars = widget.node.folder?.requestVars ?? [];
-    // } else if (widget.node.type == NodeType.collection) {
-    //   vars = widget.node.collection?.requestVars ?? [];
-    // }
-
+    //
     // Convert the params to Headers for the FormTableStateManager
-    // List<Header> varsForManager = [];
-    // varsForManager = vars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
+    final vars = _environments[_selectedEnvironmentIndex].vars;
+    List<Header> varsForManager = [];
+    varsForManager = vars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
     _varsController = FormTableStateManager(
-      onStateChanged: () => setState(() {}),
-      initialRows: [],
+      onStateChanged: () {
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() {});
+          });
+        }
+      },
+      initialRows: varsForManager,
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,
     );
+  }
+
+  void _selectEnv(int index) {
+    _selectedEnvironmentIndex = index;
+    _filenameController.text = _environments[index].fileName();
+    _isEditingFilename = false;
+
+    final vars = _environments[index].vars;
+    List<Header> varsForManager = [];
+    varsForManager = vars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
+
+    _varsController.setHeaders(varsForManager);
   }
 
   Future<void> _onSave() async {
@@ -71,6 +92,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
   @override
   void dispose() {
     _varsController.dispose();
+    _filenameController.dispose();
     super.dispose();
   }
 
@@ -104,6 +126,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                 ],
               ),
             ),
+            Container(height: 1, color: borderColor),
             Expanded(
               child: Row(
                 children: [
@@ -121,30 +144,48 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                             final environment = entry.value;
                             final isSelected = index == _selectedEnvironmentIndex;
 
-                            return GestureDetector(
-                              onTap: () {
+                            return MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              onEnter: (_) {
                                 setState(() {
-                                  _selectedEnvironmentIndex = index;
+                                  _hoveredEnvironmentIndex = index;
                                 });
                               },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? lightBackgroundColor : Colors.transparent,
-                                  border: Border(
-                                    left: BorderSide(
-                                      width: 2,
-                                      color: isSelected ? highlightBorderColor : Colors.transparent,
+                              onExit: (_) {
+                                setState(() {
+                                  _hoveredEnvironmentIndex = null;
+                                });
+                              },
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectEnv(index);
+                                  });
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isSelected
+                                            ? lightBackgroundColor
+                                            : (_hoveredEnvironmentIndex == index
+                                                ? lightBackgroundColor
+                                                : Colors.transparent),
+                                    border: Border(
+                                      left: BorderSide(
+                                        width: 2,
+                                        color: isSelected ? highlightBorderColor : Colors.transparent,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                child: Text(
-                                  environment,
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.white : lightTextColor,
-                                    fontSize: 14,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  child: Text(
+                                    environment.fileName(),
+                                    style: TextStyle(
+                                      color: isSelected ? Colors.white : lightTextColor,
+                                      fontSize: 14,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -161,6 +202,62 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top: 16, left: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                if (_isEditingFilename)
+                                  SizedBox(
+                                    width: 200,
+                                    child: TextField(
+                                      controller: _filenameController,
+                                      style: textFieldStyle,
+                                      decoration: textFieldDecor,
+                                      onSubmitted: (value) {
+                                        setState(() {
+                                          _isEditingFilename = false;
+                                          // TODO: Update the environment filename
+                                        });
+                                      },
+                                      autofocus: true,
+                                    ),
+                                  )
+                                else
+                                  Expanded(
+                                    child: Text(
+                                      _environments[_selectedEnvironmentIndex].fileName(),
+                                      style: const TextStyle(
+                                        color: lightTextColor,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      if (_isEditingFilename) {
+                                        _isEditingFilename = false;
+                                        _filenameController.text = _environments[_selectedEnvironmentIndex].fileName();
+                                      } else {
+                                        _isEditingFilename = true;
+                                        _filenameController.text = _environments[_selectedEnvironmentIndex].fileName();
+                                      }
+                                    });
+                                  },
+                                  icon: Icon(
+                                    _isEditingFilename ? Icons.close : Icons.edit,
+                                    color: lightTextColor,
+                                    size: 18,
+                                  ),
+                                  padding: EdgeInsets.only(right: 16),
+                                  constraints: const BoxConstraints(),
+                                  splashRadius: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, left: 16),
                             child: Text('Variables', style: const TextStyle(color: lightTextColor, fontSize: 14)),
                           ),
                           Expanded(child: SingleChildScrollView(child: FormTable(stateManager: _varsController))),

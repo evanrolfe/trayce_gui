@@ -4,6 +4,8 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 
+enum FormTableColumn { enabled, selected, delete, key, value, valueFile, contentType }
+
 class FormTable extends StatelessWidget {
   final FormTableStateManager stateManager;
   final List<FormTableColumn> columns;

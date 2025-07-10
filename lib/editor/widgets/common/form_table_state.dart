@@ -11,8 +11,6 @@ import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
-enum FormTableColumn { enabled, selected, delete, key, value, valueFile, contentType }
-
 class FormTableStateManager {
   late List<FormTableRow> _rows;
   final void Function() onStateChanged;
@@ -161,6 +159,11 @@ class FormTableStateManager {
     selectedRowIndex = files.indexWhere((file) => file.selected == true);
 
     _addNewRow();
+  }
+
+  void setHeaders(List<Header> headers) {
+    _rows = _convertHeadersToRows(headers);
+    onStateChanged();
   }
 
   List<FormTableRow> _convertHeadersToRows(List<Header> headers) {
