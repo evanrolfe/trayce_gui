@@ -40,21 +40,23 @@ void main() {
       expect(collection?.environments.length, 2);
 
       // Environment 1 - dev.bru
-      expect(collection?.environments[0].fileName(), 'dev');
-      expect(collection?.environments[0].vars.length, 2);
-      expect(collection?.environments[0].vars[0].name, 'my_key');
-      expect(collection?.environments[0].vars[0].value, '1234abcd');
-      expect(collection?.environments[0].vars[0].secret, false);
-      expect(collection?.environments[0].vars[1].name, 'my_password');
-      expect(collection?.environments[0].vars[1].value, isNull);
-      expect(collection?.environments[0].vars[1].secret, true);
+      final devEnv = collection?.environments.firstWhere((e) => e.fileName() == 'dev');
+      expect(devEnv, isNotNull);
+      expect(devEnv?.vars.length, 2);
+      expect(devEnv?.vars[0].name, 'my_key');
+      expect(devEnv?.vars[0].value, '1234abcd');
+      expect(devEnv?.vars[0].secret, false);
+      expect(devEnv?.vars[1].name, 'my_password');
+      expect(devEnv?.vars[1].value, isNull);
+      expect(devEnv?.vars[1].secret, true);
 
       // Environment 2 - test.bru
-      expect(collection?.environments[1].fileName(), 'test');
-      expect(collection?.environments[1].vars.length, 1);
-      expect(collection?.environments[1].vars[0].name, 'my_key');
-      expect(collection?.environments[1].vars[0].value, 'testtest');
-      expect(collection?.environments[1].vars[0].secret, false);
+      final testEnv = collection?.environments.firstWhere((e) => e.fileName() == 'test');
+      expect(testEnv, isNotNull);
+      expect(testEnv?.vars.length, 1);
+      expect(testEnv?.vars[0].name, 'my_key');
+      expect(testEnv?.vars[0].value, 'testtest');
+      expect(testEnv?.vars[0].secret, false);
 
       expect(event.nodes[0].children[0].name, 'hello');
       expect(event.nodes[0].children[0].type, NodeType.folder);
