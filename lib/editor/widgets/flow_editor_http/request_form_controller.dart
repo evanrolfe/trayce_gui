@@ -4,15 +4,17 @@ import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_files_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_multipart_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_params_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
-class FormController {
+class RequestFormController {
   static const List<String> bodyTypeOptions = [
     'No Body',
     'Text',
@@ -33,8 +35,8 @@ class FormController {
   late final FormHeadersController headersController;
   late final FormVarsController varsController;
   late final FormParamsController formUrlEncodedController;
-  late final FormTableController multipartFormController;
-  late final FormTableController fileController;
+  late final FormMultipartController multipartFormController;
+  late final FormFilesController fileController;
 
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
@@ -49,7 +51,7 @@ class FormController {
   // _tabKey is the tab key of this editor tab, and it used in sending events back to the tabbar so it knows which tab the events relate to
   final ValueKey _tabKey;
 
-  FormController(
+  RequestFormController(
     this._formRequest,
     this._widgetRequest,
     this.eventBus,
@@ -126,32 +128,32 @@ class FormController {
 
     // Multipart Form
     // Set the multi part files on the FormTableStateManager
-    multipartFormController = FormTableController(
+    List<MultipartFile> files = [];
+    if (_formRequest.bodyMultipartForm != null) {
+      files = (_formRequest.bodyMultipartForm as MultipartFormBody).files;
+    }
+    multipartFormController = FormMultipartController(
       onStateChanged: setState,
+      initialRows: files,
       onModified: _multipartFormModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
     );
 
-    if (_formRequest.bodyMultipartForm != null) {
-      final filesForManager = (_formRequest.bodyMultipartForm as MultipartFormBody).files;
-      multipartFormController.setMultipartFiles(filesForManager);
-    }
-
     // File
-    fileController = FormTableController(
+    List<FileBodyItem> fileItems = [];
+    if (_formRequest.bodyFile != null) {
+      fileItems = (_formRequest.bodyFile as FileBody).files;
+    }
+    fileController = FormFilesController(
       onStateChanged: setState,
+      initialRows: fileItems,
       onModified: _fileModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
     );
-
-    if (_formRequest.bodyFile != null) {
-      final filesForManager = (_formRequest.bodyFile as FileBody).files;
-      fileController.setFiles(filesForManager);
-    }
   }
 
   void _urlModified() {

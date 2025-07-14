@@ -15,7 +15,7 @@ import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
-import 'package:trayce/editor/widgets/flow_editor_http/form_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/request_form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
 
 import '../../../common/dropdown_style.dart';
@@ -94,7 +94,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   // Controllers
   late TabController _bottomTabController;
   late TabController _topTabController;
-  late final FormController _formController;
+  late final RequestFormController _formController;
   late final EditorFocusManager _focusManager;
 
   // Response vars
@@ -128,7 +128,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
     _focusManager.urlFocusNode.requestFocus(); // Request focus on URL input when widget is first opened
 
-    _formController = FormController(
+    _formController = RequestFormController(
       _formRequest,
       widget.request,
       context.read<EventBus>(),
@@ -246,15 +246,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   Widget build(BuildContext context) {
     int bodyTypeIndex = 1;
 
-    if (_formController.selectedBodyType == FormController.bodyTypeOptions[0]) {
+    if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[0]) {
       bodyTypeIndex = 0;
-    } else if (_formController.selectedBodyType == FormController.bodyTypeOptions[4]) {
+    } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[4]) {
       // Form URL encoded
       bodyTypeIndex = 2;
-    } else if (_formController.selectedBodyType == FormController.bodyTypeOptions[5]) {
+    } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[5]) {
       // Multi part form
       bodyTypeIndex = 3;
-    } else if (_formController.selectedBodyType == FormController.bodyTypeOptions[6]) {
+    } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[6]) {
       // File
       bodyTypeIndex = 4;
     }
@@ -456,7 +456,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       style: textFieldStyle,
                                                       isExpanded: true,
                                                       items:
-                                                          FormController.bodyTypeOptions.map((String format) {
+                                                          RequestFormController.bodyTypeOptions.map((String format) {
                                                             return DropdownMenuItem<String>(
                                                               value: format,
                                                               child: Padding(
