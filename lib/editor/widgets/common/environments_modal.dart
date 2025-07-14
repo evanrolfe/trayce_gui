@@ -8,9 +8,10 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
+import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 Future<void> showEnvironmentsModal(BuildContext context, Collection collection, {String? collectionPath}) {
   return showDialog(
@@ -30,7 +31,7 @@ class EnvironmentsModal extends StatefulWidget {
 }
 
 class _EnvironmentsModalState extends State<EnvironmentsModal> {
-  late FormTableController _varsController;
+  late FormVarsController _varsController;
   late String _title;
   late List<Environment> _environments;
   late int _selectedEnvironmentIndex;
@@ -54,9 +55,11 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     );
 
     // Vars
-    //
-    // Convert the params to Headers for the FormTableStateManager
-    _varsController = FormTableController(
+    List<Variable> initialVars = [];
+    if (_environments.isEmpty) return;
+    initialVars = _environments[_selectedEnvironmentIndex].vars;
+
+    _varsController = FormVarsController(
       onStateChanged: () {
         if (mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -64,14 +67,11 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
           });
         }
       },
-      initialRows: [],
+      initialRows: initialVars,
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,
     );
-
-    if (_environments.isEmpty) return;
-    _varsController.setVars(_environments[_selectedEnvironmentIndex].vars);
   }
 
   void _selectEnv(int index) {

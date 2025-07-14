@@ -10,6 +10,7 @@ import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 Future<void> showNodeSettingsModal(BuildContext context, ExplorerNode node) {
   return showDialog(context: context, builder: (dialogContext) => NodeSettingsModal(node: node));
@@ -26,7 +27,7 @@ class NodeSettingsModal extends StatefulWidget {
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
   late TabController _tabController;
   late FormTableController _headersController;
-  late FormTableController _varsController;
+  late FormVarsController _varsController;
   late String _title;
   @override
   void initState() {
@@ -63,12 +64,9 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       vars = widget.node.collection?.requestVars ?? [];
     }
 
-    // Convert the params to Headers for the FormTableStateManager
-    List<Header> varsForManager = [];
-    varsForManager = vars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
-    _varsController = FormTableController(
+    _varsController = FormVarsController(
       onStateChanged: () => setState(() {}),
-      initialRows: varsForManager,
+      initialRows: vars,
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,

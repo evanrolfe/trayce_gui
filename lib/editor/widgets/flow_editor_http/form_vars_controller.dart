@@ -25,8 +25,7 @@ class FormVarsController implements FormTableControllerI {
     required EditorFocusManager focusManager,
     required this.eventBus,
   }) : _focusManager = focusManager {
-    _rows = _convertVarsToRows(initialRows);
-    _addNewRow();
+    setVars(initialRows);
   }
 
   @override
@@ -53,6 +52,11 @@ class FormVarsController implements FormTableControllerI {
         offset: row.contentTypeController.selection.baseOffset,
       );
     }
+  }
+
+  void setVars(List<Variable> vars) {
+    _rows = _convertVarsToRows(vars);
+    onStateChanged();
   }
 
   List<Variable> getVars() {
@@ -88,6 +92,7 @@ class FormVarsController implements FormTableControllerI {
         valueController: valueController,
         contentTypeController: contentTypeController,
         checkboxState: varr.enabled,
+        checkboxStateSecret: varr.secret,
         newRow: false,
       );
       _focusManager.createRowFocusNodes();
@@ -152,7 +157,10 @@ class FormVarsController implements FormTableControllerI {
     _setupControllerListener(row.valueController, index, false);
     _setupControllerListener(row.contentTypeController, index, false);
     _focusManager.createRowFocusNodes();
-    onStateChanged();
+    // Schedule state change for next frame to avoid calling setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onStateChanged();
+    });
   }
 
   // There is a bug with the Re-Editor which prevents me from doing _rows.removeAt(index)

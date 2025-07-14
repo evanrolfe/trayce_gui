@@ -7,7 +7,6 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
-import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
@@ -93,17 +92,6 @@ class FormTableController implements FormTableControllerI {
     }).toList();
   }
 
-  List<Variable> getVars() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Variable(
-        name: row.keyController.text,
-        value: row.valueController.text,
-        enabled: row.checkboxState,
-        secret: row.checkboxStateSecret,
-      );
-    }).toList();
-  }
-
   List<MultipartFile> getMultipartFiles() {
     return _rows.where((row) => !row.isEmpty()).map((row) {
       final contentType = row.contentTypeController.text.isEmpty ? null : row.contentTypeController.text;
@@ -154,40 +142,6 @@ class FormTableController implements FormTableControllerI {
             checkboxState: file.enabled,
             newRow: false,
           );
-
-          return row;
-        }).toList();
-
-    _addNewRow();
-  }
-
-  void setVars(List<Variable> vars) {
-    _rows =
-        vars.asMap().entries.map((entry) {
-          final index = entry.key;
-          final varr = entry.value;
-
-          final keyController = CodeLineEditingController();
-          final valueController = CodeLineEditingController();
-          final contentTypeController = CodeLineEditingController();
-
-          keyController.text = varr.name;
-          valueController.text = varr.value ?? '';
-          contentTypeController.text = '';
-
-          _setupControllerListener(keyController, index, true);
-          _setupControllerListener(valueController, index, false);
-          _setupControllerListener(contentTypeController, index, false);
-
-          final row = FormTableRow(
-            keyController: keyController,
-            valueController: valueController,
-            contentTypeController: contentTypeController,
-            checkboxState: varr.enabled,
-            checkboxStateSecret: varr.secret,
-            newRow: false,
-          );
-          _focusManager.createRowFocusNodes();
 
           return row;
         }).toList();
