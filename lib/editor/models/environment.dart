@@ -42,4 +42,12 @@ class Environment {
     }
     return fileName.substring(0, dotIndex);
   }
+
+  void save() {
+    final bruStr = toBru();
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
+    file.writeAsStringSync(bruStr);
+  }
 }

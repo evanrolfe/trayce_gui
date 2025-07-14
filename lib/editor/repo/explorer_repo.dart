@@ -27,6 +27,13 @@ class EventExplorerNodeRenamed {
   EventExplorerNodeRenamed(this.node);
 }
 
+class EventCollectionOpened {
+  final ExplorerNode node;
+  final Collection collection;
+
+  EventCollectionOpened(this.node, this.collection);
+}
+
 class ExplorerRepo {
   final EventBus _eventBus;
   final filesToIgnore = ['folder.bru', 'collection.bru'];
@@ -89,6 +96,7 @@ class ExplorerRepo {
 
     _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
+    _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection!));
   }
 
   void closeCollection(ExplorerNode node) {

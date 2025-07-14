@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:trayce/common/checkbox.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/common/form_table_state.dart';
 
-enum FormTableColumn { enabled, selected, delete, key, value, valueFile, contentType }
+enum FormTableColumn { enabled, selected, delete, key, value, valueFile, secret, contentType }
 
 class FormTable extends StatelessWidget {
   final FormTableStateManager stateManager;
@@ -13,7 +14,13 @@ class FormTable extends StatelessWidget {
   const FormTable({
     super.key,
     required this.stateManager,
-    this.columns = const [FormTableColumn.enabled, FormTableColumn.key, FormTableColumn.value, FormTableColumn.delete],
+    this.columns = const [
+      FormTableColumn.enabled,
+      FormTableColumn.key,
+      FormTableColumn.value,
+      FormTableColumn.secret,
+      FormTableColumn.delete,
+    ],
   });
 
   Widget _buildHeaderCell(String text) {
@@ -64,6 +71,8 @@ class FormTable extends StatelessWidget {
 
               if (columns.contains(FormTableColumn.selected)) _buildHeaderCell('Selected'),
 
+              if (columns.contains(FormTableColumn.secret)) _buildHeaderCell('Secret'),
+
               if (columns.contains(FormTableColumn.delete))
                 Container(
                   width: 30,
@@ -109,14 +118,12 @@ class FormTable extends StatelessWidget {
             width: 30,
             height: 30,
             decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide, bottom: borderBottom)),
-            child: Checkbox(
+            child: CommonCheckbox(
               value: row.checkboxState,
               onChanged: (bool? value) {
                 FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
                 stateManager.setCheckboxState(index, value ?? false);
               },
-              side: BorderSide.none,
-              activeColor: const Color(0xFF4DB6AC),
             ),
           ),
         const SizedBox(width: 0),
@@ -210,6 +217,22 @@ class FormTable extends StatelessWidget {
               ),
             ),
           ),
+
+        if (columns.contains(FormTableColumn.secret))
+          Expanded(
+            child: Container(
+              height: 30,
+              decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide, bottom: borderBottom)),
+              child: CommonCheckbox(
+                value: row.checkboxStateSecret,
+                onChanged: (bool? value) {
+                  FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
+                  stateManager.setCheckboxStateSecret(index, value ?? false);
+                },
+              ),
+            ),
+          ),
+        const SizedBox(width: 0),
 
         if (columns.contains(FormTableColumn.delete))
           Container(

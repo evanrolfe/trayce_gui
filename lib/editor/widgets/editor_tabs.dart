@@ -36,6 +36,7 @@ class EditorTabs extends StatefulWidget {
 }
 
 class _EditorTabsState extends State<EditorTabs> {
+  late final StreamSubscription _tabsSub0;
   late final StreamSubscription _tabsSub;
   late final StreamSubscription _tabsSub2;
   late final StreamSubscription _tabsSub3;
@@ -46,9 +47,9 @@ class _EditorTabsState extends State<EditorTabs> {
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
-  final List<_TabEntry> _tabs = [];
   final Map<Collection, List<_TabEntry>> _tabsMap = {};
   Collection? _currentCollection;
+  ExplorerNode? _currentCollectionNode;
 
   // Environment dropdown state
   final Map<Collection, String> _selectedEnvironment = {};
@@ -88,10 +89,21 @@ class _EditorTabsState extends State<EditorTabs> {
     _focusNode = FocusNode();
     _focusNode.onKeyEvent = _onKeyEventTabBar;
 
+    // Called when a collection is opened from the explorer
+    _tabsSub0 = context.read<EventBus>().on<EventCollectionOpened>().listen((event) {
+      setState(() {
+        _currentCollection = event.collection;
+        _currentCollectionNode = event.node;
+        print('collection opened: ${_currentCollectionNode?.dir?.path}');
+      });
+    });
+
     // Called when a request is opened from the explorer
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
         _currentCollection = event.collection;
+        _currentCollectionNode = event.node;
+
         final uuid = const Uuid().v4();
         final newTab = TabItem(
           node: event.node,
@@ -289,6 +301,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
   @override
   void dispose() {
+    _tabsSub0.cancel();
     _tabsSub.cancel();
     _tabsSub2.cancel();
     _tabsSub3.cancel();
@@ -461,10 +474,19 @@ class _EditorTabsState extends State<EditorTabs> {
                               }).toList(),
                           onChanged: (String? newValue) {
                             if (newValue == null) return;
-                            if (_currentCollection == null) return;
 
-                            if (newValue == 'Configure') {
-                              showEnvironmentsModal(context, _currentCollection!);
+                            // if (_currentCollection == null) return;
+
+                            if (newValue == 'Configure' && _currentCollection != null) {
+                              final collectionPath = _currentCollectionNode?.dir?.path;
+                              print('collectionPath: $collectionPath');
+                              showEnvironmentsModal(context, _currentCollection!, collectionPath: collectionPath);
+                            } else if (newValue == 'Configure' && _currentCollection == null) {
+                              showMessageDialog(
+                                context: context,
+                                title: 'No collection open',
+                                message: 'Please open a collection and a request to configure environments',
+                              );
                             } else {
                               setState(() {
                                 selectEnvironment(newValue);

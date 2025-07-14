@@ -13,7 +13,6 @@ import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_controller.dart';
@@ -480,7 +479,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             controller: _topTabController,
                                             children: [
                                               SingleChildScrollView(
-                                                child: FormTable(stateManager: _formController.headersController),
+                                                child: FormTable(
+                                                  stateManager: _formController.headersController,
+                                                  columns: [
+                                                    FormTableColumn.enabled,
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
+                                                ),
                                               ),
                                               IndexedStack(
                                                 index: bodyTypeIndex,
@@ -502,6 +509,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   SingleChildScrollView(
                                                     child: FormTable(
                                                       stateManager: _formController.formUrlEncodedController,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
                                                     ),
                                                   ),
                                                   // Form Table Multi Part Form
@@ -532,7 +545,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 ],
                                               ),
                                               SingleChildScrollView(
-                                                child: FormTable(stateManager: _formController.varsController),
+                                                child: FormTable(
+                                                  stateManager: _formController.varsController,
+                                                  columns: [
+                                                    FormTableColumn.enabled,
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
+                                                ),
                                               ),
                                             ],
                                           ),

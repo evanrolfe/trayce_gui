@@ -76,7 +76,12 @@ class FormTableStateManager {
 
   List<Variable> getVars() {
     return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Variable(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
+      return Variable(
+        name: row.keyController.text,
+        value: row.valueController.text,
+        enabled: row.checkboxState,
+        secret: row.checkboxStateSecret,
+      );
     }).toList();
   }
 
@@ -126,6 +131,40 @@ class FormTableStateManager {
             checkboxState: file.enabled,
             newRow: false,
           );
+
+          return row;
+        }).toList();
+
+    _addNewRow();
+  }
+
+  void setVars(List<Variable> vars) {
+    _rows =
+        vars.asMap().entries.map((entry) {
+          final index = entry.key;
+          final varr = entry.value;
+
+          final keyController = CodeLineEditingController();
+          final valueController = CodeLineEditingController();
+          final contentTypeController = CodeLineEditingController();
+
+          keyController.text = varr.name;
+          valueController.text = varr.value ?? '';
+          contentTypeController.text = '';
+
+          _setupControllerListener(keyController, index, true);
+          _setupControllerListener(valueController, index, false);
+          _setupControllerListener(contentTypeController, index, false);
+
+          final row = FormTableRow(
+            keyController: keyController,
+            valueController: valueController,
+            contentTypeController: contentTypeController,
+            checkboxState: varr.enabled,
+            checkboxStateSecret: varr.secret,
+            newRow: false,
+          );
+          focusManager.createRowFocusNodes();
 
           return row;
         }).toList();
@@ -280,6 +319,12 @@ class FormTableStateManager {
 
   void setCheckboxState(int index, bool value) {
     _rows[index].checkboxState = value;
+    onStateChanged();
+    onModified?.call();
+  }
+
+  void setCheckboxStateSecret(int index, bool value) {
+    _rows[index].checkboxStateSecret = value;
     onStateChanged();
     onModified?.call();
   }
