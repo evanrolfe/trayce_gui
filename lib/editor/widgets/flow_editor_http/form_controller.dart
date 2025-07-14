@@ -8,6 +8,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 class FormController {
@@ -28,7 +29,7 @@ class FormController {
   final CodeLineEditingController reqBodyController = CodeLineEditingController();
   final CodeLineEditingController respBodyController = CodeLineEditingController();
 
-  late final FormTableController headersController;
+  late final FormHeadersController headersController;
   late final FormVarsController varsController;
   late final FormTableController formUrlEncodedController;
   late final FormTableController multipartFormController;
@@ -88,7 +89,7 @@ class FormController {
     }
 
     // Headers
-    headersController = FormTableController(
+    headersController = FormHeadersController(
       onStateChanged: setState,
       initialRows: _formRequest.headers,
       onModified: _headersModified,

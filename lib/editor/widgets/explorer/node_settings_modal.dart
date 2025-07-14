@@ -7,9 +7,9 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 Future<void> showNodeSettingsModal(BuildContext context, ExplorerNode node) {
@@ -26,7 +26,7 @@ class NodeSettingsModal extends StatefulWidget {
 
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
   late TabController _tabController;
-  late FormTableController _headersController;
+  late FormHeadersController _headersController;
   late FormVarsController _varsController;
   late String _title;
   @override
@@ -48,7 +48,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       headers = widget.node.collection?.headers ?? [];
     }
 
-    _headersController = FormTableController(
+    _headersController = FormHeadersController(
       initialRows: headers,
       onStateChanged: () => setState(() {}),
       config: config,

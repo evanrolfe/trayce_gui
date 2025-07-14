@@ -3,12 +3,12 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
-import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
-class FormVarsController implements FormTableControllerI {
+class FormHeadersController implements FormTableControllerI {
   late List<FormTableRow> _rows;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
@@ -17,15 +17,17 @@ class FormVarsController implements FormTableControllerI {
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
 
-  FormVarsController({
+  FormHeadersController({
     required this.onStateChanged,
-    required List<Variable> initialRows,
+    required List<Header> initialRows,
     this.onModified,
     required this.config,
     required EditorFocusManager focusManager,
     required this.eventBus,
   }) : _focusManager = focusManager {
-    setVars(initialRows);
+    _rows = _convertHeadersToRows(initialRows);
+
+    _addNewRow();
   }
 
   @override
@@ -37,34 +39,28 @@ class FormVarsController implements FormTableControllerI {
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
 
-  void setVars(List<Variable> vars) {
-    _rows = _convertVarsToRows(vars);
-    _addNewRow();
-    onStateChanged();
-  }
-
-  List<Variable> getVars() {
+  List<Header> getHeaders() {
     return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Variable(
-        name: row.keyController.text,
-        value: row.valueController.text,
-        enabled: row.checkboxState,
-        secret: row.checkboxStateSecret,
-      );
+      return Header(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
     }).toList();
   }
 
-  List<FormTableRow> _convertVarsToRows(List<Variable> vars) {
-    return vars.asMap().entries.map((entry) {
+  void setHeaders(List<Header> headers) {
+    _rows = _convertHeadersToRows(headers);
+    onStateChanged();
+  }
+
+  List<FormTableRow> _convertHeadersToRows(List<Header> headers) {
+    return headers.asMap().entries.map((entry) {
       final index = entry.key;
-      final varr = entry.value;
+      final header = entry.value;
 
       final keyController = CodeLineEditingController();
       final valueController = CodeLineEditingController();
       final contentTypeController = CodeLineEditingController();
 
-      keyController.text = varr.name;
-      valueController.text = varr.value ?? '';
+      keyController.text = header.name;
+      valueController.text = header.value;
       contentTypeController.text = '';
 
       _setupControllerListener(keyController, index, true);
@@ -75,8 +71,7 @@ class FormVarsController implements FormTableControllerI {
         keyController: keyController,
         valueController: valueController,
         contentTypeController: contentTypeController,
-        checkboxState: varr.enabled,
-        checkboxStateSecret: varr.secret,
+        checkboxState: header.enabled,
         newRow: false,
       );
       _focusManager.createRowFocusNodes();
@@ -158,10 +153,7 @@ class FormVarsController implements FormTableControllerI {
     _setupControllerListener(row.valueController, index, false);
     _setupControllerListener(row.contentTypeController, index, false);
     _focusManager.createRowFocusNodes();
-    // Schedule state change for next frame to avoid calling setState during build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      onStateChanged();
-    });
+    onStateChanged();
   }
 
   // There is a bug with the Re-Editor which prevents me from doing _rows.removeAt(index)

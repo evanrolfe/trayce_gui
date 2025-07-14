@@ -41,7 +41,7 @@ class FormTableController implements FormTableControllerI {
   }) : _focusManager = focusManager {
     // TODO: This should somehow accept either params or multipart files
     if (initialRows != null) {
-      _rows = _convertHeadersToRows(initialRows);
+      _rows = [];
     } else {
       _rows = [];
     }
@@ -73,12 +73,6 @@ class FormTableController implements FormTableControllerI {
         offset: row.contentTypeController.selection.baseOffset,
       );
     }
-  }
-
-  List<Header> getHeaders() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Header(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
-    }).toList();
   }
 
   List<Param> getParams() {
@@ -175,41 +169,6 @@ class FormTableController implements FormTableControllerI {
     _selectedRowIndex = files.indexWhere((file) => file.selected == true);
 
     _addNewRow();
-  }
-
-  void setHeaders(List<Header> headers) {
-    _rows = _convertHeadersToRows(headers);
-    onStateChanged();
-  }
-
-  List<FormTableRow> _convertHeadersToRows(List<Header> headers) {
-    return headers.asMap().entries.map((entry) {
-      final index = entry.key;
-      final header = entry.value;
-
-      final keyController = CodeLineEditingController();
-      final valueController = CodeLineEditingController();
-      final contentTypeController = CodeLineEditingController();
-
-      keyController.text = header.name;
-      valueController.text = header.value;
-      contentTypeController.text = '';
-
-      _setupControllerListener(keyController, index, true);
-      _setupControllerListener(valueController, index, false);
-      _setupControllerListener(contentTypeController, index, false);
-
-      final row = FormTableRow(
-        keyController: keyController,
-        valueController: valueController,
-        contentTypeController: contentTypeController,
-        checkboxState: header.enabled,
-        newRow: false,
-      );
-      _focusManager.createRowFocusNodes();
-
-      return row;
-    }).toList();
   }
 
   void _setupControllerListener(CodeLineEditingController controller, int index, bool isKey) {
