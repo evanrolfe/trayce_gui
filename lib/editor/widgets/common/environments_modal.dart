@@ -56,17 +56,12 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
 
     // Vars
     List<Variable> initialVars = [];
-    if (_environments.isEmpty) return;
-    initialVars = _environments[_selectedEnvironmentIndex].vars;
+    if (_environments.isNotEmpty) {
+      initialVars = _environments[_selectedEnvironmentIndex].vars;
+    }
 
     _varsController = FormVarsController(
-      onStateChanged: () {
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {});
-          });
-        }
-      },
+      onStateChanged: () => setState(() {}),
       initialRows: initialVars,
       config: config,
       focusManager: focusManager,

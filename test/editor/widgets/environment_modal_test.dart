@@ -78,6 +78,7 @@ void main() {
       final tableManager = formTable.controller;
 
       // Add a regular variable
+      expect(tableManager.rows().length, 1);
       tableManager.rows()[0].keyController.text = 'API_URL';
       tableManager.rows()[0].valueController.text = 'https://api.example.com';
       await tester.pumpAndSettle();

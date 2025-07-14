@@ -56,6 +56,7 @@ class FormVarsController implements FormTableControllerI {
 
   void setVars(List<Variable> vars) {
     _rows = _convertVarsToRows(vars);
+    _addNewRow();
     onStateChanged();
   }
 
