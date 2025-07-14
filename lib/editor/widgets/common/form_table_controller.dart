@@ -20,6 +20,7 @@ abstract interface class FormTableControllerI {
   void setSelectedRowIndex(int value);
   void deleteRow(int index);
   void uploadValueFile(int index);
+  void dispose();
 }
 
 class FormTableController implements FormTableControllerI {

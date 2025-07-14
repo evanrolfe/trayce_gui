@@ -200,7 +200,7 @@ void main() {
       final tableManager = formTable.controller;
 
       expect(tableManager.rows().length, 3);
-      expect(tableManager.selectedRowIndex, 0);
+      expect(tableManager.selectedRowIndex(), 0);
       expect(tableManager.rows()[0].valueFile, '/home/trayce/y.txt');
       expect(tableManager.rows()[0].contentTypeController.text, '');
 

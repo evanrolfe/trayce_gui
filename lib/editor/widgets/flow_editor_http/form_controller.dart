@@ -98,14 +98,10 @@ class FormController {
     );
 
     // Vars
-    // Convert the params to Headers for the FormTableStateManager
-    List<Header> varsForManager = [];
-    varsForManager =
-        _formRequest.requestVars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
     varsController = FormVarsController(
       onStateChanged: setState,
       onModified: _varsModified,
-      initialRows: varsForManager,
+      initialRows: _formRequest.requestVars,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,

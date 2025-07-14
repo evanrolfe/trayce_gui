@@ -3,10 +3,6 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
-import 'package:trayce/editor/models/body.dart';
-import 'package:trayce/editor/models/header.dart';
-import 'package:trayce/editor/models/multipart_file.dart';
-import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
@@ -23,19 +19,13 @@ class FormVarsController implements FormTableControllerI {
 
   FormVarsController({
     required this.onStateChanged,
-    List<Header>? initialRows,
+    required List<Variable> initialRows,
     this.onModified,
     required this.config,
     required EditorFocusManager focusManager,
     required this.eventBus,
   }) : _focusManager = focusManager {
-    // TODO: This should somehow accept either params or multipart files
-    if (initialRows != null) {
-      _rows = _convertHeadersToRows(initialRows);
-    } else {
-      _rows = [];
-    }
-
+    _rows = _convertVarsToRows(initialRows);
     _addNewRow();
   }
 
@@ -65,23 +55,6 @@ class FormVarsController implements FormTableControllerI {
     }
   }
 
-  List<Header> getHeaders() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Header(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
-    }).toList();
-  }
-
-  List<Param> getParams() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Param(
-        name: row.keyController.text,
-        value: row.valueController.text,
-        type: ParamType.form,
-        enabled: row.checkboxState,
-      );
-    }).toList();
-  }
-
   List<Variable> getVars() {
     return _rows.where((row) => !row.isEmpty()).map((row) {
       return Variable(
@@ -93,141 +66,17 @@ class FormVarsController implements FormTableControllerI {
     }).toList();
   }
 
-  List<MultipartFile> getMultipartFiles() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
-      final contentType = row.contentTypeController.text.isEmpty ? null : row.contentTypeController.text;
-
-      return MultipartFile(
-        name: row.keyController.text,
-        value: row.valueFile ?? '',
-        contentType: contentType,
-        enabled: row.checkboxState,
-      );
-    }).toList();
-  }
-
-  List<FileBodyItem> getFiles() {
-    return _rows.where((row) => !row.isEmpty()).toList().asMap().entries.map((entry) {
+  List<FormTableRow> _convertVarsToRows(List<Variable> vars) {
+    return vars.asMap().entries.map((entry) {
       final index = entry.key;
-      final row = entry.value;
-      final contentType = row.contentTypeController.text.isEmpty ? null : row.contentTypeController.text;
-
-      return FileBodyItem(
-        filePath: row.valueFile ?? '',
-        contentType: contentType,
-        selected: index == _selectedRowIndex,
-      );
-    }).toList();
-  }
-
-  void setMultipartFiles(List<MultipartFile> files) {
-    _rows =
-        files.asMap().entries.map((entry) {
-          final index = entry.key;
-          final file = entry.value;
-
-          final keyController = CodeLineEditingController();
-          final contentTypeController = CodeLineEditingController();
-
-          keyController.text = file.name;
-          contentTypeController.text = file.contentType ?? '';
-
-          _setupControllerListener(keyController, index, true);
-          _setupControllerListener(contentTypeController, index, false);
-
-          final row = FormTableRow(
-            keyController: keyController,
-            valueController: CodeLineEditingController(),
-            contentTypeController: contentTypeController,
-            valueFile: file.value,
-            checkboxState: file.enabled,
-            newRow: false,
-          );
-
-          return row;
-        }).toList();
-
-    _addNewRow();
-  }
-
-  void setVars(List<Variable> vars) {
-    _rows =
-        vars.asMap().entries.map((entry) {
-          final index = entry.key;
-          final varr = entry.value;
-
-          final keyController = CodeLineEditingController();
-          final valueController = CodeLineEditingController();
-          final contentTypeController = CodeLineEditingController();
-
-          keyController.text = varr.name;
-          valueController.text = varr.value ?? '';
-          contentTypeController.text = '';
-
-          _setupControllerListener(keyController, index, true);
-          _setupControllerListener(valueController, index, false);
-          _setupControllerListener(contentTypeController, index, false);
-
-          final row = FormTableRow(
-            keyController: keyController,
-            valueController: valueController,
-            contentTypeController: contentTypeController,
-            checkboxState: varr.enabled,
-            checkboxStateSecret: varr.secret,
-            newRow: false,
-          );
-          _focusManager.createRowFocusNodes();
-
-          return row;
-        }).toList();
-
-    _addNewRow();
-  }
-
-  void setFiles(List<FileBodyItem> files) {
-    _rows =
-        files.asMap().entries.map((entry) {
-          final index = entry.key;
-          final file = entry.value;
-
-          final contentTypeController = CodeLineEditingController();
-
-          contentTypeController.text = file.contentType ?? '';
-
-          _setupControllerListener(contentTypeController, index, false);
-
-          final row = FormTableRow(
-            keyController: CodeLineEditingController(),
-            valueController: CodeLineEditingController(),
-            contentTypeController: contentTypeController,
-            valueFile: file.filePath,
-            newRow: false,
-          );
-
-          return row;
-        }).toList();
-
-    _selectedRowIndex = files.indexWhere((file) => file.selected == true);
-
-    _addNewRow();
-  }
-
-  void setHeaders(List<Header> headers) {
-    _rows = _convertHeadersToRows(headers);
-    onStateChanged();
-  }
-
-  List<FormTableRow> _convertHeadersToRows(List<Header> headers) {
-    return headers.asMap().entries.map((entry) {
-      final index = entry.key;
-      final header = entry.value;
+      final varr = entry.value;
 
       final keyController = CodeLineEditingController();
       final valueController = CodeLineEditingController();
       final contentTypeController = CodeLineEditingController();
 
-      keyController.text = header.name;
-      valueController.text = header.value;
+      keyController.text = varr.name;
+      valueController.text = varr.value ?? '';
       contentTypeController.text = '';
 
       _setupControllerListener(keyController, index, true);
@@ -238,7 +87,7 @@ class FormVarsController implements FormTableControllerI {
         keyController: keyController,
         valueController: valueController,
         contentTypeController: contentTypeController,
-        checkboxState: header.enabled,
+        checkboxState: varr.enabled,
         newRow: false,
       );
       _focusManager.createRowFocusNodes();
@@ -381,6 +230,7 @@ class FormVarsController implements FormTableControllerI {
     return path;
   }
 
+  @override
   void dispose() {
     for (var row in _rows) {
       row.dispose();
