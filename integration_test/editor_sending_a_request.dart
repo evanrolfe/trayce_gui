@@ -74,14 +74,14 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
   final headersTable = tester.widget<FormTable>(find.byType(FormTable));
-  final headersManager = headersTable.stateManager;
+  final headersManager = headersTable.controller;
 
-  headersManager.rows[0].keyController.text = 'X-Auth-Token';
-  headersManager.rows[0].valueController.text = '1234abcd';
+  headersManager.rows()[0].keyController.text = 'X-Auth-Token';
+  headersManager.rows()[0].valueController.text = '1234abcd';
   await tester.pumpAndSettle();
 
-  headersManager.rows[1].keyController.text = 'Content-Type';
-  headersManager.rows[1].valueController.text = 'application/json';
+  headersManager.rows()[1].keyController.text = 'Content-Type';
+  headersManager.rows()[1].valueController.text = 'application/json';
   await tester.pumpAndSettle();
 
   // Set the body type
@@ -177,19 +177,19 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
   final headersTable2 = tester.widget<FormTable>(find.byType(FormTable));
-  final headersManager2 = headersTable2.stateManager;
+  final headersManager2 = headersTable2.controller;
 
-  headersManager2.rows[1].keyController.text = 'A';
-  headersManager2.rows[1].valueController.text = 'added-on-form';
+  headersManager2.rows()[1].keyController.text = 'A';
+  headersManager2.rows()[1].valueController.text = 'added-on-form';
   await tester.pumpAndSettle();
 
   // Set a variable
   await tester.tap(find.text('Variables').first);
   await tester.pumpAndSettle();
-  final varsManager = tester.widget<FormTable>(find.byType(FormTable)).stateManager;
+  final varsManager = tester.widget<FormTable>(find.byType(FormTable)).controller;
 
-  varsManager.rows[0].keyController.text = 'A_var';
-  varsManager.rows[0].valueController.text = 'added-on-form';
+  varsManager.rows()[0].keyController.text = 'A_var';
+  varsManager.rows()[0].valueController.text = 'added-on-form';
   await tester.pumpAndSettle();
 
   // ===========================================================================
@@ -205,22 +205,22 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final headersTable3 = tester.widget<FormTable>(find.byType(FormTable).last);
-  final headersManager3 = headersTable3.stateManager;
+  final headersManager3 = headersTable3.controller;
 
   // Change the key text of the first header row
-  expect(headersManager3.rows.length, 4);
+  expect(headersManager3.rows().length, 4);
 
-  headersManager3.rows[0].keyController.text = 'E';
-  headersManager3.rows[0].valueController.text = 'added-by-test';
+  headersManager3.rows()[0].keyController.text = 'E';
+  headersManager3.rows()[0].valueController.text = 'added-by-test';
   await tester.pumpAndSettle();
 
   // Set a variable
   await tester.tap(find.text('Variables').last);
   await tester.pumpAndSettle();
-  final varsManager3 = tester.widget<FormTable>(find.byType(FormTable).last).stateManager;
+  final varsManager3 = tester.widget<FormTable>(find.byType(FormTable).last).controller;
 
-  varsManager3.rows[0].keyController.text = 'B_var';
-  varsManager3.rows[0].valueController.text = 'added-on-folder';
+  varsManager3.rows()[0].keyController.text = 'B_var';
+  varsManager3.rows()[0].valueController.text = 'added-on-folder';
   await tester.pumpAndSettle();
 
   // Save the changes
@@ -246,22 +246,22 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final headersTable4 = tester.widget<FormTable>(find.byType(FormTable).last);
-  final headersManager4 = headersTable4.stateManager;
+  final headersManager4 = headersTable4.controller;
 
   // Change the key text of the first header row
-  expect(headersManager4.rows.length, 5);
+  expect(headersManager4.rows().length, 5);
 
-  headersManager4.rows[4].keyController.text = 'F';
-  headersManager4.rows[4].valueController.text = 'added-by-test-collection';
+  headersManager4.rows()[4].keyController.text = 'F';
+  headersManager4.rows()[4].valueController.text = 'added-by-test-collection';
   await tester.pumpAndSettle();
 
   // Set a variable
   await tester.tap(find.text('Variables').last);
   await tester.pumpAndSettle();
-  final varsManager4 = tester.widget<FormTable>(find.byType(FormTable).last).stateManager;
+  final varsManager4 = tester.widget<FormTable>(find.byType(FormTable).last).controller;
 
-  varsManager4.rows[0].keyController.text = 'C_var';
-  varsManager4.rows[0].valueController.text = 'added-on-collection';
+  varsManager4.rows()[0].keyController.text = 'C_var';
+  varsManager4.rows()[0].valueController.text = 'added-on-collection';
   await tester.pumpAndSettle();
 
   // Save the changes

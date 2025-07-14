@@ -480,7 +480,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             children: [
                                               SingleChildScrollView(
                                                 child: FormTable(
-                                                  stateManager: _formController.headersController,
+                                                  controller: _formController.headersController,
                                                   columns: [
                                                     FormTableColumn.enabled,
                                                     FormTableColumn.key,
@@ -508,7 +508,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   // Form Table Form URL Encoded
                                                   SingleChildScrollView(
                                                     child: FormTable(
-                                                      stateManager: _formController.formUrlEncodedController,
+                                                      controller: _formController.formUrlEncodedController,
                                                       columns: [
                                                         FormTableColumn.enabled,
                                                         FormTableColumn.key,
@@ -520,7 +520,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   // Form Table Multi Part Form
                                                   SingleChildScrollView(
                                                     child: FormTable(
-                                                      stateManager: _formController.multipartFormController,
+                                                      controller: _formController.multipartFormController,
                                                       columns: [
                                                         FormTableColumn.enabled,
                                                         FormTableColumn.key,
@@ -533,7 +533,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   // Form Table File
                                                   SingleChildScrollView(
                                                     child: FormTable(
-                                                      stateManager: _formController.fileController,
+                                                      controller: _formController.fileController,
                                                       columns: [
                                                         FormTableColumn.valueFile,
                                                         FormTableColumn.contentType,
@@ -546,7 +546,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               ),
                                               SingleChildScrollView(
                                                 child: FormTable(
-                                                  stateManager: _formController.varsController,
+                                                  controller: _formController.varsController,
                                                   columns: [
                                                     FormTableColumn.enabled,
                                                     FormTableColumn.key,

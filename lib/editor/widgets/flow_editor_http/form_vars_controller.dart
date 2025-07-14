@@ -8,26 +8,27 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
-class FormTableStateManager {
+class FormVarsController implements FormTableControllerI {
   late List<FormTableRow> _rows;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final Config config;
-  int? selectedRowIndex; // Track which row is selected for radio buttons
-  final EditorFocusManager focusManager;
+  int? _selectedRowIndex; // Track which row is selected for radio buttons
+  final EditorFocusManager _focusManager;
   final EventBus eventBus;
 
-  FormTableStateManager({
+  FormVarsController({
     required this.onStateChanged,
     List<Header>? initialRows,
     this.onModified,
     required this.config,
-    required this.focusManager,
+    required EditorFocusManager focusManager,
     required this.eventBus,
-  }) {
+  }) : _focusManager = focusManager {
     // TODO: This should somehow accept either params or multipart files
     if (initialRows != null) {
       _rows = _convertHeadersToRows(initialRows);
@@ -38,7 +39,14 @@ class FormTableStateManager {
     _addNewRow();
   }
 
-  List<FormTableRow> get rows => _rows;
+  @override
+  List<FormTableRow> rows() => _rows;
+
+  @override
+  EditorFocusManager focusManager() => _focusManager;
+
+  @override
+  int selectedRowIndex() => _selectedRowIndex ?? -1;
 
   void clearAllSelections() {
     for (var row in _rows) {
@@ -104,7 +112,11 @@ class FormTableStateManager {
       final row = entry.value;
       final contentType = row.contentTypeController.text.isEmpty ? null : row.contentTypeController.text;
 
-      return FileBodyItem(filePath: row.valueFile ?? '', contentType: contentType, selected: index == selectedRowIndex);
+      return FileBodyItem(
+        filePath: row.valueFile ?? '',
+        contentType: contentType,
+        selected: index == _selectedRowIndex,
+      );
     }).toList();
   }
 
@@ -164,7 +176,7 @@ class FormTableStateManager {
             checkboxStateSecret: varr.secret,
             newRow: false,
           );
-          focusManager.createRowFocusNodes();
+          _focusManager.createRowFocusNodes();
 
           return row;
         }).toList();
@@ -195,7 +207,7 @@ class FormTableStateManager {
           return row;
         }).toList();
 
-    selectedRowIndex = files.indexWhere((file) => file.selected == true);
+    _selectedRowIndex = files.indexWhere((file) => file.selected == true);
 
     _addNewRow();
   }
@@ -229,7 +241,7 @@ class FormTableStateManager {
         checkboxState: header.enabled,
         newRow: false,
       );
-      focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodes();
 
       return row;
     }).toList();
@@ -290,12 +302,13 @@ class FormTableStateManager {
     _setupControllerListener(row.keyController, index, true);
     _setupControllerListener(row.valueController, index, false);
     _setupControllerListener(row.contentTypeController, index, false);
-    focusManager.createRowFocusNodes();
+    _focusManager.createRowFocusNodes();
     onStateChanged();
   }
 
   // There is a bug with the Re-Editor which prevents me from doing _rows.removeAt(index)
   // so instead i have to do this work around where we swap rows and delete the last one
+  @override
   void deleteRow(int index) {
     if (_rows.length <= 1) return;
     if (index >= _rows.length - 1) return;
@@ -317,24 +330,28 @@ class FormTableStateManager {
     onModified?.call();
   }
 
+  @override
   void setCheckboxState(int index, bool value) {
     _rows[index].checkboxState = value;
     onStateChanged();
     onModified?.call();
   }
 
+  @override
   void setCheckboxStateSecret(int index, bool value) {
     _rows[index].checkboxStateSecret = value;
     onStateChanged();
     onModified?.call();
   }
 
+  @override
   void setSelectedRowIndex(int index) {
-    selectedRowIndex = index;
+    _selectedRowIndex = index;
     onStateChanged();
     onModified?.call();
   }
 
+  @override
   void uploadValueFile(int index) async {
     final path = await _getFilePath();
     if (path == null) return;

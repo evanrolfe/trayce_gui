@@ -9,7 +9,7 @@ import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
+import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 Future<void> showEnvironmentsModal(BuildContext context, Collection collection, {String? collectionPath}) {
@@ -30,7 +30,7 @@ class EnvironmentsModal extends StatefulWidget {
 }
 
 class _EnvironmentsModalState extends State<EnvironmentsModal> {
-  late FormTableStateManager _varsController;
+  late FormTableController _varsController;
   late String _title;
   late List<Environment> _environments;
   late int _selectedEnvironmentIndex;
@@ -56,7 +56,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     // Vars
     //
     // Convert the params to Headers for the FormTableStateManager
-    _varsController = FormTableStateManager(
+    _varsController = FormTableController(
       onStateChanged: () {
         if (mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -323,9 +323,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                                       style: const TextStyle(color: lightTextColor, fontSize: 14),
                                     ),
                                   ),
-                                  Expanded(
-                                    child: SingleChildScrollView(child: FormTable(stateManager: _varsController)),
-                                  ),
+                                  Expanded(child: SingleChildScrollView(child: FormTable(controller: _varsController))),
                                 ],
                               ),
                             ),

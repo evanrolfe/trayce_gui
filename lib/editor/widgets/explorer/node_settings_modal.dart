@@ -7,7 +7,7 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
+import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
@@ -25,8 +25,8 @@ class NodeSettingsModal extends StatefulWidget {
 
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
   late TabController _tabController;
-  late FormTableStateManager _headersController;
-  late FormTableStateManager _varsController;
+  late FormTableController _headersController;
+  late FormTableController _varsController;
   late String _title;
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       headers = widget.node.collection?.headers ?? [];
     }
 
-    _headersController = FormTableStateManager(
+    _headersController = FormTableController(
       initialRows: headers,
       onStateChanged: () => setState(() {}),
       config: config,
@@ -66,7 +66,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     // Convert the params to Headers for the FormTableStateManager
     List<Header> varsForManager = [];
     varsForManager = vars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
-    _varsController = FormTableStateManager(
+    _varsController = FormTableController(
       onStateChanged: () => setState(() {}),
       initialRows: varsForManager,
       config: config,
@@ -163,8 +163,8 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            SingleChildScrollView(child: FormTable(stateManager: _headersController)),
-                            SingleChildScrollView(child: FormTable(stateManager: _varsController)),
+                            SingleChildScrollView(child: FormTable(controller: _headersController)),
+                            SingleChildScrollView(child: FormTable(controller: _varsController)),
                           ],
                         ),
                       ),

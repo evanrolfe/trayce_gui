@@ -6,8 +6,9 @@ import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
+import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 class FormController {
   static const List<String> bodyTypeOptions = [
@@ -27,11 +28,11 @@ class FormController {
   final CodeLineEditingController reqBodyController = CodeLineEditingController();
   final CodeLineEditingController respBodyController = CodeLineEditingController();
 
-  late final FormTableStateManager headersController;
-  late final FormTableStateManager varsController;
-  late final FormTableStateManager formUrlEncodedController;
-  late final FormTableStateManager multipartFormController;
-  late final FormTableStateManager fileController;
+  late final FormTableController headersController;
+  late final FormVarsController varsController;
+  late final FormTableController formUrlEncodedController;
+  late final FormTableController multipartFormController;
+  late final FormTableController fileController;
 
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
@@ -87,7 +88,7 @@ class FormController {
     }
 
     // Headers
-    headersController = FormTableStateManager(
+    headersController = FormTableController(
       onStateChanged: setState,
       initialRows: _formRequest.headers,
       onModified: _headersModified,
@@ -101,10 +102,10 @@ class FormController {
     List<Header> varsForManager = [];
     varsForManager =
         _formRequest.requestVars.map((p) => Header(name: p.name, value: p.value ?? '', enabled: p.enabled)).toList();
-    varsController = FormTableStateManager(
+    varsController = FormVarsController(
       onStateChanged: setState,
-      initialRows: varsForManager,
       onModified: _varsModified,
+      initialRows: varsForManager,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
@@ -117,7 +118,7 @@ class FormController {
       final params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
       paramsForManager = params.map((p) => Header(name: p.name, value: p.value, enabled: p.enabled)).toList();
     }
-    formUrlEncodedController = FormTableStateManager(
+    formUrlEncodedController = FormTableController(
       onStateChanged: setState,
       initialRows: paramsForManager,
       onModified: _formUrlEncodedModified,
@@ -128,7 +129,7 @@ class FormController {
 
     // Multipart Form
     // Set the multi part files on the FormTableStateManager
-    multipartFormController = FormTableStateManager(
+    multipartFormController = FormTableController(
       onStateChanged: setState,
       initialRows: [],
       onModified: _multipartFormModified,
@@ -143,7 +144,7 @@ class FormController {
     }
 
     // File
-    fileController = FormTableStateManager(
+    fileController = FormTableController(
       onStateChanged: setState,
       initialRows: [],
       onModified: _fileModified,

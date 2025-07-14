@@ -75,17 +75,17 @@ void main() {
       // Now we should see the environment tab and form table
       // Get the form table and add variables directly
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
       // Add a regular variable
-      tableManager.rows[0].keyController.text = 'API_URL';
-      tableManager.rows[0].valueController.text = 'https://api.example.com';
+      tableManager.rows()[0].keyController.text = 'API_URL';
+      tableManager.rows()[0].valueController.text = 'https://api.example.com';
       await tester.pumpAndSettle();
 
       // Add a second variable (this will automatically create a new row)
-      tableManager.rows[1].keyController.text = 'API_KEY';
-      tableManager.rows[1].valueController.text = 'secret123';
-      tableManager.rows[1].checkboxStateSecret = true; // Make it a secret variable
+      tableManager.rows()[1].keyController.text = 'API_KEY';
+      tableManager.rows()[1].valueController.text = 'secret123';
+      tableManager.rows()[1].checkboxStateSecret = true; // Make it a secret variable
       await tester.pumpAndSettle();
 
       // Save the environment
@@ -147,9 +147,9 @@ void main() {
 
       // Verify vars
       final formTable = tester.widget<FormTable>(find.byType(FormTable).last);
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
-      expect(tableManager.rows.length, 1);
+      expect(tableManager.rows().length, 1);
     });
 
     testWidgets('modal shows an environment with vars', (WidgetTester tester) async {
@@ -201,24 +201,24 @@ void main() {
 
       // Verify vars
       final formTable = tester.widget<FormTable>(find.byType(FormTable).last);
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
-      expect(tableManager.rows.length, 3);
+      expect(tableManager.rows().length, 3);
 
-      expect(tableManager.rows[0].keyController.text, 'API_URL');
-      expect(tableManager.rows[0].valueController.text, 'https://api.example.com');
-      expect(tableManager.rows[0].checkboxStateSecret, isFalse);
-      expect(tableManager.rows[0].checkboxState, isTrue);
+      expect(tableManager.rows()[0].keyController.text, 'API_URL');
+      expect(tableManager.rows()[0].valueController.text, 'https://api.example.com');
+      expect(tableManager.rows()[0].checkboxStateSecret, isFalse);
+      expect(tableManager.rows()[0].checkboxState, isTrue);
 
-      expect(tableManager.rows[1].keyController.text, 'API_KEY');
-      expect(tableManager.rows[1].valueController.text, 'secret123');
-      expect(tableManager.rows[1].checkboxStateSecret, isTrue);
-      expect(tableManager.rows[1].checkboxState, isTrue);
+      expect(tableManager.rows()[1].keyController.text, 'API_KEY');
+      expect(tableManager.rows()[1].valueController.text, 'secret123');
+      expect(tableManager.rows()[1].checkboxStateSecret, isTrue);
+      expect(tableManager.rows()[1].checkboxState, isTrue);
 
-      expect(tableManager.rows[2].keyController.text, '');
-      expect(tableManager.rows[2].valueController.text, '');
-      expect(tableManager.rows[2].checkboxStateSecret, isFalse);
-      expect(tableManager.rows[2].checkboxState, isFalse);
+      expect(tableManager.rows()[2].keyController.text, '');
+      expect(tableManager.rows()[2].valueController.text, '');
+      expect(tableManager.rows()[2].checkboxStateSecret, isFalse);
+      expect(tableManager.rows()[2].checkboxState, isFalse);
     });
   });
 }

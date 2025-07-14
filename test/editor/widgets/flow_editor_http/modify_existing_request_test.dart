@@ -210,32 +210,32 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
       // Enter text in the new row
-      tableManager.rows[2].contentTypeController.text = 'hello';
+      tableManager.rows()[2].contentTypeController.text = 'hello';
       await tester.pumpAndSettle();
 
-      expect(tableManager.rows.length, 4);
-      expect(tableManager.rows[0].keyController.text, 'XXXX');
-      expect(tableManager.rows[0].valueFile, '/home/trayce/x.txt');
-      expect(tableManager.rows[0].contentTypeController.text, '');
-      expect(tableManager.rows[0].checkboxState, true);
+      expect(tableManager.rows().length, 4);
+      expect(tableManager.rows()[0].keyController.text, 'XXXX');
+      expect(tableManager.rows()[0].valueFile, '/home/trayce/x.txt');
+      expect(tableManager.rows()[0].contentTypeController.text, '');
+      expect(tableManager.rows()[0].checkboxState, true);
 
-      expect(tableManager.rows[1].keyController.text, 'ZZZZ');
-      expect(tableManager.rows[1].valueFile, '/home/trayce/z.txt');
-      expect(tableManager.rows[1].contentTypeController.text, 'text/plain');
-      expect(tableManager.rows[1].checkboxState, true);
+      expect(tableManager.rows()[1].keyController.text, 'ZZZZ');
+      expect(tableManager.rows()[1].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows()[1].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows()[1].checkboxState, true);
 
-      expect(tableManager.rows[2].keyController.text, '');
-      expect(tableManager.rows[2].valueFile, isNull);
-      expect(tableManager.rows[2].contentTypeController.text, 'hello');
-      expect(tableManager.rows[2].checkboxState, true);
+      expect(tableManager.rows()[2].keyController.text, '');
+      expect(tableManager.rows()[2].valueFile, isNull);
+      expect(tableManager.rows()[2].contentTypeController.text, 'hello');
+      expect(tableManager.rows()[2].checkboxState, true);
 
-      expect(tableManager.rows[3].keyController.text, '');
-      expect(tableManager.rows[3].valueFile, isNull);
-      expect(tableManager.rows[3].contentTypeController.text, '');
-      expect(tableManager.rows[3].checkboxState, false);
+      expect(tableManager.rows()[3].keyController.text, '');
+      expect(tableManager.rows()[3].valueFile, isNull);
+      expect(tableManager.rows()[3].contentTypeController.text, '');
+      expect(tableManager.rows()[3].checkboxState, false);
 
       await tester.pumpAndSettle();
     });
@@ -273,24 +273,24 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
       // Enter text in the new row
-      tableManager.rows[2].contentTypeController.text = 'hello';
+      tableManager.rows()[2].contentTypeController.text = 'hello';
       await tester.pumpAndSettle();
 
-      expect(tableManager.rows.length, 4);
-      expect(tableManager.rows[0].valueFile, '/home/trayce/y.txt');
-      expect(tableManager.rows[0].contentTypeController.text, '');
+      expect(tableManager.rows().length, 4);
+      expect(tableManager.rows()[0].valueFile, '/home/trayce/y.txt');
+      expect(tableManager.rows()[0].contentTypeController.text, '');
 
-      expect(tableManager.rows[1].valueFile, '/home/trayce/z.txt');
-      expect(tableManager.rows[1].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows()[1].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows()[1].contentTypeController.text, 'text/plain');
 
-      expect(tableManager.rows[2].valueFile, isNull);
-      expect(tableManager.rows[2].contentTypeController.text, 'hello');
+      expect(tableManager.rows()[2].valueFile, isNull);
+      expect(tableManager.rows()[2].contentTypeController.text, 'hello');
 
-      expect(tableManager.rows[3].valueFile, isNull);
-      expect(tableManager.rows[3].contentTypeController.text, '');
+      expect(tableManager.rows()[3].valueFile, isNull);
+      expect(tableManager.rows()[3].contentTypeController.text, '');
 
       await tester.pumpAndSettle();
     });
@@ -574,9 +574,9 @@ void main() {
 
       // Change the form url encoded params
       final headersTable = tester.widget<FormTable>(find.byType(FormTable));
-      final headersManager = headersTable.stateManager;
-      headersManager.rows[0].keyController.text = 'XXXX';
-      headersManager.rows[0].valueController.text = 'YYYY';
+      final headersManager = headersTable.controller;
+      headersManager.rows()[0].keyController.text = 'XXXX';
+      headersManager.rows()[0].valueController.text = 'YYYY';
       await tester.pumpAndSettle();
 
       // Save the request
@@ -629,10 +629,10 @@ void main() {
 
       // Change the form url encoded params
       final headersTable = tester.widget<FormTable>(find.byType(FormTable));
-      final headersManager = headersTable.stateManager;
-      headersManager.rows[0].keyController.text = 'XXXX';
-      headersManager.rows[0].valueFile = '/home/trayce/x.txt';
-      headersManager.rows[0].contentTypeController.text = 'text/plain';
+      final headersManager = headersTable.controller;
+      headersManager.rows()[0].keyController.text = 'XXXX';
+      headersManager.rows()[0].valueFile = '/home/trayce/x.txt';
+      headersManager.rows()[0].contentTypeController.text = 'text/plain';
       await tester.pumpAndSettle();
 
       // Save the request
@@ -686,10 +686,10 @@ void main() {
 
       // Change the form url encoded params
       final headersTable = tester.widget<FormTable>(find.byType(FormTable));
-      final headersManager = headersTable.stateManager;
-      headersManager.rows[0].keyController.text = 'XXXX';
-      headersManager.rows[0].valueFile = '/home/trayce/x.txt';
-      headersManager.rows[0].contentTypeController.text = '';
+      final headersManager = headersTable.controller;
+      headersManager.rows()[0].keyController.text = 'XXXX';
+      headersManager.rows()[0].valueFile = '/home/trayce/x.txt';
+      headersManager.rows()[0].contentTypeController.text = '';
       await tester.pumpAndSettle();
 
       // Save the request
@@ -743,7 +743,7 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
       EventEditorNodeModified? eventReceived;
       deps.eventBus.on<EventEditorNodeModified>().listen((event) {
@@ -751,7 +751,7 @@ void main() {
       });
 
       // Enter text in the new row
-      tableManager.rows[0].contentTypeController.text = 'changed';
+      tableManager.rows()[0].contentTypeController.text = 'changed';
       await tester.pumpAndSettle();
 
       expect(eventReceived, isNotNull);
@@ -787,7 +787,7 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
       EventEditorNodeModified? eventReceived;
       deps.eventBus.on<EventEditorNodeModified>().listen((event) {
@@ -795,7 +795,7 @@ void main() {
       });
 
       // Enter text in the new row
-      tableManager.rows[0].contentTypeController.text = 'changed';
+      tableManager.rows()[0].contentTypeController.text = 'changed';
       await tester.pumpAndSettle();
 
       expect(eventReceived, isNotNull);

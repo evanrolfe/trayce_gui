@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:trayce/common/checkbox.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
 
 enum FormTableColumn { enabled, selected, delete, key, value, valueFile, secret, contentType }
 
 class FormTable extends StatelessWidget {
-  final FormTableStateManager stateManager;
+  final FormTableControllerI controller;
   final List<FormTableColumn> columns;
 
   const FormTable({
     super.key,
-    required this.stateManager,
+    required this.controller,
     this.columns = const [
       FormTableColumn.enabled,
       FormTableColumn.key,
@@ -87,9 +87,9 @@ class FormTable extends StatelessWidget {
             ],
           ),
           // Existing rows
-          ...List.generate(stateManager.rows.length, (index) {
-            final row = stateManager.rows[index];
-            final rowFocusNodes = stateManager.focusManager.getRowFocusNodes(index);
+          ...List.generate(controller.rows().length, (index) {
+            final row = controller.rows()[index];
+            final rowFocusNodes = controller.focusManager().getRowFocusNodes(index);
             return _buildRow(context, index, row, rowFocusNodes, borderSide);
           }),
         ],
@@ -105,7 +105,7 @@ class FormTable extends StatelessWidget {
     BorderSide borderSide,
   ) {
     late BorderSide borderBottom;
-    if (index == stateManager.rows.length - 1) {
+    if (index == controller.rows().length - 1) {
       borderBottom = BorderSide(color: borderColor, width: 1);
     } else {
       borderBottom = BorderSide.none;
@@ -121,8 +121,8 @@ class FormTable extends StatelessWidget {
             child: CommonCheckbox(
               value: row.checkboxState,
               onChanged: (bool? value) {
-                FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
-                stateManager.setCheckboxState(index, value ?? false);
+                FocusScope.of(context).requestFocus(controller.focusManager().editorFocusNode);
+                controller.setCheckboxState(index, value ?? false);
               },
             ),
           ),
@@ -168,8 +168,8 @@ class FormTable extends StatelessWidget {
                         )
                         : ElevatedButton(
                           onPressed: () {
-                            FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
-                            stateManager.uploadValueFile(index);
+                            FocusScope.of(context).requestFocus(controller.focusManager().editorFocusNode);
+                            controller.uploadValueFile(index);
                           },
                           style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
                           child: const Text('Browse', style: TextStyle(color: Color(0xFF666666))),
@@ -200,12 +200,12 @@ class FormTable extends StatelessWidget {
                 decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide, bottom: borderBottom)),
                 child: Radio<int>(
                   value: index,
-                  groupValue: stateManager.selectedRowIndex,
+                  groupValue: controller.selectedRowIndex(),
                   onChanged: (int? value) {
                     if (value != null) {
-                      stateManager.setSelectedRowIndex(value);
+                      controller.setSelectedRowIndex(value);
                     }
-                    FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
+                    FocusScope.of(context).requestFocus(controller.focusManager().editorFocusNode);
                   },
                   activeColor: const Color(0xFF4DB6AC),
                   fillColor: WidgetStateProperty.resolveWith((states) {
@@ -226,8 +226,8 @@ class FormTable extends StatelessWidget {
               child: CommonCheckbox(
                 value: row.checkboxStateSecret,
                 onChanged: (bool? value) {
-                  FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
-                  stateManager.setCheckboxStateSecret(index, value ?? false);
+                  FocusScope.of(context).requestFocus(controller.focusManager().editorFocusNode);
+                  controller.setCheckboxStateSecret(index, value ?? false);
                 },
               ),
             ),
@@ -252,10 +252,10 @@ class FormTable extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: () {
-                if (stateManager.rows.length > 1) {
-                  stateManager.deleteRow(index);
+                if (controller.rows().length > 1) {
+                  controller.deleteRow(index);
                 }
-                FocusScope.of(context).requestFocus(stateManager.focusManager.editorFocusNode);
+                FocusScope.of(context).requestFocus(controller.focusManager().editorFocusNode);
               },
             ),
           ),

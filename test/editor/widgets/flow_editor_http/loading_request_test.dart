@@ -67,20 +67,20 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
-      expect(tableManager.rows.length, 3);
-      expect(tableManager.rows[0].keyController.text, 'XXXX');
-      expect(tableManager.rows[0].valueController.text, 'YYYY');
-      expect(tableManager.rows[0].checkboxState, true);
+      expect(tableManager.rows().length, 3);
+      expect(tableManager.rows()[0].keyController.text, 'XXXX');
+      expect(tableManager.rows()[0].valueController.text, 'YYYY');
+      expect(tableManager.rows()[0].checkboxState, true);
 
-      expect(tableManager.rows[1].keyController.text, 'ZZZZ');
-      expect(tableManager.rows[1].valueController.text, 'WWWW');
-      expect(tableManager.rows[1].checkboxState, false);
+      expect(tableManager.rows()[1].keyController.text, 'ZZZZ');
+      expect(tableManager.rows()[1].valueController.text, 'WWWW');
+      expect(tableManager.rows()[1].checkboxState, false);
 
-      expect(tableManager.rows[2].keyController.text, '');
-      expect(tableManager.rows[2].valueController.text, '');
-      expect(tableManager.rows[2].checkboxState, false);
+      expect(tableManager.rows()[2].keyController.text, '');
+      expect(tableManager.rows()[2].valueController.text, '');
+      expect(tableManager.rows()[2].checkboxState, false);
 
       await tester.pumpAndSettle();
     });
@@ -129,27 +129,27 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
-      expect(tableManager.rows.length, 4);
-      expect(tableManager.rows[0].keyController.text, 'XXXX');
-      expect(tableManager.rows[0].valueFile, '/home/trayce/x.txt');
-      expect(tableManager.rows[0].contentTypeController.text, '');
-      expect(tableManager.rows[0].checkboxState, true);
+      expect(tableManager.rows().length, 4);
+      expect(tableManager.rows()[0].keyController.text, 'XXXX');
+      expect(tableManager.rows()[0].valueFile, '/home/trayce/x.txt');
+      expect(tableManager.rows()[0].contentTypeController.text, '');
+      expect(tableManager.rows()[0].checkboxState, true);
 
-      expect(tableManager.rows[1].keyController.text, 'ZZZZ');
-      expect(tableManager.rows[1].valueFile, '/home/trayce/y.txt');
-      expect(tableManager.rows[1].contentTypeController.text, '');
-      expect(tableManager.rows[1].checkboxState, false);
+      expect(tableManager.rows()[1].keyController.text, 'ZZZZ');
+      expect(tableManager.rows()[1].valueFile, '/home/trayce/y.txt');
+      expect(tableManager.rows()[1].contentTypeController.text, '');
+      expect(tableManager.rows()[1].checkboxState, false);
 
-      expect(tableManager.rows[2].keyController.text, 'YYYY');
-      expect(tableManager.rows[2].valueFile, '/home/trayce/z.txt');
-      expect(tableManager.rows[2].contentTypeController.text, 'text/plain');
-      expect(tableManager.rows[2].checkboxState, true);
+      expect(tableManager.rows()[2].keyController.text, 'YYYY');
+      expect(tableManager.rows()[2].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows()[2].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows()[2].checkboxState, true);
 
-      expect(tableManager.rows[3].keyController.text, '');
-      expect(tableManager.rows[3].valueFile, isNull);
-      expect(tableManager.rows[3].checkboxState, false);
+      expect(tableManager.rows()[3].keyController.text, '');
+      expect(tableManager.rows()[3].valueFile, isNull);
+      expect(tableManager.rows()[3].checkboxState, false);
 
       await tester.pumpAndSettle();
     });
@@ -197,18 +197,18 @@ void main() {
 
       // Verify request body
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
-      expect(tableManager.rows.length, 3);
+      expect(tableManager.rows().length, 3);
       expect(tableManager.selectedRowIndex, 0);
-      expect(tableManager.rows[0].valueFile, '/home/trayce/y.txt');
-      expect(tableManager.rows[0].contentTypeController.text, '');
+      expect(tableManager.rows()[0].valueFile, '/home/trayce/y.txt');
+      expect(tableManager.rows()[0].contentTypeController.text, '');
 
-      expect(tableManager.rows[1].valueFile, '/home/trayce/z.txt');
-      expect(tableManager.rows[1].contentTypeController.text, 'text/plain');
+      expect(tableManager.rows()[1].valueFile, '/home/trayce/z.txt');
+      expect(tableManager.rows()[1].contentTypeController.text, 'text/plain');
 
-      expect(tableManager.rows[2].valueFile, isNull);
-      expect(tableManager.rows[2].contentTypeController.text, '');
+      expect(tableManager.rows()[2].valueFile, isNull);
+      expect(tableManager.rows()[2].contentTypeController.text, '');
 
       await tester.pumpAndSettle();
     });
@@ -243,20 +243,20 @@ void main() {
 
       // Verify variables
       final formTable = tester.widget<FormTable>(find.byType(FormTable));
-      final tableManager = formTable.stateManager;
+      final tableManager = formTable.controller;
 
-      expect(tableManager.rows.length, 3);
-      expect(tableManager.rows[0].keyController.text, 'A');
-      expect(tableManager.rows[0].valueController.text, 'set-in-request1');
-      expect(tableManager.rows[0].checkboxState, true);
+      expect(tableManager.rows().length, 3);
+      expect(tableManager.rows()[0].keyController.text, 'A');
+      expect(tableManager.rows()[0].valueController.text, 'set-in-request1');
+      expect(tableManager.rows()[0].checkboxState, true);
 
-      expect(tableManager.rows[1].keyController.text, 'B');
-      expect(tableManager.rows[1].valueController.text, 'set-in-request2');
-      expect(tableManager.rows[1].checkboxState, false);
+      expect(tableManager.rows()[1].keyController.text, 'B');
+      expect(tableManager.rows()[1].valueController.text, 'set-in-request2');
+      expect(tableManager.rows()[1].checkboxState, false);
 
-      expect(tableManager.rows[2].keyController.text, '');
-      expect(tableManager.rows[2].valueController.text, '');
-      expect(tableManager.rows[2].checkboxState, false);
+      expect(tableManager.rows()[2].keyController.text, '');
+      expect(tableManager.rows()[2].valueController.text, '');
+      expect(tableManager.rows()[2].checkboxState, false);
 
       await tester.pumpAndSettle();
     });
