@@ -79,7 +79,6 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
 
     _headersController = FormTableController(
       onStateChanged: () => setState(() {}),
-      initialRows: [],
       config: context.read<Config>(),
       focusManager: _focusManager,
       eventBus: context.read<EventBus>(),

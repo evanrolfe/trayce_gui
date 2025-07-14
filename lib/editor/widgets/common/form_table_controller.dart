@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/body.dart';
-import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
-import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
@@ -23,7 +21,7 @@ abstract interface class FormTableControllerI {
 }
 
 class FormTableController implements FormTableControllerI {
-  late List<FormTableRow> _rows;
+  List<FormTableRow> _rows = [];
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final Config config;
@@ -33,19 +31,11 @@ class FormTableController implements FormTableControllerI {
 
   FormTableController({
     required this.onStateChanged,
-    List<Header>? initialRows,
     this.onModified,
     required this.config,
     required EditorFocusManager focusManager,
     required this.eventBus,
   }) : _focusManager = focusManager {
-    // TODO: This should somehow accept either params or multipart files
-    if (initialRows != null) {
-      _rows = [];
-    } else {
-      _rows = [];
-    }
-
     _addNewRow();
   }
 
@@ -73,17 +63,6 @@ class FormTableController implements FormTableControllerI {
         offset: row.contentTypeController.selection.baseOffset,
       );
     }
-  }
-
-  List<Param> getParams() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
-      return Param(
-        name: row.keyController.text,
-        value: row.valueController.text,
-        type: ParamType.form,
-        enabled: row.checkboxState,
-      );
-    }).toList();
   }
 
   List<MultipartFile> getMultipartFiles() {

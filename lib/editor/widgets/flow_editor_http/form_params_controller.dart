@@ -3,13 +3,13 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
-import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/common/form_table_base_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
-class FormHeadersController implements FormTableControllerI {
+class FormParamsController implements FormTableControllerI {
   late FormTableBaseController _baseController;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
@@ -18,15 +18,15 @@ class FormHeadersController implements FormTableControllerI {
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
 
-  FormHeadersController({
+  FormParamsController({
     required this.onStateChanged,
-    required List<Header> initialRows,
+    required List<Param> initialRows,
     this.onModified,
     required this.config,
     required EditorFocusManager focusManager,
     required this.eventBus,
   }) : _focusManager = focusManager {
-    final rows = _convertHeadersToRows(initialRows);
+    final rows = _convertParamsToRows(initialRows);
     _baseController = FormTableBaseController(
       rows: rows,
       onStateChanged: onStateChanged,
@@ -51,14 +51,19 @@ class FormHeadersController implements FormTableControllerI {
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
 
-  List<Header> getHeaders() {
+  List<Param> getParams() {
     return _baseController.rows.where((row) => !row.isEmpty()).map((row) {
-      return Header(name: row.keyController.text, value: row.valueController.text, enabled: row.checkboxState);
+      return Param(
+        name: row.keyController.text,
+        value: row.valueController.text,
+        enabled: row.checkboxState,
+        type: ParamType.form,
+      );
     }).toList();
   }
 
-  void setHeaders(List<Header> headers) {
-    final rows = _convertHeadersToRows(headers);
+  void setParams(List<Param> params) {
+    final rows = _convertParamsToRows(params);
     _baseController = FormTableBaseController(
       rows: rows,
       onStateChanged: onStateChanged,
@@ -74,24 +79,23 @@ class FormHeadersController implements FormTableControllerI {
     onStateChanged();
   }
 
-  List<FormTableRow> _convertHeadersToRows(List<Header> headers) {
-    return headers.asMap().entries.map((entry) {
-      final index = entry.key;
-      final header = entry.value;
+  List<FormTableRow> _convertParamsToRows(List<Param> params) {
+    return params.asMap().entries.map((entry) {
+      final param = entry.value;
 
       final keyController = CodeLineEditingController();
       final valueController = CodeLineEditingController();
       final contentTypeController = CodeLineEditingController();
 
-      keyController.text = header.name;
-      valueController.text = header.value;
+      keyController.text = param.name;
+      valueController.text = param.value;
       contentTypeController.text = '';
 
       final row = FormTableRow(
         keyController: keyController,
         valueController: valueController,
         contentTypeController: contentTypeController,
-        checkboxState: header.enabled,
+        checkboxState: param.enabled,
         newRow: false,
       );
       _focusManager.createRowFocusNodes();

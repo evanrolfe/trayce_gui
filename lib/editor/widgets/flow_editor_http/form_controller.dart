@@ -4,11 +4,12 @@ import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/body.dart';
-import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_params_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 class FormController {
@@ -31,7 +32,7 @@ class FormController {
 
   late final FormHeadersController headersController;
   late final FormVarsController varsController;
-  late final FormTableController formUrlEncodedController;
+  late final FormParamsController formUrlEncodedController;
   late final FormTableController multipartFormController;
   late final FormTableController fileController;
 
@@ -110,14 +111,13 @@ class FormController {
 
     // Form URL Encoded
     // Convert the params to Headers for the FormTableStateManager
-    List<Header> paramsForManager = [];
+    List<Param> params = [];
     if (_formRequest.bodyFormUrlEncoded != null) {
-      final params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
-      paramsForManager = params.map((p) => Header(name: p.name, value: p.value, enabled: p.enabled)).toList();
+      params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
     }
-    formUrlEncodedController = FormTableController(
+    formUrlEncodedController = FormParamsController(
       onStateChanged: setState,
-      initialRows: paramsForManager,
+      initialRows: params,
       onModified: _formUrlEncodedModified,
       config: config,
       focusManager: _focusManager,
@@ -128,7 +128,6 @@ class FormController {
     // Set the multi part files on the FormTableStateManager
     multipartFormController = FormTableController(
       onStateChanged: setState,
-      initialRows: [],
       onModified: _multipartFormModified,
       config: config,
       focusManager: _focusManager,
@@ -143,7 +142,6 @@ class FormController {
     // File
     fileController = FormTableController(
       onStateChanged: setState,
-      initialRows: [],
       onModified: _fileModified,
       config: config,
       focusManager: _focusManager,

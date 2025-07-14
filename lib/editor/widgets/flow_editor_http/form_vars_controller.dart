@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/widgets/common/form_table_base_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 class FormVarsController implements FormTableControllerI {
-  late List<FormTableRow> _rows;
+  late FormTableBaseController _baseController;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final Config config;
@@ -29,7 +30,7 @@ class FormVarsController implements FormTableControllerI {
   }
 
   @override
-  List<FormTableRow> rows() => _rows;
+  List<FormTableRow> rows() => _baseController.rows;
 
   @override
   EditorFocusManager focusManager() => _focusManager;
@@ -38,13 +39,25 @@ class FormVarsController implements FormTableControllerI {
   int selectedRowIndex() => _selectedRowIndex ?? -1;
 
   void setVars(List<Variable> vars) {
-    _rows = _convertVarsToRows(vars);
-    _addNewRow();
+    final rows = _convertVarsToRows(vars);
+    _baseController = FormTableBaseController(
+      rows: rows,
+      onStateChanged: onStateChanged,
+      onModified: onModified,
+      focusManager: _focusManager,
+    );
+
+    // Setup listeners for existing rows
+    for (int i = 0; i < rows.length; i++) {
+      _baseController.setupListenersForRow(rows[i], i);
+    }
+
+    _baseController.addNewRow();
     onStateChanged();
   }
 
   List<Variable> getVars() {
-    return _rows.where((row) => !row.isEmpty()).map((row) {
+    return _baseController.rows.where((row) => !row.isEmpty()).map((row) {
       return Variable(
         name: row.keyController.text,
         value: row.valueController.text,
@@ -67,10 +80,6 @@ class FormVarsController implements FormTableControllerI {
       valueController.text = varr.value ?? '';
       contentTypeController.text = '';
 
-      _setupControllerListener(keyController, index, true);
-      _setupControllerListener(valueController, index, false);
-      _setupControllerListener(contentTypeController, index, false);
-
       final row = FormTableRow(
         keyController: keyController,
         valueController: valueController,
@@ -86,118 +95,24 @@ class FormVarsController implements FormTableControllerI {
   }
 
   void clearAllSelections() {
-    for (var row in _rows) {
-      row.keyController.selection = CodeLineSelection.collapsed(
-        index: row.keyController.selection.baseIndex,
-        offset: row.keyController.selection.baseOffset,
-      );
-      row.valueController.selection = CodeLineSelection.collapsed(
-        index: row.valueController.selection.baseIndex,
-        offset: row.valueController.selection.baseOffset,
-      );
-      row.contentTypeController.selection = CodeLineSelection.collapsed(
-        index: row.contentTypeController.selection.baseIndex,
-        offset: row.contentTypeController.selection.baseOffset,
-      );
-    }
+    _baseController.clearAllSelections();
   }
 
-  void _setupControllerListener(CodeLineEditingController controller, int index, bool isKey) {
-    controller.addListener(() {
-      if (index >= _rows.length) return;
-      final row = _rows[index];
-      if (index == _rows.length - 1 && controller.text.isNotEmpty) {
-        _addNewRow();
-      }
-
-      final currentKeyText = row.keyController.text;
-      final currentValueText = row.valueController.text;
-      final previousKeyText = row.previousKeyText;
-      final previousValueText = row.previousValueText;
-      final currentContentTypeText = row.contentTypeController.text;
-      final previousContentTypeText = row.previousContentTypeText;
-
-      final hasTextChanged =
-          currentKeyText != previousKeyText ||
-          currentValueText != previousValueText ||
-          currentContentTypeText != previousContentTypeText;
-
-      if (hasTextChanged &&
-          previousKeyText.isEmpty &&
-          previousValueText.isEmpty &&
-          previousContentTypeText.isEmpty &&
-          !row.checkboxState &&
-          row.newRow) {
-        row.checkboxState = true;
-        // Schedule state change for next frame
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          onStateChanged();
-        });
-      }
-
-      row.previousKeyText = currentKeyText;
-      row.previousValueText = currentValueText;
-      row.previousContentTypeText = currentContentTypeText;
-
-      onModified?.call();
-    });
-  }
-
-  void _addNewRow() {
-    final row = FormTableRow(
-      keyController: CodeLineEditingController(),
-      valueController: CodeLineEditingController(),
-      contentTypeController: CodeLineEditingController(),
-      newRow: true,
-    );
-
-    _rows.add(row);
-
-    final index = _rows.length - 1;
-    _setupControllerListener(row.keyController, index, true);
-    _setupControllerListener(row.valueController, index, false);
-    _setupControllerListener(row.contentTypeController, index, false);
-    _focusManager.createRowFocusNodes();
-    // Schedule state change for next frame to avoid calling setState during build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      onStateChanged();
-    });
-  }
-
-  // There is a bug with the Re-Editor which prevents me from doing _rows.removeAt(index)
-  // so instead i have to do this work around where we swap rows and delete the last one
   @override
   void deleteRow(int index) {
-    if (_rows.length <= 1) return;
-    if (index >= _rows.length - 1) return;
-
-    for (int i = index; i < _rows.length - 1; i++) {
-      final row1 = _rows[i];
-      final row2 = _rows[i + 1];
-
-      if (row2.isEmpty()) break;
-
-      row1.swapWith(row2);
-    }
-
-    final removed = _rows.removeLast();
-    removed.dispose();
-
-    _rows.last.setEmpty();
-    onStateChanged();
-    onModified?.call();
+    _baseController.deleteRow(index);
   }
 
   @override
   void setCheckboxState(int index, bool value) {
-    _rows[index].checkboxState = value;
+    _baseController.rows[index].checkboxState = value;
     onStateChanged();
     onModified?.call();
   }
 
   @override
   void setCheckboxStateSecret(int index, bool value) {
-    _rows[index].checkboxStateSecret = value;
+    _baseController.rows[index].checkboxStateSecret = value;
     onStateChanged();
     onModified?.call();
   }
@@ -214,13 +129,13 @@ class FormVarsController implements FormTableControllerI {
     final path = await _getFilePath();
     if (path == null) return;
 
-    if (index >= _rows.length) return;
-    final row = _rows[index];
+    if (index >= _baseController.rows.length) return;
+    final row = _baseController.rows[index];
 
-    _rows[index].valueFile = path;
+    _baseController.rows[index].valueFile = path;
 
-    if (index == _rows.length - 1) {
-      _addNewRow();
+    if (index == _baseController.rows.length - 1) {
+      _baseController.addNewRow();
     }
 
     onStateChanged();
@@ -241,8 +156,6 @@ class FormVarsController implements FormTableControllerI {
 
   @override
   void dispose() {
-    for (var row in _rows) {
-      row.dispose();
-    }
+    _baseController.dispose();
   }
 }
