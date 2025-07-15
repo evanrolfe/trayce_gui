@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import 'request.dart';
 import 'utils.dart';
 import 'variable.dart';
@@ -46,11 +48,13 @@ class Environment {
     return fileName.substring(0, dotIndex);
   }
 
-  void save() {
-    final bruStr = toBru();
-    if (!file.existsSync()) {
-      file.createSync(recursive: true);
-    }
-    file.writeAsStringSync(bruStr);
+  static Environment blank(String collectionPath) {
+    final envsDir = Directory(path.join(collectionPath, 'environments'));
+
+    // Create a new environment file
+    final envFileName = 'untitled.bru';
+    final envFile = File(path.join(envsDir.path, envFileName));
+
+    return Environment(file: envFile, vars: []);
   }
 }

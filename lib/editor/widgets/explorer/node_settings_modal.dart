@@ -6,6 +6,8 @@ import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
@@ -74,21 +76,28 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
   }
 
   Future<void> _onSave() async {
-    // Save Headers
+    // Set the headers
     if (widget.node.type == NodeType.folder) {
       widget.node.folder!.headers = _headersController.getHeaders();
     } else if (widget.node.type == NodeType.collection) {
       widget.node.collection!.headers = _headersController.getHeaders();
     }
 
-    // Save Variables
+    // Set the variables
     if (widget.node.type == NodeType.folder) {
       widget.node.folder!.requestVars = _varsController.getVars();
     } else if (widget.node.type == NodeType.collection) {
       widget.node.collection!.requestVars = _varsController.getVars();
     }
 
-    widget.node.save();
+    // Save
+    if (widget.node.type == NodeType.collection) {
+      CollectionRepo().save(widget.node.collection!);
+    }
+    if (widget.node.type == NodeType.folder) {
+      FolderRepo().save(widget.node.folder!);
+    }
+
     Navigator.of(context).pop();
   }
 

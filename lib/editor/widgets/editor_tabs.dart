@@ -17,6 +17,7 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/tab_item.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
@@ -43,13 +44,13 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub4;
   late final StreamSubscription _tabsSub5;
   late final StreamSubscription _tabsSub6;
+  late final StreamSubscription _tabsSub7;
   late final FocusNode _focusNode;
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
   final Map<Collection, List<_TabEntry>> _tabsMap = {};
   Collection? _currentCollection;
-  ExplorerNode? _currentCollectionNode;
 
   // Environment dropdown state
   final Map<Collection, String> _selectedEnvironment = {};
@@ -93,8 +94,6 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub0 = context.read<EventBus>().on<EventCollectionOpened>().listen((event) {
       setState(() {
         _currentCollection = event.collection;
-        _currentCollectionNode = event.node;
-        print('collection opened: ${_currentCollectionNode?.getDir()?.path}');
       });
     });
 
@@ -102,7 +101,6 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
       setState(() {
         _currentCollection = event.collection;
-        _currentCollectionNode = event.node;
 
         final uuid = const Uuid().v4();
         final newTab = TabItem(
@@ -230,7 +228,7 @@ class _EditorTabsState extends State<EditorTabs> {
         tab.isNew = false;
         tab.displayName = node.displayName();
 
-        tab.node!.save();
+        RequestRepo().save(tab.node!.request!);
 
         // Refresh the explorer
         if (mounted) {
@@ -239,7 +237,7 @@ class _EditorTabsState extends State<EditorTabs> {
       } else {
         // Updating an existing request
         tab.node!.request = event.request;
-        tab.node!.save();
+        RequestRepo().save(tab.node!.request!);
       }
 
       setState(() {
@@ -260,6 +258,10 @@ class _EditorTabsState extends State<EditorTabs> {
     // Called when CTRL+W is pressed
     _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((event) {
       _closeCurrentTab();
+    });
+
+    _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen((event) {
+      setState(() {});
     });
   }
 
@@ -308,6 +310,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub4.cancel();
     _tabsSub5.cancel();
     _tabsSub6.cancel();
+    _tabsSub7.cancel();
     _focusNode.dispose();
     super.dispose();
   }

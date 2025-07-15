@@ -1,17 +1,17 @@
-import 'dart:io';
-
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
+
+class EventEnvironmentsChanged {}
 
 Future<void> showEnvironmentsModal(BuildContext context, Collection collection) {
   return showDialog(context: context, builder: (dialogContext) => EnvironmentsModal(collection: collection));
@@ -75,25 +75,10 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
 
   void _createNewEnvironment() {
     final collectionPath = widget.collection.dir.path;
-
-    // Create environments directory if it doesn't exist
-    final environmentsDir = Directory(path.join(collectionPath, 'environments'));
-    if (!environmentsDir.existsSync()) {
-      environmentsDir.createSync(recursive: true);
-    }
-
-    // Create a new environment file
-    final envFileName = 'untitled.bru';
-    final envFile = File(path.join(environmentsDir.path, envFileName));
-
-    // Create a new environment with empty vars
-    final newEnvironment = Environment(vars: [], file: envFile);
-
-    // Save the environment file
-    newEnvironment.save();
-
-    // Add to the collection's environments list
+    final newEnvironment = Environment.blank(collectionPath);
     widget.collection.environments.add(newEnvironment);
+
+    CollectionRepo().save(widget.collection);
 
     // Update the local environments list
     setState(() {
@@ -103,6 +88,8 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
       _isEditingFilename = false;
     });
 
+    context.read<EventBus>().fire(EventEnvironmentsChanged());
+
     // Update the vars controller
     _varsController.setVars(newEnvironment.vars);
   }
@@ -111,7 +98,8 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     final vars = _varsController.getVars();
     final environment = _environments[_selectedEnvironmentIndex];
     environment.vars = vars;
-    environment.save();
+
+    CollectionRepo().save(widget.collection);
 
     Navigator.of(context).pop();
   }

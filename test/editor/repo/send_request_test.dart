@@ -45,10 +45,10 @@ void main() {
       expect(finalReq.headers[3].value, 'set from request');
 
       // Verify the variables
-      print('finalReq.requestVars:');
-      for (final reqvar in finalReq.requestVars) {
-        print('  ${reqvar.name}: ${reqvar.value}');
-      }
+      // print('finalReq.requestVars:');
+      // for (final reqvar in finalReq.requestVars) {
+      //   print('  ${reqvar.name}: ${reqvar.value}');
+      // }
 
       expect(finalReq.requestVars.length, 3);
       expect(finalReq.requestVars[0].name, 'C_var');

@@ -41,5 +41,22 @@ class CollectionRepo {
       file.createSync(recursive: true);
     }
     file.writeAsStringSync(bruStr);
+
+    if (collection.environments.isEmpty) return;
+
+    final envPath = path.join(collection.dir.path, 'environments');
+    final envDir = Directory(envPath);
+    if (!envDir.existsSync()) {
+      envDir.createSync(recursive: true);
+    }
+
+    // Save all environments
+    for (final environment in collection.environments) {
+      final bruStr = environment.toBru();
+      if (!environment.file.existsSync()) {
+        environment.file.createSync(recursive: true);
+      }
+      environment.file.writeAsStringSync(bruStr);
+    }
   }
 }

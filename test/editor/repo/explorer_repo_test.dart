@@ -456,33 +456,33 @@ void main() {
       await deleteFolder(newFolderPath);
     });
 
-    // test('renaming a request', () async {
-    //   final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+    test('renaming a request', () async {
+      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
 
-    //   final folderPath = collection1Path;
-    //   final newFolderPath = '$collection1Path-test';
-    //   await copyFolder(folderPath, newFolderPath);
+      final folderPath = collection1Path;
+      final newFolderPath = '$collection1Path-test';
+      await copyFolder(folderPath, newFolderPath);
 
-    //   explorerRepo.openCollection(newFolderPath);
-    //   final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    //   final event = captured[0] as EventDisplayExplorerItems;
+      explorerRepo.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
 
-    //   // Node to rename:
-    //   final node = event.nodes[0].children[2];
-    //   expect(node.name, 'my-request.bru');
-    //   expect(node.type, NodeType.request);
+      // Node to rename:
+      final node = event.nodes[0].children[2];
+      expect(node.name, 'my-request.bru');
+      expect(node.type, NodeType.request);
 
-    //   await explorerRepo.renameNode(node, 'newname.bru');
-    //   final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
-    //   final event2 = captured2[0] as EventDisplayExplorerItems;
+      await explorerRepo.renameNode(node, 'newname');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[1] as EventDisplayExplorerItems;
 
-    //   // Expect myfolder to be renamed to newname
-    //   final node2 = event2.nodes[0].children[2];
-    //   expect(node2.name, 'newname.bru');
-    //   expect(node2.type, NodeType.request);
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0].children[2];
+      expect(node2.name, 'newname.bru');
+      expect(node2.type, NodeType.request);
 
-    //   await deleteFolder(newFolderPath);
-    // });
+      await deleteFolder(newFolderPath);
+    });
   });
 
   // TODO: Get this test working
