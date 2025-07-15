@@ -25,7 +25,7 @@ class CollectionRepo {
     }
 
     final collectionStr = file.readAsStringSync();
-    final collection = parseCollection(collectionStr, environments);
+    final collection = parseCollection(collectionStr, file, dir, environments);
 
     collection.file = file;
     collection.dir = dir;
@@ -34,10 +34,8 @@ class CollectionRepo {
   }
 
   void save(Collection collection) {
-    if (collection.file == null) return;
-
     final bruStr = collection.toBru();
-    final file = collection.file!;
+    final file = collection.file;
 
     if (!file.existsSync()) {
       file.createSync(recursive: true);

@@ -25,6 +25,8 @@ void main() {
     testWidgets('creating a new environment and saving some vars', (WidgetTester tester) async {
       // Create a collection with no environments
       final collection = Collection(
+        file: File('test/support/collection2/collection.bru'),
+        dir: Directory('test/support/collection2'),
         type: 'collection',
         environments: [], // Empty environments array
         headers: [],
@@ -32,7 +34,6 @@ void main() {
         requestVars: [],
         responseVars: [],
       );
-      collection.dir = Directory('test/support/collection2');
 
       // Create a test app with a button to show the modal
       final testApp = await deps.wrapWidget(
@@ -112,6 +113,8 @@ void main() {
       final environment = Environment(vars: [], file: tempFile);
 
       final collection = Collection(
+        file: File('test/support/collection1/collection.bru'),
+        dir: Directory('test/support/collection1'),
         type: 'collection',
         environments: [environment], // Add at least one environment
         headers: [],
@@ -166,6 +169,8 @@ void main() {
       );
 
       final collection = Collection(
+        file: File('test/support/collection1/collection.bru'),
+        dir: Directory('test/support/collection1'),
         type: 'collection',
         environments: [environment], // Add at least one environment
         headers: [],

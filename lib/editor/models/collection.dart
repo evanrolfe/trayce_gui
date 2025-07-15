@@ -12,8 +12,8 @@ import 'variable.dart';
 
 class Collection {
   // file properties:
-  Directory? dir;
-  File? file;
+  Directory dir;
+  File file;
   // String name;
 
   // .bru properties:
@@ -35,8 +35,8 @@ class Collection {
   String? docs;
 
   Collection({
-    this.file,
-    this.dir,
+    required this.file,
+    required this.dir,
     required this.type,
     required this.environments,
     this.meta,

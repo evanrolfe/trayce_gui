@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:petitparser/petitparser.dart';
 
 import '../auth.dart';
@@ -7,7 +9,7 @@ import '../param.dart';
 import 'grammar_collection.dart';
 import 'parse_request.dart';
 
-Collection parseCollection(String collection, List<Environment> environments) {
+Collection parseCollection(String collection, File file, Directory dir, List<Environment> environments) {
   final bruParser = BruCollectionGrammar().build();
   final result = bruParser.parse(collection.trim());
 
@@ -40,6 +42,8 @@ Collection parseCollection(String collection, List<Environment> environments) {
   final docs = parseDocs(result);
 
   return Collection(
+    file: file,
+    dir: dir,
     type: type,
     environments: environments,
     meta: meta,
