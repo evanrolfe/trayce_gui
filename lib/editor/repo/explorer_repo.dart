@@ -211,7 +211,7 @@ class ExplorerRepo {
 
       await deleteDir(node.getDir()!);
       parentNode.children.remove(node);
-      parentNode.updateChildrenSeq();
+      _updateChildrenSeq(parentNode);
     }
 
     // Deleting a request
@@ -221,7 +221,7 @@ class ExplorerRepo {
 
       node.getFile()!.deleteSync();
       parentNode.children.remove(node);
-      parentNode.updateChildrenSeq();
+      _updateChildrenSeq(parentNode);
     }
 
     refresh();
@@ -267,7 +267,7 @@ class ExplorerRepo {
         if (targetNode == parentNodeMoved) {
           parentNodeMoved.children.remove(movedNode);
           parentNodeMoved.children.insert(0, movedNode);
-          parentNodeMoved.updateChildrenSeq();
+          _updateChildrenSeq(parentNodeMoved);
           refresh();
           return;
         }
@@ -281,7 +281,7 @@ class ExplorerRepo {
         sourceFile.deleteSync();
 
         parentNodeMoved.children.remove(movedNode);
-        parentNodeMoved.updateChildrenSeq();
+        _updateChildrenSeq(parentNodeMoved);
 
         refresh();
       } else if (targetNode.type == NodeType.request && movedToDifferentFolder) {
@@ -299,13 +299,13 @@ class ExplorerRepo {
         movedNode.setFile(File(targetPath));
 
         parentNodeMoved.children.remove(movedNode);
-        parentNodeMoved.updateChildrenSeq();
+        _updateChildrenSeq(parentNodeMoved);
 
         // targetIndex+1 because it should be inserted after the target node
         int targetIndex = parentNodeTarget.children.indexOf(targetNode) + 1;
         parentNodeTarget.children.insert(targetIndex, movedNode);
 
-        parentNodeTarget.updateChildrenSeq();
+        _updateChildrenSeq(parentNodeTarget);
 
         refresh();
       } else if (targetNode.type == NodeType.request && !movedToDifferentFolder) {
@@ -320,7 +320,7 @@ class ExplorerRepo {
         parentNodeMoved.children.remove(movedNode);
         parentNodeTarget.children.insert(targetIndex, movedNode);
 
-        parentNodeMoved.updateChildrenSeq();
+        _updateChildrenSeq(parentNodeMoved);
 
         refresh();
       }
@@ -468,6 +468,20 @@ class ExplorerRepo {
         // Recursively sort children
         _sortNodes(node.children);
       }
+    }
+  }
+
+  // _updateChildrenSeq loops over each child of a node and sets the sequence number
+  // based on their order in the children list. It then saves it to file.
+  void _updateChildrenSeq(ExplorerNode parentNode) {
+    final children = parentNode.children;
+
+    for (int i = 0; i < children.length; i++) {
+      if (children[i].type != NodeType.request) continue;
+
+      final request = children[i].request!;
+      request.seq = i;
+      RequestRepo().save(request);
     }
   }
 

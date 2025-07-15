@@ -62,9 +62,9 @@ class SendRequest {
       }
     }
 
-    for (final header in finalReq.headers) {
-      print('   ${header.name}: ${header.value}');
-    }
+    // for (final header in finalReq.headers) {
+    //   print('   ${header.name}: ${header.value}');
+    // }
 
     return finalReq;
   }
