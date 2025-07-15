@@ -32,6 +32,7 @@ void main() {
         requestVars: [],
         responseVars: [],
       );
+      collection.dir = Directory('test/support/collection2');
 
       // Create a test app with a button to show the modal
       final testApp = await deps.wrapWidget(
@@ -40,8 +41,7 @@ void main() {
             body: Builder(
               builder:
                   (context) => ElevatedButton(
-                    onPressed:
-                        () => showEnvironmentsModal(context, collection, collectionPath: 'test/support/collection2'),
+                    onPressed: () => showEnvironmentsModal(context, collection),
                     child: const Text('Show Modal'),
                   ),
             ),

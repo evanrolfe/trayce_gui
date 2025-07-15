@@ -478,9 +478,7 @@ class _EditorTabsState extends State<EditorTabs> {
                             // if (_currentCollection == null) return;
 
                             if (newValue == 'Configure' && _currentCollection != null) {
-                              final collectionPath = _currentCollectionNode?.getDir()?.path;
-                              print('collectionPath: $collectionPath');
-                              showEnvironmentsModal(context, _currentCollection!, collectionPath: collectionPath);
+                              showEnvironmentsModal(context, _currentCollection!);
                             } else if (newValue == 'Configure' && _currentCollection == null) {
                               showMessageDialog(
                                 context: context,

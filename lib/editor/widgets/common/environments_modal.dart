@@ -13,18 +13,14 @@ import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
-Future<void> showEnvironmentsModal(BuildContext context, Collection collection, {String? collectionPath}) {
-  return showDialog(
-    context: context,
-    builder: (dialogContext) => EnvironmentsModal(collection: collection, collectionPath: collectionPath),
-  );
+Future<void> showEnvironmentsModal(BuildContext context, Collection collection) {
+  return showDialog(context: context, builder: (dialogContext) => EnvironmentsModal(collection: collection));
 }
 
 class EnvironmentsModal extends StatefulWidget {
   final Collection collection;
-  final String? collectionPath;
 
-  const EnvironmentsModal({super.key, required this.collection, this.collectionPath});
+  const EnvironmentsModal({super.key, required this.collection});
 
   @override
   State<EnvironmentsModal> createState() => _EnvironmentsModalState();
@@ -79,13 +75,13 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
 
   void _createNewEnvironment() {
     // Get collection directory path
-    if (widget.collectionPath == null) {
+    final collectionPath = widget.collection.dir?.path;
+    if (collectionPath == null) {
       print('Collection path is required to create a new environment');
       return;
     }
-
     // Create environments directory if it doesn't exist
-    final environmentsDir = Directory(path.join(widget.collectionPath!, 'environments'));
+    final environmentsDir = Directory(path.join(collectionPath, 'environments'));
     if (!environmentsDir.existsSync()) {
       environmentsDir.createSync(recursive: true);
     }
