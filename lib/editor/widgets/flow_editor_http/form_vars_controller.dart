@@ -69,7 +69,6 @@ class FormVarsController implements FormTableControllerI {
 
   List<FormTableRow> _convertVarsToRows(List<Variable> vars) {
     return vars.asMap().entries.map((entry) {
-      final index = entry.key;
       final varr = entry.value;
 
       final keyController = CodeLineEditingController();
@@ -130,7 +129,6 @@ class FormVarsController implements FormTableControllerI {
     if (path == null) return;
 
     if (index >= _baseController.rows.length) return;
-    final row = _baseController.rows[index];
 
     _baseController.rows[index].valueFile = path;
 

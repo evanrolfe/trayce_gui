@@ -8,7 +8,7 @@ class FolderRepo {
     final file = File('${dir.path}/folder.bru');
 
     final folderStr = file.readAsStringSync();
-    final folder = parseFolder(folderStr);
+    final folder = parseFolder(folderStr, file, dir);
 
     folder.file = file;
     folder.dir = dir;
@@ -17,10 +17,8 @@ class FolderRepo {
   }
 
   void save(Folder folder) {
-    if (folder.file == null) return;
-
     final bruStr = folder.toBru();
-    final file = folder.file!;
+    final file = folder.file;
 
     if (!file.existsSync()) {
       file.createSync(recursive: true);

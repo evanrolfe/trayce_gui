@@ -58,9 +58,7 @@ class ExplorerNode {
   }
 
   static newBlankFolder(String parentPath) {
-    final folder = Folder.blank();
-    folder.file = File(path.join(parentPath, 'new_folder', 'folder.bru'));
-    folder.dir = Directory(path.join(parentPath, 'new_folder'));
+    final folder = Folder.blank(parentPath);
 
     return ExplorerNode(name: "new_folder", type: NodeType.folder, isDirectory: true, folder: folder, isSaved: false);
   }
@@ -136,9 +134,9 @@ class ExplorerNode {
     if (type == NodeType.request && request != null) {
       return request!.file?.path;
     } else if (type == NodeType.folder && folder != null) {
-      return folder!.file?.path;
+      return folder!.file.path;
     } else if (type == NodeType.collection && collection != null) {
-      return collection!.file?.path;
+      return collection!.file.path;
     }
     return null;
   }

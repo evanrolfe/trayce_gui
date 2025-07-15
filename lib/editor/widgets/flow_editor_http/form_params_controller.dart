@@ -140,7 +140,6 @@ class FormParamsController implements FormTableControllerI {
     if (path == null) return;
 
     if (index >= _baseController.rows.length) return;
-    final row = _baseController.rows[index];
 
     _baseController.rows[index].valueFile = path;
 

@@ -10,7 +10,7 @@ void main() {
     final bruData = await bruFile.readAsString();
 
     // Parse the BRU data
-    final folder = parseFolder(bruData);
+    final folder = parseFolder(bruData, bruFile, Directory('test/editor/models/fixtures'));
 
     final bru = folder.toBru();
     expect(bru, bruData);

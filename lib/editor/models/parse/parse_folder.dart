@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:trayce/editor/models/parse/parse_collection.dart';
 
 import '../auth.dart';
@@ -5,7 +7,7 @@ import '../folder.dart';
 import 'grammar_collection.dart';
 import 'parse_request.dart';
 
-Folder parseFolder(String folderBru) {
+Folder parseFolder(String folderBru, File file, Directory dir) {
   final bruParser = BruCollectionGrammar().build();
   final result = bruParser.parse(folderBru.trim());
 
@@ -38,6 +40,8 @@ Folder parseFolder(String folderBru) {
   final docs = parseDocs(result);
 
   return Folder(
+    file: file,
+    dir: dir,
     type: type,
     meta: meta,
     headers: headers,

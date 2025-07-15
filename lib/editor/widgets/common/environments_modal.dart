@@ -74,12 +74,8 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
   }
 
   void _createNewEnvironment() {
-    // Get collection directory path
-    final collectionPath = widget.collection.dir?.path;
-    if (collectionPath == null) {
-      print('Collection path is required to create a new environment');
-      return;
-    }
+    final collectionPath = widget.collection.dir.path;
+
     // Create environments directory if it doesn't exist
     final environmentsDir = Directory(path.join(collectionPath, 'environments'));
     if (!environmentsDir.existsSync()) {

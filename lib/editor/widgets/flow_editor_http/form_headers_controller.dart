@@ -76,7 +76,6 @@ class FormHeadersController implements FormTableControllerI {
 
   List<FormTableRow> _convertHeadersToRows(List<Header> headers) {
     return headers.asMap().entries.map((entry) {
-      final index = entry.key;
       final header = entry.value;
 
       final keyController = CodeLineEditingController();
@@ -136,7 +135,6 @@ class FormHeadersController implements FormTableControllerI {
     if (path == null) return;
 
     if (index >= _baseController.rows.length) return;
-    final row = _baseController.rows[index];
 
     _baseController.rows[index].valueFile = path;
 
