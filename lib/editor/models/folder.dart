@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'auth.dart';
 import 'header.dart';
 import 'param.dart';
@@ -7,6 +9,11 @@ import 'utils.dart';
 import 'variable.dart';
 
 class Folder {
+  // file properties:
+  File? file;
+  Directory? dir;
+
+  // .bru properties:
   String type;
 
   Map<String, dynamic>? meta;
@@ -25,6 +32,8 @@ class Folder {
   String? docs;
 
   Folder({
+    this.file,
+    this.dir,
     required this.type,
     this.meta,
     required this.headers,

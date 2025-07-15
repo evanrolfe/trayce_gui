@@ -94,7 +94,7 @@ class _EditorTabsState extends State<EditorTabs> {
       setState(() {
         _currentCollection = event.collection;
         _currentCollectionNode = event.node;
-        print('collection opened: ${_currentCollectionNode?.dir?.path}');
+        print('collection opened: ${_currentCollectionNode?.getDir()?.path}');
       });
     });
 
@@ -219,7 +219,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
         final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
         final node = ExplorerNode(
-          file: File(path),
+          // file: File(path),
           name: fileName,
           type: NodeType.request,
           isDirectory: false,
@@ -478,7 +478,7 @@ class _EditorTabsState extends State<EditorTabs> {
                             // if (_currentCollection == null) return;
 
                             if (newValue == 'Configure' && _currentCollection != null) {
-                              final collectionPath = _currentCollectionNode?.dir?.path;
+                              final collectionPath = _currentCollectionNode?.getDir()?.path;
                               print('collectionPath: $collectionPath');
                               showEnvironmentsModal(context, _currentCollection!, collectionPath: collectionPath);
                             } else if (newValue == 'Configure' && _currentCollection == null) {

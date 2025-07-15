@@ -1,16 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
-import 'package:trayce/editor/models/folder.dart';
-import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
@@ -176,17 +172,8 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleNewRequestInFolder(ExplorerNode parentNode) async {
-    final parentPath = parentNode.dir!.path;
-    print('handleNewRequestInFolder, path: $parentPath');
-    final node = ExplorerNode(
-      file: File(path.join(parentPath, '.bru')),
-      name: ".bru",
-      type: NodeType.request,
-      isDirectory: false,
-      request: Request.blank(),
-      isSaved: false,
-    );
-    // reqNode.save();
+    final parentPath = parentNode.getDir()!.path;
+    final node = ExplorerNode.newBlankRequest(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
@@ -199,16 +186,8 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleNewFolder(ExplorerNode parentNode) async {
-    final parentPath = parentNode.dir!.path;
-    final node = ExplorerNode(
-      file: File(path.join(parentPath, 'new_folder', 'folder.bru')),
-      dir: Directory(path.join(parentPath, 'new_folder')),
-      name: "new_folder",
-      type: NodeType.folder,
-      folder: Folder.blank(),
-      isDirectory: true,
-      isSaved: false,
-    );
+    final parentPath = parentNode.getDir()!.path;
+    final node = ExplorerNode.newBlankFolder(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {

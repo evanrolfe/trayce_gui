@@ -5,8 +5,11 @@ import 'utils.dart';
 import 'variable.dart';
 
 class Environment {
-  List<Variable> vars;
+  // file properties:
   File file;
+
+  // .bru properties:
+  List<Variable> vars;
 
   Environment({required this.vars, required this.file});
 

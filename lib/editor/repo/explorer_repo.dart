@@ -7,6 +7,9 @@ import 'package:path/path.dart' as path;
 import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 
 class EventDisplayExplorerItems {
   final List<ExplorerNode> nodes;
@@ -76,7 +79,7 @@ class ExplorerRepo {
 
   void openCollection(String path) {
     // Check if its already open
-    if (_nodes.any((node) => node.dir?.path == path)) return;
+    if (_nodes.any((node) => node.getDir()?.path == path)) return;
 
     // Check for bruno.json in the root directory
     final collectionDir = Directory(path);
@@ -130,24 +133,24 @@ class ExplorerRepo {
   Future<void> renameNode(ExplorerNode node, String newName) async {
     // Rename a collection/folder
     if ((node.type == NodeType.collection || node.type == NodeType.folder) && !node.isSaved) {
-      final targetDir = node.dir!;
+      final targetDir = node.getDir()!;
       final targetPath = path.join(path.dirname(targetDir.path), newName);
 
-      node.dir = Directory(targetPath);
-      node.file = File(path.join(targetPath, 'folder.bru'));
+      node.setDir(Directory(targetPath));
+      node.setFile(File(path.join(targetPath, 'folder.bru')));
       node.name = newName;
 
       node.save();
     }
 
     if ((node.type == NodeType.collection || node.type == NodeType.folder) && node.isSaved) {
-      final targetDir = node.dir!;
+      final targetDir = node.getDir()!;
       final targetPath = path.join(path.dirname(targetDir.path), newName);
 
-      await node.dir!.rename(targetPath);
+      await node.getDir()!.rename(targetPath);
 
-      node.dir = Directory(targetPath);
-      node.file = File(path.join(targetPath, 'collection.bru'));
+      node.setDir(Directory(targetPath));
+      node.setFile(File(path.join(targetPath, 'collection.bru')));
       node.name = newName;
     }
 
@@ -159,10 +162,10 @@ class ExplorerRepo {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
-      final targetDir = parentNode.dir!;
+      final targetDir = parentNode.getDir()!;
       final targetPath = path.join(targetDir.path, newName);
 
-      node.file = File(targetPath);
+      node.setFile(File(targetPath));
       node.name = newName;
       node.request!.seq = getNextSeq(targetDir.path);
       node.save();
@@ -173,8 +176,8 @@ class ExplorerRepo {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
-      final sourceFile = node.file;
-      final targetDir = parentNode.dir!;
+      final sourceFile = node.getFile()!;
+      final targetDir = parentNode.getDir()!;
       final targetPath = path.join(targetDir.path, newName);
 
       // Move the file
@@ -182,7 +185,7 @@ class ExplorerRepo {
       sourceFile.deleteSync();
 
       // Update the movedNode's file
-      node.file = File(targetPath);
+      node.setFile(File(targetPath));
       node.name = newName;
       node.save();
 
@@ -195,18 +198,18 @@ class ExplorerRepo {
   Future<void> deleteNode(ExplorerNode node) async {
     // Deleting a collection
     if (node.type == NodeType.collection) {
-      if (node.dir == null) return;
+      if (node.getDir() == null) return;
 
-      await deleteDir(node.dir!);
+      await deleteDir(node.getDir()!);
       _nodes.remove(node);
     }
 
     // Deleting a folder
     if (node.type == NodeType.folder) {
       final parentNode = _findParentNode(node);
-      if (parentNode == null || node.dir == null) return;
+      if (parentNode == null || node.getDir() == null) return;
 
-      await deleteDir(node.dir!);
+      await deleteDir(node.getDir()!);
       parentNode.children.remove(node);
       parentNode.updateChildrenSeq();
     }
@@ -216,7 +219,7 @@ class ExplorerRepo {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
-      node.file.deleteSync();
+      node.getFile()!.deleteSync();
       parentNode.children.remove(node);
       parentNode.updateChildrenSeq();
     }
@@ -228,8 +231,8 @@ class ExplorerRepo {
   Future<void> moveNode(ExplorerNode movedNode, ExplorerNode targetNode) async {
     // Moving a folder
     if (movedNode.type == NodeType.folder) {
-      Directory targetDir = targetNode.dir!;
-      final sourceDir = movedNode.dir!;
+      Directory targetDir = targetNode.getDir()!;
+      final sourceDir = movedNode.getDir()!;
 
       if (targetNode.type == NodeType.collection) {
         // Moving to a collection
@@ -253,12 +256,12 @@ class ExplorerRepo {
       final parentNodeTarget = _findParentNode(targetNode);
       if (parentNodeMoved == null) return;
 
-      final movedToDifferentFolder = parentNodeMoved.dir?.path != parentNodeTarget?.dir?.path;
+      final movedToDifferentFolder = parentNodeMoved.getDir()?.path != parentNodeTarget?.getDir()?.path;
 
       if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
         // Get the file paths
-        final sourceFile = movedNode.file;
-        final targetDir = targetNode.dir!;
+        final sourceFile = movedNode.getFile()!;
+        final targetDir = targetNode.getDir()!;
         final targetPath = path.join(targetDir.path, movedNode.name);
 
         if (targetNode == parentNodeMoved) {
@@ -284,8 +287,8 @@ class ExplorerRepo {
       } else if (targetNode.type == NodeType.request && movedToDifferentFolder) {
         if (parentNodeTarget == null) return;
         // Get the file paths
-        final sourceFile = movedNode.file;
-        final targetDir = parentNodeTarget.dir!;
+        final sourceFile = movedNode.getFile()!;
+        final targetDir = parentNodeTarget.getDir()!;
         final targetPath = path.join(targetDir.path, movedNode.name);
 
         // Move the file
@@ -293,7 +296,7 @@ class ExplorerRepo {
         sourceFile.deleteSync();
 
         // Update the movedNode's file
-        movedNode.file = File(targetPath);
+        movedNode.setFile(File(targetPath));
 
         parentNodeMoved.children.remove(movedNode);
         parentNodeMoved.updateChildrenSeq();
@@ -329,11 +332,13 @@ class ExplorerRepo {
   void refresh() {
     final refreshedNodes = <ExplorerNode>[];
     for (var node in _nodes) {
-      refreshedNodes.add(_buildNode(node.dir!, 0));
+      refreshedNodes.add(_buildNode(node.getDir()!, 0));
     }
 
     for (var collNode in _nodes) {
-      final refreshedCollNode = refreshedNodes.firstWhereOrNull((node) => node.dir?.path == collNode.dir?.path);
+      final refreshedCollNode = refreshedNodes.firstWhereOrNull(
+        (node) => node.getDir()?.path == collNode.getDir()?.path,
+      );
       if (refreshedCollNode == null) continue;
 
       _refreshNodes(collNode.children, refreshedCollNode.children);
@@ -360,7 +365,9 @@ class ExplorerRepo {
     for (var refreshedNode in refreshedNodes) {
       if (refreshedNode.type == NodeType.folder) {
         // Check if folder exists
-        final existingNode = existingNodes.firstWhereOrNull((node) => node.dir?.path == refreshedNode.dir?.path);
+        final existingNode = existingNodes.firstWhereOrNull(
+          (node) => node.getDir()?.path == refreshedNode.getDir()?.path,
+        );
         if (existingNode == null) {
           nodesToAdd.add(refreshedNode);
         } else {
@@ -369,7 +376,7 @@ class ExplorerRepo {
         }
       } else if (refreshedNode.type == NodeType.request) {
         // Check if request exists
-        final exists = existingNodes.any((node) => node.file.path == refreshedNode.file.path);
+        final exists = existingNodes.any((node) => node.getFile()?.path == refreshedNode.getFile()?.path);
         if (!exists) {
           nodesToAdd.add(refreshedNode);
         }
@@ -382,14 +389,16 @@ class ExplorerRepo {
     for (var node in existingNodes) {
       if (node.type == NodeType.folder) {
         final exists = refreshedNodes.any(
-          (refreshedNode) => refreshedNode.type == NodeType.folder && refreshedNode.dir?.path == node.dir?.path,
+          (refreshedNode) =>
+              refreshedNode.type == NodeType.folder && refreshedNode.getDir()?.path == node.getDir()?.path,
         );
         if (!exists) {
           nodesToRemove.add(node);
         }
       } else if (node.type == NodeType.request) {
         final exists = refreshedNodes.any(
-          (refreshedNode) => refreshedNode.type == NodeType.request && refreshedNode.file.path == node.file.path,
+          (refreshedNode) =>
+              refreshedNode.type == NodeType.request && refreshedNode.getFile()?.path == node.getFile()?.path,
         );
         if (!exists) {
           nodesToRemove.add(node);
@@ -414,31 +423,16 @@ class ExplorerRepo {
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
 
-      late NodeType type;
-      late File file;
-      late Directory dir;
-
       if (depth == 0) {
-        type = NodeType.collection;
-        dir = entity;
-        file = File('${entity.path}/collection.bru');
+        final collection = CollectionRepo().load(entity);
+        return ExplorerNode.newCollection(name, collection, children);
       } else {
-        type = NodeType.folder;
-        dir = entity;
-        file = File('${entity.path}/folder.bru');
+        final folder = FolderRepo().load(entity);
+        return ExplorerNode.newFolder(name, folder, children);
       }
-
-      return ExplorerNode(
-        file: file,
-        dir: dir,
-        name: name,
-        isDirectory: true,
-        type: type,
-        isExpanded: (type == NodeType.collection),
-        initialChildren: children,
-      );
     } else {
-      return ExplorerNode(file: entity as File, type: NodeType.request, name: name, isDirectory: false);
+      final request = RequestRepo().load(entity as File);
+      return ExplorerNode.newRequest(name, request);
     }
   }
 
@@ -480,7 +474,7 @@ class ExplorerRepo {
   // getNextSeq gives the next seq number for a folder based on the existing requests in it
   int getNextSeq(String path) {
     // Find the collection node that contains this path
-    final collectionNode = _nodes.firstWhereOrNull((node) => path.startsWith(node.dir?.path ?? ''));
+    final collectionNode = _nodes.firstWhereOrNull((node) => path.startsWith(node.getDir()?.path ?? ''));
     if (collectionNode == null) return 0;
 
     // Strip any file from the path
@@ -488,10 +482,12 @@ class ExplorerRepo {
 
     // Find the folder node that matches the exact path
     late final ExplorerNode? folderNode;
-    if (folderPath == collectionNode.dir?.path) {
+    if (folderPath == collectionNode.getDir()?.path) {
       folderNode = collectionNode;
     } else {
-      folderNode = collectionNode.children.firstWhereOrNull((node) => _comparePaths(node.dir?.path ?? '', folderPath));
+      folderNode = collectionNode.children.firstWhereOrNull(
+        (node) => _comparePaths(node.getDir()?.path ?? '', folderPath),
+      );
     }
 
     if (folderNode == null) return 0;

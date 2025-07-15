@@ -28,7 +28,11 @@ final bodyTypeEnumToBru = {
 };
 
 class Request {
+  // file properties:
+  File? file;
   String name;
+
+  // .bru properties:
   String type;
   int seq;
   String method;
@@ -59,6 +63,7 @@ class Request {
   Body? bodyFile;
 
   Request({
+    this.file,
     required this.name,
     required this.type,
     required this.seq,
@@ -380,6 +385,8 @@ class Request {
   }
 
   void copyValuesFrom(Request request) {
+    file = request.file;
+
     name = request.name;
     type = request.type;
     seq = request.seq;

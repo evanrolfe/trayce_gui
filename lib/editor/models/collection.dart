@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:trayce/editor/models/environment.dart';
 
 import 'auth.dart';
@@ -9,6 +11,12 @@ import 'utils.dart';
 import 'variable.dart';
 
 class Collection {
+  // file properties:
+  Directory? dir;
+  File? file;
+  // String name;
+
+  // .bru properties:
   String type;
   List<Environment> environments;
   Map<String, dynamic>? meta;
@@ -27,6 +35,8 @@ class Collection {
   String? docs;
 
   Collection({
+    this.file,
+    this.dir,
     required this.type,
     required this.environments,
     this.meta,

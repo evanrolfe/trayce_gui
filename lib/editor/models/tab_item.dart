@@ -29,6 +29,6 @@ class TabItem {
   String getPath() {
     if (node == null) return key.toString();
 
-    return node!.file.path;
+    return node!.getFile()?.path ?? '';
   }
 }

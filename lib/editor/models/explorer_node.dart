@@ -3,19 +3,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/collection.dart';
-import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/folder.dart';
-import 'package:trayce/editor/models/parse/parse_collection.dart';
-import 'package:trayce/editor/models/parse/parse_environment.dart';
-import 'package:trayce/editor/models/parse/parse_folder.dart';
-import 'package:trayce/editor/models/parse/parse_request.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 
 enum NodeType { collection, folder, request }
 
 class ExplorerNode {
-  Directory? dir;
-  File file;
   String name;
   final bool isDirectory;
   final List<ExplorerNode> children = [];
@@ -28,9 +24,48 @@ class ExplorerNode {
   late Folder? folder;
   late Request? request;
 
+  static newCollection(String name, Collection collection, List<ExplorerNode> children) {
+    return ExplorerNode(
+      name: name,
+      type: NodeType.collection,
+      isExpanded: true,
+      isDirectory: true,
+      initialChildren: children,
+      collection: collection,
+    );
+  }
+
+  static newFolder(String name, Folder folder, List<ExplorerNode> children) {
+    return ExplorerNode(
+      name: name,
+      type: NodeType.folder,
+      isDirectory: true,
+      initialChildren: children,
+      folder: folder,
+    );
+  }
+
+  static newRequest(String name, Request request) {
+    return ExplorerNode(name: name, type: NodeType.request, isDirectory: false, request: request);
+  }
+
+  static newBlankRequest(String parentPath) {
+    final request = Request.blank();
+    request.file = File(path.join(parentPath, '.bru'));
+    request.name = '.bru';
+
+    return ExplorerNode(name: ".bru", type: NodeType.request, isDirectory: false, request: request, isSaved: false);
+  }
+
+  static newBlankFolder(String parentPath) {
+    final folder = Folder.blank();
+    folder.file = File(path.join(parentPath, 'new_folder', 'folder.bru'));
+    folder.dir = Directory(path.join(parentPath, 'new_folder'));
+
+    return ExplorerNode(name: "new_folder", type: NodeType.folder, isDirectory: true, folder: folder, isSaved: false);
+  }
+
   ExplorerNode({
-    required this.file,
-    this.dir,
     required this.name,
     this.isDirectory = false,
     required this.type,
@@ -38,44 +73,20 @@ class ExplorerNode {
     this.isExpanded = false,
     this.isRenaming = false,
     this.isSaved = true,
+    Collection? collection,
     Request? request,
     Folder? folder,
   }) {
     if (type == NodeType.collection) {
-      // Load environments
-      List<Environment> environments = [];
-      final envPath = path.join(dir!.path, 'environments');
-
-      // Load all *.bru files from the environments directory
-      final envDir = Directory(envPath);
-      if (envDir.existsSync()) {
-        final envFiles = envDir.listSync().whereType<File>().where((file) => file.path.endsWith('.bru'));
-        for (final envFile in envFiles) {
-          final env = parseEnvironmentFile(envFile);
-          environments.add(env);
-        }
-      }
-
-      final collectionStr = file.readAsStringSync();
-      collection = parseCollection(collectionStr, environments);
+      this.collection = collection;
     }
 
     if (type == NodeType.folder) {
-      if (folder != null) {
-        this.folder = folder;
-      } else {
-        final folderStr = file.readAsStringSync();
-        this.folder = parseFolder(folderStr);
-      }
+      this.folder = folder;
     }
 
     if (type == NodeType.request) {
-      if (request != null) {
-        this.request = request;
-      } else {
-        final requestStr = file.readAsStringSync();
-        this.request = parseRequest(requestStr);
-      }
+      this.request = request;
     }
 
     if (initialChildren != null) {
@@ -83,33 +94,68 @@ class ExplorerNode {
     }
   }
 
-  ValueKey get key => ValueKey(file.path);
+  File? getFile() {
+    if (type == NodeType.request && request != null) {
+      return request!.file;
+    } else if (type == NodeType.folder && folder != null) {
+      return folder!.file;
+    } else if (type == NodeType.collection && collection != null) {
+      return collection!.file;
+    }
+    return null;
+  }
+
+  Directory? getDir() {
+    if (type == NodeType.folder && folder != null) {
+      return folder!.dir;
+    } else if (type == NodeType.collection && collection != null) {
+      return collection!.dir;
+    }
+    return null;
+  }
+
+  void setFile(File file) {
+    if (type == NodeType.request) {
+      request!.file = file;
+    } else if (type == NodeType.folder) {
+      folder!.file = file;
+    } else if (type == NodeType.collection) {
+      collection!.file = file;
+    }
+  }
+
+  void setDir(Directory dir) {
+    if (type == NodeType.folder) {
+      folder!.dir = dir;
+    } else if (type == NodeType.collection) {
+      collection!.dir = dir;
+    }
+  }
+
+  String? getPath() {
+    if (type == NodeType.request && request != null) {
+      return request!.file?.path;
+    } else if (type == NodeType.folder && folder != null) {
+      return folder!.file?.path;
+    } else if (type == NodeType.collection && collection != null) {
+      return collection!.file?.path;
+    }
+    return null;
+  }
+
+  ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
 
   void save() {
     if (type == NodeType.collection) {
-      final bruStr = collection!.toBru();
-      if (!file.existsSync()) {
-        file.createSync(recursive: true);
-      }
-      file.writeAsStringSync(bruStr);
+      CollectionRepo().save(collection!);
     }
 
     if (type == NodeType.folder) {
-      final bruStr = folder!.toBru();
-      if (!file.existsSync()) {
-        file.createSync(recursive: true);
-      }
-      file.writeAsStringSync(bruStr);
+      FolderRepo().save(folder!);
     }
 
     if (type == NodeType.request) {
-      request!.name = name.replaceAll('.bru', '');
-      final bruStr = request!.toBru();
-
-      if (!file.existsSync()) {
-        file.createSync(recursive: true);
-      }
-      file.writeAsStringSync(bruStr);
+      RequestRepo().save(request!);
     }
     isSaved = true;
   }
