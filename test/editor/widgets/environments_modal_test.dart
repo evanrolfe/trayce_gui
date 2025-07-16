@@ -288,5 +288,57 @@ void main() {
 
       deleteFolderSync(newFolderPath);
     });
+
+    testWidgets('adding an environment when some already exist', (WidgetTester tester) async {
+      final folderPath = 'test/support/collection1';
+      final newFolderPath = '$folderPath-test';
+
+      // NOTE: The async file operations seem to hang in widget tests for some reason
+      copyFolderSync(folderPath, newFolderPath);
+
+      final collection = CollectionRepo().load(Directory(newFolderPath));
+
+      // Create a test app with a button to show the modal
+      final testApp = await deps.wrapWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder:
+                  (context) => ElevatedButton(
+                    onPressed: () => showEnvironmentsModal(context, collection),
+                    child: const Text('Show Modal'),
+                  ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(testApp);
+      await tester.pumpAndSettle();
+
+      // Tap button to show modal
+      await tester.tap(find.text('Show Modal'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Modal should now be visible
+      expect(find.text('Environments'), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
+
+      // Click the new environment button
+      await tester.tap(find.byKey(const Key('environments_modal_new_btn')));
+      await tester.pumpAndSettle();
+
+      final envFile = File('$newFolderPath/environments/untitled.bru');
+      expect(envFile.existsSync(), isTrue);
+
+      // Click it again
+      await tester.tap(find.byKey(const Key('environments_modal_new_btn')));
+      await tester.pumpAndSettle();
+
+      final envFile2 = File('$newFolderPath/environments/untitled2.bru');
+      expect(envFile2.existsSync(), isTrue);
+
+      deleteFolderSync(newFolderPath);
+    });
   });
 }

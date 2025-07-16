@@ -33,6 +33,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
   late int _selectedEnvironmentIndex;
   int? _hoveredEnvironmentIndex;
   bool _isEditingFilename = false;
+  bool _isHoveringNewButton = false;
   late TextEditingController _filenameController;
   @override
   void initState() {
@@ -181,59 +182,93 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                               border: Border(right: BorderSide(width: 1, color: borderColor)),
                             ),
                             child: Column(
-                              children:
-                                  _environments.asMap().entries.map((entry) {
-                                    final index = entry.key;
-                                    final environment = entry.value;
-                                    final isSelected = index == _selectedEnvironmentIndex;
+                              children: [
+                                ..._environments.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final environment = entry.value;
+                                  final isSelected = index == _selectedEnvironmentIndex;
 
-                                    return MouseRegion(
-                                      cursor: SystemMouseCursors.click,
-                                      onEnter: (_) {
+                                  return MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    onEnter: (_) {
+                                      setState(() {
+                                        _hoveredEnvironmentIndex = index;
+                                      });
+                                    },
+                                    onExit: (_) {
+                                      setState(() {
+                                        _hoveredEnvironmentIndex = null;
+                                      });
+                                    },
+                                    child: GestureDetector(
+                                      onTap: () {
                                         setState(() {
-                                          _hoveredEnvironmentIndex = index;
+                                          _selectEnv(index);
                                         });
                                       },
-                                      onExit: (_) {
-                                        setState(() {
-                                          _hoveredEnvironmentIndex = null;
-                                        });
-                                      },
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectEnv(index);
-                                          });
-                                        },
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                isSelected
-                                                    ? lightBackgroundColor
-                                                    : (_hoveredEnvironmentIndex == index
-                                                        ? lightBackgroundColor
-                                                        : Colors.transparent),
-                                            border: Border(
-                                              left: BorderSide(
-                                                width: 2,
-                                                color: isSelected ? highlightBorderColor : Colors.transparent,
-                                              ),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            environment.fileName(),
-                                            style: TextStyle(
-                                              color: isSelected ? Colors.white : lightTextColor,
-                                              fontSize: 14,
-                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isSelected
+                                                  ? lightBackgroundColor
+                                                  : (_hoveredEnvironmentIndex == index
+                                                      ? lightBackgroundColor
+                                                      : Colors.transparent),
+                                          border: Border(
+                                            left: BorderSide(
+                                              width: 2,
+                                              color: isSelected ? highlightBorderColor : Colors.transparent,
                                             ),
                                           ),
                                         ),
+                                        child: Text(
+                                          environment.fileName(),
+                                          style: TextStyle(
+                                            color: isSelected ? Colors.white : lightTextColor,
+                                            fontSize: 14,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
                                       ),
-                                    );
-                                  }).toList(),
+                                    ),
+                                  );
+                                }).toList(),
+                                const Spacer(),
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  onEnter: (_) {
+                                    setState(() {
+                                      _isHoveringNewButton = true;
+                                    });
+                                  },
+                                  onExit: (_) {
+                                    setState(() {
+                                      _isHoveringNewButton = false;
+                                    });
+                                  },
+                                  child: GestureDetector(
+                                    key: const Key('environments_modal_new_btn'),
+                                    onTap: _createNewEnvironment,
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                      decoration: BoxDecoration(
+                                        color: _isHoveringNewButton ? lightBackgroundColor : Colors.transparent,
+                                        borderRadius: BorderRadius.zero,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.add, color: lightTextColor, size: 16),
+                                          const SizedBox(width: 8),
+                                          Text('New', style: TextStyle(color: lightTextColor, fontSize: 14)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           // Content Area
