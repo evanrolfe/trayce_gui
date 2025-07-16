@@ -5,9 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
+import '../../support/helpers.dart';
 import '../../support/widget_helpers.dart';
 
 void main() {
@@ -225,6 +227,66 @@ void main() {
       expect(tableManager.rows()[2].valueController.text, '');
       expect(tableManager.rows()[2].checkboxStateSecret, isFalse);
       expect(tableManager.rows()[2].checkboxState, isFalse);
+    });
+
+    testWidgets('renaming an environment', (WidgetTester tester) async {
+      final folderPath = 'test/support/collection1';
+      final newFolderPath = '$folderPath-test';
+
+      // NOTE: The async file operations seem to hang in widget tests for some reason
+      copyFolderSync(folderPath, newFolderPath);
+
+      final collection = CollectionRepo().load(Directory(newFolderPath));
+      final environment = collection.environments.first;
+
+      // Create a test app with a button to show the modal
+      final testApp = await deps.wrapWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder:
+                  (context) => ElevatedButton(
+                    onPressed: () => showEnvironmentsModal(context, collection),
+                    child: const Text('Show Modal'),
+                  ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(testApp);
+      await tester.pumpAndSettle();
+
+      // Tap button to show modal
+      await tester.tap(find.text('Show Modal'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Modal should now be visible
+      expect(find.text('Environments'), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
+
+      // Click the edit icon to enable renaming
+      await tester.tap(find.byIcon(Icons.edit));
+      await tester.pumpAndSettle();
+
+      // Verify the value of the environments_modal_name_input
+      final nameInput = find.byKey(const Key('environments_modal_name_input'));
+      expect(nameInput, findsOneWidget);
+      final textField = tester.widget<TextField>(nameInput);
+      expect(textField.controller?.text, environment.fileName());
+
+      // Change the value
+      await tester.enterText(nameInput, 'renamed_env');
+      await tester.pumpAndSettle();
+
+      // Press Enter to submit
+      await pressEnter(tester);
+      await tester.pumpAndSettle();
+
+      final envFile = File('$newFolderPath/environments/renamed_env.bru');
+      expect(envFile.existsSync(), isFalse);
+
+      deleteFolderSync(newFolderPath);
     });
   });
 }

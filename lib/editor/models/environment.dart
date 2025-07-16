@@ -48,6 +48,16 @@ class Environment {
     return fileName.substring(0, dotIndex);
   }
 
+  void setFileName(String newName) {
+    final directory = path.dirname(file.path);
+    final extension = path.extension(file.path);
+    final newPath = path.join(directory, '$newName$extension');
+
+    final newFile = File(newPath);
+    file.renameSync(newPath);
+    file = newFile;
+  }
+
   static Environment blank(String collectionPath) {
     final envsDir = Directory(path.join(collectionPath, 'environments'));
 

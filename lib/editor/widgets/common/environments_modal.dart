@@ -94,6 +94,16 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     _varsController.setVars(newEnvironment.vars);
   }
 
+  Future<void> _onRenamed(String newName) async {
+    final environment = _environments[_selectedEnvironmentIndex];
+
+    setState(() {
+      _isEditingFilename = false;
+      environment.setFileName(newName);
+      _filenameController.text = environment.fileName();
+    });
+  }
+
   Future<void> _onSave() async {
     final vars = _varsController.getVars();
     final environment = _environments[_selectedEnvironmentIndex];
@@ -242,15 +252,11 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                                           SizedBox(
                                             width: 200,
                                             child: TextField(
+                                              key: const Key('environments_modal_name_input'),
                                               controller: _filenameController,
                                               style: textFieldStyle,
                                               decoration: textFieldDecor,
-                                              onSubmitted: (value) {
-                                                setState(() {
-                                                  _isEditingFilename = false;
-                                                  // TODO: Update the environment filename
-                                                });
-                                              },
+                                              onSubmitted: _onRenamed,
                                               autofocus: true,
                                             ),
                                           )
