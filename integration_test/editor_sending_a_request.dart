@@ -27,6 +27,9 @@ Future<void> test(WidgetTester tester, Database db) async {
   final collectionBruPath = 'test/support/collection1/collection.bru';
   final originalCollectionBru = loadFile(collectionBruPath);
 
+  final envBruPath = 'test/support/collection1/environments/dev.bru';
+  final originalEnvBru = loadFile(envBruPath);
+
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
   await tester.tap(networkTab);
@@ -274,6 +277,25 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(collectionBru, contains('C_var: added-on-collection'));
 
   // ===========================================================================
+  // Change an environment vars
+  // ===========================================================================
+  final envDropdown = find.byKey(const Key('editor_tabs_env_dropdown')).first;
+
+  await tester.tap(envDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Configure'));
+  await tester.pumpAndSettle();
+
+  final envTable = tester.widget<FormTable>(find.byType(FormTable).last);
+  final envController = envTable.controller;
+
+  envController.rows()[2].keyController.text = 'G';
+  envController.rows()[2].valueController.text = 'added-on-env';
+
+  await tester.tap(find.byKey(Key('save_btn')));
+  await tester.pumpAndSettle();
+
+  // ===========================================================================
   // Send a request
   // ===========================================================================
   server.handler.expect("POST", "/test_endpoint", (request) async {
@@ -305,9 +327,10 @@ Future<void> test(WidgetTester tester, Database db) async {
   // ===========================================================================
   // Close the request
   // ===========================================================================
-  // Restore the original file
+  // Restore the original files
   saveFile(folderBruPath, originalFolderBru);
   saveFile(collectionBruPath, originalCollectionBru);
+  saveFile(envBruPath, originalEnvBru);
 
   // Close the open request tab
   await pressCtrlW(tester);
