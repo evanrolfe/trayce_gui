@@ -1,12 +1,17 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/parse/parse_collection.dart';
 import 'package:trayce/editor/models/parse/parse_environment.dart';
 
 class CollectionRepo {
+  final AppStorageI _appStorage;
+
+  CollectionRepo(this._appStorage);
+
   Collection load(Directory dir) {
     final file = File('${dir.path}/collection.bru');
 
@@ -21,9 +26,13 @@ class CollectionRepo {
       for (final envFile in envFiles) {
         final env = parseEnvironmentFile(envFile);
         environments.add(env);
+
+        // Load the environment's secret vars from app storage
+        _loadEnvironmentSecretVars(env, dir.path);
       }
     }
 
+    // Load the collection
     final collectionStr = file.readAsStringSync();
     final collection = parseCollection(collectionStr, file, dir, environments);
 
@@ -57,6 +66,25 @@ class CollectionRepo {
         environment.file.createSync(recursive: true);
       }
       environment.file.writeAsStringSync(bruStr);
+
+      // Save the environment's secret vars to app storage
+      _appStorage.saveSecretVars(collection.dir.path, environment.fileName(), environment.secretVars());
+    }
+  }
+
+  Future<void> _loadEnvironmentSecretVars(Environment environment, String collectionPath) async {
+    final secretVars = await _appStorage.getSecretVars(collectionPath, environment.fileName());
+
+    for (final entry in secretVars.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      for (final varr in environment.vars) {
+        if (varr.name == key && varr.secret) {
+          varr.value = value;
+          break;
+        }
+      }
     }
   }
 }

@@ -79,7 +79,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     final newEnvironment = Environment.blank(collectionPath);
     widget.collection.environments.add(newEnvironment);
 
-    CollectionRepo().save(widget.collection);
+    context.read<CollectionRepo>().save(widget.collection);
 
     // Update the local environments list
     setState(() {
@@ -110,7 +110,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     final environment = _environments[_selectedEnvironmentIndex];
     environment.vars = vars;
 
-    CollectionRepo().save(widget.collection);
+    context.read<CollectionRepo>().save(widget.collection);
 
     Navigator.of(context).pop();
   }

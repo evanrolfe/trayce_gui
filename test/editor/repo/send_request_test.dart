@@ -1,23 +1,45 @@
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:trayce/common/app_storage.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 
 class MockEventBus extends Mock implements EventBus {}
 
+class MockAppStorage extends Mock implements AppStorageI {}
+
 const collection1Path = 'test/support/collection1';
 void main() {
   late MockEventBus mockEventBus;
+  late MockAppStorage mockAppStorage;
+  late CollectionRepo collectionRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
+  final emptySecretVars = Map<String, String>.from({});
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
+    mockAppStorage = MockAppStorage();
+    collectionRepo = CollectionRepo(mockAppStorage);
+    folderRepo = FolderRepo();
+    requestRepo = RequestRepo();
   });
 
   group('SendRequest()', () {
     test('sends a request using the node hierarchy', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
       explorerRepo.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;

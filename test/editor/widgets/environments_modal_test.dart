@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/variable.dart';
-import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
@@ -158,6 +157,127 @@ void main() {
       expect(tableManager.rows().length, 1);
     });
 
+    testWidgets('modal shows an environment with secret vars but nothing in AppStorage', (WidgetTester tester) async {
+      final folderPath = 'test/support/collection1';
+      final newFolderPath = '$folderPath-test';
+
+      // NOTE: The async file operations seem to hang in widget tests for some reason
+      copyFolderSync(folderPath, newFolderPath);
+
+      final collection = deps.collectionRepo.load(Directory(newFolderPath));
+      // final environment = collection.environments.first;
+
+      // Create a test app with a button to show the modal
+      final testApp = await deps.wrapWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder:
+                  (context) => ElevatedButton(
+                    onPressed: () => showEnvironmentsModal(context, collection),
+                    child: const Text('Show Modal'),
+                  ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(testApp);
+      await tester.pumpAndSettle();
+
+      // Tap button to show modal
+      await tester.tap(find.text('Show Modal'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Modal should now be visible
+      expect(find.text('Environments'), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
+
+      // Verify vars
+      final formTable = tester.widget<FormTable>(find.byType(FormTable).last);
+      final tableManager = formTable.controller;
+
+      expect(tableManager.rows().length, 3);
+
+      expect(tableManager.rows()[0].keyController.text, 'my_key');
+      expect(tableManager.rows()[0].valueController.text, '1234abcd');
+      expect(tableManager.rows()[0].checkboxStateSecret, isFalse);
+      expect(tableManager.rows()[0].checkboxState, isTrue);
+
+      expect(tableManager.rows()[1].keyController.text, 'my_password');
+      expect(tableManager.rows()[1].valueController.text, '');
+      expect(tableManager.rows()[1].checkboxStateSecret, isTrue);
+      expect(tableManager.rows()[1].checkboxState, isTrue);
+
+      expect(tableManager.rows()[2].keyController.text, '');
+      expect(tableManager.rows()[2].valueController.text, '');
+      expect(tableManager.rows()[2].checkboxStateSecret, isFalse);
+
+      deleteFolderSync(newFolderPath);
+    });
+
+    testWidgets('modal shows an environment with secret vars', (WidgetTester tester) async {
+      final folderPath = 'test/support/collection1';
+      final newFolderPath = '$folderPath-test';
+
+      // NOTE: The async file operations seem to hang in widget tests for some reason
+      copyFolderSync(folderPath, newFolderPath);
+
+      deps.appStorage.saveSecretVars(newFolderPath, 'dev', {'my_password': 'itsasecret'});
+
+      final collection = deps.collectionRepo.load(Directory(newFolderPath));
+      final environment = collection.environments.first;
+      expect(environment.fileName(), 'dev');
+
+      // Create a test app with a button to show the modal
+      final testApp = await deps.wrapWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder:
+                  (context) => ElevatedButton(
+                    onPressed: () => showEnvironmentsModal(context, collection),
+                    child: const Text('Show Modal'),
+                  ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(testApp);
+      await tester.pumpAndSettle();
+
+      // Tap button to show modal
+      await tester.tap(find.text('Show Modal'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Modal should now be visible
+      expect(find.text('Environments'), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
+
+      // Verify vars
+      final formTable = tester.widget<FormTable>(find.byType(FormTable).last);
+      final tableManager = formTable.controller;
+
+      expect(tableManager.rows().length, 3);
+
+      expect(tableManager.rows()[0].keyController.text, 'my_key');
+      expect(tableManager.rows()[0].valueController.text, '1234abcd');
+      expect(tableManager.rows()[0].checkboxStateSecret, isFalse);
+      expect(tableManager.rows()[0].checkboxState, isTrue);
+
+      expect(tableManager.rows()[1].keyController.text, 'my_password');
+      expect(tableManager.rows()[1].valueController.text, 'itsasecret');
+      expect(tableManager.rows()[1].checkboxStateSecret, isTrue);
+      expect(tableManager.rows()[1].checkboxState, isTrue);
+
+      expect(tableManager.rows()[2].keyController.text, '');
+      expect(tableManager.rows()[2].valueController.text, '');
+      expect(tableManager.rows()[2].checkboxStateSecret, isFalse);
+
+      deleteFolderSync(newFolderPath);
+    });
+
     testWidgets('modal shows an environment with vars', (WidgetTester tester) async {
       // Create a temporary file for the environment
       final tempFile = File('test/support/collection1/environments/new.bru');
@@ -236,7 +356,7 @@ void main() {
       // NOTE: The async file operations seem to hang in widget tests for some reason
       copyFolderSync(folderPath, newFolderPath);
 
-      final collection = CollectionRepo().load(Directory(newFolderPath));
+      final collection = deps.collectionRepo.load(Directory(newFolderPath));
       final environment = collection.environments.first;
 
       // Create a test app with a button to show the modal
@@ -296,7 +416,7 @@ void main() {
       // NOTE: The async file operations seem to hang in widget tests for some reason
       copyFolderSync(folderPath, newFolderPath);
 
-      final collection = CollectionRepo().load(Directory(newFolderPath));
+      final collection = deps.collectionRepo.load(Directory(newFolderPath));
 
       // Create a test app with a button to show the modal
       final testApp = await deps.wrapWidget(
@@ -337,6 +457,62 @@ void main() {
 
       final envFile2 = File('$newFolderPath/environments/untitled2.bru');
       expect(envFile2.existsSync(), isTrue);
+
+      deleteFolderSync(newFolderPath);
+    });
+
+    testWidgets('saving a secret var', (WidgetTester tester) async {
+      final folderPath = 'test/support/collection1';
+      final newFolderPath = '$folderPath-test';
+
+      // NOTE: The async file operations seem to hang in widget tests for some reason
+      copyFolderSync(folderPath, newFolderPath);
+
+      final collection = deps.collectionRepo.load(Directory(newFolderPath));
+      final environment = collection.environments.first;
+      expect(environment.fileName(), 'dev');
+
+      // Create a test app with a button to show the modal
+      final testApp = await deps.wrapWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder:
+                  (context) => ElevatedButton(
+                    onPressed: () => showEnvironmentsModal(context, collection),
+                    child: const Text('Show Modal'),
+                  ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(testApp);
+      await tester.pumpAndSettle();
+
+      // Tap button to show modal
+      await tester.tap(find.text('Show Modal'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Modal should now be visible
+      expect(find.text('Environments'), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
+
+      // Verify vars
+      final formTable = tester.widget<FormTable>(find.byType(FormTable).last);
+      final tableManager = formTable.controller;
+
+      expect(tableManager.rows().length, 3);
+
+      expect(tableManager.rows()[0].keyController.text, 'my_key');
+      expect(tableManager.rows()[1].keyController.text, 'my_password');
+      tableManager.rows()[1].valueController.text = 'set_from_test!';
+
+      await tester.tap(find.byKey(const ValueKey('save_btn')));
+      await tester.pumpAndSettle();
+
+      final secrets = await deps.appStorage.getSecretVars(newFolderPath, 'dev');
+      expect(secrets['my_password'], 'set_from_test!');
 
       deleteFolderSync(newFolderPath);
     });

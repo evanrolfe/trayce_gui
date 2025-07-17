@@ -58,6 +58,11 @@ class Environment {
     file = newFile;
   }
 
+  Map<String, String> secretVars() {
+    final secretVars = vars.where((v) => v.secret && v.value != null).toList();
+    return Map.fromEntries(secretVars.map((v) => MapEntry(v.name, v.value!)));
+  }
+
   static Environment blank(String collectionPath) {
     final envsDir = Directory(path.join(collectionPath, 'environments'));
 

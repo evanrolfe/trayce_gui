@@ -16,9 +16,11 @@ class Collection {
   File file;
   // String name;
 
+  List<Environment> environments;
+  String? currentEnvironmentFilename;
+
   // .bru properties:
   String type;
-  List<Environment> environments;
   Map<String, dynamic>? meta;
 
   List<Header> headers;
@@ -49,6 +51,11 @@ class Collection {
     this.tests,
     this.docs,
   });
+
+  Environment? getCurrentEnvironment() {
+    if (currentEnvironmentFilename == null) return null;
+    return environments.firstWhere((e) => e.fileName() == currentEnvironmentFilename);
+  }
 
   String toBru() {
     var bru = '';

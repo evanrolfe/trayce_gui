@@ -92,10 +92,10 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
 
     // Save
     if (widget.node.type == NodeType.collection) {
-      CollectionRepo().save(widget.node.collection!);
+      context.read<CollectionRepo>().save(widget.node.collection!);
     }
     if (widget.node.type == NodeType.folder) {
-      FolderRepo().save(widget.node.folder!);
+      context.read<FolderRepo>().save(widget.node.folder!);
     }
 
     Navigator.of(context).pop();

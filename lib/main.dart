@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grpc/grpc.dart';
 import 'package:trayce/app.dart';
+import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/utils/grpc_parser_lib.dart';
 import 'package:window_manager/window_manager.dart';
@@ -35,12 +39,22 @@ void main(List<String> args) async {
   final db = await connectDB();
   final grpcService = TrayceAgentService(eventBus: eventBus);
   final config = Config.fromArgs(args);
+  final appStorage = await AppStorage.getInstance();
 
   // Init repos
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
-  final explorerRepo = ExplorerRepo(eventBus: eventBus);
+  final collectionRepo = CollectionRepo(appStorage);
+  final folderRepo = FolderRepo();
+  final requestRepo = RequestRepo();
+
+  final explorerRepo = ExplorerRepo(
+    eventBus: eventBus,
+    collectionRepo: collectionRepo,
+    folderRepo: folderRepo,
+    requestRepo: requestRepo,
+  );
 
   runApp(
     MultiRepositoryProvider(
@@ -49,6 +63,9 @@ void main(List<String> args) async {
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
+        RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
+        RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
+        RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<ExplorerRepo>(create: (context) => explorerRepo),
         RepositoryProvider<Config>(create: (context) => config),
       ],

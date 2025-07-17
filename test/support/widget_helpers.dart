@@ -1,30 +1,91 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 
+/// Fake AppStorage implementation for testing
+class FakeAppStorage extends AppStorageI {
+  static double? _cachedWidth;
+  static double? _cachedHeight;
+  final Map<String, String> _storage = {};
+
+  FakeAppStorage._();
+
+  static Future<FakeAppStorage> getInstance() async {
+    return FakeAppStorage._();
+  }
+
+  static Future<void> preloadSize() async {
+    // No-op for fake implementation
+  }
+
+  static Size get size => Size(_cachedWidth ?? defaultWindowWidth, _cachedHeight ?? defaultWindowHeight);
+
+  @override
+  Future<void> saveSize(Size size) async {
+    _cachedWidth = size.width;
+    _cachedHeight = size.height;
+  }
+
+  @override
+  Future<void> saveSecretVars(String collectionPath, String envName, Map<String, String> vars) async {
+    final key = 'secret_vars:$collectionPath:$envName';
+    _storage[key] = jsonEncode(vars);
+  }
+
+  @override
+  Future<Map<String, String>> getSecretVars(String collectionPath, String envName) async {
+    final key = 'secret_vars:$collectionPath:$envName';
+    final jsonStr = _storage[key];
+    if (jsonStr == null) return {};
+    final Map<String, dynamic> decoded = jsonDecode(jsonStr);
+    return decoded.map((key, value) => MapEntry(key, value.toString()));
+  }
+
+  @override
+  Future<void> deleteSecretVars(String collectionPath, String envName) async {
+    final key = 'secret_vars:$collectionPath:$envName';
+    _storage.remove(key);
+  }
+}
+
 class WidgetDependencies {
   late Database db;
   late EventBus eventBus;
+  late AppStorageI appStorage;
   late FlowRepo flowRepo;
   late ProtoDefRepo protoDefRepo;
   late ContainersRepo containersRepo;
+  late CollectionRepo collectionRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
   late ExplorerRepo explorerRepo;
   late Config config;
 
   WidgetDependencies({
     required this.db,
     required this.eventBus,
+    required this.appStorage,
     required this.flowRepo,
     required this.protoDefRepo,
     required this.containersRepo,
+    required this.collectionRepo,
+    required this.folderRepo,
+    required this.requestRepo,
     required this.explorerRepo,
     required this.config,
   });
@@ -37,6 +98,9 @@ class WidgetDependencies {
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
+        RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
+        RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
+        RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<ExplorerRepo>(create: (context) => explorerRepo),
         RepositoryProvider<Config>(create: (context) => config),
       ],
@@ -53,18 +117,33 @@ class WidgetDependencies {
 Future<WidgetDependencies> setupTestDependencies() async {
   final db = await connectDB();
   final eventBus = EventBus();
+  final appStorage = await FakeAppStorage.getInstance();
+
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
-  final explorerRepo = ExplorerRepo(eventBus: eventBus);
+  final collectionRepo = CollectionRepo(appStorage);
+  final folderRepo = FolderRepo();
+  final requestRepo = RequestRepo();
+
+  final explorerRepo = ExplorerRepo(
+    eventBus: eventBus,
+    collectionRepo: collectionRepo,
+    folderRepo: folderRepo,
+    requestRepo: requestRepo,
+  );
   final config = Config.fromArgs([]);
 
   final deps = WidgetDependencies(
     db: db,
     eventBus: eventBus,
+    appStorage: appStorage,
     flowRepo: flowRepo,
     protoDefRepo: protoDefRepo,
     containersRepo: containersRepo,
+    collectionRepo: collectionRepo,
+    folderRepo: folderRepo,
+    requestRepo: requestRepo,
     explorerRepo: explorerRepo,
     config: config,
   );

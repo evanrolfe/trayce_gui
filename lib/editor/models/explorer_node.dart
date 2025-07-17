@@ -5,9 +5,6 @@ import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/folder.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/repo/collection_repo.dart';
-import 'package:trayce/editor/repo/folder_repo.dart';
-import 'package:trayce/editor/repo/request_repo.dart';
 
 enum NodeType { collection, folder, request }
 
@@ -142,21 +139,6 @@ class ExplorerNode {
   }
 
   ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
-
-  void save() {
-    if (type == NodeType.collection) {
-      CollectionRepo().save(collection!);
-    }
-
-    if (type == NodeType.folder) {
-      FolderRepo().save(folder!);
-    }
-
-    if (type == NodeType.request) {
-      RequestRepo().save(request!);
-    }
-    isSaved = true;
-  }
 
   String displayName() {
     return name.replaceAll('.bru', '');

@@ -2,27 +2,49 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
+import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 
 import '../../support/helpers.dart';
 
 class MockEventBus extends Mock implements EventBus {}
 
+class MockAppStorage extends Mock implements AppStorageI {}
+
 const collection1Path = 'test/support/collection1';
 void main() {
   late MockEventBus mockEventBus;
+  late MockAppStorage mockAppStorage;
+  late CollectionRepo collectionRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
+  final emptySecretVars = Map<String, String>.from({});
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
+    mockAppStorage = MockAppStorage();
+    collectionRepo = CollectionRepo(mockAppStorage);
+    folderRepo = FolderRepo();
+    requestRepo = RequestRepo();
   });
 
   group('openCollection()', () {
     test('it loads collection1 successfully', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
       explorerRepo.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
@@ -89,7 +111,14 @@ void main() {
 
   group('getNextSeq()', () {
     test('returns the next sequence number for a folder with a trailing slash', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
       explorerRepo.openCollection(collection1Path);
       verify(() => mockEventBus.fire(captureAny())).captured;
 
@@ -98,7 +127,14 @@ void main() {
     });
 
     test('returns the next sequence number for a folder without a trailing slash', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
       explorerRepo.openCollection(collection1Path);
       verify(() => mockEventBus.fire(captureAny())).captured;
 
@@ -107,7 +143,14 @@ void main() {
     });
 
     test('returns the next sequence number for collection root', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
       explorerRepo.openCollection(collection1Path);
       verify(() => mockEventBus.fire(captureAny())).captured;
 
@@ -118,7 +161,14 @@ void main() {
 
   group('getNodeHierarchy()', () {
     test('returns the node hierarchy', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
       explorerRepo.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
@@ -136,7 +186,14 @@ void main() {
 
   group('moveNode()', () {
     test('moving a request to another folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -192,7 +249,14 @@ void main() {
     });
 
     test('re-ordering a request within the same folder ahead', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -234,7 +298,14 @@ void main() {
     });
 
     test('re-ordering a request within the same folder behind', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -276,7 +347,14 @@ void main() {
     });
 
     test('re-ordering a request within the same folder to first position', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -318,7 +396,14 @@ void main() {
     });
 
     test('dragging a request to another folder and in a specific position', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -359,7 +444,14 @@ void main() {
     });
 
     test('dragging a folder to another folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -396,7 +488,14 @@ void main() {
 
   group('renameNode()', () {
     test('renaming a collection', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -427,7 +526,14 @@ void main() {
       await deleteFolder(renamedPath);
     });
     test('renaming a folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -457,7 +563,14 @@ void main() {
     });
 
     test('renaming a request', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -510,7 +623,14 @@ void main() {
 
   group('deleteNode()', () {
     test('deleting a collection', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -533,7 +653,14 @@ void main() {
     });
 
     test('deleting a folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
@@ -559,7 +686,14 @@ void main() {
     });
 
     test('deleting a request', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerRepo = ExplorerRepo(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';

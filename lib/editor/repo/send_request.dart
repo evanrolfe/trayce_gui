@@ -24,6 +24,11 @@ class SendRequest {
 
       // Add headers, vars from collection
       if (node.type == NodeType.collection && node.collection != null) {
+        final currentEnv = node.collection!.getCurrentEnvironment();
+        if (currentEnv != null) {
+          print("=================> CURRENT ENV: ${currentEnv.fileName()}");
+        }
+
         for (final header in node.collection!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);

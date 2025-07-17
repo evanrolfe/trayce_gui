@@ -39,11 +39,22 @@ class EventCollectionOpened {
 
 class ExplorerRepo {
   final EventBus _eventBus;
+  final CollectionRepo _collectionRepo;
+  final FolderRepo _folderRepo;
+  final RequestRepo _requestRepo;
   final filesToIgnore = ['folder.bru', 'collection.bru'];
   final foldersToIgnore = ['environments'];
   final List<ExplorerNode> _nodes = [];
 
-  ExplorerRepo({required EventBus eventBus}) : _eventBus = eventBus;
+  ExplorerRepo({
+    required EventBus eventBus,
+    required CollectionRepo collectionRepo,
+    required FolderRepo folderRepo,
+    required RequestRepo requestRepo,
+  }) : _eventBus = eventBus,
+       _collectionRepo = collectionRepo,
+       _folderRepo = folderRepo,
+       _requestRepo = requestRepo;
 
   void createCollection(String collectionPath) async {
     final collectionDir = Directory(collectionPath);
@@ -140,7 +151,7 @@ class ExplorerRepo {
       node.setFile(File(path.join(targetPath, 'folder.bru')));
       node.name = newName;
 
-      node.save();
+      _saveNode(node);
     }
 
     if ((node.type == NodeType.collection || node.type == NodeType.folder) && node.isSaved) {
@@ -168,7 +179,7 @@ class ExplorerRepo {
       node.setFile(File(targetPath));
       node.name = newName;
       node.request!.seq = getNextSeq(targetDir.path);
-      node.save();
+      _saveNode(node);
       refresh();
       openNode(node);
     }
@@ -187,7 +198,7 @@ class ExplorerRepo {
       // Update the movedNode's file
       node.setFile(File(targetPath));
       node.name = newName;
-      node.save();
+      _saveNode(node);
 
       _eventBus.fire(EventExplorerNodeRenamed(node));
     }
@@ -274,7 +285,7 @@ class ExplorerRepo {
 
         // Update the movedNode's request seq num
         movedNode.request!.seq = getNextSeq(targetDir.path);
-        movedNode.save();
+        _saveNode(movedNode);
 
         // Move the file
         sourceFile.copySync(targetPath);
@@ -424,14 +435,14 @@ class ExplorerRepo {
       });
 
       if (depth == 0) {
-        final collection = CollectionRepo().load(entity);
+        final collection = _collectionRepo.load(entity);
         return ExplorerNode.newCollection(name, collection, children);
       } else {
-        final folder = FolderRepo().load(entity);
+        final folder = _folderRepo.load(entity);
         return ExplorerNode.newFolder(name, folder, children);
       }
     } else {
-      final request = RequestRepo().load(entity as File);
+      final request = _requestRepo.load(entity as File);
       return ExplorerNode.newRequest(name, request);
     }
   }
@@ -577,6 +588,21 @@ class ExplorerRepo {
       }
     }
     return null;
+  }
+
+  void _saveNode(ExplorerNode node) {
+    if (node.type == NodeType.collection) {
+      _collectionRepo.save(node.collection!);
+    }
+
+    if (node.type == NodeType.folder) {
+      _folderRepo.save(node.folder!);
+    }
+
+    if (node.type == NodeType.request) {
+      _requestRepo.save(node.request!);
+    }
+    node.isSaved = true;
   }
 }
 

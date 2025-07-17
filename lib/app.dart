@@ -5,8 +5,8 @@ import 'package:accessing_security_scoped_resource/accessing_security_scoped_res
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/app_scaffold.dart';
+import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/common/error_widget.dart';
@@ -25,32 +25,6 @@ import 'network/widgets/network.dart';
 const Color backgroundColor = Color(0xFF1E1E1E);
 const Color textColor = Color(0xFFD4D4D4);
 const Color sidebarColor = Color(0xFF333333);
-const String windowWidthKey = 'window_width';
-const String windowHeightKey = 'window_height';
-const double defaultWindowWidth = 1200.0;
-const double defaultWindowHeight = 800.0;
-
-class AppCache {
-  static double? _cachedWidth;
-  static double? _cachedHeight;
-
-  static Future<void> preloadSize() async {
-    if (_cachedWidth != null && _cachedHeight != null) return;
-    final prefs = await SharedPreferences.getInstance();
-    _cachedWidth = prefs.getDouble(windowWidthKey);
-    _cachedHeight = prefs.getDouble(windowHeightKey);
-  }
-
-  static Size get size => Size(_cachedWidth ?? defaultWindowWidth, _cachedHeight ?? defaultWindowHeight);
-
-  static Future<void> saveSize(Size size) async {
-    _cachedWidth = size.width;
-    _cachedHeight = size.height;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(windowWidthKey, size.width);
-    await prefs.setDouble(windowHeightKey, size.height);
-  }
-}
 
 class App extends StatefulWidget {
   final String appVersion;
@@ -62,7 +36,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WindowListener {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   Key _rebuildKey = UniqueKey();
   String? _errorMessage;
   bool _showingError = false;
@@ -113,7 +87,8 @@ class _AppState extends State<App> with WindowListener {
       _resizeDebounceTimer?.cancel();
       _resizeDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
         final size = await windowManager.getSize();
-        AppCache.saveSize(size);
+        final appStorage = await AppStorage.getInstance();
+        appStorage.saveSize(size);
       });
     }
   }
@@ -149,9 +124,9 @@ class _AppState extends State<App> with WindowListener {
   }
 
   Future<void> _initializeWindow() async {
-    await AppCache.preloadSize();
+    await AppStorage.preloadSize();
     if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-      final size = AppCache.size;
+      final size = AppStorage.size;
       await windowManager.setSize(size);
     }
   }
