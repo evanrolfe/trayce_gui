@@ -9,7 +9,7 @@ import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
@@ -49,7 +49,7 @@ void main(List<String> args) async {
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
 
-  final explorerRepo = ExplorerRepo(
+  final explorerService = ExplorerService(
     eventBus: eventBus,
     collectionRepo: collectionRepo,
     folderRepo: folderRepo,
@@ -66,7 +66,7 @@ void main(List<String> args) async {
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
-        RepositoryProvider<ExplorerRepo>(create: (context) => explorerRepo),
+        RepositoryProvider<ExplorerService>(create: (context) => explorerService),
         RepositoryProvider<Config>(create: (context) => config),
       ],
       child: const App(appVersion: appVersion),

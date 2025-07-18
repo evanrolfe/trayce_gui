@@ -2,7 +2,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
-import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -11,33 +10,31 @@ import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 
+import '../../support/fake_app_storage.dart';
 import '../../support/helpers.dart';
 
 class MockEventBus extends Mock implements EventBus {}
 
-class MockAppStorage extends Mock implements AppStorageI {}
-
 const collection1Path = 'test/support/collection1';
 void main() {
   late MockEventBus mockEventBus;
-  late MockAppStorage mockAppStorage;
+  late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
-  final emptySecretVars = Map<String, String>.from({});
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
-    mockAppStorage = MockAppStorage();
-    collectionRepo = CollectionRepo(mockAppStorage);
+    fakeAppStorage = await FakeAppStorage.getInstance();
+    collectionRepo = CollectionRepo(fakeAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
   });
 
   group('openCollection()', () {
     test('it loads collection1 successfully', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+      // when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
 
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
@@ -111,8 +108,6 @@ void main() {
 
   group('getNextSeq()', () {
     test('returns the next sequence number for a folder with a trailing slash', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -127,8 +122,6 @@ void main() {
     });
 
     test('returns the next sequence number for a folder without a trailing slash', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -143,8 +136,6 @@ void main() {
     });
 
     test('returns the next sequence number for collection root', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -161,8 +152,6 @@ void main() {
 
   group('getNodeHierarchy()', () {
     test('returns the node hierarchy', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -186,8 +175,6 @@ void main() {
 
   group('moveNode()', () {
     test('moving a request to another folder', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -249,8 +236,6 @@ void main() {
     });
 
     test('re-ordering a request within the same folder ahead', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -298,8 +283,6 @@ void main() {
     });
 
     test('re-ordering a request within the same folder behind', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -347,8 +330,6 @@ void main() {
     });
 
     test('re-ordering a request within the same folder to first position', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -396,8 +377,6 @@ void main() {
     });
 
     test('dragging a request to another folder and in a specific position', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -444,8 +423,6 @@ void main() {
     });
 
     test('dragging a folder to another folder', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -488,8 +465,6 @@ void main() {
 
   group('renameNode()', () {
     test('renaming a collection', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -526,8 +501,6 @@ void main() {
       await deleteFolder(renamedPath);
     });
     test('renaming a folder', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -563,8 +536,6 @@ void main() {
     });
 
     test('renaming a request', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -623,8 +594,6 @@ void main() {
 
   group('deleteNode()', () {
     test('deleting a collection', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -653,8 +622,6 @@ void main() {
     });
 
     test('deleting a folder', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
@@ -686,8 +653,6 @@ void main() {
     });
 
     test('deleting a request', () async {
-      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
-
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
