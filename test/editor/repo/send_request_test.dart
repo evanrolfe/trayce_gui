@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
@@ -34,20 +34,20 @@ void main() {
     test('sends a request using the node hierarchy', () async {
       when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
 
-      final explorerRepo = ExplorerRepo(
+      final explorerService = ExplorerService(
         eventBus: mockEventBus,
         collectionRepo: collectionRepo,
         folderRepo: folderRepo,
         requestRepo: requestRepo,
       );
-      explorerRepo.openCollection(collection1Path);
+      explorerService.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
 
-      final hierarchy = explorerRepo.getNodeHierarchy(reqThree);
+      final hierarchy = explorerService.getNodeHierarchy(reqThree);
       expect(hierarchy.length, 3);
       expect(hierarchy[0].name, 'three.bru');
       expect(hierarchy[1].name, 'myfolder');

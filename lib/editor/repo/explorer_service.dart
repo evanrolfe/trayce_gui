@@ -37,7 +37,7 @@ class EventCollectionOpened {
   EventCollectionOpened(this.node, this.collection);
 }
 
-class ExplorerRepo {
+class ExplorerService {
   final EventBus _eventBus;
   final CollectionRepo _collectionRepo;
   final FolderRepo _folderRepo;
@@ -46,7 +46,7 @@ class ExplorerRepo {
   final foldersToIgnore = ['environments'];
   final List<ExplorerNode> _nodes = [];
 
-  ExplorerRepo({
+  ExplorerService({
     required EventBus eventBus,
     required CollectionRepo collectionRepo,
     required FolderRepo folderRepo,

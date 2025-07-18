@@ -8,7 +8,7 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
@@ -163,9 +163,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     FocusScope.of(context).requestFocus(_focusManager.editorFocusNode);
 
     try {
-      final explorerRepo = context.read<ExplorerRepo>();
+      final explorerService = context.read<ExplorerService>();
       List<ExplorerNode> nodeHierarchy = [];
-      if (widget.node != null) nodeHierarchy = explorerRepo.getNodeHierarchy(widget.node!);
+      if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
 
       _response = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy).send();
 

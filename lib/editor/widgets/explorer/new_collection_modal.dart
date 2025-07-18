@@ -4,7 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 
 Future<void> showNewCollectionModal(BuildContext context) {
   return showDialog(context: context, builder: (dialogContext) => const NewCollectionModal());
@@ -71,7 +71,7 @@ class _NewCollectionModalState extends State<NewCollectionModal> {
 
     if (location.isNotEmpty && folderName.isNotEmpty) {
       final collectionPath = path.join(location, folderName);
-      context.read<ExplorerRepo>().createCollection(collectionPath);
+      context.read<ExplorerService>().createCollection(collectionPath);
     }
 
     Navigator.of(context).pop();

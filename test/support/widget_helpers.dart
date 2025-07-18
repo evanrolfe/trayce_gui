@@ -10,7 +10,7 @@ import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
@@ -73,7 +73,7 @@ class WidgetDependencies {
   late CollectionRepo collectionRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
-  late ExplorerRepo explorerRepo;
+  late ExplorerService explorerService;
   late Config config;
 
   WidgetDependencies({
@@ -86,7 +86,7 @@ class WidgetDependencies {
     required this.collectionRepo,
     required this.folderRepo,
     required this.requestRepo,
-    required this.explorerRepo,
+    required this.explorerService,
     required this.config,
   });
 
@@ -101,7 +101,7 @@ class WidgetDependencies {
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
-        RepositoryProvider<ExplorerRepo>(create: (context) => explorerRepo),
+        RepositoryProvider<ExplorerService>(create: (context) => explorerService),
         RepositoryProvider<Config>(create: (context) => config),
       ],
       child: MaterialApp(home: Scaffold(body: child)),
@@ -126,7 +126,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
 
-  final explorerRepo = ExplorerRepo(
+  final explorerService = ExplorerService(
     eventBus: eventBus,
     collectionRepo: collectionRepo,
     folderRepo: folderRepo,
@@ -144,7 +144,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     collectionRepo: collectionRepo,
     folderRepo: folderRepo,
     requestRepo: requestRepo,
-    explorerRepo: explorerRepo,
+    explorerService: explorerService,
     config: config,
   );
 

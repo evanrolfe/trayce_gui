@@ -16,7 +16,7 @@ import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/tab_item.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
@@ -104,12 +104,7 @@ class _EditorTabsState extends State<EditorTabs> {
         _currentCollection = event.collection;
 
         final uuid = const Uuid().v4();
-        final newTab = TabItem(
-          node: event.node,
-          collection: event.collection,
-          key: ValueKey('tabItem_$uuid'),
-          displayName: event.node.displayName(),
-        );
+        final newTab = TabItem(node: event.node, key: ValueKey('tabItem_$uuid'), displayName: event.node.displayName());
 
         // Check if tab already exists
         final existingIndex = currentTabs().indexWhere((entry) => entry.tab.getPath() == newTab.getPath());
@@ -158,19 +153,13 @@ class _EditorTabsState extends State<EditorTabs> {
 
     // Called when a new request is created (i.e. CTRL+N)
     _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen((event) {
-      if (_currentCollection == null) {
-        print('WARNING: cant create a new request without an open collection');
-        return;
-      }
-
       setState(() {
         final newTabCount = currentTabs().where((entry) => entry.tab.isNew).length;
-
+        print('adding new tab');
         // Add new tab
         final uuid = const Uuid().v4();
         final newTab = TabItem(
           node: null,
-          collection: _currentCollection!,
           isNew: true,
           key: ValueKey('tabItem_$uuid'),
           displayName: 'Untitled-$newTabCount',
@@ -209,7 +198,7 @@ class _EditorTabsState extends State<EditorTabs> {
         if (path == null) return;
 
         if (mounted) {
-          final seq = context.read<ExplorerRepo>().getNextSeq(path);
+          final seq = context.read<ExplorerService>().getNextSeq(path);
           event.request.seq = seq;
         }
 
@@ -233,7 +222,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
         // Refresh the explorer
         if (mounted) {
-          context.read<ExplorerRepo>().refresh();
+          context.read<ExplorerService>().refresh();
         }
       } else {
         // Updating an existing request

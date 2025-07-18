@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:trayce/common/context_menu.dart';
 import 'package:trayce/common/context_menu_style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 
 void showNodeMenu(
   BuildContext context,
@@ -60,14 +60,14 @@ void showNodeMenu(
           height: 30,
           shouldPop: true,
           child: Text('Open', style: contextMenuTextStyle),
-          onTap: () => context.read<ExplorerRepo>().openNode(node),
+          onTap: () => context.read<ExplorerService>().openNode(node),
         ),
       if (node.type == NodeType.collection)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
           child: Text('Close Collection', style: contextMenuTextStyle),
-          onTap: () => context.read<ExplorerRepo>().closeCollection(node),
+          onTap: () => context.read<ExplorerService>().closeCollection(node),
         ),
       CustomPopupMenuItem(
         height: 30,

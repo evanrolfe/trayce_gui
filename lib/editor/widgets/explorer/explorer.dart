@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
 
@@ -89,7 +89,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
     final config = context.read<Config>();
     if (!config.isTest) {
-      context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+      context.read<ExplorerService>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
   }
 
@@ -108,7 +108,7 @@ class _FileExplorerState extends State<FileExplorer> {
     if (_renamingNode == null) return;
     print('stopRenaming, node: ${_renamingNode!.name}, isSaved: ${_renamingNode!.isSaved}');
     if (!_renamingNode!.isSaved && isCancelled) {
-      context.read<ExplorerRepo>().removeUnsavedNode(_renamingNode!);
+      context.read<ExplorerService>().removeUnsavedNode(_renamingNode!);
     }
 
     setState(() {
@@ -120,7 +120,7 @@ class _FileExplorerState extends State<FileExplorer> {
   void _renameNode(ExplorerNode node, String newName) {
     _stopRenaming(false);
 
-    context.read<ExplorerRepo>().renameNode(node, newName);
+    context.read<ExplorerService>().renameNode(node, newName);
   }
 
   void _deleteNode(ExplorerNode node) {
@@ -128,7 +128,7 @@ class _FileExplorerState extends State<FileExplorer> {
       context: context,
       title: 'Delete Item',
       message: 'Are you sure you want to delete "${node.name}"?',
-      onAccept: () => context.read<ExplorerRepo>().deleteNode(node),
+      onAccept: () => context.read<ExplorerService>().deleteNode(node),
     );
   }
 
@@ -159,7 +159,7 @@ class _FileExplorerState extends State<FileExplorer> {
     final path = await _getCollectionPath();
 
     if (path != null && mounted) {
-      context.read<ExplorerRepo>().openCollection(path);
+      context.read<ExplorerService>().openCollection(path);
     }
   }
 
@@ -181,7 +181,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     }
 
-    context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
+    context.read<ExplorerService>().addNodeToParent(parentNode, node);
     _startRenaming(node);
   }
 
@@ -195,7 +195,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     }
 
-    context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
+    context.read<ExplorerService>().addNodeToParent(parentNode, node);
     _startRenaming(node);
   }
 
@@ -204,7 +204,7 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleRefresh() async {
-    context.read<ExplorerRepo>().refresh();
+    context.read<ExplorerService>().refresh();
   }
 
   Future<String?> _getCollectionPath() async {
@@ -263,7 +263,7 @@ class _FileExplorerState extends State<FileExplorer> {
             },
             onAcceptWithDetails: (details) {
               final movedNode = details.data;
-              context.read<ExplorerRepo>().moveNode(movedNode, node);
+              context.read<ExplorerService>().moveNode(movedNode, node);
 
               setState(() {
                 _dropPosition = null;
@@ -295,7 +295,7 @@ class _FileExplorerState extends State<FileExplorer> {
                         if ((currMills - lastClickmilliseconds) < 250) {
                           // Double tap
                           if (node.type == NodeType.request) {
-                            context.read<ExplorerRepo>().openNode(node);
+                            context.read<ExplorerService>().openNode(node);
                           }
                         } else {
                           // Single tap
