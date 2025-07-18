@@ -496,17 +496,13 @@ class _EditorTabsState extends State<EditorTabs> {
             child: Focus(
               focusNode: _focusNode,
               canRequestFocus: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTapDown: (_) => _focusNode.requestFocus(),
-                child:
-                    currentTabs().isEmpty
-                        ? const Center(child: Text('No tabs open'))
-                        : IndexedStack(
-                          index: _selectedTabIndex,
-                          children: currentTabs().map((entry) => entry.editor).toList(),
-                        ),
-              ),
+              child:
+                  currentTabs().isEmpty
+                      ? const Center(child: Text('No tabs open'))
+                      : IndexedStack(
+                        index: _selectedTabIndex,
+                        children: currentTabs().map((entry) => entry.editor).toList(),
+                      ),
             ),
           ),
         ],
