@@ -38,8 +38,8 @@ class EditorFocusManager {
     topTabFocusNode.onKeyEvent = _onKeyUp;
     urlFocusNode.onKeyEvent = _onKeyUp;
     checkboxFocusNode.onKeyEvent = _onKeyUp;
-    reqBodyFocusNode.onKeyEvent = _onKeyUp;
-    respBodyFocusNode.onKeyEvent = _onKeyUp;
+    reqBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
 
     // Add listener to transfer focus when method dropdown loses focus
     methodFocusNode.addListener(() {
@@ -99,6 +99,27 @@ class EditorFocusManager {
       }
       if (event.logicalKey == LogicalKeyboardKey.enter) {
         _eventBus.fire(EventSendRequest(tabKey));
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
+  // _onKeyUpMultiLine is the same as _onKeyUp but it doesnt send the request when you hit enter
+  KeyEventResult _onKeyUpMultiLine(FocusNode node, KeyEvent event) {
+    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
+
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
+        _eventBus.fire(EventSaveIntent(tabKey));
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
+        _eventBus.fire(EventNewRequest());
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyW && isCmdPressed) {
+        _eventBus.fire(EventCloseCurrentNode());
         return KeyEventResult.handled;
       }
     }
