@@ -7,6 +7,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
@@ -46,6 +47,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub6;
   late final StreamSubscription _tabsSub7;
   late final FocusNode _focusNode;
+  late final FocusNode _focusNodeBtn;
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
   int _selectedTabIndex = 0;
@@ -89,7 +91,9 @@ class _EditorTabsState extends State<EditorTabs> {
     super.initState();
 
     _focusNode = FocusNode();
+    _focusNodeBtn = FocusNode();
     _focusNode.onKeyEvent = _onKeyEventTabBar;
+    _focusNodeBtn.onKeyEvent = _onKeyEventTabBar;
 
     // Called when a collection is opened from the explorer
     _tabsSub0 = context.read<EventBus>().on<EventCollectionOpened>().listen((event) {
@@ -155,7 +159,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen((event) {
       setState(() {
         final newTabCount = currentTabs().where((entry) => entry.tab.isNew).length;
-        print('adding new tab');
+
         // Add new tab
         final uuid = const Uuid().v4();
         final newTab = TabItem(
@@ -213,7 +217,7 @@ class _EditorTabsState extends State<EditorTabs> {
           isDirectory: false,
           request: event.request,
         );
-
+        node.request!.file = File(path);
         tab.node = node;
         tab.isNew = false;
         tab.displayName = node.displayName();
@@ -279,7 +283,13 @@ class _EditorTabsState extends State<EditorTabs> {
       List<XTypeGroup> exts = [
         XTypeGroup(label: 'Trayce', extensions: ['bru']),
       ];
-      final loc = await getSaveLocation(acceptedTypeGroups: exts, suggestedName: 'untitled.bru');
+      if (_currentCollection == null) return null;
+
+      final loc = await getSaveLocation(
+        initialDirectory: _currentCollection!.dir.path,
+        acceptedTypeGroups: exts,
+        suggestedName: 'untitled.bru',
+      );
       if (loc == null) return null;
 
       path = loc.path;
@@ -306,6 +316,7 @@ class _EditorTabsState extends State<EditorTabs> {
   }
 
   void _onReorder(int oldIndex, int newIndex) {
+    if (newIndex == currentTabs().length) return;
     setState(() {
       if (oldIndex < newIndex) {
         newIndex -= 1;
@@ -386,6 +397,83 @@ class _EditorTabsState extends State<EditorTabs> {
     }
     environments.add('Configure');
 
+    Widget mainContent;
+    if (_currentCollection == null) {
+      mainContent = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(height: 100),
+            SvgPicture.asset(
+              'fonts/logo.svg',
+              allowDrawingOutsideViewBox: true,
+              width: 120,
+              height: 120,
+              fit: BoxFit.contain,
+              colorFilter: const ColorFilter.mode(highlightBorderColor, BlendMode.srcIn),
+            ),
+            const SizedBox(height: 24),
+            const SelectableText('Trayce Request Editor', style: TextStyle(color: lightTextColor, fontSize: 24)),
+            const SizedBox(height: 24),
+            const SelectableText(
+              'Start by creating or opening a collection:',
+              style: TextStyle(color: lightTextColor, fontSize: 18),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  key: const Key('editor_tabs_new_collection_button'),
+                  onPressed: () {
+                    context.read<EventBus>().fire(EventNewCollectionIntent());
+                    FocusScope.of(context).requestFocus(_focusNode);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: lightTextColor,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: BorderSide(color: lightTextColor.withOpacity(0.3)),
+                    ),
+                  ),
+                  child: const Text('New Collection'),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  key: const Key('editor_tabs_open_collection_button'),
+                  onPressed: () {
+                    context.read<EventBus>().fire(EventOpenCollectionIntent());
+                    FocusScope.of(context).requestFocus(_focusNode);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: lightTextColor,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: BorderSide(color: lightTextColor.withOpacity(0.3)),
+                    ),
+                  ),
+                  child: const Text('Open Collection'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    } else if (currentTabs().isEmpty) {
+      mainContent = Container(
+        child: const Center(child: Text('No tabs open', style: TextStyle(color: lightTextColor))),
+      );
+    } else {
+      mainContent = IndexedStack(
+        index: _selectedTabIndex,
+        children: currentTabs().map((entry) => entry.editor).toList(),
+      );
+    }
+
     return SizedBox(
       width: widget.width,
       child: Column(
@@ -408,8 +496,10 @@ class _EditorTabsState extends State<EditorTabs> {
                           scrollDirection: Axis.horizontal,
                           onReorder: _onReorder,
                           buildDefaultDragHandles: false,
-                          children:
-                              currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+                          children: [
+                            ...currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+                            if (_currentCollection != null) _buildPlusTab(),
+                          ],
                         ),
                       ),
                       Container(
@@ -492,19 +582,7 @@ class _EditorTabsState extends State<EditorTabs> {
               ),
             ),
           ),
-          Expanded(
-            child: Focus(
-              focusNode: _focusNode,
-              canRequestFocus: true,
-              child:
-                  currentTabs().isEmpty
-                      ? const Center(child: Text('No tabs open'))
-                      : IndexedStack(
-                        index: _selectedTabIndex,
-                        children: currentTabs().map((entry) => entry.editor).toList(),
-                      ),
-            ),
-          ),
+          Expanded(child: Focus(focusNode: _focusNode, canRequestFocus: true, child: mainContent)),
         ],
       ),
     );
@@ -566,6 +644,28 @@ class _EditorTabsState extends State<EditorTabs> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlusTab() {
+    final isHovered = _hoveredTabIndex == -1; // Use -1 to represent plus tab hover state
+    return MouseRegion(
+      key: const Key('editor_tabs_plus_tab'),
+      onEnter: (_) => setState(() => _hoveredTabIndex = -1),
+      onExit: (_) => setState(() => _hoveredTabIndex = null),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          context.read<EventBus>().fire(EventNewRequest());
+        },
+        child: Container(
+          height: tabHeight,
+          width: 30,
+          margin: const EdgeInsets.only(left: 0),
+          decoration: getTabPlusDecoration(isSelected: false, isHovered: isHovered, showTopBorder: true),
+          child: const Center(child: Icon(Icons.add, size: 16, color: lightTextColor)),
         ),
       ),
     );

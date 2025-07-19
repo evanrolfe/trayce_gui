@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
+import 'package:trayce/common/events.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
@@ -91,6 +92,14 @@ class _FileExplorerState extends State<FileExplorer> {
     if (!config.isTest) {
       context.read<ExplorerService>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
+
+    context.read<EventBus>().on<EventNewCollectionIntent>().listen((_) {
+      _handleNewCollection();
+    });
+
+    context.read<EventBus>().on<EventOpenCollectionIntent>().listen((_) {
+      _handleOpenCollection();
+    });
   }
 
   void _startRenaming(ExplorerNode node) {
@@ -155,7 +164,7 @@ class _FileExplorerState extends State<FileExplorer> {
     super.dispose();
   }
 
-  Future<void> _handleOpen() async {
+  Future<void> _handleOpenCollection() async {
     final path = await _getCollectionPath();
 
     if (path != null && mounted) {
@@ -420,7 +429,7 @@ class _FileExplorerState extends State<FileExplorer> {
                               context,
                               widget.width,
                               itemHeight,
-                              _handleOpen,
+                              _handleOpenCollection,
                               _handleNewCollection,
                               _handleNewRequest,
                               _handleRefresh,

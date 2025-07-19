@@ -29,6 +29,18 @@ BoxDecoration getTabDecoration({bool isSelected = false, bool isHovered = false,
   );
 }
 
+BoxDecoration getTabPlusDecoration({bool isSelected = false, bool isHovered = false, bool showTopBorder = true}) {
+  return BoxDecoration(
+    color: isSelected || isHovered ? tabHoverColor : tabBackgroundColor,
+    border: Border(
+      top:
+          showTopBorder
+              ? BorderSide(color: isSelected ? tabIndicatorColor : Colors.transparent, width: 1)
+              : BorderSide.none,
+    ),
+  );
+}
+
 TextStyle get tabTextStyle => const TextStyle(color: lightTextColor, fontSize: tabTextSize);
 
 const tabConstraints = BoxConstraints(minWidth: 125);

@@ -58,6 +58,7 @@ dependencies:
   http: ^1.2.0
   html: ^0.15.6
   http_multi_server: ^3.2.2
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   mocktail: ^1.0.0
@@ -83,6 +84,7 @@ flutter:
   uses-material-design: true
   assets:
     - schema.sql
+    - fonts/logo.svg
   fonts:
    - family:  MyFlutterApp
      fonts:

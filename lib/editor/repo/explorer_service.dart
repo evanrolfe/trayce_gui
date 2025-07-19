@@ -56,15 +56,13 @@ class ExplorerService {
        _folderRepo = folderRepo,
        _requestRepo = requestRepo;
 
-  void createCollection(String collectionPath) async {
+  void createCollection(String collectionPath) {
     final collectionDir = Directory(collectionPath);
     if (!collectionDir.existsSync()) {
       collectionDir.createSync(recursive: true);
     }
-
     final files = collectionDir.listSync();
     if (files.isNotEmpty) {
-      print('collectionDir is not empty: $collectionPath');
       _eventBus.fire(EventDisplayAlert('the collection path must be empty'));
       return;
     }
@@ -74,11 +72,10 @@ class ExplorerService {
     final collectionFile = File(path.join(collectionPath, 'collection.bru'));
     final collectionName = collectionDir.path.split(Platform.pathSeparator).last;
 
-    await brunoJsonFile.create();
-    await collectionFile.create();
-
-    await brunoJsonFile.writeAsString(Collection.getBrunoJson(collectionName));
-    await collectionFile.writeAsString(Collection.getDefaultCollectionBru());
+    brunoJsonFile.createSync();
+    collectionFile.createSync();
+    brunoJsonFile.writeAsStringSync(Collection.getBrunoJson(collectionName));
+    collectionFile.writeAsStringSync(Collection.getDefaultCollectionBru());
 
     // Add the new collection to the explorer
     final collectionNode = _buildNode(collectionDir, 0);
@@ -86,6 +83,7 @@ class ExplorerService {
 
     _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
+    _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection!));
   }
 
   void openCollection(String path) {
@@ -111,6 +109,10 @@ class ExplorerService {
     _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
     _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection!));
+  }
+
+  List<Collection> getOpenCollections() {
+    return _nodes.where((node) => node.type == NodeType.collection).map((node) => node.collection!).toList();
   }
 
   void closeCollection(ExplorerNode node) {

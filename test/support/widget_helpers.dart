@@ -87,7 +87,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     folderRepo: folderRepo,
     requestRepo: requestRepo,
   );
-  final config = Config.fromArgs([]);
+  final config = Config.fromArgs(['--test']);
 
   final deps = WidgetDependencies(
     db: db,

@@ -1,7 +1,26 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// See: https://itnext.io/widget-testing-dealing-with-renderflex-overflow-errors-9488f9cf9a29
+void ignoreOverflowErrors(FlutterErrorDetails details, {bool forceReport = false}) {
+  bool ifIsOverflowError = false;
+  bool isUnableToLoadAsset = false;
+  // Detect overflow error.
+  var exception = details.exception;
+  if (exception is FlutterError) {
+    ifIsOverflowError = !exception.diagnostics.any((e) => e.value.toString().startsWith("A RenderFlex overflowed by"));
+    isUnableToLoadAsset = !exception.diagnostics.any((e) => e.value.toString().startsWith("Unable to load asset"));
+  }
+  // Ignore if is overflow error.
+  if (ifIsOverflowError || isUnableToLoadAsset) {
+    debugPrint('Ignored OverflowError');
+  } else {
+    FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
+  }
+}
 
 void saveFile(String path, String contents) {
   try {
@@ -88,6 +107,14 @@ String loadFile(String path) {
   } catch (e) {
     throw Exception('Failed to load file: $e');
   }
+}
+
+Future<void> pressCtrlN(WidgetTester tester) async {
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.keyN);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.keyN);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+  await tester.pumpAndSettle();
 }
 
 Future<void> pressCtrlS(WidgetTester tester) async {

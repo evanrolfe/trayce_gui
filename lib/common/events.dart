@@ -18,3 +18,7 @@ class EditorInputFocused {
 
   EditorInputFocused(this.key);
 }
+
+class EventNewCollectionIntent {}
+
+class EventOpenCollectionIntent {}
