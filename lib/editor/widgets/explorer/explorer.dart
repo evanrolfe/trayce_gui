@@ -53,7 +53,7 @@ class _FileExplorerState extends State<FileExplorer> {
   List<ExplorerNode> _files = [];
   late final StreamSubscription _displaySub;
   int? _dropPosition;
-  int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
+  int lastClickmilliseconds = 0;
   late final FocusNode _focusNode;
   late final FocusNode _renameFocusNode;
   final TextEditingController _renameController = TextEditingController();
@@ -103,7 +103,6 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   void _startRenaming(ExplorerNode node) {
-    print('startRenaming, node: ${node.name}');
     _renameFocusNode.requestFocus();
     _renameController.text = node.displayName();
     _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.displayName().length);
@@ -115,7 +114,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
   void _stopRenaming(bool isCancelled) {
     if (_renamingNode == null) return;
-    print('stopRenaming, node: ${_renamingNode!.name}, isSaved: ${_renamingNode!.isSaved}');
+
     if (!_renamingNode!.isSaved && isCancelled) {
       context.read<ExplorerService>().removeUnsavedNode(_renamingNode!);
     }

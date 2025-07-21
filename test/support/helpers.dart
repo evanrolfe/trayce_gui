@@ -100,6 +100,13 @@ Future<void> deleteFile(String path) async {
   }
 }
 
+void deleteFileSync(String path) {
+  final file = File(path);
+  if (file.existsSync()) {
+    file.deleteSync();
+  }
+}
+
 String loadFile(String path) {
   try {
     final file = File(path);

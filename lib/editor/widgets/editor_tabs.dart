@@ -7,7 +7,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
@@ -27,6 +26,7 @@ import 'package:uuid/uuid.dart';
 import '../../common/style.dart';
 import '../../common/tab_style.dart';
 import 'flow_editor.dart';
+import 'splash_page.dart';
 
 class EditorTabs extends StatefulWidget {
   final double width;
@@ -50,18 +50,22 @@ class _EditorTabsState extends State<EditorTabs> {
   late final FocusNode _focusNodeBtn;
   int? _hoveredTabIndex;
   int? _hoveredCloseButtonIndex;
-  int _selectedTabIndex = 0;
-  final Map<Collection, List<_TabEntry>> _tabsMap = {};
+  String _selectedTabUuid = '';
   Collection? _currentCollection;
+
+  final Map<Collection, List<TabItem>> _tabsMap = {};
+
+  // TODO: This needs to work with multiple collections
+  final List<FlowEditor> _tabEditors = [];
 
   // Environment dropdown state
   final Map<Collection, String> _selectedEnvironment = {};
 
-  List<_TabEntry> currentTabs() {
+  List<TabItem> currentTabs() {
     return _tabsMap[_currentCollection] ?? [];
   }
 
-  void addTab(_TabEntry tab) {
+  void addTab(TabItem tab) {
     if (_currentCollection == null) return;
 
     final tabs = _tabsMap[_currentCollection];
@@ -103,160 +107,201 @@ class _EditorTabsState extends State<EditorTabs> {
     });
 
     // Called when a request is opened from the explorer
-    _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen((event) {
-      setState(() {
-        _currentCollection = event.collection;
-
-        final uuid = const Uuid().v4();
-        final newTab = TabItem(node: event.node, key: ValueKey('tabItem_$uuid'), displayName: event.node.displayName());
-
-        // Check if tab already exists
-        final existingIndex = currentTabs().indexWhere((entry) => entry.tab.getPath() == newTab.getPath());
-        if (existingIndex != -1) {
-          _selectedTabIndex = existingIndex;
-          return;
-        }
-
-        if (event.node.request == null) return;
-
-        // Add new tab
-        final tabKey = newTab.key;
-        addTab(
-          _TabEntry(
-            tab: newTab,
-            // Bit of a round-about way of letting the user save the flow when focused on a tab,
-            // it sends this event to FlowEditorHttpp, which then sends the EventSaveRequest back to us,
-            // theres probably a better/cleaner way of doing this
-            onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
-            onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
-            onCloseCurrentTab: () => _closeCurrentTab(),
-            editor: FlowEditor(
-              key: ValueKey('editor_$uuid'),
-              tabKey: newTab.key,
-              flowType: 'http',
-              node: event.node,
-              request: event.node.request!,
-            ),
-          ),
-        );
-        _selectedTabIndex = currentTabs().length - 1;
-      });
-    });
+    _tabsSub = context.read<EventBus>().on<EventOpenExplorerNode>().listen(_onEventOpenExplorerNode);
 
     // Called when a request is modified
-    _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen((event) {
-      final index = currentTabs().indexWhere((entry) => entry.tab.key == event.tabKey);
-      if (index == -1) {
-        return;
-      }
-
-      setState(() {
-        currentTabs()[index].tab.isModified = event.isDifferent;
-      });
-    });
+    _tabsSub2 = context.read<EventBus>().on<EventEditorNodeModified>().listen(_onEventEditorNodeModified);
 
     // Called when a new request is created (i.e. CTRL+N)
-    _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen((event) {
-      setState(() {
-        final newTabCount = currentTabs().where((entry) => entry.tab.isNew).length;
-
-        // Add new tab
-        final uuid = const Uuid().v4();
-        final newTab = TabItem(
-          node: null,
-          isNew: true,
-          key: ValueKey('tabItem_$uuid'),
-          displayName: 'Untitled-$newTabCount',
-        );
-        final tabKey = newTab.key;
-        addTab(
-          _TabEntry(
-            tab: newTab,
-            onSave: () => context.read<EventBus>().fire(EventSaveIntent(tabKey)),
-            onNewRequest: () => context.read<EventBus>().fire(EventNewRequest()),
-            onCloseCurrentTab: () => _closeCurrentTab(),
-            editor: FlowEditor(
-              key: ValueKey('editor_$uuid'),
-              tabKey: tabKey,
-              flowType: 'http',
-              node: null,
-              request: Request.blank(),
-            ),
-          ),
-        );
-        _selectedTabIndex = currentTabs().length - 1;
-      });
-    });
+    _tabsSub3 = context.read<EventBus>().on<EventNewRequest>().listen(_onEventNewRequest);
 
     // Called when a request is saved (i.e. CTRL+S)
-    _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen((event) async {
-      final index = currentTabs().indexWhere((entry) => entry.tab.key == event.tabKey);
-      if (index == -1) {
+    _tabsSub4 = context.read<EventBus>().on<EventSaveRequest>().listen(_onEventSaveRequest);
+
+    // Called when a node is renamed from the explorer
+    _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen(_onEventExplorerNodeRenamed);
+
+    // Called when CTRL+W is pressed
+    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((event) {});
+
+    // Called when the selected environment is changed
+    _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen((event) {});
+  }
+
+  void _onEventOpenExplorerNode(EventOpenExplorerNode event) {
+    setState(() {
+      _currentCollection = event.collection;
+
+      final path = event.node.getFile()?.path;
+      if (path == null) return;
+
+      // Check if tab already exists
+      final existingTab = currentTabs().firstWhereOrNull((entry) => entry.getPath() == path);
+      if (existingTab != null) {
+        setState(() {
+          _selectedTabUuid = existingTab.uuid;
+        });
         return;
       }
 
-      final tab = currentTabs()[index].tab;
-      if (tab.node == null) {
-        // Creating a new request
-        String? path = await _getPath();
-        if (path == null) return;
+      final uuid = const Uuid().v4();
+      final tabKey = ValueKey('tabItem_$uuid');
 
-        if (mounted) {
-          final seq = context.read<ExplorerService>().getNextSeq(path);
-          event.request.seq = seq;
-        }
+      final focusNode = FocusNode();
+      focusNode.onKeyEvent = _createOnKeyEventTabItem(tabKey);
 
-        // Ensure the path ends with .bru
-        path = ensureExt(path);
+      // Create the editor widget
+      final editor = FlowEditor(
+        uuid: uuid,
+        key: ValueKey('editor_$uuid'),
+        tabKey: tabKey,
+        flowType: 'http',
+        node: event.node,
+        request: event.node.request!,
+      );
+      _tabEditors.add(editor);
 
-        final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
-        final node = ExplorerNode(
-          // file: File(path),
-          name: fileName,
-          type: NodeType.request,
-          isDirectory: false,
-          request: event.request,
+      // Create the tab item
+      final newTab = TabItem(
+        uuid: uuid,
+        node: event.node,
+        key: tabKey,
+        displayName: event.node.displayName(),
+        focusNode: focusNode,
+        editor: editor,
+      );
+
+      if (event.node.request == null) return;
+
+      // Add new tab
+      addTab(newTab);
+      _selectedTabUuid = newTab.uuid;
+    });
+  }
+
+  void _onEventEditorNodeModified(EventEditorNodeModified event) {
+    final modifiedTab = currentTabs().firstWhereOrNull((entry) => entry.key == event.tabKey);
+    if (modifiedTab == null) {
+      return;
+    }
+
+    setState(() {
+      modifiedTab.isModified = event.isDifferent;
+    });
+  }
+
+  void _onEventNewRequest(EventNewRequest event) {
+    setState(() {
+      setState(() {
+        final newTabCount = currentTabs().where((tab) => tab.isNew).length;
+
+        final uuid = const Uuid().v4();
+        final tabKey = ValueKey('tabItem_$uuid');
+
+        final focusNode = FocusNode();
+        focusNode.onKeyEvent = _createOnKeyEventTabItem(tabKey);
+
+        // Create the editor widget
+        final editor = FlowEditor(
+          uuid: uuid,
+          key: ValueKey('editor_$uuid'),
+          tabKey: tabKey,
+          flowType: 'http',
+          node: null,
+          request: Request.blank(),
         );
-        node.request!.file = File(path);
-        tab.node = node;
-        tab.isNew = false;
-        tab.displayName = node.displayName();
+        _tabEditors.add(editor);
 
-        RequestRepo().save(tab.node!.request!);
+        // Create the tab item
+        final newTab = TabItem(
+          uuid: uuid,
+          node: null,
+          key: tabKey,
+          displayName: 'Untitled-$newTabCount',
+          focusNode: focusNode,
+          isNew: true,
+          editor: editor,
+        );
 
-        // Refresh the explorer
-        if (mounted) {
-          context.read<ExplorerService>().refresh();
-        }
-      } else {
-        // Updating an existing request
-        tab.node!.request = event.request;
-        RequestRepo().save(tab.node!.request!);
+        addTab(newTab);
+        _selectedTabUuid = newTab.uuid;
+      });
+    });
+  }
+
+  void _onEventSaveRequest(EventSaveRequest event) async {
+    final tab = currentTabs().firstWhereOrNull((entry) => entry.key == event.tabKey);
+    if (tab == null) return;
+
+    final request = event.request;
+
+    if (tab.node == null) {
+      // Creating a new request
+      String? path = await _getPath();
+      if (path == null) return;
+
+      if (mounted) {
+        final seq = context.read<ExplorerService>().getNextSeq(path);
+        event.request.seq = seq;
       }
 
-      setState(() {
-        currentTabs()[index].tab.isModified = false;
-      });
-    });
+      // Ensure the path ends with .bru
+      path = ensureExt(path);
 
-    // Called when a node is renamed from the explorer
-    _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen((event) {
-      final tab = currentTabs().firstWhereOrNull((entry) => entry.tab.node == event.node);
-      if (tab == null) return;
+      request.file = File(path);
+      final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
+      final node = ExplorerNode(name: fileName, type: NodeType.request, isDirectory: false, request: request);
 
-      setState(() {
-        tab.tab.displayName = event.node.displayName();
-      });
-    });
+      tab.node = node;
+      tab.isNew = false;
+      tab.displayName = node.displayName();
 
-    // Called when CTRL+W is pressed
-    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((event) {
-      _closeCurrentTab();
-    });
+      print('saving request: ${tab.node!.request!.file?.path}');
+      RequestRepo().save(tab.node!.request!);
 
-    _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen((event) {
-      setState(() {});
+      // Refresh the explorer
+      if (mounted) {
+        context.read<ExplorerService>().refresh();
+      }
+    } else {
+      // Updating an existing request
+      tab.node!.request = request;
+      RequestRepo().save(tab.node!.request!);
+    }
+
+    setState(() {
+      tab.isModified = false;
     });
+  }
+
+  void _onEventExplorerNodeRenamed(EventExplorerNodeRenamed event) {
+    final tab = currentTabs().firstWhereOrNull((entry) => entry.node == event.node);
+    if (tab == null) return;
+
+    setState(() {
+      tab.displayName = event.node.displayName();
+    });
+  }
+
+  KeyEventResult Function(FocusNode, KeyEvent) _createOnKeyEventTabItem(ValueKey tabKey) {
+    return (FocusNode node, KeyEvent event) {
+      final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
+          context.read<EventBus>().fire(EventSaveIntent(tabKey));
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
+          context.read<EventBus>().fire(EventNewRequest());
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.keyW && isCmdPressed) {
+          _closeCurrentTab();
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   KeyEventResult _onKeyEventTabBar(FocusNode node, KeyEvent event) {
@@ -316,70 +361,25 @@ class _EditorTabsState extends State<EditorTabs> {
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    if (newIndex == currentTabs().length) return;
     setState(() {
       if (oldIndex < newIndex) {
         newIndex -= 1;
       }
+      // Dont let them drag past the + tab
+      if (newIndex >= currentTabs().length) return;
 
       // Reorder the tab entry
       final item = currentTabs().removeAt(oldIndex);
       currentTabs().insert(newIndex, item);
-
-      // Update selected index
-      if (_selectedTabIndex == oldIndex) {
-        _selectedTabIndex = newIndex;
-      } else if (_selectedTabIndex > oldIndex && _selectedTabIndex <= newIndex) {
-        _selectedTabIndex--;
-      } else if (_selectedTabIndex < oldIndex && _selectedTabIndex >= newIndex) {
-        _selectedTabIndex++;
-      }
-
-      // Ensure selected index is valid
-      if (_selectedTabIndex >= currentTabs().length) {
-        _selectedTabIndex = currentTabs().length - 1;
-      }
     });
   }
 
-  void _closeTab(int index) {
-    final tab = currentTabs()[index];
+  void _closeTab(int index) {}
 
-    if (tab.tab.isModified) {
-      showConfirmDialog(
-        context: context,
-        title: 'Close tab',
-        message: 'Are you sure you want to close this tab"?',
-        onAccept: () => _closeTabNoConfirm(index),
-      );
-    } else {
-      _closeTabNoConfirm(index);
-    }
-  }
-
-  void _closeTabNoConfirm(int index) {
-    setState(() {
-      currentTabs().removeAt(index);
-      _hoveredCloseButtonIndex = null;
-      _hoveredTabIndex = null;
-
-      if (currentTabs().isEmpty) {
-        _selectedTabIndex = 0;
-      } else {
-        // If we're closing the selected tab or a tab before it, adjust the index
-        if (index <= _selectedTabIndex) {
-          _selectedTabIndex = _selectedTabIndex > 0 ? _selectedTabIndex - 1 : 0;
-        }
-        // Ensure the selected index is within bounds
-        if (_selectedTabIndex >= currentTabs().length) {
-          _selectedTabIndex = currentTabs().length - 1;
-        }
-      }
-    });
-  }
+  void _closeTabNoConfirm(int index) {}
 
   void _closeCurrentTab() {
-    _closeTab(_selectedTabIndex);
+    // _closeTab(_selectedTabIndex);
   }
 
   String ensureExt(String path) {
@@ -399,79 +399,13 @@ class _EditorTabsState extends State<EditorTabs> {
 
     Widget mainContent;
     if (_currentCollection == null) {
-      mainContent = Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(height: 100),
-            SvgPicture.asset(
-              'fonts/logo.svg',
-              allowDrawingOutsideViewBox: true,
-              width: 120,
-              height: 120,
-              fit: BoxFit.contain,
-              colorFilter: const ColorFilter.mode(highlightBorderColor, BlendMode.srcIn),
-            ),
-            const SizedBox(height: 24),
-            const SelectableText('Trayce Request Editor', style: TextStyle(color: lightTextColor, fontSize: 24)),
-            const SizedBox(height: 24),
-            const SelectableText(
-              'Start by creating or opening a collection:',
-              style: TextStyle(color: lightTextColor, fontSize: 18),
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  key: const Key('editor_tabs_new_collection_button'),
-                  onPressed: () {
-                    context.read<EventBus>().fire(EventNewCollectionIntent());
-                    FocusScope.of(context).requestFocus(_focusNode);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: lightTextColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      side: BorderSide(color: lightTextColor.withOpacity(0.3)),
-                    ),
-                  ),
-                  child: const Text('New Collection'),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  key: const Key('editor_tabs_open_collection_button'),
-                  onPressed: () {
-                    context.read<EventBus>().fire(EventOpenCollectionIntent());
-                    FocusScope.of(context).requestFocus(_focusNode);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: lightTextColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      side: BorderSide(color: lightTextColor.withOpacity(0.3)),
-                    ),
-                  ),
-                  child: const Text('Open Collection'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
+      mainContent = SplashPage(focusNode: _focusNode);
     } else if (currentTabs().isEmpty) {
-      mainContent = Container(
-        child: const Center(child: Text('No tabs open', style: TextStyle(color: lightTextColor))),
-      );
+      mainContent = Center(child: Text('No tabs open', style: TextStyle(color: lightTextColor)));
     } else {
-      mainContent = IndexedStack(
-        index: _selectedTabIndex,
-        children: currentTabs().map((entry) => entry.editor).toList(),
-      );
+      final selectedIndex = _tabEditors.indexWhere((entry) => entry.uuid == _selectedTabUuid);
+
+      mainContent = IndexedStack(index: selectedIndex, children: _tabEditors);
     }
 
     return SizedBox(
@@ -497,7 +431,7 @@ class _EditorTabsState extends State<EditorTabs> {
                           onReorder: _onReorder,
                           buildDefaultDragHandles: false,
                           children: [
-                            ...currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)).toList(),
+                            ...currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)),
                             if (_currentCollection != null) _buildPlusTab(),
                           ],
                         ),
@@ -588,13 +522,12 @@ class _EditorTabsState extends State<EditorTabs> {
     );
   }
 
-  Widget _buildTab(_TabEntry tabEntry, int index) {
-    final tabItem = tabEntry.tab;
-    final isSelected = _selectedTabIndex == index;
+  Widget _buildTab(TabItem tabEntry, int index) {
+    final isSelected = tabEntry.uuid == _selectedTabUuid;
     final isHovered = _hoveredTabIndex == index;
 
     return ReorderableDragStartListener(
-      key: tabItem.key,
+      key: tabEntry.key,
       index: index,
       child: MouseRegion(
         onEnter: (_) => setState(() => _hoveredTabIndex = index),
@@ -602,7 +535,7 @@ class _EditorTabsState extends State<EditorTabs> {
         child: GestureDetector(
           onTapDown: (_) {
             tabEntry.focusNode.requestFocus();
-            setState(() => _selectedTabIndex = index);
+            setState(() => _selectedTabUuid = tabEntry.uuid);
           },
           child: Focus(
             focusNode: tabEntry.focusNode,
@@ -620,7 +553,7 @@ class _EditorTabsState extends State<EditorTabs> {
                   children: [
                     const Icon(Icons.insert_drive_file, size: 16, color: lightTextColor),
                     const SizedBox(width: 8),
-                    Text(tabItem.getDisplayName(), style: tabTextStyle),
+                    Text(tabEntry.getDisplayName(), style: tabTextStyle),
                     const SizedBox(width: 8),
                     MouseRegion(
                       cursor: SystemMouseCursors.click,
@@ -669,40 +602,5 @@ class _EditorTabsState extends State<EditorTabs> {
         ),
       ),
     );
-  }
-}
-
-class _TabEntry {
-  final TabItem tab;
-  final FlowEditor editor;
-  final FocusNode focusNode;
-  final void Function() onSave;
-  final void Function() onNewRequest;
-  final void Function() onCloseCurrentTab;
-  _TabEntry({
-    required this.tab,
-    required this.editor,
-    required this.onSave,
-    required this.onNewRequest,
-    required this.onCloseCurrentTab,
-  }) : focusNode = FocusNode() {
-    focusNode.onKeyEvent = (node, event) {
-      final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
-          onSave();
-          return KeyEventResult.handled;
-        }
-        if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
-          onNewRequest();
-          return KeyEventResult.handled;
-        }
-        if (event.logicalKey == LogicalKeyboardKey.keyW && isCmdPressed) {
-          onCloseCurrentTab();
-          return KeyEventResult.handled;
-        }
-      }
-      return KeyEventResult.ignored;
-    };
   }
 }

@@ -6,12 +6,20 @@ import 'package:trayce/editor/models/request.dart';
 import 'flow_editor_http/flow_editor_http.dart';
 
 class FlowEditor extends StatefulWidget {
+  final String uuid;
   final String flowType;
   final ExplorerNode? node;
   final Request request;
   final ValueKey tabKey;
 
-  const FlowEditor({super.key, required this.flowType, this.node, required this.request, required this.tabKey});
+  const FlowEditor({
+    super.key,
+    required this.uuid,
+    required this.flowType,
+    this.node,
+    required this.request,
+    required this.tabKey,
+  });
 
   @override
   State<FlowEditor> createState() => _FlowEditorState();

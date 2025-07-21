@@ -46,7 +46,7 @@ class WidgetDependencies {
   });
 
   // Creates a widget with all required providers
-  Future<Widget> wrapWidget(Widget child) async {
+  Widget wrapWidget(Widget child) {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<FlowRepo>(create: (context) => flowRepo),
@@ -70,7 +70,7 @@ class WidgetDependencies {
 
 /// Sets up all required dependencies for tests
 Future<WidgetDependencies> setupTestDependencies() async {
-  final db = await connectDB();
+  final db = await connectMemoryDB();
   final eventBus = EventBus();
   final appStorage = await FakeAppStorage.getInstance();
 
