@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -134,6 +135,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       context.read<EventBus>(),
       widget.tabKey,
       config,
+      context.read<FilePicker>(),
       setStateCallback,
       _focusManager,
     );

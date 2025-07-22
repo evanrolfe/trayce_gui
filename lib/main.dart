@@ -8,6 +8,7 @@ import 'package:trayce/app.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
@@ -31,7 +32,6 @@ void main(List<String> args) async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
-
   await GrpcParserLib.ensureExists();
 
   // Core dependencies
@@ -40,8 +40,9 @@ void main(List<String> args) async {
   final grpcService = TrayceAgentService(eventBus: eventBus);
   final config = Config.fromArgs(args);
   final appStorage = await AppStorage.getInstance();
+  final filePicker = FilePicker();
 
-  // Init repos
+  // Repos
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
@@ -49,6 +50,7 @@ void main(List<String> args) async {
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
 
+  // Services
   final explorerService = ExplorerService(
     eventBus: eventBus,
     collectionRepo: collectionRepo,
@@ -59,6 +61,7 @@ void main(List<String> args) async {
   runApp(
     MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<FilePicker>(create: (context) => filePicker),
         RepositoryProvider<FlowRepo>(create: (context) => flowRepo),
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),

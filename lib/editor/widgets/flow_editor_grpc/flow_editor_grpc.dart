@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
@@ -83,6 +84,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
       config: context.read<Config>(),
       focusManager: _focusManager,
       eventBus: context.read<EventBus>(),
+      filePicker: context.read<FilePicker>(),
     );
   }
 

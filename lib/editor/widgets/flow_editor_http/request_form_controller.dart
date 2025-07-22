@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
@@ -41,6 +42,7 @@ class RequestFormController {
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
   final Config config;
+  final FilePicker filePicker;
 
   final Function() setState;
 
@@ -57,6 +59,7 @@ class RequestFormController {
     this.eventBus,
     this._tabKey,
     this.config,
+    this.filePicker,
     this.setState,
     this._focusManager,
   ) {
@@ -99,6 +102,7 @@ class RequestFormController {
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // Vars
@@ -109,6 +113,7 @@ class RequestFormController {
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // Form URL Encoded
@@ -124,6 +129,7 @@ class RequestFormController {
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // Multipart Form
@@ -139,6 +145,7 @@ class RequestFormController {
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // File
@@ -153,6 +160,7 @@ class RequestFormController {
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
   }
 

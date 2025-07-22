@@ -1,8 +1,8 @@
 import 'package:event_bus/event_bus.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/widgets/common/form_table_base_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
@@ -17,6 +17,7 @@ class FormHeadersController implements FormTableControllerI {
   int? _selectedRowIndex; // Track which row is selected for radio buttons
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
+  final FilePicker filePicker;
 
   FormHeadersController({
     required this.onStateChanged,
@@ -25,6 +26,7 @@ class FormHeadersController implements FormTableControllerI {
     required this.config,
     required EditorFocusManager focusManager,
     required this.eventBus,
+    required this.filePicker,
   }) : _focusManager = focusManager {
     final rows = _convertHeadersToRows(initialRows);
     _baseController = FormTableBaseController(
@@ -151,10 +153,8 @@ class FormHeadersController implements FormTableControllerI {
     if (config.isTest) {
       path = './test/support/';
     } else {
-      final file = await openFile();
-      path = file?.path;
+      path = await filePicker.openFile();
     }
-
     return path;
   }
 

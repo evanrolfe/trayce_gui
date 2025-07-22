@@ -8,6 +8,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
@@ -22,6 +23,7 @@ class WidgetDependencies {
   late Database db;
   late EventBus eventBus;
   late AppStorageI appStorage;
+  late FilePicker filePicker;
   late FlowRepo flowRepo;
   late ProtoDefRepo protoDefRepo;
   late ContainersRepo containersRepo;
@@ -35,6 +37,7 @@ class WidgetDependencies {
     required this.db,
     required this.eventBus,
     required this.appStorage,
+    required this.filePicker,
     required this.flowRepo,
     required this.protoDefRepo,
     required this.containersRepo,
@@ -52,6 +55,7 @@ class WidgetDependencies {
         RepositoryProvider<FlowRepo>(create: (context) => flowRepo),
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),
+        RepositoryProvider<FilePicker>(create: (context) => filePicker),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
@@ -73,6 +77,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final db = await connectMemoryDB();
   final eventBus = EventBus();
   final appStorage = await FakeAppStorage.getInstance();
+  final filePicker = FilePicker();
 
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
@@ -93,6 +98,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     db: db,
     eventBus: eventBus,
     appStorage: appStorage,
+    filePicker: filePicker,
     flowRepo: flowRepo,
     protoDefRepo: protoDefRepo,
     containersRepo: containersRepo,

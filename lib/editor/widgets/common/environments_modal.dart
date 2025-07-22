@@ -2,6 +2,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
@@ -41,6 +42,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
 
     final config = context.read<Config>();
     final eventBus = context.read<EventBus>();
+    final filePicker = context.read<FilePicker>();
     final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
     _title = 'Environments';
@@ -63,6 +65,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
   }
 

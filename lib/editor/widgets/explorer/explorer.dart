@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
@@ -217,12 +217,13 @@ class _FileExplorerState extends State<FileExplorer> {
 
   Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
+    final filePicker = context.read<FilePicker>();
+
     late String? path;
     if (config.isTest) {
       path = './test/support/collection1';
     } else {
-      // Need to find a way to mock the file selector in integration tests
-      path = await getDirectoryPath();
+      path = await filePicker.getCollectionPath();
     }
 
     return path;

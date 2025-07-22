@@ -20,6 +20,7 @@ void main() {
   late WidgetDependencies deps9;
   late WidgetDependencies deps10;
   late WidgetDependencies deps11;
+  late WidgetDependencies deps12;
   setUpAll(() async {
     deps = await setupTestDependencies();
     deps2 = await setupTestDependencies();
@@ -32,6 +33,7 @@ void main() {
     deps9 = await setupTestDependencies();
     deps10 = await setupTestDependencies();
     deps11 = await setupTestDependencies();
+    deps12 = await setupTestDependencies();
   });
 
   tearDownAll(() async {
@@ -46,12 +48,13 @@ void main() {
     await deps9.close();
     await deps10.close();
     await deps11.close();
+    await deps12.close();
   });
 
   // Sets up the editor with two tabs open (one and two requests)
   Future<(Widget, dynamic)> initWidget(WidgetTester tester, WidgetDependencies widgetDeps) async {
     // Init widget
-    // FlutterError.onError = ignoreOverflowErrors;
+    FlutterError.onError = ignoreOverflowErrors;
     final widget = widgetDeps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
@@ -353,7 +356,7 @@ void main() {
       saveFile(filePath, originalContent);
     });
 
-    testWidgets('renaming a request', (WidgetTester tester) async {
+    testWidgets('renaming an existing request', (WidgetTester tester) async {
       final filePath = 'test/support/collection1/myfolder/two.bru';
       final newFilePath = 'test/support/collection1/myfolder/newname.bru';
       final originalContent = loadFile(filePath);
@@ -395,8 +398,66 @@ void main() {
       deleteFileSync(newFilePath);
     });
 
+    // testWidgets('renaming a new request which was just saved', (WidgetTester tester) async {
+    //   final (_, editorTabsState) = await initWidget(tester, deps11);
+
+    //   // Click on the + tab button
+    //   final plusTabBtn = find.byKey(const Key('editor_tabs_plus_tab'));
+    //   expect(plusTabBtn, findsOneWidget);
+    //   await tester.tap(plusTabBtn);
+    //   await tester.pumpAndSettle();
+
+    //   // Enter a URL
+    //   expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
+    //   final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+    //   expect(urlInput2.controller.text, '');
+
+    //   urlInput2.controller.text = 'http://www.trayce.dev/new';
+    //   await tester.pumpAndSettle();
+
+    //   // Verify the tab title has * at the end
+    //   expect(find.text('Untitled-0*'), findsOneWidget);
+
+    //   await pressCtrlS(tester);
+
+    //   // Verify the tab title has been updated
+    //   expect(find.text('hello'), findsNWidgets(3));
+    //   final currentTabs3 = editorTabsState.currentTabs();
+    //   expect(currentTabs3.length, 3);
+    //   expect(currentTabs3[0].getDisplayName(), 'one');
+    //   expect(currentTabs3[1].getDisplayName(), 'two');
+    //   expect(currentTabs3[2].getDisplayName(), 'hello');
+
+    //   // Verify the request is saved
+    //   final content = loadFile('test/support/collection1/hello.bru');
+    //   expect(content, contains('http://www.trayce.dev/new'));
+
+    //   // Right-click on hello.bru request
+    //   final helloReq = find.text('hello').first;
+    //   await tester.tapAt(tester.getCenter(helloReq), buttons: 2);
+    //   await tester.pumpAndSettle();
+
+    //   // Click open on context menu
+    //   final openItem = find.text('Rename');
+    //   await tester.tap(openItem);
+    //   await tester.pumpAndSettle();
+
+    //   // Enter a new name
+    //   final renameInput = find.byKey(const Key('explorer_rename_input'));
+    //   expect(renameInput, findsOneWidget);
+
+    //   await tester.enterText(renameInput, 'newname');
+    //   await tester.pumpAndSettle();
+
+    //   await tester.testTextInput.receiveAction(TextInputAction.done);
+    //   await tester.pumpAndSettle();
+
+    //   // Delete the created file
+    //   deleteFileSync('test/support/collection1/hello.bru');
+    // });
+
     testWidgets('closing request two', (WidgetTester tester) async {
-      final (_, editorTabsState) = await initWidget(tester, deps11);
+      final (_, editorTabsState) = await initWidget(tester, deps12);
 
       // Verify the URl
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);

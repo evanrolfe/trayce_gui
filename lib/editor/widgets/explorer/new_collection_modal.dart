@@ -1,8 +1,8 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 
@@ -44,12 +44,14 @@ class _NewCollectionModalState extends State<NewCollectionModal> {
 
   Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
+    final filePicker = context.read<FilePicker>();
+
     late String? path;
     if (config.isTest) {
       path = './test/support/';
     } else {
       // Need to find a way to mock the file selector in integration tests
-      path = await getDirectoryPath();
+      path = await filePicker.getCollectionPath();
     }
 
     return path;

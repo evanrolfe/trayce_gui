@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +11,7 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
 import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -54,8 +54,6 @@ class _EditorTabsState extends State<EditorTabs> {
   Collection? _currentCollection;
 
   final Map<Collection, List<TabItem>> _tabsMap = {};
-
-  // TODO: This needs to work with multiple collections
   final List<FlowEditor> _tabEditors = [];
 
   // Environment dropdown state
@@ -276,6 +274,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _onEventExplorerNodeRenamed(EventExplorerNodeRenamed event) {
     final tab = currentTabs().firstWhereOrNull((entry) => entry.node == event.node);
+    print('onEventExplorerNodeRenamed: node: ${event.node.displayName()}, tab: ${tab?.displayName}');
     if (tab == null) return;
 
     setState(() {
@@ -329,19 +328,11 @@ class _EditorTabsState extends State<EditorTabs> {
     if (config.isTest) {
       path = './test/support/collection1/hello';
     } else {
-      List<XTypeGroup> exts = [
-        XTypeGroup(label: 'Trayce', extensions: ['bru']),
-      ];
       if (_currentCollection == null) return null;
 
-      final loc = await getSaveLocation(
-        initialDirectory: _currentCollection!.dir.path,
-        acceptedTypeGroups: exts,
-        suggestedName: 'untitled.bru',
-      );
-      if (loc == null) return null;
-
-      path = loc.path;
+      final initialDirectory = _currentCollection!.dir.path;
+      path = await context.read<FilePicker>().saveBruFile(initialDirectory);
+      if (path == null) return null;
 
       // Ensure the path ends with .bru
       if (!path.endsWith('.bru')) path = '$path.bru';

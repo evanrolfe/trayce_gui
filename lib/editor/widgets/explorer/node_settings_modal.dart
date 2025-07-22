@@ -2,6 +2,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
@@ -38,6 +39,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
 
     final config = context.read<Config>();
     final eventBus = context.read<EventBus>();
+    final filePicker = context.read<FilePicker>();
     final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
     _title = widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';
@@ -56,6 +58,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // Vars
@@ -72,6 +75,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
   }
 
