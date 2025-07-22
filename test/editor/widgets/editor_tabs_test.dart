@@ -19,6 +19,7 @@ void main() {
   late WidgetDependencies deps8;
   late WidgetDependencies deps9;
   late WidgetDependencies deps10;
+  late WidgetDependencies deps11;
   setUpAll(() async {
     deps = await setupTestDependencies();
     deps2 = await setupTestDependencies();
@@ -30,6 +31,7 @@ void main() {
     deps8 = await setupTestDependencies();
     deps9 = await setupTestDependencies();
     deps10 = await setupTestDependencies();
+    deps11 = await setupTestDependencies();
   });
 
   tearDownAll(() async {
@@ -43,6 +45,7 @@ void main() {
     await deps8.close();
     await deps9.close();
     await deps10.close();
+    await deps11.close();
   });
 
   // Sets up the editor with two tabs open (one and two requests)
@@ -334,7 +337,7 @@ void main() {
       expect(find.text('two*'), findsOneWidget);
 
       await pressCtrlS(tester);
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
 
       // Verify the tab title has been updated
       final currentTabs3 = editorTabsState.currentTabs();
@@ -390,6 +393,33 @@ void main() {
       // Restore the original request file
       saveFile(filePath, originalContent);
       deleteFileSync(newFilePath);
+    });
+
+    testWidgets('closing request two', (WidgetTester tester) async {
+      final (_, editorTabsState) = await initWidget(tester, deps11);
+
+      // Verify the URl
+      expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
+      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      expect(urlInput2.controller.text, 'http://www.github.com/two');
+
+      // Verify the tabs
+      final currentTabs = editorTabsState.currentTabs();
+      expect(currentTabs.length, 2);
+      expect(currentTabs[0].getDisplayName(), 'one');
+      expect(currentTabs[1].getDisplayName(), 'two');
+
+      await pressCtrlW(tester);
+      await tester.pumpAndSettle();
+
+      // Verify the tabs
+      final currentTabs2 = editorTabsState.currentTabs();
+      expect(currentTabs2.length, 1);
+      expect(currentTabs2[0].getDisplayName(), 'one');
+
+      // Verify the first tab is currently open
+      final urlInput3 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      expect(urlInput3.controller.text, 'http://www.github.com/one');
     });
   });
 }

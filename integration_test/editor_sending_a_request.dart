@@ -35,8 +35,21 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 
+  // ===========================================================================
+  // Open a collection
+  // ===========================================================================
   // Find and click the IconButton with the key 'collection_btn'
   final openCollectionBtn = find.byKey(const Key('collection_btn'));
+  await tester.tap(openCollectionBtn);
+  await tester.pumpAndSettle();
+
+  // Find and click the PopupMenuItem with the text "Open Collection"
+  final openCollectionMenuItem = find.text('Open Collection').last;
+  await tester.tap(openCollectionMenuItem);
+  await tester.pumpAndSettle();
+  expect(find.text('collection1'), findsOneWidget);
+
+  // Click the IconButton with the key 'collection_btn'
   await tester.tap(openCollectionBtn);
   await tester.pumpAndSettle();
 
@@ -137,22 +150,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   sentRequestBody = null;
 
   // ===========================================================================
-  // Open a collection
+  // Open an existing request
   // ===========================================================================
-  // Find and click the IconButton with the key 'collection_btn'
-  await tester.tap(openCollectionBtn);
-  await tester.pumpAndSettle();
-
-  // Find and click the PopupMenuItem with the text "Open Collection"
-  final openCollectionMenuItem = find.text('Open Collection');
-  await tester.tap(openCollectionMenuItem);
-  await tester.pumpAndSettle();
-
-  expect(find.text('collection1'), findsOneWidget);
-  expect(find.text('hello'), findsOneWidget);
-  expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request'), findsOneWidget);
-
   // Click on the myfolder item
   final myfolderItem = find.text('myfolder');
   await tester.tap(myfolderItem);

@@ -122,7 +122,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub5 = context.read<EventBus>().on<EventExplorerNodeRenamed>().listen(_onEventExplorerNodeRenamed);
 
     // Called when CTRL+W is pressed
-    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen((event) {});
+    _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen(_onEventCloseCurrentNode);
 
     // Called when the selected environment is changed
     _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen((event) {});
@@ -283,6 +283,10 @@ class _EditorTabsState extends State<EditorTabs> {
     });
   }
 
+  void _onEventCloseCurrentNode(EventCloseCurrentNode event) {
+    _closeCurrentTab();
+  }
+
   KeyEventResult Function(FocusNode, KeyEvent) _createOnKeyEventTabItem(ValueKey tabKey) {
     return (FocusNode node, KeyEvent event) {
       final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
@@ -374,12 +378,51 @@ class _EditorTabsState extends State<EditorTabs> {
     });
   }
 
-  void _closeTab(int index) {}
+  void _closeTab(TabItem tab) {
+    if (tab.isModified) {
+      showConfirmDialog(
+        context: context,
+        title: 'Close tab',
+        message: 'Are you sure you want to close this tab"?',
+        onAccept: () => _closeTabNoConfirm(tab),
+      );
+    } else {
+      _closeTabNoConfirm(tab);
+    }
+  }
 
-  void _closeTabNoConfirm(int index) {}
+  void _closeTabNoConfirm(TabItem tab) {
+    setState(() {
+      final indexRemoved = currentTabs().indexOf(tab);
+      final isLastTab = indexRemoved == currentTabs().length - 1;
+
+      currentTabs().remove(tab);
+      _tabEditors.removeWhere((entry) => entry.uuid == tab.uuid);
+
+      _hoveredCloseButtonIndex = null;
+      _hoveredTabIndex = null;
+
+      // if we have close a tab which isn't the currently selected one, then do not change the selection
+      if (_selectedTabUuid != tab.uuid) return;
+
+      // if we have no tabs left, then do nothing
+      if (currentTabs().isEmpty) return;
+
+      // if the tab removed, is the last one in the tabbar, then select the last tab after removal
+      if (isLastTab) {
+        _selectedTabUuid = currentTabs().last.uuid;
+        return;
+      }
+
+      // otherwise select the tab to the right of the removed tab
+      _selectedTabUuid = currentTabs()[indexRemoved].uuid;
+    });
+  }
 
   void _closeCurrentTab() {
-    // _closeTab(_selectedTabIndex);
+    final currentTab = currentTabs().firstWhereOrNull((entry) => entry.uuid == _selectedTabUuid);
+    if (currentTab == null) return;
+    _closeTab(currentTab);
   }
 
   String ensureExt(String path) {
@@ -560,7 +603,7 @@ class _EditorTabsState extends State<EditorTabs> {
                       onEnter: (_) => setState(() => _hoveredCloseButtonIndex = index),
                       onExit: (_) => setState(() => _hoveredCloseButtonIndex = null),
                       child: GestureDetector(
-                        onTap: () => _closeTab(index),
+                        onTap: () => _closeTab(tabEntry),
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
