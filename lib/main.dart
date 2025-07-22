@@ -61,7 +61,7 @@ void main(List<String> args) async {
   runApp(
     MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<FilePicker>(create: (context) => filePicker),
+        RepositoryProvider<FilePickerI>(create: (context) => filePicker),
         RepositoryProvider<FlowRepo>(create: (context) => flowRepo),
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),

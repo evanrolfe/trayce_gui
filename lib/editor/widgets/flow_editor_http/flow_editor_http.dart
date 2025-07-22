@@ -135,7 +135,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       context.read<EventBus>(),
       widget.tabKey,
       config,
-      context.read<FilePicker>(),
+      context.read<FilePickerI>(),
       setStateCallback,
       _focusManager,
     );

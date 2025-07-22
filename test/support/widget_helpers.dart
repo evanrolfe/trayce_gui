@@ -23,7 +23,7 @@ class WidgetDependencies {
   late Database db;
   late EventBus eventBus;
   late AppStorageI appStorage;
-  late FilePicker filePicker;
+  late FilePickerI filePicker;
   late FlowRepo flowRepo;
   late ProtoDefRepo protoDefRepo;
   late ContainersRepo containersRepo;
@@ -55,7 +55,7 @@ class WidgetDependencies {
         RepositoryProvider<FlowRepo>(create: (context) => flowRepo),
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),
-        RepositoryProvider<FilePicker>(create: (context) => filePicker),
+        RepositoryProvider<FilePickerI>(create: (context) => filePicker),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),

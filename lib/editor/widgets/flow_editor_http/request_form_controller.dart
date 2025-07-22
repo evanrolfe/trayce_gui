@@ -42,7 +42,7 @@ class RequestFormController {
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
   final Config config;
-  final FilePicker filePicker;
+  final FilePickerI filePicker;
 
   final Function() setState;
 

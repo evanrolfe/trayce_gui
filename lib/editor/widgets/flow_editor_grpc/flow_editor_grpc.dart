@@ -84,7 +84,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
       config: context.read<Config>(),
       focusManager: _focusManager,
       eventBus: context.read<EventBus>(),
-      filePicker: context.read<FilePicker>(),
+      filePicker: context.read<FilePickerI>(),
     );
   }
 

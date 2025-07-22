@@ -44,7 +44,7 @@ class _NewCollectionModalState extends State<NewCollectionModal> {
 
   Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
-    final filePicker = context.read<FilePicker>();
+    final filePicker = context.read<FilePickerI>();
 
     late String? path;
     if (config.isTest) {

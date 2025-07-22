@@ -75,7 +75,7 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
                 const Spacer(),
                 ElevatedButton(
                   onPressed: () async {
-                    final filePicker = context.read<FilePicker>();
+                    final filePicker = context.read<FilePickerI>();
                     final filePath = await filePicker.openFile();
 
                     if (filePath != null) {

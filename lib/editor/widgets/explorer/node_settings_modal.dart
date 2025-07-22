@@ -39,7 +39,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
 
     final config = context.read<Config>();
     final eventBus = context.read<EventBus>();
-    final filePicker = context.read<FilePicker>();
+    final filePicker = context.read<FilePickerI>();
     final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
     _title = widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';

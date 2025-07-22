@@ -217,7 +217,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
   Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
-    final filePicker = context.read<FilePicker>();
+    final filePicker = context.read<FilePickerI>();
 
     late String? path;
     if (config.isTest) {

@@ -18,7 +18,7 @@ class AppMenuBar extends StatelessWidget {
   const AppMenuBar({super.key, required this.child, required this.appVersion, this.onFileOpen, this.onFileSave});
 
   Future<void> _handleOpen(BuildContext context) async {
-    final path = await context.read<FilePicker>().openTrayceDB();
+    final path = await context.read<FilePickerI>().openTrayceDB();
 
     if (path != null) {
       onFileOpen?.call(path);
@@ -26,7 +26,7 @@ class AppMenuBar extends StatelessWidget {
   }
 
   Future<void> _handleSave(BuildContext context) async {
-    final path = await context.read<FilePicker>().saveTrayceDB();
+    final path = await context.read<FilePickerI>().saveTrayceDB();
 
     if (path != null) {
       onFileSave?.call(path);

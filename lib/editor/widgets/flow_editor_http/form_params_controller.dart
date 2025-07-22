@@ -17,7 +17,7 @@ class FormParamsController implements FormTableControllerI {
   int? _selectedRowIndex; // Track which row is selected for radio buttons
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
-  final FilePicker filePicker;
+  final FilePickerI filePicker;
 
   FormParamsController({
     required this.onStateChanged,

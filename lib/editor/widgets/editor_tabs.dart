@@ -331,7 +331,7 @@ class _EditorTabsState extends State<EditorTabs> {
       if (_currentCollection == null) return null;
 
       final initialDirectory = _currentCollection!.dir.path;
-      path = await context.read<FilePicker>().saveBruFile(initialDirectory);
+      path = await context.read<FilePickerI>().saveBruFile(initialDirectory);
       if (path == null) return null;
 
       // Ensure the path ends with .bru

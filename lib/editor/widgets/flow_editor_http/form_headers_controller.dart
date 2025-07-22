@@ -17,7 +17,7 @@ class FormHeadersController implements FormTableControllerI {
   int? _selectedRowIndex; // Track which row is selected for radio buttons
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
-  final FilePicker filePicker;
+  final FilePickerI filePicker;
 
   FormHeadersController({
     required this.onStateChanged,
