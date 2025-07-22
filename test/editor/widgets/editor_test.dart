@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/editor.dart';
 
@@ -22,6 +23,8 @@ void main() {
       // Init widget
       FlutterError.onError = ignoreOverflowErrors;
 
+      when(() => deps.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
+      when(() => deps.filePicker.saveBruFile(any())).thenAnswer((_) async => 'test/support/collection1/hello.bru');
       final widget = await deps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
@@ -67,6 +70,9 @@ void main() {
     testWidgets('new collection and CTRL+N to create a new request and save it', (WidgetTester tester) async {
       // Init widget
       FlutterError.onError = ignoreOverflowErrors;
+
+      when(() => deps.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/');
+      when(() => deps.filePicker.saveBruFile(any())).thenAnswer((_) async => 'test/support/test_collection/hello.bru');
 
       final widget = await deps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
       await tester.pumpWidget(widget);
@@ -126,9 +132,6 @@ void main() {
 
       // Cleanup the files
       deleteFolderSync("test/support/test_collection");
-
-      // TODO: Remove this once the file picker is mocked
-      deleteFile("test/support/collection1/hello.bru");
     });
   });
 }

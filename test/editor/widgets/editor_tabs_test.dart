@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/editor.dart';
 import 'package:trayce/editor/widgets/editor_tabs.dart';
@@ -54,7 +55,7 @@ void main() {
   // Sets up the editor with two tabs open (one and two requests)
   Future<(Widget, dynamic)> initWidget(WidgetTester tester, WidgetDependencies widgetDeps) async {
     // Init widget
-    FlutterError.onError = ignoreOverflowErrors;
+    // FlutterError.onError = ignoreOverflowErrors;
     final widget = widgetDeps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
@@ -100,6 +101,7 @@ void main() {
 
   group('Editor Tabs', () {
     testWidgets('opening two tabs and clicking on each one', (WidgetTester tester) async {
+      when(() => deps.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps);
       final currentTabs = editorTabsState.currentTabs();
 
@@ -121,6 +123,7 @@ void main() {
     });
 
     testWidgets('dragging the 1st tab to the position of the 2nd tab', (WidgetTester tester) async {
+      when(() => deps2.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps2);
 
       await tester.drag(find.byKey(editorTabsState.currentTabs()[0].key), Offset(260, 0));
@@ -140,6 +143,7 @@ void main() {
     });
 
     testWidgets('dragging the 2nd tab to the position of the 1st tab', (WidgetTester tester) async {
+      when(() => deps3.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps3);
 
       await tester.drag(find.byKey(editorTabsState.currentTabs()[1].key), Offset(-260, 0));
@@ -158,6 +162,7 @@ void main() {
     });
 
     testWidgets('dragging the 1st tab past the + tab', (WidgetTester tester) async {
+      when(() => deps7.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps7);
 
       await tester.drag(find.byKey(editorTabsState.currentTabs()[0].key), Offset(350, 0));
@@ -177,6 +182,7 @@ void main() {
     });
 
     testWidgets('opening two tabs and modifying one of them', (WidgetTester tester) async {
+      when(() => deps4.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps4);
 
       final currentTabs = editorTabsState.currentTabs();
@@ -222,6 +228,7 @@ void main() {
     });
 
     testWidgets('opening two tabs and modifying one of them and dragging it', (WidgetTester tester) async {
+      when(() => deps5.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps5);
 
       final currentTabs = editorTabsState.currentTabs();
@@ -264,6 +271,7 @@ void main() {
     });
 
     testWidgets('creating a new request using the + tab button', (WidgetTester tester) async {
+      when(() => deps6.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       await initWidget(tester, deps6);
 
       // Click on the + tab button
@@ -285,6 +293,8 @@ void main() {
     });
 
     testWidgets('creating a new request and saving it', (WidgetTester tester) async {
+      when(() => deps8.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
+      when(() => deps8.filePicker.saveBruFile(any())).thenAnswer((_) async => 'test/support/collection1/hello.bru');
       final (_, editorTabsState) = await initWidget(tester, deps8);
 
       // Click on the + tab button
@@ -323,6 +333,7 @@ void main() {
     });
 
     testWidgets('modifying an existing request and saving it', (WidgetTester tester) async {
+      when(() => deps9.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final filePath = 'test/support/collection1/myfolder/two.bru';
       final originalContent = loadFile(filePath);
 
@@ -357,6 +368,7 @@ void main() {
     });
 
     testWidgets('renaming an existing request', (WidgetTester tester) async {
+      when(() => deps10.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final filePath = 'test/support/collection1/myfolder/two.bru';
       final newFilePath = 'test/support/collection1/myfolder/newname.bru';
       final originalContent = loadFile(filePath);
@@ -457,6 +469,7 @@ void main() {
     // });
 
     testWidgets('closing request two', (WidgetTester tester) async {
+      when(() => deps12.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       final (_, editorTabsState) = await initWidget(tester, deps12);
 
       // Verify the URl

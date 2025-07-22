@@ -90,7 +90,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
     final config = context.read<Config>();
     if (!config.isTest) {
-      context.read<ExplorerService>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+      // context.read<ExplorerService>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
 
     context.read<EventBus>().on<EventNewCollectionIntent>().listen((_) {

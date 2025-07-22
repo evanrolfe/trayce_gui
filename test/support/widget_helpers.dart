@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
@@ -19,11 +20,14 @@ import 'package:trayce/network/repo/proto_def_repo.dart';
 
 import 'fake_app_storage.dart';
 
+class MockFilePicker extends Mock implements FilePickerI {}
+
 class WidgetDependencies {
   late Database db;
   late EventBus eventBus;
   late AppStorageI appStorage;
-  late FilePickerI filePicker;
+  late MockFilePicker filePicker;
+
   late FlowRepo flowRepo;
   late ProtoDefRepo protoDefRepo;
   late ContainersRepo containersRepo;
@@ -67,6 +71,8 @@ class WidgetDependencies {
     );
   }
 
+  MockFilePicker get mockFilePicker => filePicker;
+
   Future<void> close() async {
     await db.close();
   }
@@ -77,7 +83,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final db = await connectMemoryDB();
   final eventBus = EventBus();
   final appStorage = await FakeAppStorage.getInstance();
-  final filePicker = FilePicker();
+  final filePicker = MockFilePicker();
 
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
@@ -92,7 +98,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     folderRepo: folderRepo,
     requestRepo: requestRepo,
   );
-  final config = Config.fromArgs(['--test']);
+  final config = Config.fromArgs([]);
 
   final deps = WidgetDependencies(
     db: db,
