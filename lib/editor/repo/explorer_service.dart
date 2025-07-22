@@ -368,6 +368,23 @@ class ExplorerService {
     _eventBus.fire(EventOpenExplorerNode(node, collectionNode.collection!));
   }
 
+  ExplorerNode? findNodeByPath(String path) {
+    ExplorerNode? findInNodes(List<ExplorerNode> nodes) {
+      for (final node in nodes) {
+        if (node.getFile()?.path == path) {
+          return node;
+        }
+        final found = findInNodes(node.children);
+        if (found != null) {
+          return found;
+        }
+      }
+      return null;
+    }
+
+    return findInNodes(_nodes);
+  }
+
   // _refreshNodes syncs the children of two nodes - any nodes which exist in refreshNodes
   // but not in existingNodes are added, and any nodes which exist in existingNodes
   // but not in refreshedNodes are removed

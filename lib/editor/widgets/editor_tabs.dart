@@ -248,18 +248,25 @@ class _EditorTabsState extends State<EditorTabs> {
 
       request.file = File(path);
       final fileName = path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
-      final node = ExplorerNode(name: fileName, type: NodeType.request, isDirectory: false, request: request);
 
-      tab.node = node;
       tab.isNew = false;
-      tab.displayName = node.displayName();
+      // We only create a node so we can get its displayName:
+      tab.displayName = ExplorerNode(name: fileName, type: NodeType.request).displayName();
 
-      print('saving request: ${tab.node!.request!.file?.path}');
-      RequestRepo().save(tab.node!.request!);
+      RequestRepo().save(request);
 
       // Refresh the explorer
       if (mounted) {
         context.read<ExplorerService>().refresh();
+
+        final p = request.file?.path ?? '';
+        final node = context.read<ExplorerService>().findNodeByPath(p);
+        if (node != null) {
+          // This is a bit hacky, but because the tab we need to associate the ExplorerNode from the explorer
+          // with this tab. Because the tab was created before the ExplorerNode was created.
+          // Otherwise the tab.node and the node from the explorer will be different instances.
+          tab.node = node;
+        }
       }
     } else {
       // Updating an existing request
@@ -274,7 +281,6 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _onEventExplorerNodeRenamed(EventExplorerNodeRenamed event) {
     final tab = currentTabs().firstWhereOrNull((entry) => entry.node == event.node);
-    print('onEventExplorerNodeRenamed: node: ${event.node.displayName()}, tab: ${tab?.displayName}');
     if (tab == null) return;
 
     setState(() {

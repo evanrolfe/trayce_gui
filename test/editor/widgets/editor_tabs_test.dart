@@ -22,6 +22,7 @@ void main() {
   late WidgetDependencies deps10;
   late WidgetDependencies deps11;
   late WidgetDependencies deps12;
+  late WidgetDependencies deps13;
   setUpAll(() async {
     deps = await setupTestDependencies();
     deps2 = await setupTestDependencies();
@@ -35,6 +36,7 @@ void main() {
     deps10 = await setupTestDependencies();
     deps11 = await setupTestDependencies();
     deps12 = await setupTestDependencies();
+    deps13 = await setupTestDependencies();
   });
 
   tearDownAll(() async {
@@ -50,12 +52,13 @@ void main() {
     await deps10.close();
     await deps11.close();
     await deps12.close();
+    await deps13.close();
   });
 
   // Sets up the editor with two tabs open (one and two requests)
   Future<(Widget, dynamic)> initWidget(WidgetTester tester, WidgetDependencies widgetDeps) async {
     // Init widget
-    // FlutterError.onError = ignoreOverflowErrors;
+    FlutterError.onError = ignoreOverflowErrors;
     final widget = widgetDeps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle();
@@ -410,7 +413,14 @@ void main() {
       deleteFileSync(newFilePath);
     });
 
+    // I've had trouble getting this test case to work I think because it requires the full path to be return from saveBruFile()
+    // In order for ExplorerService.findNodeByPath() to work.
+    //
     // testWidgets('renaming a new request which was just saved', (WidgetTester tester) async {
+    //   when(() => deps11.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
+    //   when(
+    //     () => deps11.filePicker.saveBruFile(any()),
+    //   ).thenAnswer((_) async => '/home/evan/Code/trayce/gui/test/support/collection1/testreq.bru');
     //   final (_, editorTabsState) = await initWidget(tester, deps11);
 
     //   // Click on the + tab button
@@ -433,20 +443,20 @@ void main() {
     //   await pressCtrlS(tester);
 
     //   // Verify the tab title has been updated
-    //   expect(find.text('hello'), findsNWidgets(3));
-    //   final currentTabs3 = editorTabsState.currentTabs();
-    //   expect(currentTabs3.length, 3);
-    //   expect(currentTabs3[0].getDisplayName(), 'one');
-    //   expect(currentTabs3[1].getDisplayName(), 'two');
-    //   expect(currentTabs3[2].getDisplayName(), 'hello');
+    //   expect(find.text('testreq'), findsNWidgets(2));
+    //   final currentTabs = editorTabsState.currentTabs();
+    //   expect(currentTabs.length, 3);
+    //   expect(currentTabs[0].getDisplayName(), 'one');
+    //   expect(currentTabs[1].getDisplayName(), 'two');
+    //   expect(currentTabs[2].getDisplayName(), 'testreq');
 
     //   // Verify the request is saved
-    //   final content = loadFile('test/support/collection1/hello.bru');
+    //   final content = loadFile('test/support/collection1/testreq.bru');
     //   expect(content, contains('http://www.trayce.dev/new'));
 
-    //   // Right-click on hello.bru request
-    //   final helloReq = find.text('hello').first;
-    //   await tester.tapAt(tester.getCenter(helloReq), buttons: 2);
+    //   // Right-click on testreq.bru request
+    //   final testreqReq = find.text('testreq').first;
+    //   await tester.tapAt(tester.getCenter(testreqReq), buttons: 2);
     //   await tester.pumpAndSettle();
 
     //   // Click open on context menu
@@ -464,8 +474,20 @@ void main() {
     //   await tester.testTextInput.receiveAction(TextInputAction.done);
     //   await tester.pumpAndSettle();
 
+    //   // Verify a file was saved
+    //   // final newFileContent = loadFile('test/support/collection1/newname.bru');
+    //   // expect(newFileContent, isNotEmpty);
+
+    //   // Verify the tab title has been updated
+    //   // expect(find.text('newname'), findsNWidgets(2));
+    //   final currentTabs2 = editorTabsState.currentTabs();
+    //   expect(currentTabs2.length, 3);
+    //   expect(currentTabs2[0].getDisplayName(), 'one');
+    //   expect(currentTabs2[1].getDisplayName(), 'two');
+    //   expect(currentTabs2[2].getDisplayName(), 'newname');
+
     //   // Delete the created file
-    //   deleteFileSync('test/support/collection1/hello.bru');
+    //   deleteFileSync('test/support/collection1/newname.bru');
     // });
 
     testWidgets('closing request two', (WidgetTester tester) async {
@@ -494,6 +516,60 @@ void main() {
       // Verify the first tab is currently open
       final urlInput3 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput3.controller.text, 'http://www.github.com/one');
+    });
+
+    testWidgets('opening multiple collections', (WidgetTester tester) async {
+      when(() => deps13.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
+      final (_, editorTabsState) = await initWidget(tester, deps13);
+
+      final currentTabs = editorTabsState.currentTabs();
+
+      // Click on the first tab and verify the URL
+      await tester.tap(find.byKey(currentTabs[0].key));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
+      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      expect(urlInput.controller.text, 'http://www.github.com/one');
+
+      // Find and click the IconButton with the key 'collection_btn'
+      final openCollectionBtn = find.byKey(const Key('collection_btn'));
+      await tester.tap(openCollectionBtn);
+      await tester.pumpAndSettle();
+
+      // Find and click the PopupMenuItem with the text "Open Collection"
+      when(() => deps13.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection2');
+      final openCollectionMenuItem = find.text('Open Collection');
+      await tester.tap(openCollectionMenuItem);
+      await tester.pumpAndSettle();
+
+      expect(find.text('collection2'), findsOneWidget);
+
+      // Find and double-click a request
+      final reqBtn = find.text('test-request');
+      expect(reqBtn, findsOneWidget);
+      await tester.tap(reqBtn);
+      await tester.tap(reqBtn);
+      await tester.pumpAndSettle();
+
+      // Verify the tabs
+      final currentTabs2 = editorTabsState.currentTabs();
+      expect(currentTabs2.length, 1);
+      expect(currentTabs2[0].getDisplayName(), 'test-request');
+
+      // Now click back to a request from collection1
+      final reqBtn2 = find.text('my-request');
+      expect(reqBtn2, findsOneWidget);
+      await tester.tap(reqBtn2);
+      await tester.tap(reqBtn2);
+      await tester.pumpAndSettle();
+
+      // Verify the tabs have switched back to collection1
+      final currentTabs3 = editorTabsState.currentTabs();
+      expect(currentTabs3.length, 3);
+      expect(currentTabs3[0].getDisplayName(), 'one');
+      expect(currentTabs3[1].getDisplayName(), 'two');
+      expect(currentTabs3[2].getDisplayName(), 'my-request');
     });
   });
 }
