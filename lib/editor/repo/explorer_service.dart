@@ -45,6 +45,7 @@ class ExplorerService {
   final filesToIgnore = ['folder.bru', 'collection.bru'];
   final foldersToIgnore = ['environments'];
   final List<ExplorerNode> _nodes = [];
+  ExplorerNode? _copiedNode;
 
   ExplorerService({
     required EventBus eventBus,
@@ -276,7 +277,6 @@ class ExplorerService {
         final sourceFile = movedNode.getFile()!;
         final targetDir = targetNode.getDir()!;
         final targetPath = path.join(targetDir.path, movedNode.name);
-
         if (targetNode == parentNodeMoved) {
           parentNodeMoved.children.remove(movedNode);
           parentNodeMoved.children.insert(0, movedNode);
@@ -383,6 +383,41 @@ class ExplorerService {
     }
 
     return findInNodes(_nodes);
+  }
+
+  void copyNode(ExplorerNode node) {
+    if (node.type != NodeType.request) return;
+
+    _copiedNode = node;
+  }
+
+  bool canPaste(ExplorerNode toNode) {
+    if (toNode.type == NodeType.request) return false;
+
+    return (_copiedNode != null && _copiedNode!.type == NodeType.request);
+  }
+
+  void pasteNode(ExplorerNode targetNode) {
+    if (_copiedNode == null) return;
+
+    final copiedNode = _copiedNode!.copy();
+
+    if (copiedNode.type == NodeType.request) {
+      if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
+        // Get the file paths
+        final sourceFile = copiedNode.getFile()!;
+        final targetDir = targetNode.getDir()!;
+        final targetPath = path.join(targetDir.path, copiedNode.name);
+
+        final seq = getNextSeq(targetDir.path);
+
+        copiedNode.request!.seq = seq;
+        copiedNode.setFile(File(targetPath));
+        _requestRepo.saveCopy(copiedNode.request!);
+
+        refresh();
+      }
+    }
   }
 
   // _refreshNodes syncs the children of two nodes - any nodes which exist in refreshNodes

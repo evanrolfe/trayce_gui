@@ -20,6 +20,7 @@ class ExplorerNode {
   late Collection? collection;
   late Folder? folder;
   late Request? request;
+  String? uuid;
 
   static newCollection(String name, Collection collection, List<ExplorerNode> children) {
     return ExplorerNode(
@@ -71,6 +72,7 @@ class ExplorerNode {
     Collection? collection,
     Request? request,
     Folder? folder,
+    this.uuid,
   }) {
     if (type == NodeType.collection) {
       this.collection = collection;
@@ -142,5 +144,26 @@ class ExplorerNode {
 
   String displayName() {
     return name.replaceAll('.bru', '');
+  }
+
+  ExplorerNode copy() {
+    // Create a new ExplorerNode with copied properties
+    final copiedNode = ExplorerNode(
+      name: name,
+      isDirectory: isDirectory,
+      type: type,
+      initialChildren: [],
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+    );
+
+    if (type == NodeType.request && request != null) {
+      final copiedRequest = Request.blank();
+      copiedRequest.copyValuesFrom(request!);
+      copiedNode.request = copiedRequest;
+    }
+
+    return copiedNode;
   }
 }

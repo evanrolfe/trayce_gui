@@ -11,6 +11,7 @@ import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
@@ -53,7 +54,7 @@ class _FileExplorerState extends State<FileExplorer> {
   List<ExplorerNode> _files = [];
   late final StreamSubscription _displaySub;
   int? _dropPosition;
-  int lastClickmilliseconds = 0;
+  final Map<String, int> _lastClickMillisecondsByNode = {};
   late final FocusNode _focusNode;
   late final FocusNode _renameFocusNode;
   final TextEditingController _renameController = TextEditingController();
@@ -143,12 +144,25 @@ class _FileExplorerState extends State<FileExplorer> {
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
     final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
     if (event is KeyDownEvent) {
+      // print('event: ${event.logicalKey}');
       if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
         context.read<EventBus>().fire(EventNewRequest());
         return KeyEventResult.handled;
       }
       if (event.logicalKey == LogicalKeyboardKey.keyW && isCmdPressed) {
         context.read<EventBus>().fire(EventCloseCurrentNode());
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyC && isCmdPressed) {
+        if (_selectedNode != null) {
+          context.read<ExplorerService>().copyNode(_selectedNode!);
+        }
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyV && isCmdPressed) {
+        if (_selectedNode != null) {
+          context.read<ExplorerService>().pasteNode(_selectedNode!);
+        }
         return KeyEventResult.handled;
       }
     }
@@ -298,17 +312,19 @@ class _FileExplorerState extends State<FileExplorer> {
                     child: GestureDetector(
                       onTapDown: (_) {
                         _focusNode.requestFocus();
-                        // We do this instead of using onDoubleTap because that makes single tap way too slow
-                        // See: https://stackoverflow.com/questions/71293804/ondoubletap-makes-ontap-very-slow
+                        // Assign a uuid to the node if not already present
+                        node.uuid ??= Uuid().v4();
+                        final nodeUuid = node.uuid!;
                         int currMills = DateTime.now().millisecondsSinceEpoch;
-                        if ((currMills - lastClickmilliseconds) < 250) {
+                        final lastClick = _lastClickMillisecondsByNode[nodeUuid] ?? 0;
+                        if ((currMills - lastClick) < 250) {
                           // Double tap
                           if (node.type == NodeType.request) {
                             context.read<ExplorerService>().openNode(node);
                           }
                         } else {
                           // Single tap
-                          lastClickmilliseconds = currMills;
+                          _lastClickMillisecondsByNode[nodeUuid] = currMills;
                           setState(() {
                             _selectedNode = node;
                             if (node.isDirectory) {

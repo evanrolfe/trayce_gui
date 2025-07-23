@@ -140,6 +140,22 @@ Future<void> pressCtrlW(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> pressCtrlC(WidgetTester tester) async {
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.keyC);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.keyC);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+  await tester.pumpAndSettle();
+}
+
+Future<void> pressCtrlV(WidgetTester tester) async {
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.keyV);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.keyV);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+  await tester.pumpAndSettle();
+}
+
 Future<void> pressEnter(WidgetTester tester) async {
   await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
   await tester.sendKeyUpEvent(LogicalKeyboardKey.enter);

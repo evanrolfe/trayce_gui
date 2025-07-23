@@ -79,9 +79,8 @@ void main() {
     // Find and double-click one request
     final oneReqBtn = find.text('one');
     expect(oneReqBtn, findsOneWidget);
-    // For some reason this only needs to be single tapped
     await tester.tap(oneReqBtn);
-    // await tester.tap(oneReqBtn);
+    await tester.tap(oneReqBtn);
     await tester.pumpAndSettle();
 
     // Find and double-click two request

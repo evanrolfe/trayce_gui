@@ -62,6 +62,27 @@ void showNodeMenu(
           child: Text('Open', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerService>().openNode(node),
         ),
+      if (node.type == NodeType.request)
+        CustomPopupMenuItem(
+          height: 30,
+          shouldPop: true,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('Copy', style: contextMenuTextStyle), Text('Ctrl+C', style: contextMenuTextStyle)],
+          ),
+          onTap: () => context.read<ExplorerService>().copyNode(node),
+        ),
+      if (node.type == NodeType.folder)
+        CustomPopupMenuItem(
+          height: 30,
+          shouldPop: true,
+          enabled: context.read<ExplorerService>().canPaste(node),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('Paste', style: contextMenuTextStyle), Text('Ctrl+V', style: contextMenuTextStyle)],
+          ),
+          onTap: () => context.read<ExplorerService>().pasteNode(node),
+        ),
       if (node.type == NodeType.collection)
         CustomPopupMenuItem(
           height: 30,
