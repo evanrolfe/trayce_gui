@@ -22,11 +22,15 @@ class SendRequest {
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
       final node = nodeHierarchy[i];
 
-      // Add headers, vars from collection
+      // Add headers, vars from collection & environment
       if (node.type == NodeType.collection && node.collection != null) {
+        // Add vars from environment
         final currentEnv = node.collection!.getCurrentEnvironment();
         if (currentEnv != null) {
-          print("=================> CURRENT ENV: ${currentEnv.fileName()}");
+          for (final reqvar in currentEnv.vars) {
+            finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+            finalReq.requestVars.add(reqvar);
+          }
         }
 
         for (final header in node.collection!.headers) {

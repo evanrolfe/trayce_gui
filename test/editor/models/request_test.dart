@@ -8,6 +8,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/variable.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 
@@ -75,7 +76,7 @@ void main() {
   test('sending a GET request', () async {
     mockServer.newHandler('GET', '/test_endpoint');
 
-    final url = '${mockServer.url().toString()}/test_endpoint';
+    final url = '${mockServer.url().toString()}{{A_var}}';
 
     final request = Request(
       name: 'Test Request',
@@ -85,8 +86,12 @@ void main() {
       url: url,
       bodyType: BodyType.none,
       params: [],
-      headers: [],
-      requestVars: [],
+      headers: [Header(name: '{{C_var}}', value: '{{B_var}}', enabled: true)],
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
       responseVars: [],
       assertions: [],
     );
@@ -95,6 +100,7 @@ void main() {
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
+    expect(mockServer.sentRequest!.headers['x-trayce-token'], 'abcd1234');
   });
 
   test('sending a POST request with text body', () async {
@@ -108,10 +114,13 @@ void main() {
       method: 'post',
       url: url,
       bodyType: BodyType.text,
-      bodyText: TextBody(content: 'helloworld'),
+      bodyText: TextBody(content: 'helloworld, my token is {{B_var}}'),
       params: [],
       headers: [],
-      requestVars: [],
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+      ],
       responseVars: [],
       assertions: [],
     );
@@ -121,7 +130,7 @@ void main() {
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
 
-    expect(mockServer.sentRequestBody, 'helloworld');
+    expect(mockServer.sentRequestBody, 'helloworld, my token is abcd1234');
   });
 
   test('sending a POST request with json body', () async {

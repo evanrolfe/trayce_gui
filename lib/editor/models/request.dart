@@ -303,19 +303,38 @@ class Request {
       return _sendFile();
     }
 
-    final request = http.Request(method, Uri.parse(url));
+    final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
 
-    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
+    request.headers.addAll(
+      Map.fromEntries(
+        headers
+            .where((h) => h.enabled)
+            .map((h) => MapEntry(_getInterpolatedString(h.name), _getInterpolatedString(h.value))),
+      ),
+    );
 
     final body = getBody();
     if (body != null) {
-      request.body = body.toString();
+      request.body = _getInterpolatedString(body.toString());
     }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
     return response;
+  }
+
+  String _getInterpolatedString(String value) {
+    final regex = RegExp(r'\{\{(.*?)\}\}');
+    value = value.replaceAllMapped(regex, (match) {
+      final varName = match.group(1);
+      final variable = requestVars.firstWhere(
+        (v) => v.name == varName && v.enabled,
+        orElse: () => Variable(name: varName ?? '', value: null, enabled: false),
+      );
+      return variable.enabled && variable.value != null ? variable.value! : match.group(0)!;
+    });
+    return value;
   }
 
   Future<http.Response> _sendMultipart() async {

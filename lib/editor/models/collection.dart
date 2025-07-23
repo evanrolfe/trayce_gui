@@ -17,7 +17,7 @@ class Collection {
   // String name;
 
   List<Environment> environments;
-  String? currentEnvironmentFilename;
+  String? _currentEnvironmentFilename;
 
   // .bru properties:
   String type;
@@ -53,8 +53,12 @@ class Collection {
   });
 
   Environment? getCurrentEnvironment() {
-    if (currentEnvironmentFilename == null) return null;
-    return environments.firstWhere((e) => e.fileName() == currentEnvironmentFilename);
+    if (_currentEnvironmentFilename == null) return null;
+    return environments.firstWhere((e) => e.fileName() == _currentEnvironmentFilename);
+  }
+
+  void setCurrentEnvironment(String environmentFilename) {
+    _currentEnvironmentFilename = environmentFilename;
   }
 
   String toBru() {

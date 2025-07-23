@@ -31,7 +31,7 @@ void main() {
   });
 
   group('SendRequest()', () {
-    test('sends a request using the node hierarchy', () async {
+    test('sends a request using the node hierarchy headers', () async {
       when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
 
       final explorerService = ExplorerService(
@@ -43,6 +43,9 @@ void main() {
       explorerService.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
+
+      final collection = explorerService.getOpenCollections()[0];
+      collection.setCurrentEnvironment(collection.environments[0].fileName());
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
@@ -66,19 +69,23 @@ void main() {
       expect(finalReq.headers[3].name, 'A');
       expect(finalReq.headers[3].value, 'set from request');
 
-      // Verify the variables
       // print('finalReq.requestVars:');
       // for (final reqvar in finalReq.requestVars) {
       //   print('  ${reqvar.name}: ${reqvar.value}');
       // }
 
-      expect(finalReq.requestVars.length, 3);
-      expect(finalReq.requestVars[0].name, 'C_var');
-      expect(finalReq.requestVars[0].value, 'set from collection');
-      expect(finalReq.requestVars[1].name, 'B_var');
-      expect(finalReq.requestVars[1].value, 'set from folder');
-      expect(finalReq.requestVars[2].name, 'A_var');
-      expect(finalReq.requestVars[2].value, 'set from request');
+      // Verify the variables
+      expect(finalReq.requestVars.length, 5);
+      expect(finalReq.requestVars[0].name, 'my_key');
+      expect(finalReq.requestVars[0].value, '1234abcd');
+      expect(finalReq.requestVars[1].name, 'my_password');
+      expect(finalReq.requestVars[1].value, isNull);
+      expect(finalReq.requestVars[2].name, 'C_var');
+      expect(finalReq.requestVars[2].value, 'set from collection');
+      expect(finalReq.requestVars[3].name, 'B_var');
+      expect(finalReq.requestVars[3].value, 'set from folder');
+      expect(finalReq.requestVars[4].name, 'A_var');
+      expect(finalReq.requestVars[4].value, 'set from request');
     });
   });
 }

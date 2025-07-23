@@ -81,11 +81,11 @@ class _EditorTabsState extends State<EditorTabs> {
     return _selectedEnvironment[_currentCollection!] ?? 'No Environment';
   }
 
-  void selectEnvironment(String environment) {
+  void selectEnvironment(String environmentFilename) {
     if (_currentCollection == null) return;
 
-    _currentCollection!.currentEnvironmentFilename = environment;
-    _selectedEnvironment[_currentCollection!] = environment;
+    _currentCollection!.setCurrentEnvironment(environmentFilename);
+    _selectedEnvironment[_currentCollection!] = environmentFilename;
   }
 
   @override
