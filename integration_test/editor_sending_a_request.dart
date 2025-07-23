@@ -288,11 +288,32 @@ Future<void> test(WidgetTester tester, Database db) async {
   final envTable = tester.widget<FormTable>(find.byType(FormTable).last);
   final envController = envTable.controller;
 
-  envController.rows()[2].keyController.text = 'G';
+  envController.rows()[2].keyController.text = 'G_var';
   envController.rows()[2].valueController.text = 'added-on-env';
+
+  envController.rows()[3].keyController.text = 'H_var';
+  envController.rows()[3].valueController.text = 'added-on-env-secret!';
+  envController.rows()[3].checkboxStateSecret = true;
 
   await tester.tap(find.byKey(Key('save_btn')));
   await tester.pumpAndSettle();
+
+  // Select the dev environment
+  await tester.tap(envDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('dev'));
+  await tester.pumpAndSettle();
+
+  // Verify the environment is saved correctly
+  final envBru = loadFile(envBruPath);
+  expect(envBru, contains('G_var: added-on-env'));
+  expect(
+    envBru,
+    contains('''vars:secret [
+  my_password,
+  H_var
+]'''),
+  );
 
   // ===========================================================================
   // Send a request
@@ -320,6 +341,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.headers['d'], "set from collection");
   expect(sentRequest!.headers['e'], "added-by-test");
   expect(sentRequest!.headers['f'], "added-by-test-collection");
+  expect(sentRequest!.headers['g'], "added-on-env");
+  expect(sentRequest!.headers['h'], "added-on-env-secret!");
   expect(sentRequest!.headers['x-auth-token'], "abcd1234");
   expect(sentRequestBody, '{"hello": "world"}');
 
