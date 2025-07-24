@@ -313,8 +313,25 @@ class Request {
       ),
     );
 
-    final body = getBody();
+    // Set the request body
+    Body? body = getBody();
     if (body != null) {
+      // Interpolate FormUrlEncodedBody params
+      if (body is FormUrlEncodedBody) {
+        body = body.deepCopy();
+        (body as FormUrlEncodedBody).setParams(
+          body.params
+              .map(
+                (p) => Param(
+                  name: _getInterpolatedString(p.name),
+                  value: _getInterpolatedString(p.value),
+                  type: p.type,
+                  enabled: p.enabled,
+                ),
+              )
+              .toList(),
+        );
+      }
       request.body = _getInterpolatedString(body.toString());
     }
 
@@ -344,12 +361,11 @@ class Request {
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
       if (file.enabled) {
+        MediaType? contentType;
+        if (file.contentType != null) contentType = MediaType.parse(_getInterpolatedString(file.contentType!));
+
         request.files.add(
-          await http.MultipartFile.fromPath(
-            file.name,
-            file.value,
-            contentType: file.contentType != null ? MediaType.parse(file.contentType!) : null,
-          ),
+          await http.MultipartFile.fromPath(_getInterpolatedString(file.name), file.value, contentType: contentType),
         );
       }
     }
@@ -370,7 +386,7 @@ class Request {
       request.bodyBytes = data;
 
       if (selectedFile.contentType != null) {
-        request.headers['content-type'] = selectedFile.contentType!;
+        request.headers['content-type'] = _getInterpolatedString(selectedFile.contentType!);
       }
     }
 
