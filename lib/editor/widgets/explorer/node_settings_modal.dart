@@ -174,8 +174,28 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            SingleChildScrollView(child: FormTable(controller: _headersController)),
-                            SingleChildScrollView(child: FormTable(controller: _varsController)),
+                            SingleChildScrollView(
+                              child: FormTable(
+                                controller: _headersController,
+                                columns: [
+                                  FormTableColumn.enabled,
+                                  FormTableColumn.key,
+                                  FormTableColumn.value,
+                                  FormTableColumn.delete,
+                                ],
+                              ),
+                            ),
+                            SingleChildScrollView(
+                              child: FormTable(
+                                controller: _varsController,
+                                columns: [
+                                  FormTableColumn.enabled,
+                                  FormTableColumn.key,
+                                  FormTableColumn.value,
+                                  FormTableColumn.delete,
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
