@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:petitparser/petitparser.dart';
+import 'package:trayce/editor/models/variable.dart';
 
 import '../auth.dart';
 import '../collection.dart';
@@ -70,4 +71,22 @@ List<Param> parseQuery(Result<dynamic> result) {
     );
   }
   return query;
+}
+
+List<Variable> parseDotEnv(String dotEnv) {
+  final dotEnvVars = <Variable>[];
+  final lines = dotEnv.split('\n');
+  for (final line in lines) {
+    final trimmed = line.trim();
+    if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+    final match = RegExp(r'^(.*?)=(.*)$').firstMatch(trimmed);
+    if (match != null) {
+      final key = match.group(1)?.trim();
+      final value = match.group(2)?.trim();
+      if (key != null && key.isNotEmpty) {
+        dotEnvVars.add(Variable(name: 'process.env.$key', value: value, enabled: true));
+      }
+    }
+  }
+  return dotEnvVars;
 }

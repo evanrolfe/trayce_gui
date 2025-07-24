@@ -343,6 +343,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.headers['f'], "added-by-test-collection");
   expect(sentRequest!.headers['g'], "added-on-env");
   expect(sentRequest!.headers['h'], "added-on-env-secret!");
+  expect(sentRequest!.headers['i'], "password1");
   expect(sentRequest!.headers['x-auth-token'], "abcd1234");
   expect(sentRequestBody, '{"hello": "world"}');
 

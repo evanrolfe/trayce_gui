@@ -75,17 +75,19 @@ void main() {
       // }
 
       // Verify the variables
-      expect(finalReq.requestVars.length, 5);
+      expect(finalReq.requestVars.length, 6);
       expect(finalReq.requestVars[0].name, 'my_key');
       expect(finalReq.requestVars[0].value, '1234abcd');
       expect(finalReq.requestVars[1].name, 'my_password');
       expect(finalReq.requestVars[1].value, isNull);
       expect(finalReq.requestVars[2].name, 'C_var');
       expect(finalReq.requestVars[2].value, 'set from collection');
-      expect(finalReq.requestVars[3].name, 'B_var');
-      expect(finalReq.requestVars[3].value, 'set from folder');
-      expect(finalReq.requestVars[4].name, 'A_var');
-      expect(finalReq.requestVars[4].value, 'set from request');
+      expect(finalReq.requestVars[3].name, 'process.env.key');
+      expect(finalReq.requestVars[3].value, 'password1');
+      expect(finalReq.requestVars[4].name, 'B_var');
+      expect(finalReq.requestVars[4].value, 'set from folder');
+      expect(finalReq.requestVars[5].name, 'A_var');
+      expect(finalReq.requestVars[5].value, 'set from request');
     });
   });
 }

@@ -13,7 +13,8 @@ class CollectionRepo {
   CollectionRepo(this._appStorage);
 
   Collection load(Directory dir) {
-    final file = File('${dir.path}/collection.bru');
+    final collectionFile = File('${dir.path}/collection.bru');
+    final dotEnvFile = File('${dir.path}/.env');
 
     // Load environments
     List<Environment> environments = [];
@@ -33,11 +34,21 @@ class CollectionRepo {
     }
 
     // Load the collection
-    final collectionStr = file.readAsStringSync();
-    final collection = parseCollection(collectionStr, file, dir, environments);
+    final collectionStr = collectionFile.readAsStringSync();
+    final collection = parseCollection(collectionStr, collectionFile, dir, environments);
 
-    collection.file = file;
+    collection.file = collectionFile;
     collection.dir = dir;
+
+    // Load .env vars
+    if (dotEnvFile.existsSync()) {
+      final dotEnvStr = dotEnvFile.readAsStringSync();
+      final dotEnvVars = parseDotEnv(dotEnvStr);
+
+      for (final varr in dotEnvVars) {
+        collection.requestVars.add(varr);
+      }
+    }
 
     return collection;
   }
