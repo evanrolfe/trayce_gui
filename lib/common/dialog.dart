@@ -38,3 +38,32 @@ Future<bool> showConfirmDialog({
     },
   ).then((value) => value ?? false);
 }
+
+Future<bool> showMessageDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  String okText = 'Ok',
+}) {
+  return showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: lightBackgroundColor,
+        shape: dialogShape,
+        title: Text(title, style: const TextStyle(color: lightTextColor, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text(message, style: const TextStyle(color: lightTextColor, fontSize: 14)),
+        actions: [
+          TextButton(
+            key: const Key('message_dialog_ok_btn'),
+            style: commonButtonStyle,
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: Text(okText),
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false);
+}

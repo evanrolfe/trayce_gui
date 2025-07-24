@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
+
 import 'auth.dart';
 import 'header.dart';
 import 'param.dart';
@@ -7,6 +11,11 @@ import 'utils.dart';
 import 'variable.dart';
 
 class Folder {
+  // file properties:
+  File file;
+  Directory dir;
+
+  // .bru properties:
   String type;
 
   Map<String, dynamic>? meta;
@@ -25,6 +34,8 @@ class Folder {
   String? docs;
 
   Folder({
+    required this.file,
+    required this.dir,
     required this.type,
     this.meta,
     required this.headers,
@@ -98,7 +109,10 @@ class Folder {
 }''';
   }
 
-  static Folder blank() {
-    return Folder(type: 'folder', headers: [], query: [], requestVars: [], responseVars: []);
+  static Folder blank(String parentPath) {
+    final file = File(path.join(parentPath, 'new_folder', 'folder.bru'));
+    final dir = Directory(path.join(parentPath, 'new_folder'));
+
+    return Folder(file: file, dir: dir, type: 'folder', headers: [], query: [], requestVars: [], responseVars: []);
   }
 }

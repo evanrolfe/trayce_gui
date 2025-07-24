@@ -3,13 +3,19 @@ import 'package:flutter/widgets.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/events.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/body.dart';
-import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/multipart_file.dart';
+import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_files_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_multipart_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_params_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
-class FormController {
+class RequestFormController {
   static const List<String> bodyTypeOptions = [
     'No Body',
     'Text',
@@ -27,14 +33,16 @@ class FormController {
   final CodeLineEditingController reqBodyController = CodeLineEditingController();
   final CodeLineEditingController respBodyController = CodeLineEditingController();
 
-  late final FormTableStateManager headersController;
-  late final FormTableStateManager formUrlEncodedController;
-  late final FormTableStateManager multipartFormController;
-  late final FormTableStateManager fileController;
+  late final FormHeadersController headersController;
+  late final FormVarsController varsController;
+  late final FormParamsController formUrlEncodedController;
+  late final FormMultipartController multipartFormController;
+  late final FormFilesController fileController;
 
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
   final Config config;
+  final FilePickerI filePicker;
 
   final Function() setState;
 
@@ -45,12 +53,13 @@ class FormController {
   // _tabKey is the tab key of this editor tab, and it used in sending events back to the tabbar so it knows which tab the events relate to
   final ValueKey _tabKey;
 
-  FormController(
+  RequestFormController(
     this._formRequest,
     this._widgetRequest,
     this.eventBus,
     this._tabKey,
     this.config,
+    this.filePicker,
     this.setState,
     this._focusManager,
   ) {
@@ -86,61 +95,73 @@ class FormController {
     }
 
     // Headers
-    headersController = FormTableStateManager(
+    headersController = FormHeadersController(
       onStateChanged: setState,
       initialRows: _formRequest.headers,
       onModified: _headersModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
+    );
+
+    // Vars
+    varsController = FormVarsController(
+      onStateChanged: setState,
+      onModified: _varsModified,
+      initialRows: _formRequest.requestVars,
+      config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // Form URL Encoded
     // Convert the params to Headers for the FormTableStateManager
-    List<Header> paramsForManager = [];
+    List<Param> params = [];
     if (_formRequest.bodyFormUrlEncoded != null) {
-      final params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
-      paramsForManager = params.map((p) => Header(name: p.name, value: p.value, enabled: p.enabled)).toList();
+      params = (_formRequest.bodyFormUrlEncoded as FormUrlEncodedBody).params;
     }
-    formUrlEncodedController = FormTableStateManager(
+    formUrlEncodedController = FormParamsController(
       onStateChanged: setState,
-      initialRows: paramsForManager,
+      initialRows: params,
       onModified: _formUrlEncodedModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
     // Multipart Form
     // Set the multi part files on the FormTableStateManager
-    multipartFormController = FormTableStateManager(
+    List<MultipartFile> files = [];
+    if (_formRequest.bodyMultipartForm != null) {
+      files = (_formRequest.bodyMultipartForm as MultipartFormBody).files;
+    }
+    multipartFormController = FormMultipartController(
       onStateChanged: setState,
-      initialRows: [],
+      initialRows: files,
       onModified: _multipartFormModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
 
-    if (_formRequest.bodyMultipartForm != null) {
-      final filesForManager = (_formRequest.bodyMultipartForm as MultipartFormBody).files;
-      multipartFormController.setMultipartFiles(filesForManager);
-    }
-
     // File
-    fileController = FormTableStateManager(
+    List<FileBodyItem> fileItems = [];
+    if (_formRequest.bodyFile != null) {
+      fileItems = (_formRequest.bodyFile as FileBody).files;
+    }
+    fileController = FormFilesController(
       onStateChanged: setState,
-      initialRows: [],
+      initialRows: fileItems,
       onModified: _fileModified,
       config: config,
       focusManager: _focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
     );
-
-    if (_formRequest.bodyFile != null) {
-      final filesForManager = (_formRequest.bodyFile as FileBody).files;
-      fileController.setFiles(filesForManager);
-    }
   }
 
   void _urlModified() {
@@ -196,6 +217,11 @@ class FormController {
 
   void _headersModified() {
     _formRequest.setHeaders(headersController.getHeaders());
+    _flowModified();
+  }
+
+  void _varsModified() {
+    _formRequest.setRequestVars(varsController.getVars());
     _flowModified();
   }
 

@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:trayce/editor/models/environment.dart';
+
 import 'auth.dart';
 import 'header.dart';
 import 'param.dart';
@@ -7,8 +11,16 @@ import 'utils.dart';
 import 'variable.dart';
 
 class Collection {
-  String type;
+  // file properties:
+  Directory dir;
+  File file;
+  // String name;
 
+  List<Environment> environments;
+  String? _currentEnvironmentFilename;
+
+  // .bru properties:
+  String type;
   Map<String, dynamic>? meta;
 
   List<Header> headers;
@@ -25,7 +37,10 @@ class Collection {
   String? docs;
 
   Collection({
+    required this.file,
+    required this.dir,
     required this.type,
+    required this.environments,
     this.meta,
     required this.headers,
     required this.query,
@@ -36,6 +51,15 @@ class Collection {
     this.tests,
     this.docs,
   });
+
+  Environment? getCurrentEnvironment() {
+    if (_currentEnvironmentFilename == null) return null;
+    return environments.firstWhere((e) => e.fileName() == _currentEnvironmentFilename);
+  }
+
+  void setCurrentEnvironment(String environmentFilename) {
+    _currentEnvironmentFilename = environmentFilename;
+  }
 
   String toBru() {
     var bru = '';

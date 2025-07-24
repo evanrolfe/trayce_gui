@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
+import 'package:trayce/common/file_picker.dart';
 
 import '../../common/style.dart';
 import '../models/proto_def.dart';
@@ -75,10 +75,8 @@ class _ProtoDefModalState extends State<ProtoDefModal> {
                 const Spacer(),
                 ElevatedButton(
                   onPressed: () async {
-                    const XTypeGroup typeGroup = XTypeGroup(label: 'protobuf', extensions: <String>['proto']);
-                    final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
-
-                    final filePath = file?.path;
+                    final filePicker = context.read<FilePickerI>();
+                    final filePath = await filePicker.openFile();
 
                     if (filePath != null) {
                       final contents = await File(filePath).readAsString();

@@ -5,8 +5,12 @@ import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 
+import '../../support/fake_app_storage.dart';
 import '../../support/helpers.dart';
 
 class MockEventBus extends Mock implements EventBus {}
@@ -14,16 +18,31 @@ class MockEventBus extends Mock implements EventBus {}
 const collection1Path = 'test/support/collection1';
 void main() {
   late MockEventBus mockEventBus;
+  late FakeAppStorage fakeAppStorage;
+  late CollectionRepo collectionRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
+    fakeAppStorage = await FakeAppStorage.getInstance();
+    collectionRepo = CollectionRepo(fakeAppStorage);
+    folderRepo = FolderRepo();
+    requestRepo = RequestRepo();
   });
 
   group('openCollection()', () {
     test('it loads collection1 successfully', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
-      explorerRepo.openCollection(collection1Path);
+      // when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -34,8 +53,29 @@ void main() {
       final collectionAuth = collection?.auth as BasicAuth;
       expect(collectionAuth.username, 'asdf');
       expect(collectionAuth.password, 'asdf');
-      expect(collection?.requestVars[0].name, 'xxx');
-      expect(collection?.requestVars[0].value, 'yyy');
+      expect(collection?.requestVars[0].name, 'A_var');
+      expect(collection?.requestVars[0].value, 'set from collection');
+
+      expect(collection?.environments.length, 2);
+
+      // Environment 1 - dev.bru
+      final devEnv = collection?.environments.firstWhere((e) => e.fileName() == 'dev');
+      expect(devEnv, isNotNull);
+      expect(devEnv?.vars.length, 2);
+      expect(devEnv?.vars[0].name, 'my_key');
+      expect(devEnv?.vars[0].value, '1234abcd');
+      expect(devEnv?.vars[0].secret, false);
+      expect(devEnv?.vars[1].name, 'my_password');
+      expect(devEnv?.vars[1].value, isNull);
+      expect(devEnv?.vars[1].secret, true);
+
+      // Environment 2 - test.bru
+      final testEnv = collection?.environments.firstWhere((e) => e.fileName() == 'test');
+      expect(testEnv, isNotNull);
+      expect(testEnv?.vars.length, 1);
+      expect(testEnv?.vars[0].name, 'my_key');
+      expect(testEnv?.vars[0].value, 'testtest');
+      expect(testEnv?.vars[0].secret, false);
 
       expect(event.nodes[0].children[0].name, 'hello');
       expect(event.nodes[0].children[0].type, NodeType.folder);
@@ -68,44 +108,64 @@ void main() {
 
   group('getNextSeq()', () {
     test('returns the next sequence number for a folder with a trailing slash', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
-      explorerRepo.openCollection(collection1Path);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
       verify(() => mockEventBus.fire(captureAny())).captured;
 
-      final seq = explorerRepo.getNextSeq('test/support/collection1/myfolder/');
+      final seq = explorerService.getNextSeq('test/support/collection1/myfolder/');
       expect(seq, 6);
     });
 
     test('returns the next sequence number for a folder without a trailing slash', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
-      explorerRepo.openCollection(collection1Path);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
       verify(() => mockEventBus.fire(captureAny())).captured;
 
-      final seq = explorerRepo.getNextSeq('test/support/collection1/myfolder');
+      final seq = explorerService.getNextSeq('test/support/collection1/myfolder');
       expect(seq, 6);
     });
 
     test('returns the next sequence number for collection root', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
-      explorerRepo.openCollection(collection1Path);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
       verify(() => mockEventBus.fire(captureAny())).captured;
 
-      final seq = explorerRepo.getNextSeq(collection1Path);
+      final seq = explorerService.getNextSeq(collection1Path);
       expect(seq, 2);
     });
   });
 
   group('getNodeHierarchy()', () {
     test('returns the node hierarchy', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
-      explorerRepo.openCollection(collection1Path);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
 
-      final hierarchy = explorerRepo.getNodeHierarchy(reqThree);
+      final hierarchy = explorerService.getNodeHierarchy(reqThree);
       expect(hierarchy.length, 3);
       expect(hierarchy[0].name, 'three.bru');
       expect(hierarchy[1].name, 'myfolder');
@@ -115,13 +175,18 @@ void main() {
 
   group('moveNode()', () {
     test('moving a request to another folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -136,7 +201,7 @@ void main() {
       expect(targetNode.name, 'hello');
       expect(targetNode.type, NodeType.folder);
 
-      explorerRepo.moveNode(movedNode, targetNode);
+      explorerService.moveNode(movedNode, targetNode);
 
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
@@ -171,13 +236,18 @@ void main() {
     });
 
     test('re-ordering a request within the same folder ahead', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -191,7 +261,7 @@ void main() {
       expect(targetNode.name, 'four.bru');
       expect(targetNode.type, NodeType.request);
 
-      explorerRepo.moveNode(movedNode, targetNode);
+      explorerService.moveNode(movedNode, targetNode);
 
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
@@ -213,13 +283,18 @@ void main() {
     });
 
     test('re-ordering a request within the same folder behind', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -233,7 +308,7 @@ void main() {
       expect(targetNode.name, 'one.bru');
       expect(targetNode.type, NodeType.request);
 
-      explorerRepo.moveNode(movedNode, targetNode);
+      explorerService.moveNode(movedNode, targetNode);
 
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
@@ -255,13 +330,18 @@ void main() {
     });
 
     test('re-ordering a request within the same folder to first position', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -275,7 +355,7 @@ void main() {
       expect(targetNode.name, 'myfolder');
       expect(targetNode.type, NodeType.folder);
 
-      explorerRepo.moveNode(movedNode, targetNode);
+      explorerService.moveNode(movedNode, targetNode);
 
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
@@ -297,13 +377,18 @@ void main() {
     });
 
     test('dragging a request to another folder and in a specific position', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -317,7 +402,7 @@ void main() {
       expect(targetNode.name, 'two.bru');
       expect(targetNode.type, NodeType.request);
 
-      explorerRepo.moveNode(movedNode, targetNode);
+      explorerService.moveNode(movedNode, targetNode);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
 
@@ -338,13 +423,18 @@ void main() {
     });
 
     test('dragging a folder to another folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -358,7 +448,7 @@ void main() {
       expect(targetNode.name, 'hello');
       expect(targetNode.type, NodeType.folder);
 
-      await explorerRepo.moveNode(movedNode, targetNode);
+      await explorerService.moveNode(movedNode, targetNode);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
 
@@ -375,13 +465,18 @@ void main() {
 
   group('renameNode()', () {
     test('renaming a collection', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -391,7 +486,7 @@ void main() {
       expect(node.type, NodeType.collection);
       expect(event.nodes.length, 1);
 
-      await explorerRepo.renameNode(node, 'collection1-new');
+      await explorerService.renameNode(node, 'collection1-new');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
 
@@ -406,13 +501,18 @@ void main() {
       await deleteFolder(renamedPath);
     });
     test('renaming a folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -422,7 +522,7 @@ void main() {
       expect(node.type, NodeType.folder);
       expect(event.nodes[0].children.length, 4);
 
-      await explorerRepo.renameNode(node, 'newname');
+      await explorerService.renameNode(node, 'newname');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
 
@@ -435,33 +535,38 @@ void main() {
       await deleteFolder(newFolderPath);
     });
 
-    // test('renaming a request', () async {
-    //   final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+    test('renaming a request', () async {
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
-    //   final folderPath = collection1Path;
-    //   final newFolderPath = '$collection1Path-test';
-    //   await copyFolder(folderPath, newFolderPath);
+      final folderPath = collection1Path;
+      final newFolderPath = '$collection1Path-test';
+      await copyFolder(folderPath, newFolderPath);
 
-    //   explorerRepo.openCollection(newFolderPath);
-    //   final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    //   final event = captured[0] as EventDisplayExplorerItems;
+      explorerService.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
 
-    //   // Node to rename:
-    //   final node = event.nodes[0].children[2];
-    //   expect(node.name, 'my-request.bru');
-    //   expect(node.type, NodeType.request);
+      // Node to rename:
+      final node = event.nodes[0].children[2];
+      expect(node.name, 'my-request.bru');
+      expect(node.type, NodeType.request);
 
-    //   await explorerRepo.renameNode(node, 'newname.bru');
-    //   final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
-    //   final event2 = captured2[0] as EventDisplayExplorerItems;
+      await explorerService.renameNode(node, 'newname');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[1] as EventDisplayExplorerItems;
 
-    //   // Expect myfolder to be renamed to newname
-    //   final node2 = event2.nodes[0].children[2];
-    //   expect(node2.name, 'newname.bru');
-    //   expect(node2.type, NodeType.request);
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0].children[2];
+      expect(node2.name, 'newname.bru');
+      expect(node2.type, NodeType.request);
 
-    //   await deleteFolder(newFolderPath);
-    // });
+      await deleteFolder(newFolderPath);
+    });
   });
 
   // TODO: Get this test working
@@ -472,9 +577,9 @@ void main() {
   //     final collectionDir = Directory(newFolderPath);
   //     await collectionDir.create();
 
-  //     final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+  //     final explorerService = ExplorerRepo(eventBus: mockEventBus);
 
-  //     explorerRepo.createCollection(newFolderPath);
+  //     explorerService.createCollection(newFolderPath);
   //     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
   //     final event = captured[0] as EventDisplayExplorerItems;
 
@@ -489,13 +594,18 @@ void main() {
 
   group('deleteNode()', () {
     test('deleting a collection', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -505,20 +615,25 @@ void main() {
       expect(node.type, NodeType.collection);
 
       // Delete the node
-      await explorerRepo.deleteNode(node);
+      await explorerService.deleteNode(node);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
       expect(event2.nodes.length, 0);
     });
 
     test('deleting a folder', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -529,7 +644,7 @@ void main() {
       expect(node.type, NodeType.folder);
 
       // Delete the node
-      await explorerRepo.deleteNode(node);
+      await explorerService.deleteNode(node);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
       expect(event2.nodes[0].children.length, 3);
@@ -538,13 +653,18 @@ void main() {
     });
 
     test('deleting a request', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
 
       final folderPath = collection1Path;
       final newFolderPath = '$collection1Path-test';
       await copyFolder(folderPath, newFolderPath);
 
-      explorerRepo.openCollection(newFolderPath);
+      explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
 
@@ -555,7 +675,7 @@ void main() {
       expect(node.type, NodeType.request);
 
       // Delete the node
-      await explorerRepo.deleteNode(node);
+      await explorerService.deleteNode(node);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
       expect(event2.nodes[0].children[1].children.length, 4);

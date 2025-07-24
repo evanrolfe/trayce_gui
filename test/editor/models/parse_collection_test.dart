@@ -17,7 +17,7 @@ void main() {
     final expected = json.decode(jsonData);
 
     // Parse the BRU data
-    final result = parseCollection(bruData);
+    final result = parseCollection(bruData, bruFile, Directory('test/editor/models/fixtures'), []);
 
     expect(result.type, expected['meta']['type']);
 

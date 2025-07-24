@@ -5,13 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
 
 import '../../../common/dropdown_style.dart';
 import '../../../common/style.dart';
@@ -61,7 +62,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
   final CodeLineEditingController _responseController = CodeLineEditingController();
   final CodeLineEditingController _urlController = CodeLineEditingController();
   final CodeLineEditingController _bodyController = CodeLineEditingController();
-  late final FormTableStateManager _headersController;
+  late final FormHeadersController _headersController;
   String _selectedMethod = 'GET';
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
@@ -77,12 +78,13 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
 
     _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
 
-    _headersController = FormTableStateManager(
+    _headersController = FormHeadersController(
       onStateChanged: () => setState(() {}),
       initialRows: [],
       config: context.read<Config>(),
       focusManager: _focusManager,
       eventBus: context.read<EventBus>(),
+      filePicker: context.read<FilePickerI>(),
     );
   }
 
@@ -303,7 +305,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                                             controller: _bodyController,
                                             focusNode: _focusManager.editorFocusNode,
                                           ),
-                                          SingleChildScrollView(child: FormTable(stateManager: _headersController)),
+                                          SingleChildScrollView(child: FormTable(controller: _headersController)),
                                         ],
                                       ),
                                     ),

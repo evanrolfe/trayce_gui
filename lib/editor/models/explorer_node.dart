@@ -1,18 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/folder.dart';
-import 'package:trayce/editor/models/parse/parse_collection.dart';
-import 'package:trayce/editor/models/parse/parse_folder.dart';
-import 'package:trayce/editor/models/parse/parse_request.dart';
 import 'package:trayce/editor/models/request.dart';
 
 enum NodeType { collection, folder, request }
 
 class ExplorerNode {
-  Directory? dir;
-  File file;
   String name;
   final bool isDirectory;
   final List<ExplorerNode> children = [];
@@ -24,10 +20,48 @@ class ExplorerNode {
   late Collection? collection;
   late Folder? folder;
   late Request? request;
+  String? uuid;
+
+  static newCollection(String name, Collection collection, List<ExplorerNode> children) {
+    return ExplorerNode(
+      name: name,
+      type: NodeType.collection,
+      isExpanded: true,
+      isDirectory: true,
+      initialChildren: children,
+      collection: collection,
+    );
+  }
+
+  static newFolder(String name, Folder folder, List<ExplorerNode> children) {
+    return ExplorerNode(
+      name: name,
+      type: NodeType.folder,
+      isDirectory: true,
+      initialChildren: children,
+      folder: folder,
+    );
+  }
+
+  static newRequest(String name, Request request) {
+    return ExplorerNode(name: name, type: NodeType.request, isDirectory: false, request: request);
+  }
+
+  static newBlankRequest(String parentPath) {
+    final request = Request.blank();
+    request.file = File(path.join(parentPath, '.bru'));
+    request.name = '.bru';
+
+    return ExplorerNode(name: ".bru", type: NodeType.request, isDirectory: false, request: request, isSaved: false);
+  }
+
+  static newBlankFolder(String parentPath) {
+    final folder = Folder.blank(parentPath);
+
+    return ExplorerNode(name: "new_folder", type: NodeType.folder, isDirectory: true, folder: folder, isSaved: false);
+  }
 
   ExplorerNode({
-    required this.file,
-    this.dir,
     required this.name,
     this.isDirectory = false,
     required this.type,
@@ -35,30 +69,21 @@ class ExplorerNode {
     this.isExpanded = false,
     this.isRenaming = false,
     this.isSaved = true,
+    Collection? collection,
     Request? request,
     Folder? folder,
+    this.uuid,
   }) {
     if (type == NodeType.collection) {
-      final collectionStr = file.readAsStringSync();
-      collection = parseCollection(collectionStr);
+      this.collection = collection;
     }
 
     if (type == NodeType.folder) {
-      if (folder != null) {
-        this.folder = folder;
-      } else {
-        final folderStr = file.readAsStringSync();
-        this.folder = parseFolder(folderStr);
-      }
+      this.folder = folder;
     }
 
     if (type == NodeType.request) {
-      if (request != null) {
-        this.request = request;
-      } else {
-        final requestStr = file.readAsStringSync();
-        this.request = parseRequest(requestStr);
-      }
+      this.request = request;
     }
 
     if (initialChildren != null) {
@@ -66,46 +91,79 @@ class ExplorerNode {
     }
   }
 
-  ValueKey get key => ValueKey(file.path);
-
-  void save() {
-    if (type == NodeType.collection) {
-      final bruStr = collection!.toBru();
-      if (!file.existsSync()) {
-        file.createSync(recursive: true);
-      }
-      file.writeAsStringSync(bruStr);
+  File? getFile() {
+    if (type == NodeType.request && request != null) {
+      return request!.file;
+    } else if (type == NodeType.folder && folder != null) {
+      return folder!.file;
+    } else if (type == NodeType.collection && collection != null) {
+      return collection!.file;
     }
-
-    if (type == NodeType.folder) {
-      final bruStr = folder!.toBru();
-      if (!file.existsSync()) {
-        file.createSync(recursive: true);
-      }
-      file.writeAsStringSync(bruStr);
-    }
-
-    if (type == NodeType.request) {
-      request!.name = name.replaceAll('.bru', '');
-      final bruStr = request!.toBru();
-
-      if (!file.existsSync()) {
-        file.createSync(recursive: true);
-      }
-      file.writeAsStringSync(bruStr);
-    }
-    isSaved = true;
+    return null;
   }
+
+  Directory? getDir() {
+    if (type == NodeType.folder && folder != null) {
+      return folder!.dir;
+    } else if (type == NodeType.collection && collection != null) {
+      return collection!.dir;
+    }
+    return null;
+  }
+
+  void setFile(File file) {
+    if (type == NodeType.request) {
+      request!.file = file;
+    } else if (type == NodeType.folder) {
+      folder!.file = file;
+    } else if (type == NodeType.collection) {
+      collection!.file = file;
+    }
+  }
+
+  void setDir(Directory dir) {
+    if (type == NodeType.folder) {
+      folder!.dir = dir;
+    } else if (type == NodeType.collection) {
+      collection!.dir = dir;
+    }
+  }
+
+  String? getPath() {
+    if (type == NodeType.request && request != null) {
+      return request!.file?.path;
+    } else if (type == NodeType.folder && folder != null) {
+      return folder!.file.path;
+    } else if (type == NodeType.collection && collection != null) {
+      return collection!.file.path;
+    }
+    return null;
+  }
+
+  ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
 
   String displayName() {
     return name.replaceAll('.bru', '');
   }
 
-  void updateChildrenSeq() {
-    for (int i = 0; i < children.length; i++) {
-      if (children[i].type != NodeType.request) continue;
-      children[i].request!.seq = i;
-      children[i].save();
+  ExplorerNode copy() {
+    // Create a new ExplorerNode with copied properties
+    final copiedNode = ExplorerNode(
+      name: name,
+      isDirectory: isDirectory,
+      type: type,
+      initialChildren: [],
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+    );
+
+    if (type == NodeType.request && request != null) {
+      final copiedRequest = Request.blank();
+      copiedRequest.copyValuesFrom(request!);
+      copiedNode.request = copiedRequest;
     }
+
+    return copiedNode;
   }
 }

@@ -166,10 +166,10 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final headersTable = tester.widget<FormTable>(find.byType(FormTable));
-  final headersManager = headersTable.stateManager;
+  final headersManager = headersTable.controller;
 
   // Change the key text of the first header row
-  headersManager.rows[0].keyController.text = 'XXXX';
+  headersManager.rows()[0].keyController.text = 'XXXX';
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state
@@ -217,8 +217,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Add a Header
   // ===========================================================================
   // Change the key text of the first header row
-  headersManager.rows[headersManager.rows.length - 1].keyController.text = 'Im A';
-  headersManager.rows[headersManager.rows.length - 2].valueController.text = 'New Header!';
+  headersManager.rows()[headersManager.rows().length - 1].keyController.text = 'Im A';
+  headersManager.rows()[headersManager.rows().length - 2].valueController.text = 'New Header!';
   await tester.pumpAndSettle();
 
   // Expect to see a * indicating modified state

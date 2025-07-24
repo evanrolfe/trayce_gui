@@ -19,12 +19,12 @@ class CustomErrorWidget extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: Color(0xFFD4D4D4), size: 48),
             const SizedBox(height: 16),
-            const Text(
+            const SelectableText(
               'An error occurred',
               style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text(
+            SelectableText(
               errorMessage,
               style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
               textAlign: TextAlign.center,

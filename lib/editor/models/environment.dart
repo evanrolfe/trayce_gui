@@ -1,11 +1,19 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
+
 import 'request.dart';
 import 'utils.dart';
 import 'variable.dart';
 
 class Environment {
+  // file properties:
+  File file;
+
+  // .bru properties:
   List<Variable> vars;
 
-  Environment({required this.vars});
+  Environment({required this.vars, required this.file});
 
   String toBru() {
     var bru = '';
@@ -29,5 +37,73 @@ class Environment {
     }
 
     return bru;
+  }
+
+  String fileName() {
+    final fileName = file.path.split('/').last;
+    final dotIndex = fileName.lastIndexOf('.');
+    if (dotIndex == -1) {
+      return fileName;
+    }
+    return fileName.substring(0, dotIndex);
+  }
+
+  void setFileName(String newName) {
+    final directory = path.dirname(file.path);
+    final extension = path.extension(file.path);
+    final newPath = path.join(directory, '$newName$extension');
+
+    final newFile = File(newPath);
+    file.renameSync(newPath);
+    file = newFile;
+  }
+
+  Map<String, String> secretVars() {
+    final secretVars = vars.where((v) => v.secret && v.value != null).toList();
+    return Map.fromEntries(secretVars.map((v) => MapEntry(v.name, v.value!)));
+  }
+
+  static Environment blank(String collectionPath) {
+    final envsDir = Directory(path.join(collectionPath, 'environments'));
+
+    // Check for existing untitled environments and find the next available number
+    String envFileName = 'untitled.bru';
+    int counter = 1;
+
+    if (envsDir.existsSync()) {
+      final existingFiles = envsDir.listSync().whereType<File>().toList();
+      final untitledFiles =
+          existingFiles.where((file) {
+            final fileName = path.basename(file.path);
+            return fileName.startsWith('untitled') && fileName.endsWith('.bru');
+          }).toList();
+
+      if (untitledFiles.isNotEmpty) {
+        // Find the highest number suffix
+        int maxNumber = 0;
+        for (final file in untitledFiles) {
+          final fileName = path.basenameWithoutExtension(file.path);
+          if (fileName == 'untitled') {
+            maxNumber = maxNumber < 1 ? 1 : maxNumber;
+          } else if (fileName.startsWith('untitled')) {
+            final suffix = fileName.substring('untitled'.length);
+            if (suffix.isNotEmpty && int.tryParse(suffix) != null) {
+              final number = int.parse(suffix);
+              maxNumber = maxNumber < number ? number : maxNumber;
+            }
+          }
+        }
+        counter = maxNumber + 1;
+      }
+    }
+
+    // Create filename with appropriate suffix
+    if (counter > 1) {
+      envFileName = 'untitled$counter.bru';
+    }
+
+    final envFile = File(path.join(envsDir.path, envFileName));
+
+    return Environment(file: envFile, vars: []);
   }
 }

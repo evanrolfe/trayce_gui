@@ -24,16 +24,20 @@ class CustomPopupMenuItem<T> extends PopupMenuItem<T> {
 class _CustomPopupMenuItemState<T> extends PopupMenuItemState<T, CustomPopupMenuItem<T>> {
   @override
   Widget build(BuildContext context) {
+    final bool isEnabled = widget.enabled;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          if (widget.shouldPop) {
-            Navigator.pop(context);
-          }
-          widget.onTap?.call();
-        },
-        hoverColor: selectedMenuItemColor,
+        onTap:
+            isEnabled
+                ? () {
+                  if (widget.shouldPop) {
+                    Navigator.pop(context);
+                  }
+                  widget.onTap?.call();
+                }
+                : null,
+        hoverColor: isEnabled ? selectedMenuItemColor : Colors.transparent,
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
         child: Container(

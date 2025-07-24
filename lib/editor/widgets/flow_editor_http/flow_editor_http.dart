@@ -5,18 +5,18 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
-import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
-import 'package:trayce/editor/widgets/flow_editor_http/form_controller.dart';
+import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/request_form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
 
 import '../../../common/dropdown_style.dart';
@@ -95,7 +95,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   // Controllers
   late TabController _bottomTabController;
   late TabController _topTabController;
-  late final FormController _formController;
+  late final RequestFormController _formController;
   late final EditorFocusManager _focusManager;
 
   // Response vars
@@ -113,7 +113,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     // Init the tab controllers
     _bottomTabController = TabController(length: 2, vsync: this);
-    _topTabController = TabController(length: 2, vsync: this);
+    _topTabController = TabController(length: 3, vsync: this);
     _topTabController.addListener(() {
       setState(() {}); // This will trigger a rebuild when the tab changes
     });
@@ -129,12 +129,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
     _focusManager.urlFocusNode.requestFocus(); // Request focus on URL input when widget is first opened
 
-    _formController = FormController(
+    _formController = RequestFormController(
       _formRequest,
       widget.request,
       context.read<EventBus>(),
       widget.tabKey,
       config,
+      context.read<FilePickerI>(),
       setStateCallback,
       _focusManager,
     );
@@ -164,9 +165,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     FocusScope.of(context).requestFocus(_focusManager.editorFocusNode);
 
     try {
-      final explorerRepo = context.read<ExplorerRepo>();
+      final explorerService = context.read<ExplorerService>();
       List<ExplorerNode> nodeHierarchy = [];
-      if (widget.node != null) nodeHierarchy = explorerRepo.getNodeHierarchy(widget.node!);
+      if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
 
       _response = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy).send();
 
@@ -247,15 +248,15 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   Widget build(BuildContext context) {
     int bodyTypeIndex = 1;
 
-    if (_formController.selectedBodyType == FormController.bodyTypeOptions[0]) {
+    if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[0]) {
       bodyTypeIndex = 0;
-    } else if (_formController.selectedBodyType == FormController.bodyTypeOptions[4]) {
+    } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[4]) {
       // Form URL encoded
       bodyTypeIndex = 2;
-    } else if (_formController.selectedBodyType == FormController.bodyTypeOptions[5]) {
+    } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[5]) {
       // Multi part form
       bodyTypeIndex = 3;
-    } else if (_formController.selectedBodyType == FormController.bodyTypeOptions[6]) {
+    } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[6]) {
       // File
       bodyTypeIndex = 4;
     }
@@ -323,7 +324,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                             focusNode: _focusManager.methodFocusNode,
                             value: _formController.selectedMethod,
                             underline: Container(),
-                            dropdownStyleData: DropdownStyleData(decoration: dropdownDecoration, width: 100),
+                            dropdownStyleData: DropdownStyleData(
+                              decoration: dropdownDecoration,
+                              width: 100,
+                              openInterval: Interval(0.0, 0.0),
+                            ),
                             buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
                             menuItemStyleData: menuItemStyleData,
                             iconStyleData: iconStyleData,
@@ -350,7 +355,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           child: SingleLineCodeEditor(
                             key: const Key('flow_editor_http_url_input'),
                             controller: _formController.urlController,
-                            onSavePressed: saveFlow,
                             onEnterPressed: sendRequest,
                             focusNode: _focusManager.urlFocusNode,
                             decoration: BoxDecoration(
@@ -421,55 +425,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             child: Row(
                                               children: [
                                                 Expanded(
-                                                  child: TabBar(
+                                                  child: InlineTabBar(
                                                     controller: _topTabController,
-                                                    dividerColor: Colors.transparent,
-                                                    labelColor: const Color(0xFFD4D4D4),
-                                                    unselectedLabelColor: const Color(0xFF808080),
-                                                    indicator: const UnderlineTabIndicator(
-                                                      borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                                                    ),
-                                                    labelPadding: EdgeInsets.zero,
-                                                    padding: EdgeInsets.zero,
-                                                    isScrollable: true,
-                                                    tabAlignment: TabAlignment.start,
-                                                    labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                                    unselectedLabelStyle: const TextStyle(
-                                                      fontWeight: FontWeight.normal,
-                                                    ),
-                                                    tabs: [
-                                                      GestureDetector(
-                                                        onTapDown: (_) {
-                                                          _topTabController.animateTo(0);
-                                                          _focusManager.topTabFocusNode.requestFocus();
-                                                        },
-                                                        child: Container(
-                                                          color: Colors.blue.withOpacity(0.0),
-                                                          child: const SizedBox(
-                                                            width: 100,
-                                                            child: Tab(text: 'Headers'),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      GestureDetector(
-                                                        onTapDown: (_) {
-                                                          _topTabController.animateTo(1);
-                                                          _focusManager.topTabFocusNode.requestFocus();
-                                                        },
-                                                        child: Container(
-                                                          color: Colors.blue.withOpacity(0.0),
-                                                          child: const SizedBox(width: 100, child: Tab(text: 'Body')),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                    overlayColor: MaterialStateProperty.resolveWith<Color?>((
-                                                      Set<MaterialState> states,
-                                                    ) {
-                                                      if (states.contains(MaterialState.hovered)) {
-                                                        return hoveredItemColor.withAlpha(hoverAlpha);
-                                                      }
-                                                      return null;
-                                                    }),
+                                                    tabTitles: const ['Headers', 'Body', 'Variables'],
+                                                    focusNode: _focusManager.topTabFocusNode,
                                                   ),
                                                 ),
                                                 if (_topTabController.index == 1) ...[
@@ -489,6 +448,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       dropdownStyleData: DropdownStyleData(
                                                         decoration: dropdownDecoration,
                                                         width: 150,
+                                                        openInterval: Interval(0.0, 0.0),
                                                       ),
                                                       buttonStyleData: ButtonStyleData(
                                                         padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
@@ -498,7 +458,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       style: textFieldStyle,
                                                       isExpanded: true,
                                                       items:
-                                                          FormController.bodyTypeOptions.map((String format) {
+                                                          RequestFormController.bodyTypeOptions.map((String format) {
                                                             return DropdownMenuItem<String>(
                                                               value: format,
                                                               child: Padding(
@@ -522,8 +482,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             children: [
                                               SingleChildScrollView(
                                                 child: FormTable(
-                                                  stateManager: _formController.headersController,
-                                                  onSavePressed: saveFlow,
+                                                  controller: _formController.headersController,
+                                                  columns: [
+                                                    FormTableColumn.enabled,
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
                                                 ),
                                               ),
                                               IndexedStack(
@@ -545,15 +510,19 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   // Form Table Form URL Encoded
                                                   SingleChildScrollView(
                                                     child: FormTable(
-                                                      stateManager: _formController.formUrlEncodedController,
-                                                      onSavePressed: saveFlow,
+                                                      controller: _formController.formUrlEncodedController,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
                                                     ),
                                                   ),
                                                   // Form Table Multi Part Form
                                                   SingleChildScrollView(
                                                     child: FormTable(
-                                                      stateManager: _formController.multipartFormController,
-                                                      onSavePressed: saveFlow,
+                                                      controller: _formController.multipartFormController,
                                                       columns: [
                                                         FormTableColumn.enabled,
                                                         FormTableColumn.key,
@@ -566,8 +535,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   // Form Table File
                                                   SingleChildScrollView(
                                                     child: FormTable(
-                                                      stateManager: _formController.fileController,
-                                                      onSavePressed: saveFlow,
+                                                      controller: _formController.fileController,
                                                       columns: [
                                                         FormTableColumn.valueFile,
                                                         FormTableColumn.contentType,
@@ -577,6 +545,17 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     ),
                                                   ),
                                                 ],
+                                              ),
+                                              SingleChildScrollView(
+                                                child: FormTable(
+                                                  controller: _formController.varsController,
+                                                  columns: [
+                                                    FormTableColumn.enabled,
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -597,44 +576,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                         child: Row(
                                           children: [
                                             Expanded(
-                                              child: TabBar(
+                                              child: InlineTabBar(
                                                 controller: _bottomTabController,
-                                                dividerColor: Colors.transparent,
-                                                labelColor: const Color(0xFFD4D4D4),
-                                                unselectedLabelColor: const Color(0xFF808080),
-                                                indicator: const UnderlineTabIndicator(
-                                                  borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                                                ),
-                                                labelPadding: EdgeInsets.zero,
-                                                padding: EdgeInsets.zero,
-                                                isScrollable: true,
-                                                tabAlignment: TabAlignment.start,
-                                                labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                                                tabs: [
-                                                  GestureDetector(
-                                                    onTapDown: (_) => _bottomTabController.animateTo(0),
-                                                    child: Container(
-                                                      color: Colors.blue.withOpacity(0.0),
-                                                      child: const SizedBox(width: 100, child: Tab(text: 'Response')),
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTapDown: (_) => _bottomTabController.animateTo(1),
-                                                    child: Container(
-                                                      color: Colors.blue.withOpacity(0.0),
-                                                      child: const SizedBox(width: 100, child: Tab(text: 'Headers')),
-                                                    ),
-                                                  ),
-                                                ],
-                                                overlayColor: MaterialStateProperty.resolveWith<Color?>((
-                                                  Set<MaterialState> states,
-                                                ) {
-                                                  if (states.contains(MaterialState.hovered)) {
-                                                    return hoveredItemColor.withAlpha(hoverAlpha);
-                                                  }
-                                                  return null;
-                                                }),
+                                                tabTitles: const ['Response', 'Headers'],
+                                                focusNode: _focusManager.topTabFocusNode,
                                               ),
                                             ),
                                             const SizedBox(width: 12),
@@ -668,6 +613,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   dropdownStyleData: DropdownStyleData(
                                                     decoration: dropdownDecoration,
                                                     width: 120,
+                                                    openInterval: Interval(0.0, 0.0),
                                                   ),
                                                   buttonStyleData: ButtonStyleData(
                                                     padding: const EdgeInsets.only(left: 4, top: 2, right: 4),

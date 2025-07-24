@@ -11,6 +11,9 @@ post {
 
 headers {
   X-Auth-Token: abcd1234
+  G: {{G_var}}
+  H: {{H_var}}
+  I: {{process.env.key}}
 }
 
 body:text {

@@ -1,19 +1,17 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
-import 'package:trayce/editor/models/folder.dart';
-import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/common/events.dart';
+import 'package:trayce/common/file_picker.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
@@ -56,7 +54,7 @@ class _FileExplorerState extends State<FileExplorer> {
   List<ExplorerNode> _files = [];
   late final StreamSubscription _displaySub;
   int? _dropPosition;
-  int lastClickmilliseconds = DateTime.now().millisecondsSinceEpoch;
+  final Map<String, int> _lastClickMillisecondsByNode = {};
   late final FocusNode _focusNode;
   late final FocusNode _renameFocusNode;
   final TextEditingController _renameController = TextEditingController();
@@ -93,12 +91,19 @@ class _FileExplorerState extends State<FileExplorer> {
 
     final config = context.read<Config>();
     if (!config.isTest) {
-      context.read<ExplorerRepo>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
+      // context.read<ExplorerService>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
+
+    context.read<EventBus>().on<EventNewCollectionIntent>().listen((_) {
+      _handleNewCollection();
+    });
+
+    context.read<EventBus>().on<EventOpenCollectionIntent>().listen((_) {
+      _handleOpenCollection();
+    });
   }
 
   void _startRenaming(ExplorerNode node) {
-    print('startRenaming, node: ${node.name}');
     _renameFocusNode.requestFocus();
     _renameController.text = node.displayName();
     _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.displayName().length);
@@ -110,9 +115,9 @@ class _FileExplorerState extends State<FileExplorer> {
 
   void _stopRenaming(bool isCancelled) {
     if (_renamingNode == null) return;
-    print('stopRenaming, node: ${_renamingNode!.name}, isSaved: ${_renamingNode!.isSaved}');
+
     if (!_renamingNode!.isSaved && isCancelled) {
-      context.read<ExplorerRepo>().removeUnsavedNode(_renamingNode!);
+      context.read<ExplorerService>().removeUnsavedNode(_renamingNode!);
     }
 
     setState(() {
@@ -124,7 +129,7 @@ class _FileExplorerState extends State<FileExplorer> {
   void _renameNode(ExplorerNode node, String newName) {
     _stopRenaming(false);
 
-    context.read<ExplorerRepo>().renameNode(node, newName);
+    context.read<ExplorerService>().renameNode(node, newName);
   }
 
   void _deleteNode(ExplorerNode node) {
@@ -132,19 +137,32 @@ class _FileExplorerState extends State<FileExplorer> {
       context: context,
       title: 'Delete Item',
       message: 'Are you sure you want to delete "${node.name}"?',
-      onAccept: () => context.read<ExplorerRepo>().deleteNode(node),
+      onAccept: () => context.read<ExplorerService>().deleteNode(node),
     );
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {
     final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
     if (event is KeyDownEvent) {
+      // print('event: ${event.logicalKey}');
       if (event.logicalKey == LogicalKeyboardKey.keyN && isCmdPressed) {
         context.read<EventBus>().fire(EventNewRequest());
         return KeyEventResult.handled;
       }
       if (event.logicalKey == LogicalKeyboardKey.keyW && isCmdPressed) {
         context.read<EventBus>().fire(EventCloseCurrentNode());
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyC && isCmdPressed) {
+        if (_selectedNode != null) {
+          context.read<ExplorerService>().copyNode(_selectedNode!);
+        }
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.keyV && isCmdPressed) {
+        if (_selectedNode != null) {
+          context.read<ExplorerService>().pasteNode(_selectedNode!);
+        }
         return KeyEventResult.handled;
       }
     }
@@ -159,11 +177,11 @@ class _FileExplorerState extends State<FileExplorer> {
     super.dispose();
   }
 
-  Future<void> _handleOpen() async {
+  Future<void> _handleOpenCollection() async {
     final path = await _getCollectionPath();
 
     if (path != null && mounted) {
-      context.read<ExplorerRepo>().openCollection(path);
+      context.read<ExplorerService>().openCollection(path);
     }
   }
 
@@ -176,17 +194,8 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleNewRequestInFolder(ExplorerNode parentNode) async {
-    final parentPath = parentNode.dir!.path;
-    print('handleNewRequestInFolder, path: $parentPath');
-    final node = ExplorerNode(
-      file: File(path.join(parentPath, '.bru')),
-      name: ".bru",
-      type: NodeType.request,
-      isDirectory: false,
-      request: Request.blank(),
-      isSaved: false,
-    );
-    // reqNode.save();
+    final parentPath = parentNode.getDir()!.path;
+    final node = ExplorerNode.newBlankRequest(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
@@ -194,21 +203,13 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     }
 
-    context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
+    context.read<ExplorerService>().addNodeToParent(parentNode, node);
     _startRenaming(node);
   }
 
   Future<void> _handleNewFolder(ExplorerNode parentNode) async {
-    final parentPath = parentNode.dir!.path;
-    final node = ExplorerNode(
-      file: File(path.join(parentPath, 'new_folder', 'folder.bru')),
-      dir: Directory(path.join(parentPath, 'new_folder')),
-      name: "new_folder",
-      type: NodeType.folder,
-      folder: Folder.blank(),
-      isDirectory: true,
-      isSaved: false,
-    );
+    final parentPath = parentNode.getDir()!.path;
+    final node = ExplorerNode.newBlankFolder(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
@@ -216,7 +217,7 @@ class _FileExplorerState extends State<FileExplorer> {
       });
     }
 
-    context.read<ExplorerRepo>().addNodeToParent(parentNode, node);
+    context.read<ExplorerService>().addNodeToParent(parentNode, node);
     _startRenaming(node);
   }
 
@@ -225,17 +226,18 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<void> _handleRefresh() async {
-    context.read<ExplorerRepo>().refresh();
+    context.read<ExplorerService>().refresh();
   }
 
   Future<String?> _getCollectionPath() async {
     final config = context.read<Config>();
+    final filePicker = context.read<FilePickerI>();
+
     late String? path;
     if (config.isTest) {
       path = './test/support/collection1';
     } else {
-      // Need to find a way to mock the file selector in integration tests
-      path = await getDirectoryPath();
+      path = await filePicker.getCollectionPath();
     }
 
     return path;
@@ -284,7 +286,7 @@ class _FileExplorerState extends State<FileExplorer> {
             },
             onAcceptWithDetails: (details) {
               final movedNode = details.data;
-              context.read<ExplorerRepo>().moveNode(movedNode, node);
+              context.read<ExplorerService>().moveNode(movedNode, node);
 
               setState(() {
                 _dropPosition = null;
@@ -310,17 +312,19 @@ class _FileExplorerState extends State<FileExplorer> {
                     child: GestureDetector(
                       onTapDown: (_) {
                         _focusNode.requestFocus();
-                        // We do this instead of using onDoubleTap because that makes single tap way too slow
-                        // See: https://stackoverflow.com/questions/71293804/ondoubletap-makes-ontap-very-slow
+                        // Assign a uuid to the node if not already present
+                        node.uuid ??= Uuid().v4();
+                        final nodeUuid = node.uuid!;
                         int currMills = DateTime.now().millisecondsSinceEpoch;
-                        if ((currMills - lastClickmilliseconds) < 250) {
+                        final lastClick = _lastClickMillisecondsByNode[nodeUuid] ?? 0;
+                        if ((currMills - lastClick) < 250) {
                           // Double tap
                           if (node.type == NodeType.request) {
-                            context.read<ExplorerRepo>().openNode(node);
+                            context.read<ExplorerService>().openNode(node);
                           }
                         } else {
                           // Single tap
-                          lastClickmilliseconds = currMills;
+                          _lastClickMillisecondsByNode[nodeUuid] = currMills;
                           setState(() {
                             _selectedNode = node;
                             if (node.isDirectory) {
@@ -441,7 +445,7 @@ class _FileExplorerState extends State<FileExplorer> {
                               context,
                               widget.width,
                               itemHeight,
-                              _handleOpen,
+                              _handleOpenCollection,
                               _handleNewCollection,
                               _handleNewRequest,
                               _handleRefresh,

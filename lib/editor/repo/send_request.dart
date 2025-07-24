@@ -22,34 +22,58 @@ class SendRequest {
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
       final node = nodeHierarchy[i];
 
-      // Add headers from collection
+      // Add headers, vars from collection & environment
       if (node.type == NodeType.collection && node.collection != null) {
+        // Add vars from environment
+        final currentEnv = node.collection!.getCurrentEnvironment();
+        if (currentEnv != null) {
+          for (final reqvar in currentEnv.vars) {
+            finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+            finalReq.requestVars.add(reqvar);
+          }
+        }
+
         for (final header in node.collection!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
+
+        for (final reqvar in node.collection!.requestVars) {
+          finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+          finalReq.requestVars.add(reqvar);
+        }
       }
 
-      // Add headers from folder
+      // Add headers, vars from folder
       if (node.type == NodeType.folder && node.folder != null) {
         for (final header in node.folder!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
+
+        for (final reqvar in node.folder!.requestVars) {
+          finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+          finalReq.requestVars.add(reqvar);
+        }
       }
 
-      // Add headers from request
+      // Add headers, vars from request
       if (node.type == NodeType.request && node.request != null) {
         for (final header in node.request!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
+
+        for (final reqvar in node.request!.requestVars) {
+          finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+          finalReq.requestVars.add(reqvar);
+        }
       }
     }
 
-    for (final header in finalReq.headers) {
-      print('   ${header.name}: ${header.value}');
-    }
+    // for (final header in finalReq.headers) {
+    //   print('   ${header.name}: ${header.value}');
+    // }
 
     return finalReq;
   }

@@ -2,13 +2,18 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
-import 'package:trayce/editor/widgets/common/form_table_state.dart';
-import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
 Future<void> showNodeSettingsModal(BuildContext context, ExplorerNode node) {
   return showDialog(context: context, builder: (dialogContext) => NodeSettingsModal(node: node));
@@ -24,7 +29,8 @@ class NodeSettingsModal extends StatefulWidget {
 
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
   late TabController _tabController;
-  late FormTableStateManager _formTableStateManager;
+  late FormHeadersController _headersController;
+  late FormVarsController _varsController;
   late String _title;
   @override
   void initState() {
@@ -33,10 +39,12 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
 
     final config = context.read<Config>();
     final eventBus = context.read<EventBus>();
+    final filePicker = context.read<FilePickerI>();
     final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
     _title = widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';
 
+    // Headers
     List<Header> headers = [];
     if (widget.node.type == NodeType.folder) {
       headers = widget.node.folder?.headers ?? [];
@@ -44,29 +52,64 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       headers = widget.node.collection?.headers ?? [];
     }
 
-    _formTableStateManager = FormTableStateManager(
+    _headersController = FormHeadersController(
       initialRows: headers,
       onStateChanged: () => setState(() {}),
       config: config,
       focusManager: focusManager,
       eventBus: eventBus,
+      filePicker: filePicker,
+    );
+
+    // Vars
+    List<Variable> vars = [];
+    if (widget.node.type == NodeType.folder) {
+      vars = widget.node.folder?.requestVars ?? [];
+    } else if (widget.node.type == NodeType.collection) {
+      vars = widget.node.collection?.requestVars ?? [];
+    }
+
+    _varsController = FormVarsController(
+      onStateChanged: () => setState(() {}),
+      initialRows: vars,
+      config: config,
+      focusManager: focusManager,
+      eventBus: eventBus,
+      filePicker: filePicker,
     );
   }
 
   Future<void> _onSave() async {
+    // Set the headers
     if (widget.node.type == NodeType.folder) {
-      widget.node.folder!.headers = _formTableStateManager.getHeaders();
+      widget.node.folder!.headers = _headersController.getHeaders();
     } else if (widget.node.type == NodeType.collection) {
-      widget.node.collection!.headers = _formTableStateManager.getHeaders();
+      widget.node.collection!.headers = _headersController.getHeaders();
     }
-    widget.node.save();
+
+    // Set the variables
+    if (widget.node.type == NodeType.folder) {
+      widget.node.folder!.requestVars = _varsController.getVars();
+    } else if (widget.node.type == NodeType.collection) {
+      widget.node.collection!.requestVars = _varsController.getVars();
+    }
+
+    // Save
+    if (widget.node.type == NodeType.collection) {
+      context.read<CollectionRepo>().save(widget.node.collection!);
+    }
+    if (widget.node.type == NodeType.folder) {
+      context.read<FolderRepo>().save(widget.node.folder!);
+    }
+
     Navigator.of(context).pop();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _formTableStateManager.dispose();
+    _headersController.dispose();
+    _varsController.dispose();
     super.dispose();
   }
 
@@ -115,40 +158,10 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                       child: Row(
                         children: [
                           Expanded(
-                            child: TabBar(
+                            child: InlineTabBar(
                               controller: _tabController,
-                              dividerColor: Colors.transparent,
-                              labelColor: const Color(0xFFD4D4D4),
-                              unselectedLabelColor: const Color(0xFF808080),
-                              indicator: const UnderlineTabIndicator(
-                                borderSide: BorderSide(width: 1, color: Color(0xFF4DB6AC)),
-                              ),
-                              labelPadding: EdgeInsets.zero,
-                              padding: EdgeInsets.zero,
-                              isScrollable: true,
-                              tabAlignment: TabAlignment.start,
-                              labelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-                              tabs: [
-                                GestureDetector(
-                                  onTapDown: (_) {
-                                    _tabController.animateTo(0);
-                                  },
-                                  child: Container(child: const SizedBox(width: 100, child: Tab(text: 'Headers'))),
-                                ),
-                                GestureDetector(
-                                  onTapDown: (_) {
-                                    _tabController.animateTo(1);
-                                  },
-                                  child: Container(child: const SizedBox(width: 100, child: Tab(text: 'Variables'))),
-                                ),
-                              ],
-                              overlayColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-                                if (states.contains(MaterialState.hovered)) {
-                                  return hoveredItemColor.withAlpha(hoverAlpha);
-                                }
-                                return null;
-                              }),
+                              tabTitles: const ['Headers', 'Variables'],
+                              focusNode: FocusNode(),
                             ),
                           ),
                           const SizedBox(width: 20),
@@ -163,13 +176,26 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                           children: [
                             SingleChildScrollView(
                               child: FormTable(
-                                stateManager: _formTableStateManager,
-                                onSavePressed: () {
-                                  // TODO: Add save functionality
-                                },
+                                controller: _headersController,
+                                columns: [
+                                  FormTableColumn.enabled,
+                                  FormTableColumn.key,
+                                  FormTableColumn.value,
+                                  FormTableColumn.delete,
+                                ],
                               ),
                             ),
-                            const Center(child: Text('Todo', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16))),
+                            SingleChildScrollView(
+                              child: FormTable(
+                                controller: _varsController,
+                                columns: [
+                                  FormTableColumn.enabled,
+                                  FormTableColumn.key,
+                                  FormTableColumn.value,
+                                  FormTableColumn.delete,
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),

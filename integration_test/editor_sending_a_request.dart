@@ -27,13 +27,29 @@ Future<void> test(WidgetTester tester, Database db) async {
   final collectionBruPath = 'test/support/collection1/collection.bru';
   final originalCollectionBru = loadFile(collectionBruPath);
 
+  final envBruPath = 'test/support/collection1/environments/dev.bru';
+  final originalEnvBru = loadFile(envBruPath);
+
   // Find and click the Network tab
   final networkTab = find.byKey(const Key('editor-sidebar-btn'));
   await tester.tap(networkTab);
   await tester.pumpAndSettle();
 
+  // ===========================================================================
+  // Open a collection
+  // ===========================================================================
   // Find and click the IconButton with the key 'collection_btn'
   final openCollectionBtn = find.byKey(const Key('collection_btn'));
+  await tester.tap(openCollectionBtn);
+  await tester.pumpAndSettle();
+
+  // Find and click the PopupMenuItem with the text "Open Collection"
+  final openCollectionMenuItem = find.text('Open Collection').last;
+  await tester.tap(openCollectionMenuItem);
+  await tester.pumpAndSettle();
+  expect(find.text('collection1'), findsOneWidget);
+
+  // Click the IconButton with the key 'collection_btn'
   await tester.tap(openCollectionBtn);
   await tester.pumpAndSettle();
 
@@ -74,14 +90,14 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
   final headersTable = tester.widget<FormTable>(find.byType(FormTable));
-  final headersManager = headersTable.stateManager;
+  final headersManager = headersTable.controller;
 
-  headersManager.rows[0].keyController.text = 'X-Auth-Token';
-  headersManager.rows[0].valueController.text = '1234abcd';
+  headersManager.rows()[0].keyController.text = 'X-Auth-Token';
+  headersManager.rows()[0].valueController.text = '1234abcd';
   await tester.pumpAndSettle();
 
-  headersManager.rows[1].keyController.text = 'Content-Type';
-  headersManager.rows[1].valueController.text = 'application/json';
+  headersManager.rows()[1].keyController.text = 'Content-Type';
+  headersManager.rows()[1].valueController.text = 'application/json';
   await tester.pumpAndSettle();
 
   // Set the body type
@@ -134,22 +150,8 @@ Future<void> test(WidgetTester tester, Database db) async {
   sentRequestBody = null;
 
   // ===========================================================================
-  // Open a collection
+  // Open an existing request
   // ===========================================================================
-  // Find and click the IconButton with the key 'collection_btn'
-  await tester.tap(openCollectionBtn);
-  await tester.pumpAndSettle();
-
-  // Find and click the PopupMenuItem with the text "Open Collection"
-  final openCollectionMenuItem = find.text('Open Collection');
-  await tester.tap(openCollectionMenuItem);
-  await tester.pumpAndSettle();
-
-  expect(find.text('collection1'), findsOneWidget);
-  expect(find.text('hello'), findsOneWidget);
-  expect(find.text('myfolder'), findsOneWidget);
-  expect(find.text('my-request'), findsOneWidget);
-
   // Click on the myfolder item
   final myfolderItem = find.text('myfolder');
   await tester.tap(myfolderItem);
@@ -166,7 +168,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // ===========================================================================
-  // Change the URL, Method, Body & Headers
+  // Change a header+variable on the request
   // ===========================================================================
   // Change the URL
   final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')).last);
@@ -177,14 +179,23 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.tap(find.text('Headers').first);
   await tester.pumpAndSettle();
   final headersTable2 = tester.widget<FormTable>(find.byType(FormTable));
-  final headersManager2 = headersTable2.stateManager;
+  final headersManager2 = headersTable2.controller;
 
-  headersManager2.rows[1].keyController.text = 'A';
-  headersManager2.rows[1].valueController.text = 'added-on-form';
+  headersManager2.rows()[1].keyController.text = 'A';
+  headersManager2.rows()[1].valueController.text = 'added-on-form';
+  await tester.pumpAndSettle();
+
+  // Set a variable
+  await tester.tap(find.text('Variables').first);
+  await tester.pumpAndSettle();
+  final varsManager = tester.widget<FormTable>(find.byType(FormTable)).controller;
+
+  varsManager.rows()[0].keyController.text = 'A_var';
+  varsManager.rows()[0].valueController.text = 'added-on-form';
   await tester.pumpAndSettle();
 
   // ===========================================================================
-  // Change a folder Header
+  // Change a folder header+variable
   // ===========================================================================
   // Right-click on the myfolder item
   await tester.tapAt(tester.getCenter(myfolderItem), buttons: 2);
@@ -196,13 +207,22 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final headersTable3 = tester.widget<FormTable>(find.byType(FormTable).last);
-  final headersManager3 = headersTable3.stateManager;
+  final headersManager3 = headersTable3.controller;
 
   // Change the key text of the first header row
-  expect(headersManager3.rows.length, 4);
+  expect(headersManager3.rows().length, 4);
 
-  headersManager3.rows[0].keyController.text = 'E';
-  headersManager3.rows[0].valueController.text = 'added-by-test';
+  headersManager3.rows()[0].keyController.text = 'E';
+  headersManager3.rows()[0].valueController.text = 'added-by-test';
+  await tester.pumpAndSettle();
+
+  // Set a variable
+  await tester.tap(find.text('Variables').last);
+  await tester.pumpAndSettle();
+  final varsManager3 = tester.widget<FormTable>(find.byType(FormTable).last).controller;
+
+  varsManager3.rows()[0].keyController.text = 'B_var';
+  varsManager3.rows()[0].valueController.text = 'added-on-folder';
   await tester.pumpAndSettle();
 
   // Save the changes
@@ -210,10 +230,12 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Expect the file to be changed
-  expect(loadFile(folderBruPath), contains('added-by-test'));
+  final folderBru = loadFile(folderBruPath);
+  expect(folderBru, contains('E: added-by-test'));
+  expect(folderBru, contains('B_var: added-on-folder'));
 
   // ===========================================================================
-  // Change a collection Header
+  // Change a collection Header+Variable
   // ===========================================================================
   // Right-click on the myfolder item
   final collectionItem = find.text('collection1');
@@ -226,21 +248,72 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   final headersTable4 = tester.widget<FormTable>(find.byType(FormTable).last);
-  final headersManager4 = headersTable4.stateManager;
+  final headersManager4 = headersTable4.controller;
 
   // Change the key text of the first header row
-  expect(headersManager4.rows.length, 5);
+  expect(headersManager4.rows().length, 5);
 
-  headersManager4.rows[4].keyController.text = 'F';
-  headersManager4.rows[4].valueController.text = 'added-by-test-collection';
-  await tester.pumpAndSettle(const Duration(seconds: 3));
+  headersManager4.rows()[4].keyController.text = 'F';
+  headersManager4.rows()[4].valueController.text = 'added-by-test-collection';
+  await tester.pumpAndSettle();
+
+  // Set a variable
+  await tester.tap(find.text('Variables').last);
+  await tester.pumpAndSettle();
+  final varsManager4 = tester.widget<FormTable>(find.byType(FormTable).last).controller;
+
+  varsManager4.rows()[0].keyController.text = 'C_var';
+  varsManager4.rows()[0].valueController.text = 'added-on-collection';
+  await tester.pumpAndSettle();
 
   // Save the changes
   await tester.tap(find.byKey(Key('save_btn')));
   await tester.pumpAndSettle();
 
   // Expect the file to be changed
-  expect(loadFile(collectionBruPath), contains('added-by-test-collection'));
+  final collectionBru = loadFile(collectionBruPath);
+  expect(collectionBru, contains('F: added-by-test-collection'));
+  expect(collectionBru, contains('C_var: added-on-collection'));
+
+  // ===========================================================================
+  // Change an environment vars
+  // ===========================================================================
+  final envDropdown = find.byKey(const Key('editor_tabs_env_dropdown')).first;
+
+  await tester.tap(envDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Configure'));
+  await tester.pumpAndSettle();
+
+  final envTable = tester.widget<FormTable>(find.byType(FormTable).last);
+  final envController = envTable.controller;
+
+  envController.rows()[2].keyController.text = 'G_var';
+  envController.rows()[2].valueController.text = 'added-on-env';
+
+  envController.rows()[3].keyController.text = 'H_var';
+  envController.rows()[3].valueController.text = 'added-on-env-secret!';
+  envController.rows()[3].checkboxStateSecret = true;
+
+  await tester.tap(find.byKey(Key('save_btn')));
+  await tester.pumpAndSettle();
+
+  // Select the dev environment
+  await tester.tap(envDropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('dev'));
+  await tester.pumpAndSettle();
+
+  // Verify the environment is saved correctly
+  final envBru = loadFile(envBruPath);
+  expect(envBru, contains('G_var: added-on-env'));
+  expect(
+    envBru,
+    contains('''vars:secret [
+  my_password,
+  H_var
+]'''),
+  );
 
   // ===========================================================================
   // Send a request
@@ -268,15 +341,19 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.headers['d'], "set from collection");
   expect(sentRequest!.headers['e'], "added-by-test");
   expect(sentRequest!.headers['f'], "added-by-test-collection");
+  expect(sentRequest!.headers['g'], "added-on-env");
+  expect(sentRequest!.headers['h'], "added-on-env-secret!");
+  expect(sentRequest!.headers['i'], "password1");
   expect(sentRequest!.headers['x-auth-token'], "abcd1234");
   expect(sentRequestBody, '{"hello": "world"}');
 
   // ===========================================================================
   // Close the request
   // ===========================================================================
-  // Restore the original file
+  // Restore the original files
   saveFile(folderBruPath, originalFolderBru);
   saveFile(collectionBruPath, originalCollectionBru);
+  saveFile(envBruPath, originalEnvBru);
 
   // Close the open request tab
   await pressCtrlW(tester);

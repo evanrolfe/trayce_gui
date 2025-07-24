@@ -6,6 +6,7 @@ class FormTableRow {
   final CodeLineEditingController contentTypeController;
   String? valueFile;
   bool checkboxState;
+  bool checkboxStateSecret;
   bool newRow;
   String previousKeyText;
   String previousValueText;
@@ -17,6 +18,7 @@ class FormTableRow {
     required this.contentTypeController,
     required this.newRow,
     this.checkboxState = false,
+    this.checkboxStateSecret = false,
     this.previousKeyText = '',
     this.previousValueText = '',
     this.previousContentTypeText = '',
@@ -69,6 +71,11 @@ class FormTableRow {
     final tempValueFile = valueFile;
     valueFile = otherRow.valueFile;
     otherRow.valueFile = tempValueFile;
+
+    // Swap checkboxStateSecret
+    final tempCheckboxStateSecret = checkboxStateSecret;
+    checkboxStateSecret = otherRow.checkboxStateSecret;
+    otherRow.checkboxStateSecret = tempCheckboxStateSecret;
   }
 
   bool isEmpty() {
@@ -76,7 +83,8 @@ class FormTableRow {
         valueController.text.isEmpty &&
         contentTypeController.text.isEmpty &&
         valueFile == null &&
-        !checkboxState;
+        !checkboxState &&
+        !checkboxStateSecret;
   }
 
   void setEmpty() {
@@ -85,6 +93,7 @@ class FormTableRow {
     contentTypeController.text = '';
     valueFile = null;
     checkboxState = false;
+    checkboxStateSecret = false;
     previousKeyText = '';
     previousValueText = '';
   }

@@ -1,31 +1,56 @@
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:trayce/editor/repo/explorer_repo.dart';
+import 'package:trayce/common/app_storage.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 
 class MockEventBus extends Mock implements EventBus {}
 
+class MockAppStorage extends Mock implements AppStorageI {}
+
 const collection1Path = 'test/support/collection1';
 void main() {
   late MockEventBus mockEventBus;
+  late MockAppStorage mockAppStorage;
+  late CollectionRepo collectionRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
+  final emptySecretVars = Map<String, String>.from({});
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
+    mockAppStorage = MockAppStorage();
+    collectionRepo = CollectionRepo(mockAppStorage);
+    folderRepo = FolderRepo();
+    requestRepo = RequestRepo();
   });
 
   group('SendRequest()', () {
-    test('sends a request using the node hierarchy', () async {
-      final explorerRepo = ExplorerRepo(eventBus: mockEventBus);
-      explorerRepo.openCollection(collection1Path);
+    test('sends a request using the node hierarchy headers', () async {
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured[0] as EventDisplayExplorerItems;
+
+      final collection = explorerService.getOpenCollections()[0];
+      collection.setCurrentEnvironment(collection.environments[0].fileName());
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
 
-      final hierarchy = explorerRepo.getNodeHierarchy(reqThree);
+      final hierarchy = explorerService.getNodeHierarchy(reqThree);
       expect(hierarchy.length, 3);
       expect(hierarchy[0].name, 'three.bru');
       expect(hierarchy[1].name, 'myfolder');
@@ -43,6 +68,26 @@ void main() {
       expect(finalReq.headers[2].value, 'set from folder');
       expect(finalReq.headers[3].name, 'A');
       expect(finalReq.headers[3].value, 'set from request');
+
+      // print('finalReq.requestVars:');
+      // for (final reqvar in finalReq.requestVars) {
+      //   print('  ${reqvar.name}: ${reqvar.value}');
+      // }
+
+      // Verify the variables
+      expect(finalReq.requestVars.length, 6);
+      expect(finalReq.requestVars[0].name, 'my_key');
+      expect(finalReq.requestVars[0].value, '1234abcd');
+      expect(finalReq.requestVars[1].name, 'my_password');
+      expect(finalReq.requestVars[1].value, isNull);
+      expect(finalReq.requestVars[2].name, 'C_var');
+      expect(finalReq.requestVars[2].value, 'set from collection');
+      expect(finalReq.requestVars[3].name, 'process.env.key');
+      expect(finalReq.requestVars[3].value, 'password1');
+      expect(finalReq.requestVars[4].name, 'B_var');
+      expect(finalReq.requestVars[4].value, 'set from folder');
+      expect(finalReq.requestVars[5].name, 'A_var');
+      expect(finalReq.requestVars[5].value, 'set from request');
     });
   });
 }

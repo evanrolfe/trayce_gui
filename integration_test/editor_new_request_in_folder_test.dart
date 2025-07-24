@@ -20,7 +20,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   await tester.pumpAndSettle();
 
   // Find and click the PopupMenuItem with the text "Open Collection"
-  final openCollectionMenuItem = find.text('Open Collection');
+  final openCollectionMenuItem = find.text('Open Collection').last;
   await tester.tap(openCollectionMenuItem);
 
   await tester.pumpAndSettle();

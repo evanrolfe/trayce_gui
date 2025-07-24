@@ -1,10 +1,11 @@
 import 'dart:io';
 
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:trayce/common/context_menu.dart';
 import 'package:trayce/common/context_menu_style.dart';
+import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/settings.dart';
 
@@ -16,22 +17,16 @@ class AppMenuBar extends StatelessWidget {
 
   const AppMenuBar({super.key, required this.child, required this.appVersion, this.onFileOpen, this.onFileSave});
 
-  Future<void> _handleOpen() async {
-    const XTypeGroup typeGroup = XTypeGroup(label: 'trayce', extensions: <String>['db']);
-    final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
-
-    final path = file?.path;
+  Future<void> _handleOpen(BuildContext context) async {
+    final path = await context.read<FilePickerI>().openTrayceDB();
 
     if (path != null) {
       onFileOpen?.call(path);
     }
   }
 
-  Future<void> _handleSave() async {
-    const XTypeGroup typeGroup = XTypeGroup(label: 'trayce', extensions: <String>['db']);
-    final FileSaveLocation? file = await getSaveLocation(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
-
-    final path = file?.path;
+  Future<void> _handleSave(BuildContext context) async {
+    final path = await context.read<FilePickerI>().saveTrayceDB();
 
     if (path != null) {
       onFileSave?.call(path);
@@ -49,12 +44,12 @@ class AppMenuBar extends StatelessWidget {
               PlatformMenuItem(
                 label: 'Open',
                 shortcut: const SingleActivator(LogicalKeyboardKey.keyO, meta: true),
-                onSelected: _handleOpen,
+                onSelected: () => _handleOpen(context),
               ),
               PlatformMenuItem(
                 label: 'Save As',
                 shortcut: const SingleActivator(LogicalKeyboardKey.keyS, meta: true),
-                onSelected: _handleSave,
+                onSelected: () => _handleSave(context),
               ),
               PlatformMenuItem(label: 'Settings', onSelected: () => showSettingsModal(context)),
             ],
@@ -103,7 +98,7 @@ class AppMenuBar extends StatelessWidget {
                 alignmentOffset: const Offset(0, 0),
                 menuChildren: [
                   CustomPopupMenuItem(
-                    onTap: _handleOpen,
+                    onTap: () => _handleOpen(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -113,7 +108,7 @@ class AppMenuBar extends StatelessWidget {
                     ),
                   ),
                   CustomPopupMenuItem(
-                    onTap: _handleSave,
+                    onTap: () => _handleSave(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

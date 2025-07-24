@@ -28,7 +28,11 @@ final bodyTypeEnumToBru = {
 };
 
 class Request {
+  // file properties:
+  File? file;
   String name;
+
+  // .bru properties:
   String type;
   int seq;
   String method;
@@ -59,6 +63,7 @@ class Request {
   Body? bodyFile;
 
   Request({
+    this.file,
     required this.name,
     required this.type,
     required this.seq,
@@ -238,9 +243,8 @@ class Request {
     }
 
     // Compare headers
-    if (headers.length != other.headers.length) {
-      return false;
-    }
+    if (headers.length != other.headers.length) return false;
+
     for (var i = 0; i < headers.length; i++) {
       if (!headers[i].equals(other.headers[i])) {
         return false;
@@ -258,6 +262,14 @@ class Request {
     // }
 
     // Compare request variables
+    if (requestVars.length != other.requestVars.length) return false;
+
+    for (var i = 0; i < requestVars.length; i++) {
+      if (!requestVars[i].equals(other.requestVars[i])) {
+        return false;
+      }
+    }
+
     // if (requestVars.length != other.requestVars.length) return false;
     // for (var i = 0; i < requestVars.length; i++) {
     //   if (!requestVars[i].equals(other.requestVars[i])) return false;
@@ -291,19 +303,55 @@ class Request {
       return _sendFile();
     }
 
-    final request = http.Request(method, Uri.parse(url));
+    final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
 
-    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
+    request.headers.addAll(
+      Map.fromEntries(
+        headers
+            .where((h) => h.enabled)
+            .map((h) => MapEntry(_getInterpolatedString(h.name), _getInterpolatedString(h.value))),
+      ),
+    );
 
-    final body = getBody();
+    // Set the request body
+    Body? body = getBody();
     if (body != null) {
-      request.body = body.toString();
+      // Interpolate FormUrlEncodedBody params
+      if (body is FormUrlEncodedBody) {
+        body = body.deepCopy();
+        (body as FormUrlEncodedBody).setParams(
+          body.params
+              .map(
+                (p) => Param(
+                  name: _getInterpolatedString(p.name),
+                  value: _getInterpolatedString(p.value),
+                  type: p.type,
+                  enabled: p.enabled,
+                ),
+              )
+              .toList(),
+        );
+      }
+      request.body = _getInterpolatedString(body.toString());
     }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
     return response;
+  }
+
+  String _getInterpolatedString(String value) {
+    final regex = RegExp(r'\{\{(.*?)\}\}');
+    value = value.replaceAllMapped(regex, (match) {
+      final varName = match.group(1);
+      final variable = requestVars.firstWhere(
+        (v) => v.name == varName && v.enabled,
+        orElse: () => Variable(name: varName ?? '', value: null, enabled: false),
+      );
+      return variable.enabled && variable.value != null ? variable.value! : match.group(0)!;
+    });
+    return value;
   }
 
   Future<http.Response> _sendMultipart() async {
@@ -313,12 +361,11 @@ class Request {
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
       if (file.enabled) {
+        MediaType? contentType;
+        if (file.contentType != null) contentType = MediaType.parse(_getInterpolatedString(file.contentType!));
+
         request.files.add(
-          await http.MultipartFile.fromPath(
-            file.name,
-            file.value,
-            contentType: file.contentType != null ? MediaType.parse(file.contentType!) : null,
-          ),
+          await http.MultipartFile.fromPath(_getInterpolatedString(file.name), file.value, contentType: contentType),
         );
       }
     }
@@ -339,7 +386,7 @@ class Request {
       request.bodyBytes = data;
 
       if (selectedFile.contentType != null) {
-        request.headers['content-type'] = selectedFile.contentType!;
+        request.headers['content-type'] = _getInterpolatedString(selectedFile.contentType!);
       }
     }
 
@@ -373,6 +420,8 @@ class Request {
   }
 
   void copyValuesFrom(Request request) {
+    file = request.file;
+
     name = request.name;
     type = request.type;
     seq = request.seq;
@@ -439,6 +488,10 @@ class Request {
 
   void setHeaders(List<Header> headers) {
     this.headers = headers;
+  }
+
+  void setRequestVars(List<Variable> vars) {
+    requestVars = vars;
   }
 
   void setBodyType(BodyType bodyType) {
