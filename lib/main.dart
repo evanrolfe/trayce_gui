@@ -35,7 +35,7 @@ void main(List<String> args) async {
   await GrpcParserLib.ensureExists();
 
   // Core dependencies
-  EventBus eventBus = EventBus();
+  final eventBus = EventBus();
   final db = await connectDB();
   final grpcService = TrayceAgentService(eventBus: eventBus);
   final config = Config.fromArgs(args);

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
+import 'package:trayce/editor/models/parse/parse_url.dart';
 
 import 'assertion.dart';
 import 'auth.dart';
@@ -292,6 +293,27 @@ class Request {
     // if (script != null && !script!.equals(other.script!)) return false;
 
     return true;
+  }
+
+  void setQueryParamsOnURL(List<Param> params) {
+    final queryString = buildURLQueryString(params);
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      // Rebuild the URI with the new query string
+      final newUri = uri.replace(query: queryString);
+      url = newUri.toString();
+    } else {
+      // If url is not a valid URI, just append the query string
+      if (url.contains('?')) {
+        url = url.split('?')[0] + (queryString.isNotEmpty ? '?$queryString' : '');
+      } else {
+        url = url + (queryString.isNotEmpty ? '?$queryString' : '');
+      }
+    }
+  }
+
+  List<Param> getQueryParamsFromURL() {
+    return parseUrl(url);
   }
 
   Future<http.Response> send() async {

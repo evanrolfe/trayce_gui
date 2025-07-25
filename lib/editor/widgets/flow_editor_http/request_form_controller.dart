@@ -14,6 +14,7 @@ import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.d
 import 'package:trayce/editor/widgets/flow_editor_http/form_multipart_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_params_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/query_params_controller.dart';
 
 class RequestFormController {
   static const List<String> bodyTypeOptions = [
@@ -34,6 +35,7 @@ class RequestFormController {
   final CodeLineEditingController respBodyController = CodeLineEditingController();
 
   late final FormHeadersController headersController;
+  late final QueryParamsController queryParamsController;
   late final FormVarsController varsController;
   late final FormParamsController formUrlEncodedController;
   late final FormMultipartController multipartFormController;
@@ -93,6 +95,18 @@ class RequestFormController {
       default:
         selectedBodyType = bodyTypeOptions[0];
     }
+
+    // Query Params
+    queryParamsController = QueryParamsController(
+      onStateChanged: setState,
+      initialRows: _formRequest.getQueryParamsFromURL(),
+      urlController: urlController,
+      onModified: _queryParamsTableModified,
+      config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
+      filePicker: filePicker,
+    );
 
     // Headers
     headersController = FormHeadersController(
@@ -165,7 +179,33 @@ class RequestFormController {
   }
 
   void _urlModified() {
-    _formRequest.setUrl(urlController.text);
+    final url = urlController.text;
+    _formRequest.setUrl(url);
+
+    if (!compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) {
+      print('=====> URL MODIFIED: $url');
+      final params = _formRequest.getQueryParamsFromURL();
+      for (var param in params) {
+        print('=====> PARAM: ${param.name} : ${param.value}');
+      }
+      queryParamsController.mergeParams(params);
+    }
+
+    _flowModified();
+  }
+
+  void _queryParamsTableModified() {
+    if (compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) return;
+
+    final params = queryParamsController.getParams();
+    _formRequest.setQueryParamsOnURL(params);
+
+    urlController.removeListener(_urlModified);
+    urlController.text = _formRequest.url;
+    urlController.addListener(_urlModified);
+
+    print('=====> TABLE MODIFIED: ${_formRequest.url}');
+
     _flowModified();
   }
 

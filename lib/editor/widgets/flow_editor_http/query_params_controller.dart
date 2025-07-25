@@ -4,13 +4,13 @@ import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/param.dart';
-import 'package:trayce/editor/widgets/common/form_table_base_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/query_params_form_base_controller.dart';
 
-class FormParamsController implements FormTableControllerI {
-  late FormTableBaseController _baseController;
+class QueryParamsController implements FormTableControllerI {
+  late QueryParamsFormBaseController _baseController;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final Config config;
@@ -18,8 +18,9 @@ class FormParamsController implements FormTableControllerI {
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
   final FilePickerI filePicker;
+  final CodeLineEditingController urlController;
 
-  FormParamsController({
+  QueryParamsController({
     required this.onStateChanged,
     required List<Param> initialRows,
     this.onModified,
@@ -27,9 +28,10 @@ class FormParamsController implements FormTableControllerI {
     required EditorFocusManager focusManager,
     required this.eventBus,
     required this.filePicker,
+    required this.urlController,
   }) : _focusManager = focusManager {
     final rows = _convertParamsToRows(initialRows);
-    _baseController = FormTableBaseController(
+    _baseController = QueryParamsFormBaseController(
       rows: rows,
       onStateChanged: onStateChanged,
       onModified: onModified,
@@ -64,65 +66,31 @@ class FormParamsController implements FormTableControllerI {
     }).toList();
   }
 
-  void setParams(List<Param> params) {
-    final rows = _convertParamsToRows(params);
-    _baseController = FormTableBaseController(
-      rows: rows,
-      onStateChanged: onStateChanged,
-      onModified: onModified,
-      focusManager: _focusManager,
-    );
-
-    // Setup listeners for existing rows
-    for (int i = 0; i < rows.length; i++) {
-      _baseController.setupListenersForRow(rows[i], i);
-    }
-
-    onStateChanged();
-  }
-
   // This should merge params so it preserves disabled rows, but it doesn't work properly
   // So for the meantime I am not allowing disabling of query params
   void mergeParams(List<Param> params) {
+    _baseController.disableListeners();
     if (params.length < _baseController.rows.length) {
       for (int i = params.length; i < _baseController.rows.length; i++) {
         _baseController.deleteRow(i);
       }
     }
 
+    // params.length+1 because we alway have an empty row last
+    if (params.length + 1 > _baseController.rows.length) {
+      for (int i = _baseController.rows.length; i < params.length + 1; i++) {
+        _baseController.addNewRow();
+      }
+    }
+
     for (int i = 0; i < params.length; i++) {
       final param = params[i];
-      _baseController.rows[i].keyController.text = param.name;
-      _baseController.rows[i].valueController.text = param.value;
-
-      if (i == _baseController.rows.length - 1) {
-        _baseController.addNewRow();
-        _baseController.rows[i].keyController.text = param.name;
-        _baseController.rows[i].valueController.text = param.value;
-      }
-
-      // if (existingRow != null) {
-      //   existingRow.valueController.text = param.value;
-      // }
+      final row = _baseController.rows[i];
+      row.keyController.text = param.name;
+      row.valueController.text = param.value;
     }
-    // final disabledRows = _baseController.rows.where((row) => !row.checkboxState).toList();
-    // final rows = newRows + disabledRows;
 
-    // _baseController = FormTableBaseController(
-    //   rows: rows,
-    //   onStateChanged: onStateChanged,
-    //   onModified: onModified,
-    //   focusManager: _focusManager,
-    // );
-
-    // // Setup listeners for existing rows
-    // for (int i = 0; i < rows.length; i++) {
-    //   _baseController.setupListenersForRow(rows[i], i);
-    // }
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   onStateChanged();
-    // });
+    _baseController.enableListeners();
   }
 
   List<FormTableRow> _convertParamsToRows(List<Param> params) {
