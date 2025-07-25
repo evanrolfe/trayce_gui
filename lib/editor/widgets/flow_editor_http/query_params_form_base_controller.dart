@@ -49,8 +49,12 @@ class QueryParamsFormBaseController {
   void setupControllerListener(CodeLineEditingController controller, int index, bool isKey) {
     controller.addListener(() {
       if (!_listenersEnabled) return; // Early exit if disabled
-      print('=====> CONTROLLER LISTENER CALLED: $index, value: ${controller.text}');
-      if (controller.text == '') return;
+
+      final previousValue = controller.preValue;
+      final previousValueText2 = previousValue?.codeLines.asString(TextLineBreak.lf) ?? '';
+
+      print('=====> CONTROLLER LISTENER CALLED: $index, value: ${controller.text}, previousValue: $previousValueText2');
+      if (controller.text == '' && previousValueText2 == '') return;
 
       if (index >= _rows.length) return;
       final row = _rows[index];

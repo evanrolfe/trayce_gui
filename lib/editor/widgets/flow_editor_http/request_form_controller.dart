@@ -180,6 +180,8 @@ class RequestFormController {
 
   void _urlModified() {
     final url = urlController.text;
+    if (url == _formRequest.url) return;
+
     _formRequest.setUrl(url);
 
     if (!compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) {
@@ -196,15 +198,17 @@ class RequestFormController {
 
   void _queryParamsTableModified() {
     if (compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) return;
+    print('=====> TABLE MODIFIED: ${_formRequest.url}');
 
     final params = queryParamsController.getParams();
+    for (var param in params) {
+      print('=====> PARAM: ${param.name} : ${param.value}');
+    }
     _formRequest.setQueryParamsOnURL(params);
 
     urlController.removeListener(_urlModified);
     urlController.text = _formRequest.url;
     urlController.addListener(_urlModified);
-
-    print('=====> TABLE MODIFIED: ${_formRequest.url}');
 
     _flowModified();
   }

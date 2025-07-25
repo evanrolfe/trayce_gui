@@ -2,7 +2,7 @@ import 'package:trayce/editor/models/param.dart';
 
 String buildURLQueryString(List<Param> params) {
   return params
-      .where((p) => p.enabled && !(p.name == '' || p.value == ''))
+      .where((p) => p.enabled)
       .map((p) => '${Uri.encodeComponent(p.name)}=${Uri.encodeComponent(p.value)}')
       .join('&');
 }

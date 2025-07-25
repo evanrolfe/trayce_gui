@@ -18,7 +18,7 @@ void main() {
     await deps.close();
   });
 
-  group('Params', () {
+  group('Query Params Form URL Input => Form Table population', () {
     testWidgets('adding query params to the URL1', (WidgetTester tester) async {
       // Create a test request
       final request = Request.blank();
@@ -297,6 +297,120 @@ void main() {
       expect(paramsController.rows()[0].valueController.text, 'd');
       expect(paramsController.rows()[1].keyController.text, '');
       expect(paramsController.rows()[1].valueController.text, '');
+    });
+  });
+
+  group('Query Params Form Table => URL Input', () {
+    testWidgets('modifying an existing query param in the table', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request.blank();
+      request.url = 'https://example.com?a=b&c=d';
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Set URL
+      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      urlInput.controller.text = 'https://example.com?a=b&c=d';
+      await tester.pumpAndSettle();
+
+      // Click on Params tab
+      await tester.tap(find.text('Params'));
+      await tester.pumpAndSettle();
+
+      // Verify the params
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsController = paramsTable.controller;
+
+      expect(paramsController.rows().length, 3);
+
+      // Modify the "a" query param from the table
+      paramsController.rows()[0].keyController.text = 'x';
+      await tester.pumpAndSettle();
+
+      // Verify the URL
+      expect(urlInput.controller.text, 'https://example.com?x=b&c=d');
+    });
+
+    testWidgets('an empty first query param value', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request.blank();
+      request.url = 'https://example.com?a=b&c=d';
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Set URL
+      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      urlInput.controller.text = 'https://example.com?a=b&c=d';
+      await tester.pumpAndSettle();
+
+      // Click on Params tab
+      await tester.tap(find.text('Params'));
+      await tester.pumpAndSettle();
+
+      // Verify the params
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsController = paramsTable.controller;
+
+      expect(paramsController.rows().length, 3);
+      expect(paramsController.rows()[0].keyController.text, 'a');
+      expect(paramsController.rows()[0].valueController.text, 'b');
+      expect(paramsController.rows()[1].keyController.text, 'c');
+      expect(paramsController.rows()[1].valueController.text, 'd');
+      expect(paramsController.rows()[2].keyController.text, '');
+      expect(paramsController.rows()[2].valueController.text, '');
+
+      // Delete the "d" query param from the table
+      paramsController.rows()[1].valueController.text = '';
+      await tester.pumpAndSettle();
+
+      // Verify the URL
+      expect(urlInput.controller.text, 'https://example.com?a=b&c=');
+    });
+
+    testWidgets('an empty first query param key and value', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request.blank();
+      request.url = 'https://example.com?a=b&c=d';
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Set URL
+      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      urlInput.controller.text = 'https://example.com?a=b&c=d';
+      await tester.pumpAndSettle();
+
+      // Click on Params tab
+      await tester.tap(find.text('Params'));
+      await tester.pumpAndSettle();
+
+      // Verify the params
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsController = paramsTable.controller;
+
+      expect(paramsController.rows().length, 3);
+      expect(paramsController.rows()[0].keyController.text, 'a');
+      expect(paramsController.rows()[0].valueController.text, 'b');
+      expect(paramsController.rows()[1].keyController.text, 'c');
+      expect(paramsController.rows()[1].valueController.text, 'd');
+      expect(paramsController.rows()[2].keyController.text, '');
+      expect(paramsController.rows()[2].valueController.text, '');
+
+      // Delete the "d" query param from the table
+      paramsController.rows()[1].keyController.text = '';
+      paramsController.rows()[1].valueController.text = '';
+      await tester.pumpAndSettle();
+
+      // Verify the URL
+      expect(urlInput.controller.text, 'https://example.com?a=b&=');
     });
   });
 }
