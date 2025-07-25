@@ -56,14 +56,17 @@ class QueryParamsController implements FormTableControllerI {
   int selectedRowIndex() => _selectedRowIndex ?? -1;
 
   List<Param> getParams() {
-    return _baseController.rows.where((row) => !row.isEmpty()).map((row) {
-      return Param(
-        name: row.keyController.text,
-        value: row.valueController.text,
-        enabled: row.checkboxState,
-        type: ParamType.form,
-      );
-    }).toList();
+    return _baseController.rows
+        .where((row) => !(row.keyController.text.isEmpty && row.valueController.text.isEmpty))
+        .map((row) {
+          return Param(
+            name: row.keyController.text,
+            value: row.valueController.text,
+            enabled: row.checkboxState,
+            type: ParamType.form,
+          );
+        })
+        .toList();
   }
 
   // This should merge params so it preserves disabled rows, but it doesn't work properly

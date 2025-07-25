@@ -53,7 +53,6 @@ class QueryParamsFormBaseController {
       final previousValue = controller.preValue;
       final previousValueText2 = previousValue?.codeLines.asString(TextLineBreak.lf) ?? '';
 
-      print('=====> CONTROLLER LISTENER CALLED: $index, value: ${controller.text}, previousValue: $previousValueText2');
       if (controller.text == '' && previousValueText2 == '') return;
 
       if (index >= _rows.length) return;
@@ -141,12 +140,10 @@ class QueryParamsFormBaseController {
   }
 
   void disableListeners() {
-    print('=====> DISABLE LISTENERS');
     _listenersEnabled = false;
   }
 
   void enableListeners() {
-    print('=====> ENABLE LISTENERS');
     _listenersEnabled = true;
   }
 

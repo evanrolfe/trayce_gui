@@ -1,10 +1,8 @@
 import 'package:trayce/editor/models/param.dart';
 
+// buildURLQueryString does not filter based on param.enabled, keep that in mind!
 String buildURLQueryString(List<Param> params) {
-  return params
-      .where((p) => p.enabled)
-      .map((p) => '${Uri.encodeComponent(p.name)}=${Uri.encodeComponent(p.value)}')
-      .join('&');
+  return params.map((p) => '${Uri.encodeComponent(p.name)}=${Uri.encodeComponent(p.value)}').join('&');
 }
 
 List<Param> parseUrl(String url) {

@@ -490,7 +490,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               SingleChildScrollView(
                                                 child: FormTable(
                                                   controller: _formController.queryParamsController,
-                                                  columns: [FormTableColumn.key, FormTableColumn.value],
+                                                  columns: [
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
                                                 ),
                                               ),
                                               SingleChildScrollView(

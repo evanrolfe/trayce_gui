@@ -185,11 +185,7 @@ class RequestFormController {
     _formRequest.setUrl(url);
 
     if (!compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) {
-      print('=====> URL MODIFIED: $url');
       final params = _formRequest.getQueryParamsFromURL();
-      for (var param in params) {
-        print('=====> PARAM: ${param.name} : ${param.value}');
-      }
       queryParamsController.mergeParams(params);
     }
 
@@ -198,12 +194,8 @@ class RequestFormController {
 
   void _queryParamsTableModified() {
     if (compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) return;
-    print('=====> TABLE MODIFIED: ${_formRequest.url}');
 
     final params = queryParamsController.getParams();
-    for (var param in params) {
-      print('=====> PARAM: ${param.name} : ${param.value}');
-    }
     _formRequest.setQueryParamsOnURL(params);
 
     urlController.removeListener(_urlModified);
