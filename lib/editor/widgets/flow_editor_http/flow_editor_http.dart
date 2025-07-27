@@ -113,7 +113,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     // Init the tab controllers
     _bottomTabController = TabController(length: 2, vsync: this);
-    _topTabController = TabController(length: 3, vsync: this);
+    _topTabController = TabController(length: 4, vsync: this);
     _topTabController.addListener(() {
       setState(() {}); // This will trigger a rebuild when the tab changes
     });
@@ -122,7 +122,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     _formRequest = Request.blank();
     _formRequest.copyValuesFrom(widget.request);
 
-    void setStateCallback() => setState(() {});
+    void setStateCallback() {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
+      }
+    }
+
     final config = context.read<Config>();
 
     // Init the focus manager
@@ -427,11 +434,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 Expanded(
                                                   child: InlineTabBar(
                                                     controller: _topTabController,
-                                                    tabTitles: const ['Headers', 'Body', 'Variables'],
+                                                    tabTitles: const ['Params', 'Headers', 'Body', 'Variables'],
                                                     focusNode: _focusManager.topTabFocusNode,
                                                   ),
                                                 ),
-                                                if (_topTabController.index == 1) ...[
+                                                if (_topTabController.index == 2) ...[
                                                   const SizedBox(width: 12),
                                                   Container(
                                                     width: 120,
@@ -480,6 +487,16 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           child: TabBarView(
                                             controller: _topTabController,
                                             children: [
+                                              SingleChildScrollView(
+                                                child: FormTable(
+                                                  controller: _formController.queryParamsController,
+                                                  columns: [
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
+                                                ),
+                                              ),
                                               SingleChildScrollView(
                                                 child: FormTable(
                                                   controller: _formController.headersController,
