@@ -187,6 +187,8 @@ class RequestFormController {
     if (!compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) {
       final params = _formRequest.getQueryParamsFromURL();
       queryParamsController.mergeParams(params);
+
+      _formRequest.params = params;
     }
 
     _flowModified();
@@ -197,6 +199,7 @@ class RequestFormController {
 
     final params = queryParamsController.getParams();
     _formRequest.setQueryParamsOnURL(params);
+    _formRequest.params = params;
 
     urlController.removeListener(_urlModified);
     urlController.text = _formRequest.url;

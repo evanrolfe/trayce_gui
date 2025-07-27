@@ -62,8 +62,8 @@ class QueryParamsController implements FormTableControllerI {
           return Param(
             name: row.keyController.text,
             value: row.valueController.text,
-            enabled: row.checkboxState,
-            type: ParamType.form,
+            enabled: true,
+            type: ParamType.query,
           );
         })
         .toList();
