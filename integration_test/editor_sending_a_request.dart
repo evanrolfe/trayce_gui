@@ -7,7 +7,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
 import '../test/support/helpers.dart';
@@ -75,7 +75,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Change the URL, Method, Body & Headers
   // ===========================================================================
   // Change the URL
-  final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+  final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
   urlInput.controller.text = path.join(server.url.toString(), 'test_endpoint');
   await tester.pumpAndSettle();
 
@@ -171,7 +171,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Change a header+variable on the request
   // ===========================================================================
   // Change the URL
-  final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')).last);
+  final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')).last);
   urlInput2.controller.text = path.join(server.url.toString(), 'test_endpoint');
   await tester.pumpAndSettle();
 

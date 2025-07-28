@@ -5,7 +5,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 
@@ -321,7 +321,7 @@ void main() {
       expect(find.text('HTTP'), findsOneWidget);
       expect(find.text('GET'), findsOneWidget);
 
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput.controller.text, 'https://example.com');
       await tester.pumpAndSettle();
 
@@ -511,7 +511,7 @@ void main() {
 
       expect(find.text('GET'), findsOneWidget);
 
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput.controller.text, 'https://example.com');
       await tester.pumpAndSettle();
 
