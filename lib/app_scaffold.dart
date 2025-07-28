@@ -91,36 +91,9 @@ class _AppScaffoldState extends State<AppScaffold> {
                       onPointerDown: (_) => _navigateToPage(0),
                       child: MouseRegion(
                         onEnter: (_) {
-                          setState(() => isHovering1 = true);
+                          setState(() => isHovering0 = true);
                           _timer1?.cancel();
                           _timer1 = Timer(const Duration(milliseconds: 500), () {
-                            if (mounted && isHovering1) {
-                              setState(() => showTooltip1 = true);
-                            }
-                          });
-                        },
-                        onExit: (_) {
-                          setState(() {
-                            isHovering1 = false;
-                            showTooltip1 = false;
-                          });
-                          _timer1?.cancel();
-                        },
-                        child: _getSidebarItem(
-                          Key('editor-sidebar-btn'),
-                          isHovering1,
-                          widget.selectedIndex == 0,
-                          Icons.edit,
-                        ),
-                      ),
-                    ),
-                    Listener(
-                      onPointerDown: (_) => _navigateToPage(1),
-                      child: MouseRegion(
-                        onEnter: (_) {
-                          setState(() => isHovering0 = true);
-                          _timer0?.cancel();
-                          _timer0 = Timer(const Duration(milliseconds: 500), () {
                             if (mounted && isHovering0) {
                               setState(() => showTooltip0 = true);
                             }
@@ -131,11 +104,38 @@ class _AppScaffoldState extends State<AppScaffold> {
                             isHovering0 = false;
                             showTooltip0 = false;
                           });
+                          _timer1?.cancel();
+                        },
+                        child: _getSidebarItem(
+                          Key('editor-sidebar-btn'),
+                          isHovering0,
+                          widget.selectedIndex == 0,
+                          Icons.edit,
+                        ),
+                      ),
+                    ),
+                    Listener(
+                      onPointerDown: (_) => _navigateToPage(1),
+                      child: MouseRegion(
+                        onEnter: (_) {
+                          setState(() => isHovering1 = true);
+                          _timer0?.cancel();
+                          _timer0 = Timer(const Duration(milliseconds: 500), () {
+                            if (mounted && isHovering1) {
+                              setState(() => showTooltip1 = true);
+                            }
+                          });
+                        },
+                        onExit: (_) {
+                          setState(() {
+                            isHovering1 = false;
+                            showTooltip1 = false;
+                          });
                           _timer0?.cancel();
                         },
                         child: _getSidebarItem(
                           Key('network-sidebar-btn'),
-                          isHovering0,
+                          isHovering1,
                           widget.selectedIndex == 1,
                           docker,
                         ),
@@ -148,8 +148,8 @@ class _AppScaffoldState extends State<AppScaffold> {
               Expanded(child: widget.child),
             ],
           ),
-          if (showTooltip0) _buildTooltip('Docker Network', 20, 60),
-          if (showTooltip1) _buildTooltip('Editor', 70, 60),
+          if (showTooltip0) _buildTooltip('Editor', 20, 60),
+          if (showTooltip1) _buildTooltip('Docker Network', 70, 60),
         ],
       ),
     );
