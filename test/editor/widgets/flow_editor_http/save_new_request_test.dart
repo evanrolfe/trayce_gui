@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/request.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
 import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';

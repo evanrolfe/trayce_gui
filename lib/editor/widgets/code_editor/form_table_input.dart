@@ -7,9 +7,8 @@ import 'package:trayce/common/events.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
-import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
-class SingleLineCodeEditor extends StatefulWidget {
+class FormTableInput extends StatefulWidget {
   final CodeLineEditingController controller;
   final ScrollController? verticalScroller;
   final ScrollController? horizontalScroller;
@@ -17,8 +16,7 @@ class SingleLineCodeEditor extends StatefulWidget {
   final VoidCallback? onEnterPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
-  final Border? border;
-  const SingleLineCodeEditor({
+  const FormTableInput({
     required super.key,
     required this.controller,
     this.verticalScroller,
@@ -27,16 +25,14 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.onEnterPressed,
     this.focusNode,
     this.decoration,
-    this.border,
   });
 
   @override
-  State<SingleLineCodeEditor> createState() => _SingleLineCodeEditorState();
+  State<FormTableInput> createState() => _FormTableInputState();
 }
 
-class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
+class _FormTableInputState extends State<FormTableInput> {
   late final FocusNode _focusNode;
-  bool _isFocused = false;
   bool _isHovered = false;
 
   @override
@@ -65,20 +61,9 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
   }
 
   void _handleFocusChange() {
-    setState(() {
-      _isFocused = _focusNode.hasFocus;
-    });
-
     final eventBus = context.read<EventBus>();
     final key = widget.key ?? const Key('default');
     eventBus.fire(EditorInputFocused(key));
-  }
-
-  Border? _getDynamicBorder() {
-    if (_isFocused) {
-      return Border.all(color: selectedMenuItemColor, width: 1);
-    }
-    return Border.all(color: borderColor, width: 1);
   }
 
   Color _getBackgroundColor() {
@@ -108,7 +93,7 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
               horizontalScroller:
                   widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
             ),
-            border: _getDynamicBorder(),
+            // border: _getDynamicBorder(),
             style: CodeEditorStyle(
               fontFamily: "monospace",
               textColor: const Color(0xFFD4D4D4),

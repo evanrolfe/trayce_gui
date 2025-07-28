@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/form_table_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
@@ -160,7 +160,7 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
                     ),
                     SizedBox(
                       width: 300,
-                      child: SingleLineCodeEditor(
+                      child: FormTableInput(
                         key: Key('grpc_url_${widget.tabKey}'),
                         controller: _urlController,
                         decoration: BoxDecoration(
