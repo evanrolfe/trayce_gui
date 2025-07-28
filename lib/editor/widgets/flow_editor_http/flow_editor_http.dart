@@ -12,7 +12,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
@@ -315,17 +315,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                         Container(
                           width: 100,
                           height: 30,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: BorderSide(color: const Color(0xFF474747), width: 1),
-                              left: BorderSide(color: const Color(0xFF474747), width: 1),
-                              bottom: BorderSide(color: const Color(0xFF474747), width: 1),
-                            ),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(4),
-                              bottomLeft: Radius.circular(4),
-                            ),
-                          ),
+                          decoration: methodDropdownDecoration,
                           child: DropdownButton2<String>(
                             key: const Key('flow_editor_http_method_dropdown'),
                             focusNode: _focusManager.methodFocusNode,
@@ -336,7 +326,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                               width: 100,
                               openInterval: Interval(0.0, 0.0),
                             ),
-                            buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
+                            buttonStyleData: ButtonStyleData(
+                              padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                              overlayColor: WidgetStateProperty.all(Colors.amber),
+                            ),
                             menuItemStyleData: menuItemStyleData,
                             iconStyleData: iconStyleData,
                             style: textFieldStyle,
@@ -359,19 +352,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                           ),
                         ),
                         Expanded(
-                          child: SingleLineCodeEditor(
+                          child: URLInput(
                             key: const Key('flow_editor_http_url_input'),
                             controller: _formController.urlController,
                             onEnterPressed: sendRequest,
                             focusNode: _focusManager.urlFocusNode,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: const Color(0xFF474747), width: 1),
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(4),
-                                bottomRight: Radius.circular(4),
-                              ),
-                              color: const Color(0xFF2E2E2E),
-                            ),
+                            decoration: BoxDecoration(color: const Color(0xFF2E2E2E)),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -444,7 +430,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     width: 120,
                                                     height: 20,
                                                     decoration: BoxDecoration(
-                                                      border: Border.all(color: const Color(0xFF474747), width: 1),
+                                                      border: Border.all(color: const Color(0xFF474747), width: 0),
                                                       borderRadius: BorderRadius.circular(4),
                                                     ),
                                                     child: DropdownButton2<String>(

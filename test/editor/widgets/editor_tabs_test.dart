@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/editor.dart';
 import 'package:trayce/editor/widgets/editor_tabs.dart';
 
@@ -112,7 +112,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput.controller.text, 'http://www.github.com/one');
 
       // Click on the second tab and verify the URL
@@ -120,7 +120,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, 'http://www.github.com/two');
     });
 
@@ -139,7 +139,7 @@ void main() {
       // Verify the URL input exists and can be accessed
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
 
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       urlInput.controller.text = 'https://example.com';
       await tester.pumpAndSettle();
     });
@@ -158,7 +158,7 @@ void main() {
 
       // Verify the URL input exists and can be accessed
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       urlInput.controller.text = 'https://example.com';
       await tester.pumpAndSettle();
     });
@@ -178,7 +178,7 @@ void main() {
       // Verify the URL input exists and can be accessed
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
 
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       urlInput.controller.text = 'https://example.com';
       await tester.pumpAndSettle();
     });
@@ -194,7 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput.controller.text, 'http://www.github.com/one');
 
       // Click on the second tab and verify the URL
@@ -202,7 +202,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, 'http://www.github.com/two');
 
       urlInput2.controller.text = 'http://www.github.com/two/changed';
@@ -240,7 +240,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput.controller.text, 'http://www.github.com/one');
 
       // Click on the second tab and verify the URL
@@ -248,7 +248,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, 'http://www.github.com/two');
 
       urlInput2.controller.text = 'http://www.github.com/two/changed';
@@ -268,7 +268,7 @@ void main() {
 
       // Verify the URL of the modified request is still modified
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput3 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput3 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput3.controller.text, 'http://www.github.com/two/changed');
     });
 
@@ -284,7 +284,7 @@ void main() {
 
       // Enter a URL
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, '');
 
       urlInput2.controller.text = 'http://www.trayce.dev/new';
@@ -307,7 +307,7 @@ void main() {
 
       // Enter a URL
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, '');
 
       urlInput2.controller.text = 'http://www.trayce.dev/new';
@@ -343,7 +343,7 @@ void main() {
 
       // Enter a URL
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, 'http://www.github.com/two');
 
       urlInput2.controller.text = 'http://www.github.com/two/changed';
@@ -430,7 +430,7 @@ void main() {
 
     //   // Enter a URL
     //   expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-    //   final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+    //   final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
     //   expect(urlInput2.controller.text, '');
 
     //   urlInput2.controller.text = 'http://www.trayce.dev/new';
@@ -495,7 +495,7 @@ void main() {
 
       // Verify the URl
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput2 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput2 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput2.controller.text, 'http://www.github.com/two');
 
       // Verify the tabs
@@ -513,7 +513,7 @@ void main() {
       expect(currentTabs2[0].getDisplayName(), 'one');
 
       // Verify the first tab is currently open
-      final urlInput3 = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput3 = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput3.controller.text, 'http://www.github.com/one');
     });
 
@@ -528,7 +528,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       expect(urlInput.controller.text, 'http://www.github.com/one');
 
       // Find and click the IconButton with the key 'collection_btn'

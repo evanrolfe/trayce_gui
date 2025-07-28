@@ -9,7 +9,7 @@ import 'package:trayce/editor/widgets/code_editor/auto_complete_list.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_context_menu.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 
-class SingleLineCodeEditor extends StatefulWidget {
+class URLInput extends StatefulWidget {
   final CodeLineEditingController controller;
   final ScrollController? verticalScroller;
   final ScrollController? horizontalScroller;
@@ -17,8 +17,7 @@ class SingleLineCodeEditor extends StatefulWidget {
   final VoidCallback? onEnterPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
-  final Border? border;
-  const SingleLineCodeEditor({
+  const URLInput({
     required super.key,
     required this.controller,
     this.verticalScroller,
@@ -27,14 +26,13 @@ class SingleLineCodeEditor extends StatefulWidget {
     this.onEnterPressed,
     this.focusNode,
     this.decoration,
-    this.border,
   });
 
   @override
-  State<SingleLineCodeEditor> createState() => _SingleLineCodeEditorState();
+  State<URLInput> createState() => _URLInputState();
 }
 
-class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
+class _URLInputState extends State<URLInput> {
   late final FocusNode _focusNode;
   bool _isFocused = false;
   bool _isHovered = false;
@@ -74,11 +72,11 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
     eventBus.fire(EditorInputFocused(key));
   }
 
-  Border? _getDynamicBorder() {
+  Color _getBorderColor() {
     if (_isFocused) {
-      return Border.all(color: selectedMenuItemColor, width: 1);
+      return selectedMenuItemColor;
     }
-    return Border.all(color: borderColor, width: 1);
+    return borderColor;
   }
 
   Color _getBackgroundColor() {
@@ -108,7 +106,9 @@ class _SingleLineCodeEditorState extends State<SingleLineCodeEditor> {
               horizontalScroller:
                   widget.horizontalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),
             ),
-            border: _getDynamicBorder(),
+            // border: _getDynamicBorder(),
+            border: Border.all(color: _getBorderColor(), width: 1),
+            borderRadius: const BorderRadius.only(topRight: Radius.circular(4), bottomRight: Radius.circular(4)),
             style: CodeEditorStyle(
               fontFamily: "monospace",
               textColor: const Color(0xFFD4D4D4),

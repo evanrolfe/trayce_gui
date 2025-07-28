@@ -347,7 +347,7 @@ class _ContainersModalState extends State<ContainersModal> {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           alignment: Alignment.centerRight,
           child: SizedBox(
-            width: 70,
+            width: 100,
             child: ElevatedButton(
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: _commandController.text));

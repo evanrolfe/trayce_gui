@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/editor.dart';
 
@@ -51,7 +51,7 @@ void main() {
       // Verify the URL input exists and can be accessed
       expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
 
-      final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
       urlInput.controller.text = 'https://example.com';
       await tester.pumpAndSettle();
 

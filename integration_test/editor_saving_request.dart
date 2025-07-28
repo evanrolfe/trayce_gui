@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
-import 'package:trayce/editor/widgets/code_editor/code_editor_single.dart';
+import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 
 import '../test/support/helpers.dart';
@@ -109,7 +109,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // ===========================================================================
   // Change the URL
   // ===========================================================================
-  final urlInput = tester.widget<SingleLineCodeEditor>(find.byKey(Key('flow_editor_http_url_input')));
+  final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
   expect(urlInput.controller.text, 'http://www.github.com/two');
 
   // Change the URL

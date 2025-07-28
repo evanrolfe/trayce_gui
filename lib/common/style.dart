@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+const Color inputBackgroundColor = Color(0xFF1B1B1C);
 const Color textColor = Color(0xFF1E1E1E);
 const Color lightTextColor = Color(0xFFD4D4D4);
 const Color backgroundColor = Color(0xFF1E1E1E);
@@ -10,6 +11,7 @@ const Color lightButtonColor = Color(0xFF2C2C2C);
 const Color selectedItemColor = Color(0xFF65AE7F);
 
 const Color highlightBorderColor = Color(0xFF4DB6AC);
+const Color fadedHighlightBorderColor = Color(0xFF2C4C49);
 const Color statusBarBackground = Color(0xFF333333);
 const Color statusBarText = Color(0xFFD4D4D4);
 const Color statusBarHoverBackground = Color.fromARGB(255, 71, 71, 71);
@@ -20,6 +22,16 @@ const Color statusWarningColor = Color.fromARGB(255, 235, 158, 44);
 const Color statusErrorColor = Color.fromARGB(255, 209, 57, 46);
 
 final commonButtonStyle = ElevatedButton.styleFrom(
+  backgroundColor: inputBackgroundColor,
+  foregroundColor: lightTextColor,
+  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(4),
+    side: BorderSide(color: lightTextColor.withOpacity(0.3)),
+  ),
+);
+
+final commonButtonStyleBright = ElevatedButton.styleFrom(
   backgroundColor: Color(0xFF4DB6AC),
   padding: EdgeInsets.symmetric(horizontal: 16),
   minimumSize: Size(0, 36),
@@ -47,7 +59,7 @@ const textFieldDecor = InputDecoration(
   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1)),
   hintStyle: TextStyle(color: Color(0xFF808080), fontSize: 13),
   filled: true,
-  fillColor: Color(0xFF2E2E2E),
+  fillColor: inputBackgroundColor,
   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 11),
   constraints: BoxConstraints(maxHeight: 30, minHeight: 30),
 );
