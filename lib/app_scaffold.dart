@@ -91,33 +91,6 @@ class _AppScaffoldState extends State<AppScaffold> {
                       onPointerDown: (_) => _navigateToPage(0),
                       child: MouseRegion(
                         onEnter: (_) {
-                          setState(() => isHovering0 = true);
-                          _timer0?.cancel();
-                          _timer0 = Timer(const Duration(milliseconds: 500), () {
-                            if (mounted && isHovering0) {
-                              setState(() => showTooltip0 = true);
-                            }
-                          });
-                        },
-                        onExit: (_) {
-                          setState(() {
-                            isHovering0 = false;
-                            showTooltip0 = false;
-                          });
-                          _timer0?.cancel();
-                        },
-                        child: _getSidebarItem(
-                          Key('network-sidebar-btn'),
-                          isHovering0,
-                          widget.selectedIndex == 0,
-                          docker,
-                        ),
-                      ),
-                    ),
-                    Listener(
-                      onPointerDown: (_) => _navigateToPage(1),
-                      child: MouseRegion(
-                        onEnter: (_) {
                           setState(() => isHovering1 = true);
                           _timer1?.cancel();
                           _timer1 = Timer(const Duration(milliseconds: 500), () {
@@ -136,8 +109,35 @@ class _AppScaffoldState extends State<AppScaffold> {
                         child: _getSidebarItem(
                           Key('editor-sidebar-btn'),
                           isHovering1,
-                          widget.selectedIndex == 1,
+                          widget.selectedIndex == 0,
                           Icons.edit,
+                        ),
+                      ),
+                    ),
+                    Listener(
+                      onPointerDown: (_) => _navigateToPage(1),
+                      child: MouseRegion(
+                        onEnter: (_) {
+                          setState(() => isHovering0 = true);
+                          _timer0?.cancel();
+                          _timer0 = Timer(const Duration(milliseconds: 500), () {
+                            if (mounted && isHovering0) {
+                              setState(() => showTooltip0 = true);
+                            }
+                          });
+                        },
+                        onExit: (_) {
+                          setState(() {
+                            isHovering0 = false;
+                            showTooltip0 = false;
+                          });
+                          _timer0?.cancel();
+                        },
+                        child: _getSidebarItem(
+                          Key('network-sidebar-btn'),
+                          isHovering0,
+                          widget.selectedIndex == 1,
+                          docker,
                         ),
                       ),
                     ),
