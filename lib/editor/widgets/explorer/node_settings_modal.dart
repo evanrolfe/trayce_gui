@@ -119,8 +119,8 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       backgroundColor: lightBackgroundColor,
       shape: dialogShape,
       child: Container(
-        width: 600,
-        height: 400,
+        width: 800,
+        height: 600,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

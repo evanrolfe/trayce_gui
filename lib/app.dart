@@ -36,7 +36,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WindowListener {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
   Key _rebuildKey = UniqueKey();
   String? _errorMessage;
   bool _showingError = false;
@@ -67,7 +67,7 @@ class _AppState extends State<App> with WindowListener {
     setState(() => _selectedIndex = index);
 
     // Focus the explorer when switching to the editor tab
-    if (index == 1) {
+    if (index == 0) {
       context.read<EventBus>().fire(EventFocusExplorer());
     }
   }
@@ -204,8 +204,8 @@ class _AppState extends State<App> with WindowListener {
                     key: _rebuildKey,
                     index: _selectedIndex,
                     children: [
-                      AppScaffold(selectedIndex: 0, onIndexChanged: _onIndexChanged, child: const Network()),
-                      AppScaffold(selectedIndex: 1, onIndexChanged: _onIndexChanged, child: const Editor()),
+                      AppScaffold(selectedIndex: 0, onIndexChanged: _onIndexChanged, child: const Editor()),
+                      AppScaffold(selectedIndex: 1, onIndexChanged: _onIndexChanged, child: const Network()),
                     ],
                   );
                 },

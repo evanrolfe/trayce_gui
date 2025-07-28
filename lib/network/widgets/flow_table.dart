@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
+import 'package:trayce/network/widgets/splash_screen.dart';
 
 import '../../common/selectable_table.dart';
 import '../../common/style.dart';
@@ -108,6 +109,8 @@ class _FlowTableState extends State<FlowTable> {
             onColumnResize: widget.onColumnResize,
             rows: _flows,
             focusNode: _tableFocusNode,
+            showSplashScreen: _flows.isEmpty,
+            splashScreen: SplashScreen(onContainersButtonPressed: () => showContainersModal(context)),
             onRowSelected: (flow) {
               setState(() {
                 selectedFlowID = flow?.id;

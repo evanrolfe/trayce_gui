@@ -54,8 +54,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   }
 
   static const _kFontFam = 'MyFlutterApp';
-  static const String? _kFontPkg = null;
-  static const IconData docker = IconData(0xf395, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData docker = IconData(0xf395, fontFamily: _kFontFam, fontPackage: null);
 
   Widget _buildTooltip(String text, double top, double left) {
     return Positioned(
@@ -92,8 +91,8 @@ class _AppScaffoldState extends State<AppScaffold> {
                       child: MouseRegion(
                         onEnter: (_) {
                           setState(() => isHovering0 = true);
-                          _timer0?.cancel();
-                          _timer0 = Timer(const Duration(milliseconds: 500), () {
+                          _timer1?.cancel();
+                          _timer1 = Timer(const Duration(milliseconds: 500), () {
                             if (mounted && isHovering0) {
                               setState(() => showTooltip0 = true);
                             }
@@ -104,13 +103,13 @@ class _AppScaffoldState extends State<AppScaffold> {
                             isHovering0 = false;
                             showTooltip0 = false;
                           });
-                          _timer0?.cancel();
+                          _timer1?.cancel();
                         },
                         child: _getSidebarItem(
-                          Key('network-sidebar-btn'),
+                          Key('editor-sidebar-btn'),
                           isHovering0,
                           widget.selectedIndex == 0,
-                          docker,
+                          Icons.edit,
                         ),
                       ),
                     ),
@@ -119,8 +118,8 @@ class _AppScaffoldState extends State<AppScaffold> {
                       child: MouseRegion(
                         onEnter: (_) {
                           setState(() => isHovering1 = true);
-                          _timer1?.cancel();
-                          _timer1 = Timer(const Duration(milliseconds: 500), () {
+                          _timer0?.cancel();
+                          _timer0 = Timer(const Duration(milliseconds: 500), () {
                             if (mounted && isHovering1) {
                               setState(() => showTooltip1 = true);
                             }
@@ -131,13 +130,13 @@ class _AppScaffoldState extends State<AppScaffold> {
                             isHovering1 = false;
                             showTooltip1 = false;
                           });
-                          _timer1?.cancel();
+                          _timer0?.cancel();
                         },
                         child: _getSidebarItem(
-                          Key('editor-sidebar-btn'),
+                          Key('network-sidebar-btn'),
                           isHovering1,
                           widget.selectedIndex == 1,
-                          Icons.edit,
+                          docker,
                         ),
                       ),
                     ),
@@ -148,8 +147,8 @@ class _AppScaffoldState extends State<AppScaffold> {
               Expanded(child: widget.child),
             ],
           ),
-          if (showTooltip0) _buildTooltip('Docker Network', 20, 60),
-          if (showTooltip1) _buildTooltip('Editor', 70, 60),
+          if (showTooltip0) _buildTooltip('Editor', 20, 60),
+          if (showTooltip1) _buildTooltip('Docker Network', 70, 60),
         ],
       ),
     );
