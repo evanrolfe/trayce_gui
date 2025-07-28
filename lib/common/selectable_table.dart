@@ -35,6 +35,8 @@ class SelectableTable<T extends Identifiable> extends StatefulWidget {
   final double rowHeight;
   final double headerHeight;
   final FocusNode? focusNode;
+  final bool showSplashScreen;
+  final Widget? splashScreen;
 
   const SelectableTable({
     super.key,
@@ -47,6 +49,8 @@ class SelectableTable<T extends Identifiable> extends StatefulWidget {
     required this.rowHeight,
     required this.headerHeight,
     this.focusNode,
+    this.showSplashScreen = true,
+    this.splashScreen,
   });
 
   @override
@@ -108,145 +112,148 @@ class _SelectableTableState<T extends Identifiable> extends State<SelectableTabl
             },
           ),
         ),
-        // Table Body
-        Expanded(
-          child: Focus(
-            focusNode: _focusNode,
-            // autofocus: true,
-            onKeyEvent: (node, event) {
-              // Handle Arrow Up
-              if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                if (selectedRow == null) {
-                  return KeyEventResult.handled;
-                }
 
-                final nextIndex = getSelectedRowIndex() - 1;
-                if (nextIndex < 0) {
+        // Table Body
+        if (widget.showSplashScreen && widget.splashScreen != null) widget.splashScreen!,
+        if (!widget.showSplashScreen)
+          Expanded(
+            child: Focus(
+              focusNode: _focusNode,
+              // autofocus: true,
+              onKeyEvent: (node, event) {
+                // Handle Arrow Up
+                if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                  if (selectedRow == null) {
+                    return KeyEventResult.handled;
+                  }
+
+                  final nextIndex = getSelectedRowIndex() - 1;
+                  if (nextIndex < 0) {
+                    return KeyEventResult.handled;
+                  }
+                  final nextRow = widget.rows[nextIndex];
+                  setState(() {
+                    selectedRow = nextRow;
+                    widget.onRowSelected(nextRow);
+                  });
                   return KeyEventResult.handled;
                 }
-                final nextRow = widget.rows[nextIndex];
-                setState(() {
-                  selectedRow = nextRow;
-                  widget.onRowSelected(nextRow);
-                });
+                // Handle Arrow Down
+                if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                  if (selectedRow == null) return KeyEventResult.handled;
+                  final nextIndex = getSelectedRowIndex() + 1;
+                  if (nextIndex > widget.rows.length - 1) return KeyEventResult.handled;
+                  final nextRow = widget.rows[nextIndex];
+                  setState(() {
+                    selectedRow = nextRow;
+                    widget.onRowSelected(nextRow);
+                  });
+                  return KeyEventResult.handled;
+                }
                 return KeyEventResult.handled;
-              }
-              // Handle Arrow Down
-              if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                if (selectedRow == null) return KeyEventResult.handled;
-                final nextIndex = getSelectedRowIndex() + 1;
-                if (nextIndex > widget.rows.length - 1) return KeyEventResult.handled;
-                final nextRow = widget.rows[nextIndex];
-                setState(() {
-                  selectedRow = nextRow;
-                  widget.onRowSelected(nextRow);
-                });
-                return KeyEventResult.handled;
-              }
-              return KeyEventResult.handled;
-            },
-            child: Scrollbar(
-              thumbVisibility: true,
-              controller: widget.controller,
-              thickness: 8,
-              radius: const Radius.circular(4),
-              child: ListView.builder(
+              },
+              child: Scrollbar(
+                thumbVisibility: true,
                 controller: widget.controller,
-                itemCount: widget.rows.length,
-                cacheExtent: 1000,
-                itemExtent: widget.rowHeight,
-                addAutomaticKeepAlives: false,
-                addRepaintBoundaries: false,
-                itemBuilder: (context, index) {
-                  final row = widget.rows[index];
-                  bool isHovered = false;
-                  return StatefulBuilder(
-                    builder:
-                        (context, setState) => MouseRegion(
-                          onEnter: (_) => setState(() => isHovered = true),
-                          onExit: (_) => setState(() => isHovered = false),
-                          child: GestureDetector(
-                            onTap: () {
-                              this.setState(() {
-                                selectedRow = row;
-                                widget.onRowSelected(row);
-                              });
-                              FocusScope.of(context).requestFocus(_focusNode);
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: const Border(bottom: BorderSide(color: Colors.black)),
-                                color:
-                                    selectedRow != null && selectedRow!.getTableKey() == row.getTableKey()
-                                        ? const Color(0xFF4DB6AC).withAlpha(77)
-                                        : isHovered
-                                        ? const Color(0xFF2D2D2D).withAlpha(77)
-                                        : null,
-                              ),
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final totalWidth = constraints.maxWidth;
-                                  return Stack(
-                                    children: [
-                                      Row(
-                                        children: List.generate(widget.columns.length, (colIndex) {
-                                          final col = widget.columns[colIndex];
-                                          final text = col.cellBuilder(row);
-                                          final decoration = col.cellDecorationBuilder?.call(row, text);
-                                          final width = totalWidth * widget.columnWidths[colIndex];
-                                          if (col.cellTextWidth != null && col.cellDecorationBuilder != null) {
-                                            // Special case for decorated cell with fixed width
-                                            return SizedBox(
-                                              width: width,
-                                              child: Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: IntrinsicWidth(
-                                                  child: Container(
-                                                    width: col.cellTextWidth,
-                                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                                                    decoration: decoration,
-                                                    child: Text(
-                                                      text,
-                                                      style: const TextStyle(fontSize: 13, color: Color(0xFFD4D4D4)),
-                                                      textAlign: col.cellTextAlign,
+                thickness: 8,
+                radius: const Radius.circular(4),
+                child: ListView.builder(
+                  controller: widget.controller,
+                  itemCount: widget.rows.length,
+                  cacheExtent: 1000,
+                  itemExtent: widget.rowHeight,
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: false,
+                  itemBuilder: (context, index) {
+                    final row = widget.rows[index];
+                    bool isHovered = false;
+                    return StatefulBuilder(
+                      builder:
+                          (context, setState) => MouseRegion(
+                            onEnter: (_) => setState(() => isHovered = true),
+                            onExit: (_) => setState(() => isHovered = false),
+                            child: GestureDetector(
+                              onTap: () {
+                                this.setState(() {
+                                  selectedRow = row;
+                                  widget.onRowSelected(row);
+                                });
+                                FocusScope.of(context).requestFocus(_focusNode);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: const Border(bottom: BorderSide(color: Colors.black)),
+                                  color:
+                                      selectedRow != null && selectedRow!.getTableKey() == row.getTableKey()
+                                          ? const Color(0xFF4DB6AC).withAlpha(77)
+                                          : isHovered
+                                          ? const Color(0xFF2D2D2D).withAlpha(77)
+                                          : null,
+                                ),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final totalWidth = constraints.maxWidth;
+                                    return Stack(
+                                      children: [
+                                        Row(
+                                          children: List.generate(widget.columns.length, (colIndex) {
+                                            final col = widget.columns[colIndex];
+                                            final text = col.cellBuilder(row);
+                                            final decoration = col.cellDecorationBuilder?.call(row, text);
+                                            final width = totalWidth * widget.columnWidths[colIndex];
+                                            if (col.cellTextWidth != null && col.cellDecorationBuilder != null) {
+                                              // Special case for decorated cell with fixed width
+                                              return SizedBox(
+                                                width: width,
+                                                child: Align(
+                                                  alignment: Alignment.centerLeft,
+                                                  child: IntrinsicWidth(
+                                                    child: Container(
+                                                      width: col.cellTextWidth,
+                                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                                      decoration: decoration,
+                                                      child: Text(
+                                                        text,
+                                                        style: const TextStyle(fontSize: 13, color: Color(0xFFD4D4D4)),
+                                                        textAlign: col.cellTextAlign,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
+                                              );
+                                            }
+                                            return SizedBox(
+                                              width: width,
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                child: Text(
+                                                  text,
+                                                  style: const TextStyle(fontSize: 13, color: Color(0xFFD4D4D4)),
+                                                  overflow: TextOverflow.ellipsis,
+                                                  textAlign: col.cellTextAlign,
+                                                ),
                                               ),
                                             );
-                                          }
-                                          return SizedBox(
-                                            width: width,
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                              child: Text(
-                                                text,
-                                                style: const TextStyle(fontSize: 13, color: Color(0xFFD4D4D4)),
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: col.cellTextAlign,
-                                              ),
-                                            ),
-                                          );
+                                          }),
+                                        ),
+                                        ...List.generate(widget.columns.length - 1, (i) {
+                                          double leftOffset =
+                                              totalWidth * widget.columnWidths.take(i + 1).reduce((a, b) => a + b);
+                                          return _buildDivider(i, totalWidth, leftOffset);
                                         }),
-                                      ),
-                                      ...List.generate(widget.columns.length - 1, (i) {
-                                        double leftOffset =
-                                            totalWidth * widget.columnWidths.take(i + 1).reduce((a, b) => a + b);
-                                        return _buildDivider(i, totalWidth, leftOffset);
-                                      }),
-                                    ],
-                                  );
-                                },
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

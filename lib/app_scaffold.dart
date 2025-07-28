@@ -54,8 +54,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   }
 
   static const _kFontFam = 'MyFlutterApp';
-  static const String? _kFontPkg = null;
-  static const IconData docker = IconData(0xf395, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData docker = IconData(0xf395, fontFamily: _kFontFam, fontPackage: null);
 
   Widget _buildTooltip(String text, double top, double left) {
     return Positioned(

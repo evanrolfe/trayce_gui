@@ -85,6 +85,8 @@ flutter:
   assets:
     - schema.sql
     - fonts/logo.svg
+    - fonts/docker.svg
+    - fonts/docker-mark-blue.svg
   fonts:
    - family:  MyFlutterApp
      fonts:
