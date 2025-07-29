@@ -16,6 +16,7 @@ class FormTableInput extends StatefulWidget {
   final VoidCallback? onEnterPressed;
   final FocusNode? focusNode;
   final BoxDecoration? decoration;
+  final bool readOnly;
   const FormTableInput({
     required super.key,
     required this.controller,
@@ -25,6 +26,7 @@ class FormTableInput extends StatefulWidget {
     this.onEnterPressed,
     this.focusNode,
     this.decoration,
+    this.readOnly = false,
   });
 
   @override
@@ -87,6 +89,7 @@ class _FormTableInputState extends State<FormTableInput> {
           promptsBuilder: DefaultCodeAutocompletePromptsBuilder(language: langDart),
           child: CodeEditor(
             controller: widget.controller,
+            readOnly: widget.readOnly,
             scrollController: CodeScrollController(
               verticalScroller:
                   widget.verticalScroller ?? ScrollController(initialScrollOffset: 0, keepScrollOffset: false),

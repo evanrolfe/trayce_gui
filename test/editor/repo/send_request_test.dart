@@ -58,6 +58,9 @@ void main() {
 
       final finalReq = SendRequest(request: reqThree.request!, nodeHierarchy: hierarchy).getFinalRequest();
 
+      // Verify the URL
+      expect(finalReq.url, 'www.synack.com/three/users/show/123');
+
       // Verify the headers
       expect(finalReq.headers.length, 5);
       expect(finalReq.headers[0].name, 'D');

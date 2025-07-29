@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 
 abstract interface class FormTableControllerI {
   List<FormTableRow> rows();
   EditorFocusManager focusManager();
+  Map<String, FocusNode> getRowFocusNodes(int index);
   int selectedRowIndex();
   void setSelectedRowIndex(int value);
   void deleteRow(int index);

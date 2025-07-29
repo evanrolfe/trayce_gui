@@ -57,7 +57,7 @@ void main() {
 
       // Enter params
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       expect(paramsController.rows().length, 1);

@@ -11,6 +11,7 @@ enum FormTableColumn { enabled, selected, delete, key, value, valueFile, secret,
 class FormTable extends StatefulWidget {
   final FormTableControllerI controller;
   final List<FormTableColumn> columns;
+  final List<FormTableColumn> readOnlyColumns;
 
   const FormTable({
     super.key,
@@ -22,6 +23,7 @@ class FormTable extends StatefulWidget {
       FormTableColumn.secret,
       FormTableColumn.delete,
     ],
+    this.readOnlyColumns = const [],
   });
 
   @override
@@ -56,7 +58,7 @@ class _FormTableState extends State<FormTable> {
     _cleanupFocusListeners();
 
     for (int i = 0; i < widget.controller.rows().length; i++) {
-      final rowFocusNodes = widget.controller.focusManager().getRowFocusNodes(i);
+      final rowFocusNodes = widget.controller.getRowFocusNodes(i);
       final listeners = <String, VoidCallback>{};
 
       rowFocusNodes.forEach((key, focusNode) {
@@ -86,20 +88,37 @@ class _FormTableState extends State<FormTable> {
   void _cleanupFocusListeners() {
     for (final listeners in _focusListeners) {
       listeners.forEach((key, listener) {
-        final rowFocusNodes = widget.controller.focusManager().getRowFocusNodes(_focusListeners.indexOf(listeners));
+        final rowFocusNodes = widget.controller.getRowFocusNodes(_focusListeners.indexOf(listeners));
         rowFocusNodes[key]?.removeListener(listener);
       });
     }
     _focusListeners.clear();
   }
 
-  Widget _buildHeaderCell(String text) {
+  Widget _buildHeaderCell(FormTableColumn colType) {
+    final text = switch (colType) {
+      FormTableColumn.key => 'Key',
+      FormTableColumn.value => 'Value',
+      FormTableColumn.valueFile => 'Value',
+      FormTableColumn.contentType => 'Content-Type',
+      FormTableColumn.selected => 'Selected',
+      FormTableColumn.secret => 'Secret',
+      FormTableColumn.enabled => '',
+      FormTableColumn.delete => '',
+    };
+
     final borderSide = BorderSide(color: borderColor, width: 1);
+
+    final isLastColumn = widget.columns.indexOf(colType) == widget.columns.length - 1;
+    BorderSide borderRight = BorderSide.none;
+    if (isLastColumn) {
+      borderRight = borderSide;
+    }
 
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide)),
+        decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide, right: borderRight)),
         height: 30,
         alignment: Alignment.centerLeft,
         child: Text(text, style: TextStyle(color: Color(0xFF666666), fontWeight: FontWeight.bold)),
@@ -113,7 +132,7 @@ class _FormTableState extends State<FormTable> {
     final borderSide = BorderSide(color: borderColor, width: 1);
 
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 20),
+      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 12),
       child: Column(
         children: [
           // Static header row
@@ -132,24 +151,23 @@ class _FormTableState extends State<FormTable> {
                 ),
 
               const SizedBox(width: 0),
-              if (widget.columns.contains(FormTableColumn.key)) _buildHeaderCell('Key'),
+              if (widget.columns.contains(FormTableColumn.key)) _buildHeaderCell(FormTableColumn.key),
               const SizedBox(width: 0),
 
               if (widget.columns.contains(FormTableColumn.value) || widget.columns.contains(FormTableColumn.valueFile))
-                _buildHeaderCell('Value'),
+                _buildHeaderCell(FormTableColumn.value),
 
-              if (widget.columns.contains(FormTableColumn.contentType)) _buildHeaderCell('Content-Type'),
+              if (widget.columns.contains(FormTableColumn.contentType)) _buildHeaderCell(FormTableColumn.contentType),
 
-              if (widget.columns.contains(FormTableColumn.selected)) _buildHeaderCell('Selected'),
+              if (widget.columns.contains(FormTableColumn.selected)) _buildHeaderCell(FormTableColumn.selected),
 
-              if (widget.columns.contains(FormTableColumn.secret)) _buildHeaderCell('Secret'),
+              if (widget.columns.contains(FormTableColumn.secret)) _buildHeaderCell(FormTableColumn.secret),
 
               if (widget.columns.contains(FormTableColumn.delete))
                 Container(
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(border: Border(top: borderSide, left: borderSide, right: borderSide)),
-                  // decoration: BoxDecoration(border: Border.all(color: const Color(0xFF474747), width: 0)),
                   child: Tooltip(
                     message: 'Delete row',
                     child: const Icon(Icons.help_outline, size: 16, color: Color(0xFF666666)),
@@ -160,7 +178,7 @@ class _FormTableState extends State<FormTable> {
           // Existing rows
           ...List.generate(widget.controller.rows().length, (index) {
             final row = widget.controller.rows()[index];
-            final rowFocusNodes = widget.controller.focusManager().getRowFocusNodes(index);
+            final rowFocusNodes = widget.controller.getRowFocusNodes(index);
             return _buildRow(context, index, row, rowFocusNodes, borderSide);
           }),
         ],
@@ -232,6 +250,7 @@ class _FormTableState extends State<FormTable> {
                 key: Key('form_table_key_$index'),
                 controller: row.keyController,
                 focusNode: rowFocusNodes['key']!,
+                readOnly: widget.readOnlyColumns.contains(FormTableColumn.key),
               ),
             ),
           ),
@@ -247,6 +266,7 @@ class _FormTableState extends State<FormTable> {
                 key: Key('form_table_value_$index'),
                 controller: row.valueController,
                 focusNode: rowFocusNodes['value']!,
+                readOnly: widget.readOnlyColumns.contains(FormTableColumn.value),
               ),
             ),
           ),
@@ -287,6 +307,7 @@ class _FormTableState extends State<FormTable> {
                 key: Key('form_table_content_type_$index'),
                 controller: row.contentTypeController,
                 focusNode: rowFocusNodes['contentType']!,
+                readOnly: widget.readOnlyColumns.contains(FormTableColumn.contentType),
               ),
             ),
           ),

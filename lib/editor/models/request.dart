@@ -312,8 +312,37 @@ class Request {
     }
   }
 
+  void interpolatePathParams() {
+    final pathParams = getPathParams();
+    for (final param in pathParams) {
+      url = url.replaceAll(':${param.name}', param.value);
+    }
+  }
+
+  void setQueryParams(List<Param> newParams) {
+    final pathParams = getPathParams();
+    params = newParams + pathParams;
+  }
+
+  void setPathParams(List<Param> newParams) {
+    final queryParams = getQueryParams();
+    params = newParams + queryParams;
+  }
+
+  List<Param> getQueryParams() {
+    return params.where((p) => p.type == ParamType.query).toList();
+  }
+
+  List<Param> getPathParams() {
+    return params.where((p) => p.type == ParamType.path).toList();
+  }
+
   List<Param> getQueryParamsFromURL() {
-    return parseUrl(url);
+    return parseUrlQueryParams(url);
+  }
+
+  List<Param> getPathParamsFromURL() {
+    return parseUrlPathParams(url);
   }
 
   Future<http.Response> send() async {

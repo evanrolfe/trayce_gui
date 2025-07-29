@@ -474,12 +474,59 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             controller: _topTabController,
                                             children: [
                                               SingleChildScrollView(
-                                                child: FormTable(
-                                                  controller: _formController.queryParamsController,
-                                                  columns: [
-                                                    FormTableColumn.key,
-                                                    FormTableColumn.value,
-                                                    FormTableColumn.delete,
+                                                child: Column(
+                                                  children: [
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.only(left: 20, top: 10),
+                                                      child: Text(
+                                                        'Query Params',
+                                                        style: TextStyle(
+                                                          color: Color(0xFF666666),
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    FormTable(
+                                                      controller: _formController.queryParamsController,
+                                                      columns: [
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
+                                                    ),
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.only(left: 20, top: 10),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            'Path Params',
+                                                            style: TextStyle(
+                                                              color: Color(0xFF666666),
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Tooltip(
+                                                            message:
+                                                                'The Path Params table is automatically populated whenever a segment starting with : is added to the URL.\nFor example: http://localhost/api/users/:id',
+                                                            child: const Icon(
+                                                              Icons.help_outline,
+                                                              size: 16,
+                                                              color: Color(0xFF666666),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    FormTable(
+                                                      controller: _formController.pathParamsController,
+                                                      columns: [FormTableColumn.key, FormTableColumn.value],
+                                                      readOnlyColumns: [FormTableColumn.key],
+                                                    ),
                                                   ],
                                                 ),
                                               ),

@@ -5,27 +5,25 @@ import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/widgets/common/form_table_controller.dart';
 import 'package:trayce/editor/widgets/common/form_table_row.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
-import 'package:trayce/editor/widgets/flow_editor_http/query_params_form_base_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/path_params_form_base_controller.dart';
 
-class QueryParamsController implements FormTableControllerI {
-  late QueryParamsFormBaseController _baseController;
+class PathParamsController implements FormTableControllerI {
+  late PathParamsFormBaseController _baseController;
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final Config config;
   int? _selectedRowIndex; // Track which row is selected for radio buttons
   final EditorFocusManager _focusManager;
-  final CodeLineEditingController urlController;
 
-  QueryParamsController({
+  PathParamsController({
     required this.onStateChanged,
     required List<Param> initialRows,
     this.onModified,
     required this.config,
     required EditorFocusManager focusManager,
-    required this.urlController,
   }) : _focusManager = focusManager {
     final rows = _convertParamsToRows(initialRows);
-    _baseController = QueryParamsFormBaseController(
+    _baseController = PathParamsFormBaseController(
       rows: rows,
       onStateChanged: onStateChanged,
       onModified: onModified,
@@ -47,51 +45,10 @@ class QueryParamsController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getPathParamsRowFocusNodes(index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
-
-  List<Param> getParams() {
-    return _baseController.rows
-        .where((row) => !(row.keyController.text.isEmpty && row.valueController.text.isEmpty))
-        .map((row) {
-          return Param(
-            name: row.keyController.text,
-            value: row.valueController.text,
-            enabled: true,
-            type: ParamType.query,
-          );
-        })
-        .toList();
-  }
-
-  // This should merge params so it preserves disabled rows, but it doesn't work properly
-  // So for the meantime I am not allowing disabling of query params
-  void mergeParams(List<Param> params) {
-    _baseController.disableListeners();
-    if (params.length < _baseController.rows.length) {
-      for (int i = params.length; i < _baseController.rows.length; i++) {
-        _baseController.deleteRow(i);
-      }
-    }
-
-    // params.length+1 because we alway have an empty row last
-    if (params.length + 1 > _baseController.rows.length) {
-      for (int i = _baseController.rows.length; i < params.length + 1; i++) {
-        _baseController.addNewRow();
-      }
-    }
-
-    for (int i = 0; i < params.length; i++) {
-      final param = params[i];
-      final row = _baseController.rows[i];
-      row.keyController.text = param.name;
-      row.valueController.text = param.value;
-    }
-
-    _baseController.enableListeners();
-  }
 
   List<FormTableRow> _convertParamsToRows(List<Param> params) {
     return params.asMap().entries.map((entry) {
@@ -112,10 +69,71 @@ class QueryParamsController implements FormTableControllerI {
         checkboxState: param.enabled,
         newRow: false,
       );
-      _focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodesForPathParams();
 
       return row;
     }).toList();
+  }
+
+  List<Param> getParams() {
+    return _baseController.rows
+        .where((row) => !(row.keyController.text.isEmpty && row.valueController.text.isEmpty))
+        .map((row) {
+          return Param(
+            name: row.keyController.text,
+            value: row.valueController.text,
+            enabled: true,
+            type: ParamType.path,
+          );
+        })
+        .toList();
+  }
+
+  void setParams(List<Param> params) {
+    // Create a map of existing parameter names to their values
+    final existingValues = <String, String>{};
+    for (final row in _baseController.rows) {
+      if (row.keyController.text.isNotEmpty) {
+        existingValues[row.keyController.text] = row.valueController.text;
+      }
+    }
+
+    // Clear existing rows
+    for (final row in _baseController.rows) {
+      row.dispose();
+    }
+    _baseController.rows.clear();
+
+    // Create new rows based on the input params
+    for (int i = 0; i < params.length; i++) {
+      final param = params[i];
+      final existingValue = existingValues[param.name] ?? '';
+
+      final keyController = CodeLineEditingController();
+      final valueController = CodeLineEditingController();
+      final contentTypeController = CodeLineEditingController();
+
+      keyController.text = param.name;
+      valueController.text = existingValue;
+      contentTypeController.text = '';
+
+      final row = FormTableRow(
+        keyController: keyController,
+        valueController: valueController,
+        contentTypeController: contentTypeController,
+        checkboxState: true,
+        newRow: false,
+      );
+
+      _baseController.rows.add(row);
+      _focusManager.createRowFocusNodesForPathParams();
+      _baseController.setupListenersForRow(row, i);
+    }
+
+    // Add a new empty row at the end
+    _baseController.addNewRow();
+
+    onStateChanged();
   }
 
   void clearAllSelections() {

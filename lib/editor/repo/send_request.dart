@@ -17,6 +17,7 @@ class SendRequest {
   Request getFinalRequest() {
     final finalReq = Request.blank();
     finalReq.copyValuesFrom(request);
+    finalReq.interpolatePathParams();
 
     // Work out the headers by looping through nodeHierarchy in reverse order
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {

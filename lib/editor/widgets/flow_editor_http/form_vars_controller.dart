@@ -38,6 +38,9 @@ class FormVarsController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+
+  @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
 
   void setVars(List<Variable> vars) {

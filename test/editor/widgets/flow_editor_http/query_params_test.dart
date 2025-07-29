@@ -38,7 +38,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
       expect(paramsController.rows()[0].keyController.text, '');
       expect(paramsController.rows()[0].valueController.text, '');
@@ -75,7 +75,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
       expect(paramsController.rows()[0].keyController.text, '');
       expect(paramsController.rows()[0].valueController.text, '');
@@ -139,7 +139,7 @@ void main() {
       await tester.tap(find.text('Params'));
       await tester.pumpAndSettle();
 
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       // Add a query param to the URL
@@ -174,7 +174,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       // Verify the params
@@ -218,7 +218,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       // Verify the params
@@ -251,7 +251,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       urlInput.controller.text = 'https://example.com?&c=d';
@@ -285,7 +285,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       urlInput.controller.text = 'https://example.com?&c=d';
@@ -321,7 +321,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       expect(paramsController.rows().length, 3);
@@ -354,7 +354,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       expect(paramsController.rows().length, 3);
@@ -393,7 +393,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       expect(paramsController.rows().length, 3);
@@ -433,7 +433,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       expect(paramsController.rows().length, 3);
@@ -473,7 +473,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the params
-      final paramsTable = tester.widget<FormTable>(find.byType(FormTable));
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final paramsController = paramsTable.controller;
 
       expect(paramsController.rows().length, 3);
