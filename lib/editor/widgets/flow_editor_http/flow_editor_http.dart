@@ -499,13 +499,27 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     Container(
                                                       width: double.infinity,
                                                       padding: const EdgeInsets.only(left: 20, top: 10),
-                                                      child: Text(
-                                                        'Path Params',
-                                                        style: TextStyle(
-                                                          color: Color(0xFF666666),
-                                                          fontSize: 14,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            'Path Params',
+                                                            style: TextStyle(
+                                                              color: Color(0xFF666666),
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Tooltip(
+                                                            message:
+                                                                'The Path Params table is automatically populated whenever a segment starting with : is added to the URL.\nFor example: http://localhost/api/users/:id',
+                                                            child: const Icon(
+                                                              Icons.help_outline,
+                                                              size: 16,
+                                                              color: Color(0xFF666666),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                     FormTable(
