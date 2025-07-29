@@ -312,14 +312,18 @@ class Request {
     }
   }
 
-  void setQueryParams(List<Param> params) {
-    // TODO: Implement
+  void setQueryParams(List<Param> newParams) {
+    final pathParams = getPathParams();
+    params = newParams + pathParams;
   }
 
   void setPathParams(List<Param> newParams) {
-    final queryParams = params.where((p) => p.type == ParamType.query).toList();
-
+    final queryParams = getQueryParams();
     params = newParams + queryParams;
+  }
+
+  List<Param> getQueryParams() {
+    return params.where((p) => p.type == ParamType.query).toList();
   }
 
   List<Param> getPathParams() {
