@@ -5,7 +5,7 @@ String buildURLQueryString(List<Param> params) {
   return params.map((p) => '${Uri.encodeComponent(p.name)}=${Uri.encodeComponent(p.value)}').join('&');
 }
 
-List<Param> parseUrl(String url) {
+List<Param> parseUrlQueryParams(String url) {
   final params = <Param>[];
 
   // Use regex to extract the query string
@@ -21,6 +21,25 @@ List<Param> parseUrl(String url) {
     final key = Uri.decodeComponent(match.group(1)!);
     final value = match.group(3) != null ? Uri.decodeComponent(match.group(3)!) : '';
     params.add(Param(name: key, value: value, type: ParamType.query, enabled: true));
+  }
+
+  return params;
+}
+
+List<Param> parseUrlPathParams(String url) {
+  final params = <Param>[];
+
+  // Find the start of the query string to exclude it from path parsing
+  final queryStart = url.indexOf('?');
+  final pathEnd = queryStart != -1 ? queryStart : url.length;
+  final path = url.substring(0, pathEnd);
+
+  // Regex to match path parameters that start with ':'
+  // This matches :paramName where paramName can contain letters, numbers, and underscores
+  final regExp = RegExp(r':([a-zA-Z_][a-zA-Z0-9_]*)');
+  for (final match in regExp.allMatches(path)) {
+    final paramName = match.group(0)!; // Full match including the ':'
+    params.add(Param(name: paramName, value: '', type: ParamType.path, enabled: true));
   }
 
   return params;

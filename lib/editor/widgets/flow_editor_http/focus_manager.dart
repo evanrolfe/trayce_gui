@@ -15,6 +15,7 @@ class EditorFocusManager {
   late final FocusNode reqBodyFocusNode;
   late final FocusNode respBodyFocusNode;
   late final List<Map<String, FocusNode>> _rowFocusNodes;
+  late final List<Map<String, FocusNode>> _pathParamsRowFocusNodes;
 
   final EventBus _eventBus;
   final ValueKey tabKey;
@@ -30,6 +31,7 @@ class EditorFocusManager {
     reqBodyFocusNode = FocusNode();
     respBodyFocusNode = FocusNode();
     _rowFocusNodes = [];
+    _pathParamsRowFocusNodes = [];
 
     editorFocusNode.onKeyEvent = _onKeyUp;
     methodFocusNode.onKeyEvent = _onKeyUp;
@@ -68,6 +70,10 @@ class EditorFocusManager {
     return _rowFocusNodes[index];
   }
 
+  Map<String, FocusNode> getPathParamsRowFocusNodes(int index) {
+    return _pathParamsRowFocusNodes[index];
+  }
+
   Map<String, FocusNode> createRowFocusNodes() {
     final rowFocusNodes = {'key': FocusNode(), 'value': FocusNode(), 'contentType': FocusNode()};
 
@@ -78,6 +84,19 @@ class EditorFocusManager {
     rowFocusNodes['contentType']!.onKeyEvent = (node, event) => _onKeyUpRow(event, index, 'contentType');
 
     _rowFocusNodes.add(rowFocusNodes);
+    return rowFocusNodes;
+  }
+
+  Map<String, FocusNode> createRowFocusNodesForPathParams() {
+    final rowFocusNodes = {'key': FocusNode(), 'value': FocusNode(), 'contentType': FocusNode()};
+
+    final index = _rowFocusNodes.length;
+
+    rowFocusNodes['key']!.onKeyEvent = (node, event) => _onKeyUpRowPathParams(event, index, 'key');
+    rowFocusNodes['value']!.onKeyEvent = (node, event) => _onKeyUpRowPathParams(event, index, 'value');
+    rowFocusNodes['contentType']!.onKeyEvent = (node, event) => _onKeyUpRowPathParams(event, index, 'contentType');
+
+    _pathParamsRowFocusNodes.add(rowFocusNodes);
     return rowFocusNodes;
   }
 
@@ -151,6 +170,31 @@ class EditorFocusManager {
     } else if (nodeKey == 'contentType') {
       _rowFocusNodes[index + 1]['key']!.requestFocus();
     }
+  }
+
+  KeyEventResult _onKeyUpRowPathParams(KeyEvent event, int index, String nodeKey) {
+    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
+
+    if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
+      _eventBus.fire(EventSaveIntent(tabKey));
+      return KeyEventResult.handled;
+    }
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+      handleTabPressPathParams(index, nodeKey);
+      return KeyEventResult.handled;
+    }
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  void handleTabPressPathParams(int index, String nodeKey) {
+    // TODO: Make this work
+    // print('handleTabPressPathParams length: ${_pathParamsRowFocusNodes.length}, currentIndex: $index');
+    // if (nodeKey == 'value') {
+    //   _pathParamsRowFocusNodes[index + 1]['value']!.requestFocus();
+    // }
   }
 
   void dispose() {

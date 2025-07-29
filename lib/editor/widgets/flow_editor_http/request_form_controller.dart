@@ -14,6 +14,7 @@ import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.d
 import 'package:trayce/editor/widgets/flow_editor_http/form_multipart_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_params_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/path_params_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/query_params_controller.dart';
 
 class RequestFormController {
@@ -36,6 +37,7 @@ class RequestFormController {
 
   late final FormHeadersController headersController;
   late final QueryParamsController queryParamsController;
+  late final PathParamsController pathParamsController;
   late final FormVarsController varsController;
   late final FormParamsController formUrlEncodedController;
   late final FormMultipartController multipartFormController;
@@ -104,8 +106,15 @@ class RequestFormController {
       onModified: _queryParamsTableModified,
       config: config,
       focusManager: _focusManager,
-      eventBus: eventBus,
-      filePicker: filePicker,
+    );
+
+    // Path Params
+    pathParamsController = PathParamsController(
+      onStateChanged: setState,
+      initialRows: _formRequest.getPathParamsFromURL(),
+      onModified: _pathParamsTableModified,
+      config: config,
+      focusManager: _focusManager,
     );
 
     // Headers
@@ -184,6 +193,11 @@ class RequestFormController {
 
     _formRequest.setUrl(url);
 
+    final pathParams = _formRequest.getPathParamsFromURL();
+    if (pathParams.isNotEmpty) {
+      pathParamsController.setParams(pathParams);
+    }
+
     if (!compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) {
       final params = _formRequest.getQueryParamsFromURL();
       queryParamsController.mergeParams(params);
@@ -207,6 +221,8 @@ class RequestFormController {
 
     _flowModified();
   }
+
+  void _pathParamsTableModified() {}
 
   void setMethod(String method) {
     selectedMethod = method;

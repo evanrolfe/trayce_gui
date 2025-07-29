@@ -313,7 +313,11 @@ class Request {
   }
 
   List<Param> getQueryParamsFromURL() {
-    return parseUrl(url);
+    return parseUrlQueryParams(url);
+  }
+
+  List<Param> getPathParamsFromURL() {
+    return parseUrlPathParams(url);
   }
 
   Future<http.Response> send() async {

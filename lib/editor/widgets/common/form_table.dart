@@ -11,6 +11,7 @@ enum FormTableColumn { enabled, selected, delete, key, value, valueFile, secret,
 class FormTable extends StatefulWidget {
   final FormTableControllerI controller;
   final List<FormTableColumn> columns;
+  final List<FormTableColumn> readOnlyColumns;
 
   const FormTable({
     super.key,
@@ -22,6 +23,7 @@ class FormTable extends StatefulWidget {
       FormTableColumn.secret,
       FormTableColumn.delete,
     ],
+    this.readOnlyColumns = const [],
   });
 
   @override
@@ -56,7 +58,7 @@ class _FormTableState extends State<FormTable> {
     _cleanupFocusListeners();
 
     for (int i = 0; i < widget.controller.rows().length; i++) {
-      final rowFocusNodes = widget.controller.focusManager().getRowFocusNodes(i);
+      final rowFocusNodes = widget.controller.getRowFocusNodes(i);
       final listeners = <String, VoidCallback>{};
 
       rowFocusNodes.forEach((key, focusNode) {
@@ -86,7 +88,7 @@ class _FormTableState extends State<FormTable> {
   void _cleanupFocusListeners() {
     for (final listeners in _focusListeners) {
       listeners.forEach((key, listener) {
-        final rowFocusNodes = widget.controller.focusManager().getRowFocusNodes(_focusListeners.indexOf(listeners));
+        final rowFocusNodes = widget.controller.getRowFocusNodes(_focusListeners.indexOf(listeners));
         rowFocusNodes[key]?.removeListener(listener);
       });
     }
@@ -113,7 +115,7 @@ class _FormTableState extends State<FormTable> {
     final borderSide = BorderSide(color: borderColor, width: 1);
 
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 20),
+      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 12),
       child: Column(
         children: [
           // Static header row
@@ -160,7 +162,7 @@ class _FormTableState extends State<FormTable> {
           // Existing rows
           ...List.generate(widget.controller.rows().length, (index) {
             final row = widget.controller.rows()[index];
-            final rowFocusNodes = widget.controller.focusManager().getRowFocusNodes(index);
+            final rowFocusNodes = widget.controller.getRowFocusNodes(index);
             return _buildRow(context, index, row, rowFocusNodes, borderSide);
           }),
         ],
@@ -232,6 +234,7 @@ class _FormTableState extends State<FormTable> {
                 key: Key('form_table_key_$index'),
                 controller: row.keyController,
                 focusNode: rowFocusNodes['key']!,
+                readOnly: widget.readOnlyColumns.contains(FormTableColumn.key),
               ),
             ),
           ),
@@ -247,6 +250,7 @@ class _FormTableState extends State<FormTable> {
                 key: Key('form_table_value_$index'),
                 controller: row.valueController,
                 focusNode: rowFocusNodes['value']!,
+                readOnly: widget.readOnlyColumns.contains(FormTableColumn.value),
               ),
             ),
           ),
@@ -287,6 +291,7 @@ class _FormTableState extends State<FormTable> {
                 key: Key('form_table_content_type_$index'),
                 controller: row.contentTypeController,
                 focusNode: rowFocusNodes['contentType']!,
+                readOnly: widget.readOnlyColumns.contains(FormTableColumn.contentType),
               ),
             ),
           ),
