@@ -312,6 +312,20 @@ class Request {
     }
   }
 
+  void setQueryParams(List<Param> params) {
+    // TODO: Implement
+  }
+
+  void setPathParams(List<Param> newParams) {
+    final queryParams = params.where((p) => p.type == ParamType.query).toList();
+
+    params = newParams + queryParams;
+  }
+
+  List<Param> getPathParams() {
+    return params.where((p) => p.type == ParamType.path).toList();
+  }
+
   List<Param> getQueryParamsFromURL() {
     return parseUrlQueryParams(url);
   }

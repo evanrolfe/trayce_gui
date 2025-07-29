@@ -111,7 +111,7 @@ class RequestFormController {
     // Path Params
     pathParamsController = PathParamsController(
       onStateChanged: setState,
-      initialRows: _formRequest.getPathParamsFromURL(),
+      initialRows: _formRequest.getPathParams(),
       onModified: _pathParamsTableModified,
       config: config,
       focusManager: _focusManager,
@@ -222,7 +222,11 @@ class RequestFormController {
     _flowModified();
   }
 
-  void _pathParamsTableModified() {}
+  void _pathParamsTableModified() {
+    final params = pathParamsController.getParams();
+    _formRequest.setPathParams(params);
+    _flowModified();
+  }
 
   void setMethod(String method) {
     selectedMethod = method;

@@ -90,25 +90,49 @@ class PathParamsController implements FormTableControllerI {
   }
 
   void setParams(List<Param> params) {
+    // Create a map of existing parameter names to their values
+    final existingValues = <String, String>{};
+    for (final row in _baseController.rows) {
+      if (row.keyController.text.isNotEmpty) {
+        existingValues[row.keyController.text] = row.valueController.text;
+      }
+    }
+
+    // Clear existing rows
+    for (final row in _baseController.rows) {
+      row.dispose();
+    }
+    _baseController.rows.clear();
+
+    // Create new rows based on the input params
     for (int i = 0; i < params.length; i++) {
       final param = params[i];
-      final row = _baseController.rows[i];
-      row.keyController.text = param.name;
+      final existingValue = existingValues[param.name] ?? '';
+
+      final keyController = CodeLineEditingController();
+      final valueController = CodeLineEditingController();
+      final contentTypeController = CodeLineEditingController();
+
+      keyController.text = param.name;
+      valueController.text = existingValue;
+      contentTypeController.text = '';
+
+      final row = FormTableRow(
+        keyController: keyController,
+        valueController: valueController,
+        contentTypeController: contentTypeController,
+        checkboxState: true,
+        newRow: false,
+      );
+
+      _baseController.rows.add(row);
+      _focusManager.createRowFocusNodesForPathParams();
+      _baseController.setupListenersForRow(row, i);
     }
-    // final rows = _convertParamsToRows(params);
-    // _baseController = PathParamsFormBaseController(
-    //   rows: rows,
-    //   onStateChanged: onStateChanged,
-    //   onModified: onModified,
-    //   focusManager: _focusManager,
-    // );
 
-    // // Setup listeners for existing rows
-    // for (int i = 0; i < rows.length; i++) {
-    //   _baseController.setupListenersForRow(rows[i], i);
-    // }
+    // Add a new empty row at the end
+    _baseController.addNewRow();
 
-    // _baseController.addNewRow();
     onStateChanged();
   }
 

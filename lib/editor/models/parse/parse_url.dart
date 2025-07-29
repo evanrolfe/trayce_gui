@@ -38,7 +38,7 @@ List<Param> parseUrlPathParams(String url) {
   // This matches :paramName where paramName can contain letters, numbers, and underscores
   final regExp = RegExp(r':([a-zA-Z_][a-zA-Z0-9_]*)');
   for (final match in regExp.allMatches(path)) {
-    final paramName = match.group(0)!; // Full match including the ':'
+    final paramName = match.group(1)!; // Group 1 contains the param name without the ':'
     params.add(Param(name: paramName, value: '', type: ParamType.path, enabled: true));
   }
 
