@@ -312,6 +312,13 @@ class Request {
     }
   }
 
+  void interpolatePathParams() {
+    final pathParams = getPathParams();
+    for (final param in pathParams) {
+      url = url.replaceAll(':${param.name}', param.value);
+    }
+  }
+
   void setQueryParams(List<Param> newParams) {
     final pathParams = getPathParams();
     params = newParams + pathParams;

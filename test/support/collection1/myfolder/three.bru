@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: www.synack.com/three
+  url: www.synack.com/three/:resource/show/:id
   body: none
   auth: inherit
+}
+
+params:path {
+  resource: users
+  id: 123
 }
 
 headers {
