@@ -236,5 +236,46 @@ void main() {
         expect(paramsController.rows()[3].valueController.text, '');
       },
     );
+
+    testWidgets('loading a request with path params, then deleting them', (WidgetTester tester) async {
+      // Create a test request
+      final request = Request.blank();
+      request.url = 'https://example.com/users/:id/show/:fields';
+      request.params = [
+        Param(name: 'id', value: '1', type: ParamType.path, enabled: true),
+        Param(name: 'fields', value: 'name,age', type: ParamType.path, enabled: true),
+      ];
+
+      final tabKey = const ValueKey('test_tab');
+      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Params'));
+      await tester.pumpAndSettle();
+
+      // Change the URL to delete the :fields path param
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
+      expect(urlInput.controller.text, 'https://example.com/users/:id/show/:fields');
+      urlInput.controller.text = 'https://example.com/users/:id/';
+      await tester.pumpAndSettle();
+
+      // Verify the params
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).last);
+      final paramsController = paramsTable.controller;
+      expect(paramsController.rows().length, 2);
+      expect(paramsController.rows()[0].keyController.text, 'id');
+      expect(paramsController.rows()[0].valueController.text, '1');
+      expect(paramsController.rows()[1].keyController.text, '');
+      expect(paramsController.rows()[1].valueController.text, '');
+
+      // Change the URL to delete the :id path param
+      urlInput.controller.text = 'https://example.com/';
+      await tester.pumpAndSettle();
+
+      // Verify the params
+      expect(paramsController.rows().length, 1);
+      expect(paramsController.rows()[0].keyController.text, '');
+      expect(paramsController.rows()[0].valueController.text, '');
+    });
   });
 }

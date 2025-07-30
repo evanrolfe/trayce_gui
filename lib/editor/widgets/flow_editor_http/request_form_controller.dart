@@ -194,9 +194,7 @@ class RequestFormController {
     _formRequest.setUrl(url);
 
     final pathParams = _formRequest.getPathParamsFromURL();
-    if (pathParams.isNotEmpty) {
-      pathParamsController.setParams(pathParams);
-    }
+    pathParamsController.setParams(pathParams);
 
     if (!compareParams(queryParamsController.getParams(), _formRequest.getQueryParamsFromURL())) {
       final params = _formRequest.getQueryParamsFromURL();

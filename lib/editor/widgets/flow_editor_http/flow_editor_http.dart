@@ -420,11 +420,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 Expanded(
                                                   child: InlineTabBar(
                                                     controller: _topTabController,
-                                                    tabTitles: const ['Params', 'Headers', 'Body', 'Variables'],
+                                                    tabTitles: const ['Params', 'Body', 'Headers', 'Variables'],
                                                     focusNode: _focusManager.topTabFocusNode,
                                                   ),
                                                 ),
-                                                if (_topTabController.index == 2) ...[
+                                                if (_topTabController.index == 1) ...[
                                                   const SizedBox(width: 12),
                                                   Container(
                                                     width: 120,
@@ -473,6 +473,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           child: TabBarView(
                                             controller: _topTabController,
                                             children: [
+                                              // -----------------------------------------------------------
+                                              // Params Tab
+                                              // -----------------------------------------------------------
                                               SingleChildScrollView(
                                                 child: Column(
                                                   children: [
@@ -530,17 +533,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ],
                                                 ),
                                               ),
-                                              SingleChildScrollView(
-                                                child: FormTable(
-                                                  controller: _formController.headersController,
-                                                  columns: [
-                                                    FormTableColumn.enabled,
-                                                    FormTableColumn.key,
-                                                    FormTableColumn.value,
-                                                    FormTableColumn.delete,
-                                                  ],
-                                                ),
-                                              ),
+                                              // -----------------------------------------------------------
+                                              // Body Tab
+                                              // -----------------------------------------------------------
                                               IndexedStack(
                                                 index: bodyTypeIndex,
                                                 children: [
@@ -596,6 +591,23 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ),
                                                 ],
                                               ),
+                                              // -----------------------------------------------------------
+                                              // Headers Tab
+                                              // -----------------------------------------------------------
+                                              SingleChildScrollView(
+                                                child: FormTable(
+                                                  controller: _formController.headersController,
+                                                  columns: [
+                                                    FormTableColumn.enabled,
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
+                                                ),
+                                              ),
+                                              // -----------------------------------------------------------
+                                              // Variables Tab
+                                              // -----------------------------------------------------------
                                               SingleChildScrollView(
                                                 child: FormTable(
                                                   controller: _formController.varsController,
