@@ -18,6 +18,7 @@ class MultiLineCodeEditor extends StatefulWidget {
   final Border? border;
   final VoidCallback? onFocusChange;
   final FocusNode focusNode;
+  final bool readOnly;
 
   const MultiLineCodeEditor({
     super.key,
@@ -28,6 +29,7 @@ class MultiLineCodeEditor extends StatefulWidget {
     this.border,
     this.onFocusChange,
     required this.focusNode,
+    this.readOnly = false,
   });
 
   @override
@@ -78,6 +80,7 @@ class _MultiLineCodeEditorState extends State<MultiLineCodeEditor> {
       child: CodeEditor(
         controller: widget.controller,
         focusNode: widget.focusNode,
+        readOnly: widget.readOnly,
         findBuilder: (context, controller, readOnly) {
           controller.findInputFocusNode.onKeyEvent = (node, event) {
             if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {

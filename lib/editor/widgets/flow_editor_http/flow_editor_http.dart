@@ -16,7 +16,9 @@ import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
+import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_not_implemented.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/request_form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
 
@@ -381,7 +383,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                         ElevatedButton(
                           key: const Key('flow_editor_http_send_btn'),
                           onPressed: sendRequest,
-                          style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
+                          style: commonButtonStyle.copyWith(
+                            minimumSize: WidgetStateProperty.all(const Size(80, 36)),
+                            backgroundColor: WidgetStateProperty.all(selectedMenuItemColor),
+                          ),
                           child:
                               _isSending
                                   ? const SizedBox(
@@ -392,7 +397,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                     ),
                                   )
-                                  : const Text('Send'),
+                                  : const Text(
+                                    'Send',
+                                    style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                                  ),
                         ),
                       ],
                     ),
@@ -685,33 +693,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   // Basic Auth
                                                   AuthBasicForm(controller: _formController.authBasicController),
                                                   // Bearer Token
-                                                  Center(
-                                                    child: Text(
-                                                      'Bearer Token',
-                                                      style: TextStyle(color: Color(0xFF808080), fontSize: 16),
-                                                    ),
-                                                  ),
+                                                  AuthNotImplemented(authType: 'Bearer auth'),
                                                   // Digest
-                                                  Center(
-                                                    child: Text(
-                                                      'Digest',
-                                                      style: TextStyle(color: Color(0xFF808080), fontSize: 16),
-                                                    ),
-                                                  ),
+                                                  AuthNotImplemented(authType: 'Digest auth'),
                                                   // OAuth2
-                                                  Center(
-                                                    child: Text(
-                                                      'OAuth2',
-                                                      style: TextStyle(color: Color(0xFF808080), fontSize: 16),
-                                                    ),
-                                                  ),
+                                                  AuthNotImplemented(authType: 'OAuth2'),
                                                   // WSSE
-                                                  Center(
-                                                    child: Text(
-                                                      'WSSE',
-                                                      style: TextStyle(color: Color(0xFF808080), fontSize: 16),
-                                                    ),
-                                                  ),
+                                                  AuthNotImplemented(authType: 'WSSE auth'),
                                                 ],
                                               ),
                                               // -----------------------------------------------------------
@@ -826,6 +814,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               focusNode: _focusManager.respBodyFocusNode,
                                               border: tabContentBorder,
                                               controller: _formController.respBodyController,
+                                              readOnly: true,
                                             ),
                                             SingleChildScrollView(
                                               child: Padding(

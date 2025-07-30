@@ -40,15 +40,14 @@ void main() {
       expect(urlInput.controller.text, 'https://example.com/users/:id/show/:fields');
       await tester.pumpAndSettle();
 
-      // Click on Params tab
+      // Click on Auth tab
       await tester.tap(find.text('Auth'));
       await tester.pumpAndSettle();
 
-      // Verify the params
+      // Verify the Auth form
       final authForm = tester.widget<AuthBasicForm>(find.byType(AuthBasicForm).first);
       final authController = authForm.controller;
 
-      // Verify the params
       expect(authController.usernameController.text, 'asdf');
       expect(authController.passwordController.text, 'xxx');
     });

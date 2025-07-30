@@ -476,27 +476,29 @@ class _EditorTabsState extends State<EditorTabs> {
                           ],
                         ),
                       ),
-                      Container(
-                        width: 30,
-                        height: 20,
-                        margin: const EdgeInsets.only(right: 8),
-                        child: IconButton(
-                          key: const Key('editor_tabs_eye_button'),
-                          onPressed: () {
-                            // TODO: Handle eye button press
-                          },
-                          icon: const Icon(Icons.visibility, size: 16, color: lightTextColor),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                              side: const BorderSide(color: Color(0xFF474747), width: 1),
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Eye button to open the runtime vars modal
+                      //
+                      // Container(
+                      //   width: 30,
+                      //   height: 20,
+                      //   margin: const EdgeInsets.only(right: 8),
+                      //   child: IconButton(
+                      //     key: const Key('editor_tabs_eye_button'),
+                      //     onPressed: () {
+                      //       // TODO: Handle eye button press
+                      //     },
+                      //     icon: const Icon(Icons.visibility, size: 16, color: lightTextColor),
+                      //     padding: EdgeInsets.zero,
+                      //     constraints: const BoxConstraints(),
+                      //     style: IconButton.styleFrom(
+                      //       backgroundColor: Colors.transparent,
+                      //       shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(4),
+                      //         side: const BorderSide(color: Color(0xFF474747), width: 1),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       Container(
                         width: 150,
                         height: 20,
