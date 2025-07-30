@@ -8,6 +8,7 @@ class EditorFocusManager {
   late final FocusNode editorFocusNode;
   late final FocusNode methodFocusNode;
   late final FocusNode bodyTypeFocusNode;
+  late final FocusNode authTypeFocusNode;
   late final FocusNode formatFocusNode;
   late final FocusNode topTabFocusNode;
   late final FocusNode urlFocusNode;
@@ -24,6 +25,7 @@ class EditorFocusManager {
     editorFocusNode = FocusNode();
     methodFocusNode = FocusNode();
     bodyTypeFocusNode = FocusNode();
+    authTypeFocusNode = FocusNode();
     formatFocusNode = FocusNode();
     topTabFocusNode = FocusNode();
     urlFocusNode = FocusNode();
@@ -36,6 +38,7 @@ class EditorFocusManager {
     editorFocusNode.onKeyEvent = _onKeyUp;
     methodFocusNode.onKeyEvent = _onKeyUp;
     bodyTypeFocusNode.onKeyEvent = _onKeyUp;
+    authTypeFocusNode.onKeyEvent = _onKeyUp;
     formatFocusNode.onKeyEvent = _onKeyUp;
     topTabFocusNode.onKeyEvent = _onKeyUp;
     urlFocusNode.onKeyEvent = _onKeyUp;
@@ -51,6 +54,11 @@ class EditorFocusManager {
     });
     bodyTypeFocusNode.addListener(() {
       if (!bodyTypeFocusNode.hasFocus) {
+        editorFocusNode.requestFocus();
+      }
+    });
+    authTypeFocusNode.addListener(() {
+      if (!authTypeFocusNode.hasFocus) {
         editorFocusNode.requestFocus();
       }
     });
@@ -201,6 +209,7 @@ class EditorFocusManager {
     editorFocusNode.dispose();
     methodFocusNode.dispose();
     bodyTypeFocusNode.dispose();
+    authTypeFocusNode.dispose();
     formatFocusNode.dispose();
     topTabFocusNode.dispose();
     urlFocusNode.dispose();

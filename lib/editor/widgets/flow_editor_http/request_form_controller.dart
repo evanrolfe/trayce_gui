@@ -8,6 +8,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_files_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
@@ -28,8 +29,11 @@ class RequestFormController {
     'Files',
   ];
 
+  static const List<String> authTypeOptions = ['No Auth', 'Basic Auth', 'Bearer Token', 'Digest', 'OAuth2', 'WSSE'];
+
   late String selectedMethod;
   late String selectedBodyType;
+  late String selectedAuthType;
 
   final CodeLineEditingController urlController = CodeLineEditingController();
   final CodeLineEditingController reqBodyController = CodeLineEditingController();
@@ -42,6 +46,8 @@ class RequestFormController {
   late final FormParamsController formUrlEncodedController;
   late final FormMultipartController multipartFormController;
   late final FormFilesController fileController;
+
+  late final AuthBasicController authBasicController;
 
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
@@ -96,6 +102,23 @@ class RequestFormController {
         selectedBodyType = bodyTypeOptions[6];
       default:
         selectedBodyType = bodyTypeOptions[0];
+    }
+    // Auth Type
+    switch (_formRequest.authType) {
+      case AuthType.none:
+        selectedAuthType = authTypeOptions[0];
+      case AuthType.basic:
+        selectedAuthType = authTypeOptions[1];
+      case AuthType.bearer:
+        selectedAuthType = authTypeOptions[2];
+      case AuthType.digest:
+        selectedAuthType = authTypeOptions[3];
+      case AuthType.oauth2:
+        selectedAuthType = authTypeOptions[4];
+      case AuthType.wsse:
+        selectedAuthType = authTypeOptions[5];
+      default:
+        selectedAuthType = authTypeOptions[0];
     }
 
     // Query Params
@@ -185,6 +208,9 @@ class RequestFormController {
       eventBus: eventBus,
       filePicker: filePicker,
     );
+
+    // Auth Basic
+    authBasicController = AuthBasicController(_formRequest);
   }
 
   void _urlModified() {
@@ -269,6 +295,28 @@ class RequestFormController {
 
     reqBodyController.addListener(_reqBodyModified);
 
+    _flowModified();
+  }
+
+  void setAuthType(String? newValue) {
+    if (newValue == null) return;
+
+    if (newValue == authTypeOptions[0]) {
+      _formRequest.setAuthType(AuthType.none);
+    } else if (newValue == authTypeOptions[1]) {
+      _formRequest.setAuthType(AuthType.basic);
+    } else if (newValue == authTypeOptions[2]) {
+      _formRequest.setAuthType(AuthType.bearer);
+    } else if (newValue == authTypeOptions[3]) {
+      _formRequest.setAuthType(AuthType.digest);
+    } else if (newValue == authTypeOptions[4]) {
+      _formRequest.setAuthType(AuthType.oauth2);
+    } else if (newValue == authTypeOptions[5]) {
+      _formRequest.setAuthType(AuthType.wsse);
+    }
+
+    setState();
+    selectedAuthType = newValue;
     _flowModified();
   }
 

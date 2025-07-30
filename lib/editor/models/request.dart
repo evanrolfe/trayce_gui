@@ -630,6 +630,10 @@ class Request {
     requestVars = vars;
   }
 
+  void setAuthType(AuthType authType) {
+    this.authType = authType;
+  }
+
   void setBodyType(BodyType bodyType) {
     this.bodyType = bodyType;
   }
