@@ -32,6 +32,7 @@ void main() {
         seq: 1,
         method: 'get',
         url: 'https://example.com',
+        authType: AuthType.none,
         bodyType: BodyType.formUrlEncoded,
         bodyFormUrlEncoded: FormUrlEncodedBody(
           params: [
@@ -93,6 +94,7 @@ void main() {
         seq: 1,
         method: 'get',
         url: 'https://example.com',
+        authType: AuthType.none,
         bodyType: BodyType.multipartForm,
         bodyMultipartForm: MultipartFormBody(
           files: [
@@ -162,6 +164,7 @@ void main() {
         seq: 1,
         method: 'get',
         url: 'https://example.com',
+        authType: AuthType.none,
         bodyType: BodyType.file,
         bodyFile: FileBody(
           files: [
@@ -221,6 +224,7 @@ void main() {
         seq: 1,
         method: 'get',
         url: 'https://example.com',
+        authType: AuthType.none,
         bodyType: BodyType.none,
         params: [],
         headers: [],

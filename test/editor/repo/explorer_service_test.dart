@@ -50,7 +50,7 @@ void main() {
       expect(event.nodes[0].type, NodeType.collection);
       final collection = event.nodes[0].collection;
       expect(collection?.type, 'collection');
-      final collectionAuth = collection?.auth as BasicAuth;
+      final collectionAuth = collection?.getAuth() as BasicAuth;
       expect(collectionAuth.username, 'asdf');
       expect(collectionAuth.password, 'asdf');
       expect(collection?.requestVars[0].name, 'A_var');

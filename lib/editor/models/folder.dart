@@ -23,7 +23,14 @@ class Folder {
   List<Header> headers;
   List<Param> query;
 
-  Auth? auth;
+  AuthType authType;
+  // All Auth types
+  Auth? authAwsV4;
+  Auth? authBasic;
+  Auth? authBearer;
+  Auth? authDigest;
+  Auth? authOauth2;
+  Auth? authWsse;
 
   List<Variable> requestVars;
   List<Variable> responseVars;
@@ -40,7 +47,13 @@ class Folder {
     this.meta,
     required this.headers,
     required this.query,
-    this.auth,
+    required this.authType,
+    this.authAwsV4,
+    this.authBasic,
+    this.authBearer,
+    this.authDigest,
+    this.authOauth2,
+    this.authWsse,
     required this.requestVars,
     required this.responseVars,
     this.script,
@@ -62,12 +75,30 @@ class Folder {
     }
 
     // Convert auth to bru
-    if (auth != null) {
+    if (authType != AuthType.none) {
       bru += '\nauth {\n';
-      bru += '  mode: ${auth!.type}\n';
+      bru += '  mode: ${authTypeEnumToBru[authType]}\n';
       bru += '}\n';
 
-      bru += '\n${auth!.toBru()}\n';
+      // Convert auth(s) to bru
+      if (authAwsV4 != null && !authAwsV4!.isEmpty()) {
+        bru += '\n${authAwsV4!.toBru()}\n';
+      }
+      if (authBasic != null && !authBasic!.isEmpty()) {
+        bru += '\n${authBasic!.toBru()}\n';
+      }
+      if (authBearer != null && !authBearer!.isEmpty()) {
+        bru += '\n${authBearer!.toBru()}\n';
+      }
+      if (authDigest != null && !authDigest!.isEmpty()) {
+        bru += '\n${authDigest!.toBru()}\n';
+      }
+      if (authOauth2 != null && !authOauth2!.isEmpty()) {
+        bru += '\n${authOauth2!.toBru()}\n';
+      }
+      if (authWsse != null && !authWsse!.isEmpty()) {
+        bru += '\n${authWsse!.toBru()}\n';
+      }
     }
 
     // Convert variables to bru
@@ -103,6 +134,25 @@ class Folder {
     return bru;
   }
 
+  Auth? getAuth() {
+    switch (authType) {
+      case AuthType.awsV4:
+        return authAwsV4;
+      case AuthType.basic:
+        return authBasic;
+      case AuthType.bearer:
+        return authBearer;
+      case AuthType.digest:
+        return authDigest;
+      case AuthType.oauth2:
+        return authOauth2;
+      case AuthType.wsse:
+        return authWsse;
+      case AuthType.none:
+        return null;
+    }
+  }
+
   static String getDefaultFolderBru() {
     return '''meta {
   type: folder
@@ -113,6 +163,15 @@ class Folder {
     final file = File(path.join(parentPath, 'new_folder', 'folder.bru'));
     final dir = Directory(path.join(parentPath, 'new_folder'));
 
-    return Folder(file: file, dir: dir, type: 'folder', headers: [], query: [], requestVars: [], responseVars: []);
+    return Folder(
+      file: file,
+      dir: dir,
+      type: 'folder',
+      headers: [],
+      query: [],
+      requestVars: [],
+      responseVars: [],
+      authType: AuthType.none,
+    );
   }
 }

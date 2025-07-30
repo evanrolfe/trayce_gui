@@ -4,6 +4,8 @@ abstract class Auth {
   String get type;
   String toBru();
   bool equals(Auth other);
+  Auth deepCopy();
+  bool isEmpty();
 }
 
 class AwsV4Auth extends Auth {
@@ -37,6 +39,18 @@ class AwsV4Auth extends Auth {
   }
 
   @override
+  Auth deepCopy() {
+    return AwsV4Auth(
+      accessKeyId: accessKeyId,
+      secretAccessKey: secretAccessKey,
+      sessionToken: sessionToken,
+      service: service,
+      region: region,
+      profileName: profileName,
+    );
+  }
+
+  @override
   String toBru() {
     return '''auth:awsv4 {
 ${indentString('accessKeyId: $accessKeyId')}
@@ -46,6 +60,16 @@ ${indentString('service: $service')}
 ${indentString('region: $region')}
 ${indentString('profileName: $profileName')}
 }''';
+  }
+
+  @override
+  bool isEmpty() {
+    return accessKeyId.isEmpty &&
+        secretAccessKey.isEmpty &&
+        sessionToken.isEmpty &&
+        service.isEmpty &&
+        region.isEmpty &&
+        profileName.isEmpty;
   }
 }
 
@@ -64,11 +88,21 @@ class BasicAuth extends Auth {
   }
 
   @override
+  Auth deepCopy() {
+    return BasicAuth(username: username, password: password);
+  }
+
+  @override
   String toBru() {
     return '''auth:basic {
 ${indentString('username: $username')}
 ${indentString('password: $password')}
 }''';
+  }
+
+  @override
+  bool isEmpty() {
+    return username.isEmpty && password.isEmpty;
   }
 }
 
@@ -90,6 +124,16 @@ class BearerAuth extends Auth {
     return '''auth:bearer {
 ${indentString('token: $token')}
 }''';
+  }
+
+  @override
+  Auth deepCopy() {
+    return BearerAuth(token: token);
+  }
+
+  @override
+  bool isEmpty() {
+    return token.isEmpty;
   }
 }
 
@@ -113,6 +157,16 @@ class DigestAuth extends Auth {
 ${indentString('username: $username')}
 ${indentString('password: $password')}
 }''';
+  }
+
+  @override
+  Auth deepCopy() {
+    return DigestAuth(username: username, password: password);
+  }
+
+  @override
+  bool isEmpty() {
+    return username.isEmpty && password.isEmpty;
   }
 }
 
@@ -177,6 +231,29 @@ class OAuth2Auth extends Auth {
         tokenHeaderPrefix == other.tokenHeaderPrefix &&
         tokenPlacement == other.tokenPlacement &&
         tokenQueryKey == other.tokenQueryKey;
+  }
+
+  @override
+  Auth deepCopy() {
+    return OAuth2Auth(
+      accessTokenUrl: accessTokenUrl,
+      authorizationUrl: authorizationUrl,
+      autoFetchToken: autoFetchToken,
+      autoRefreshToken: autoRefreshToken,
+      callbackUrl: callbackUrl,
+      clientId: clientId,
+      clientSecret: clientSecret,
+      credentialsId: credentialsId,
+      credentialsPlacement: credentialsPlacement,
+      grantType: grantType,
+      pkce: pkce,
+      refreshTokenUrl: refreshTokenUrl,
+      scope: scope,
+      state: state,
+      tokenHeaderPrefix: tokenHeaderPrefix,
+      tokenPlacement: tokenPlacement,
+      tokenQueryKey: tokenQueryKey,
+    );
   }
 
   @override
@@ -259,6 +336,27 @@ ${indentString('auto_refresh_token: $autoRefreshToken')}}''';
 
     return bru;
   }
+
+  @override
+  bool isEmpty() {
+    return accessTokenUrl.isEmpty &&
+        authorizationUrl.isEmpty &&
+        autoFetchToken &&
+        autoRefreshToken &&
+        callbackUrl.isEmpty &&
+        clientId.isEmpty &&
+        clientSecret.isEmpty &&
+        credentialsId.isEmpty &&
+        credentialsPlacement.isEmpty &&
+        grantType.isEmpty &&
+        pkce &&
+        refreshTokenUrl.isEmpty &&
+        scope.isEmpty &&
+        state.isEmpty &&
+        tokenHeaderPrefix.isEmpty &&
+        tokenPlacement.isEmpty &&
+        tokenQueryKey.isEmpty;
+  }
 }
 
 class WsseAuth extends Auth {
@@ -281,5 +379,15 @@ class WsseAuth extends Auth {
 ${indentString('username: $username')}
 ${indentString('password: $password')}
 }''';
+  }
+
+  @override
+  Auth deepCopy() {
+    return WsseAuth(username: username, password: password);
+  }
+
+  @override
+  bool isEmpty() {
+    return username.isEmpty && password.isEmpty;
   }
 }

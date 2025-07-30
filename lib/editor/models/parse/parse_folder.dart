@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:trayce/editor/models/parse/parse_collection.dart';
+import 'package:trayce/editor/models/request.dart';
 
-import '../auth.dart';
 import '../folder.dart';
 import 'grammar_collection.dart';
 import 'parse_request.dart';
@@ -27,11 +27,40 @@ Folder parseFolder(String folderBru, File file, Directory dir) {
 
   final query = parseQuery(result);
 
+  // Parse auth
   final authMode = result.value['auth']?['mode'];
-  Auth? auth;
-  if (authMode != null && authMode != 'none') {
-    auth = parseAuth(result, authMode);
+  AuthType authTypeEnum;
+  switch (authMode) {
+    case 'none':
+      authTypeEnum = AuthType.none;
+      break;
+    case 'awsv4':
+      authTypeEnum = AuthType.awsV4;
+      break;
+    case 'basic':
+      authTypeEnum = AuthType.basic;
+      break;
+    case 'bearer':
+      authTypeEnum = AuthType.bearer;
+      break;
+    case 'digest':
+      authTypeEnum = AuthType.digest;
+      break;
+    case 'oauth2':
+      authTypeEnum = AuthType.oauth2;
+      break;
+    case 'wsse':
+      authTypeEnum = AuthType.wsse;
+      break;
+    default:
+      authTypeEnum = AuthType.none;
   }
+  final authAwsV4 = parseAuthAwsV4(result);
+  final authBasic = parseAuthBasic(result);
+  final authBearer = parseAuthBearer(result);
+  final authDigest = parseAuthDigest(result);
+  final authOauth2 = parseAuthOauth2(result);
+  final authWsse = parseAuthWsse(result);
 
   final script = parseScript(result);
 
@@ -46,7 +75,13 @@ Folder parseFolder(String folderBru, File file, Directory dir) {
     meta: meta,
     headers: headers,
     query: query,
-    auth: auth,
+    authType: authTypeEnum,
+    authAwsV4: authAwsV4,
+    authBasic: authBasic,
+    authBearer: authBearer,
+    authDigest: authDigest,
+    authOauth2: authOauth2,
+    authWsse: authWsse,
     requestVars: requestVars,
     responseVars: responseVars,
     script: script,

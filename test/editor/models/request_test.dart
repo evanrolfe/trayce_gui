@@ -93,6 +93,7 @@ void main() {
       method: 'get',
       url: url,
       bodyType: BodyType.none,
+      authType: AuthType.none,
       params: [],
       headers: [Header(name: '{{C_var}}', value: '{{B_var}}', enabled: true)],
       requestVars: [
@@ -124,6 +125,7 @@ void main() {
       url: url,
       bodyType: BodyType.text,
       bodyText: TextBody(content: 'helloworld, my token is {{B_var}}'),
+      authType: AuthType.none,
       params: [],
       headers: [],
       requestVars: [
@@ -155,6 +157,7 @@ void main() {
       url: url,
       bodyType: BodyType.json,
       bodyJson: JsonBody(content: '{"hello": "world"}'),
+      authType: AuthType.none,
       params: [],
       headers: [Header(name: 'x-trayce-token', value: 'abcd1234', enabled: true)],
       requestVars: [],
@@ -184,6 +187,7 @@ void main() {
       method: 'post',
       url: url,
       bodyType: BodyType.xml,
+      authType: AuthType.none,
       bodyXml: XmlBody(content: '<hello>world</hello>'),
       params: [],
       headers: [Header(name: 'x-trayce-token', value: 'abcd1234', enabled: false)],
@@ -213,6 +217,7 @@ void main() {
       seq: 1,
       method: 'post',
       url: url,
+      authType: AuthType.none,
       bodyType: BodyType.formUrlEncoded,
       bodyFormUrlEncoded: FormUrlEncodedBody(
         params: [
@@ -250,6 +255,7 @@ void main() {
       seq: 1,
       method: 'post',
       url: url,
+      authType: AuthType.none,
       bodyType: BodyType.multipartForm,
       bodyMultipartForm: MultipartFormBody(
         files: [
@@ -298,6 +304,7 @@ void main() {
       seq: 1,
       method: 'post',
       url: url,
+      authType: AuthType.none,
       bodyType: BodyType.file,
       bodyFile: FileBody(
         files: [
