@@ -16,7 +16,7 @@ void main() {
     await deps.close();
   });
 
-  // Sets up the editor with two tabs open (one and two requests)
+  // Sets up the editor
   Future<(Widget, dynamic)> initWidget(WidgetTester tester, WidgetDependencies widgetDeps) async {
     // Init widget
     FlutterError.onError = ignoreOverflowErrors;

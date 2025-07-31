@@ -18,6 +18,9 @@ class EditorFocusManager {
   late final List<Map<String, FocusNode>> _rowFocusNodes;
   late final List<Map<String, FocusNode>> _pathParamsRowFocusNodes;
 
+  late final FocusNode authBasicUsernameFocusNode;
+  late final FocusNode authBasicPasswordFocusNode;
+
   final EventBus _eventBus;
   final ValueKey tabKey;
 
@@ -35,6 +38,9 @@ class EditorFocusManager {
     _rowFocusNodes = [];
     _pathParamsRowFocusNodes = [];
 
+    authBasicUsernameFocusNode = FocusNode();
+    authBasicPasswordFocusNode = FocusNode();
+
     editorFocusNode.onKeyEvent = _onKeyUp;
     methodFocusNode.onKeyEvent = _onKeyUp;
     bodyTypeFocusNode.onKeyEvent = _onKeyUp;
@@ -45,6 +51,8 @@ class EditorFocusManager {
     checkboxFocusNode.onKeyEvent = _onKeyUp;
     reqBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    authBasicUsernameFocusNode.onKeyEvent = _onKeyUp;
+    authBasicPasswordFocusNode.onKeyEvent = _onKeyUp;
 
     // Add listener to transfer focus when method dropdown loses focus
     methodFocusNode.addListener(() {
@@ -216,5 +224,7 @@ class EditorFocusManager {
     checkboxFocusNode.dispose();
     reqBodyFocusNode.dispose();
     respBodyFocusNode.dispose();
+    authBasicUsernameFocusNode.dispose();
+    authBasicPasswordFocusNode.dispose();
   }
 }

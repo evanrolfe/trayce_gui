@@ -210,7 +210,7 @@ class RequestFormController {
     );
 
     // Auth Basic
-    authBasicController = AuthBasicController(_formRequest);
+    authBasicController = AuthBasicController(_formRequest, _flowModified);
   }
 
   void _urlModified() {

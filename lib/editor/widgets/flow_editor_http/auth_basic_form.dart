@@ -4,10 +4,15 @@ import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dar
 
 class AuthBasicForm extends StatelessWidget {
   final AuthBasicController controller;
-  final FocusNode? usernameFocusNode;
-  final FocusNode? passwordFocusNode;
+  final FocusNode usernameFocusNode;
+  final FocusNode passwordFocusNode;
 
-  const AuthBasicForm({super.key, required this.controller, this.usernameFocusNode, this.passwordFocusNode});
+  const AuthBasicForm({
+    super.key,
+    required this.controller,
+    required this.usernameFocusNode,
+    required this.passwordFocusNode,
+  });
 
   @override
   Widget build(BuildContext context) {

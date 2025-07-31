@@ -691,7 +691,11 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     ),
                                                   ),
                                                   // Basic Auth
-                                                  AuthBasicForm(controller: _formController.authBasicController),
+                                                  AuthBasicForm(
+                                                    controller: _formController.authBasicController,
+                                                    usernameFocusNode: _focusManager.authBasicUsernameFocusNode,
+                                                    passwordFocusNode: _focusManager.authBasicPasswordFocusNode,
+                                                  ),
                                                   // Bearer Token
                                                   AuthNotImplemented(authType: 'Bearer auth'),
                                                   // Digest
