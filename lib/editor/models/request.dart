@@ -408,6 +408,7 @@ class Request {
 
     _addHeaders(request);
     _addBasicAuth(request);
+    _addBearerAuth(request);
 
     // Set the request body
     Body? body = getBody();
@@ -473,10 +474,19 @@ class Request {
     }
   }
 
+  void _addBearerAuth(http.BaseRequest request) {
+    if (authType == AuthType.bearer && authBearer != null) {
+      final bearerAuth = authBearer as BearerAuth;
+      final token = _getInterpolatedString(bearerAuth.token);
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+  }
+
   Future<http.Response> _sendMultipart() async {
     final request = http.MultipartRequest(method, Uri.parse(_getInterpolatedString(url)));
     _addHeaders(request);
     _addBasicAuth(request);
+    _addBearerAuth(request);
 
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
@@ -501,6 +511,7 @@ class Request {
 
     _addHeaders(request);
     _addBasicAuth(request);
+    _addBearerAuth(request);
 
     final body = bodyFile as FileBody;
     final selectedFile = body.selectedFile();

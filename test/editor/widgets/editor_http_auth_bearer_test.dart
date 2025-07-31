@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/editor.dart';
-import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_form.dart';
 
 import '../../support/helpers.dart';
 import '../../support/widget_helpers.dart';
@@ -22,7 +22,7 @@ void main() {
     await deps2.close();
   });
 
-  group('Editor HTTP Auth Basic', () {
+  group('Editor HTTP Auth Bearer', () {
     // Sets up the editor
     Future<(Widget, dynamic)> initWidget(WidgetTester tester, WidgetDependencies widgetDeps) async {
       // Init widget
@@ -41,12 +41,13 @@ void main() {
       return (widget, null);
     }
 
-    testWidgets('new request with basic auth and save', (WidgetTester tester) async {
+    testWidgets('new request with bearer auth and save', (WidgetTester tester) async {
       // Init widget
       FlutterError.onError = ignoreOverflowErrors;
 
       when(() => deps.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
       when(() => deps.filePicker.saveBruFile(any())).thenAnswer((_) async => 'test/support/collection1/hello.bru');
+
       await initWidget(tester, deps);
       await tester.pumpAndSettle();
 
@@ -76,15 +77,14 @@ void main() {
       final authTypeDropdown = find.byKey(const Key('flow_editor_http_auth_type_dropdown')).first;
       await tester.tap(authTypeDropdown);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Basic Auth'));
+      await tester.tap(find.text('Bearer Token'));
       await tester.pumpAndSettle();
 
       // Verify the Auth form
-      final authForm = tester.widget<AuthBasicForm>(find.byType(AuthBasicForm).first);
+      final authForm = tester.widget<AuthBearerForm>(find.byType(AuthBearerForm).first);
       final authController = authForm.controller;
 
-      authController.usernameController.text = 'admin';
-      authController.passwordController.text = '1234abcd';
+      authController.tokenController.text = 'asdf';
 
       // Save the request
       await pressCtrlS(tester);
@@ -97,32 +97,30 @@ void main() {
 
       expect(
         contents,
-        contains('''auth:basic {
-  username: admin
-  password: 1234abcd
+        contains('''auth:bearer {
+  token: asdf
 }'''),
       );
       // Cleanup the files
       deleteFile(path);
     });
 
-    testWidgets('open a request with basic auth, modify it, and save', (WidgetTester tester) async {
+    testWidgets('open a request with bearer auth, modify it, and save', (WidgetTester tester) async {
       // Create the request
-      final reqPath = './test/support/collection1/auth-basic-test.bru';
+      final reqPath = './test/support/collection1/auth-bearer-test.bru';
       saveFile(reqPath, '''meta {
-  name: auth-basic-test
+  name: auth-bearer-test
   type: http
   seq: 0
 }
 
 get {
   url: https://trayce.dev
-  auth: basic
+  auth: bearer
 }
 
-auth:basic {
-  username: helloss
-  password: worldss
+auth:bearer {
+  token: helloworld
 }''');
 
       // Open collection
@@ -132,7 +130,7 @@ auth:basic {
       await tester.pumpAndSettle();
 
       // Click on my-request.bru request
-      final myReq = find.text('auth-basic-test').first;
+      final myReq = find.text('auth-bearer-test').first;
       expect(myReq, findsOneWidget);
       await tester.tapAt(tester.getCenter(myReq));
       await tester.tapAt(tester.getCenter(myReq));
@@ -150,31 +148,29 @@ auth:basic {
       await tester.pumpAndSettle();
 
       // Verify Auth type
-      expect(find.text('Basic Auth'), findsOneWidget);
+      expect(find.text('Bearer Token'), findsOneWidget);
 
       // Verify the Auth form
-      final authForm = tester.widget<AuthBasicForm>(find.byType(AuthBasicForm).first);
+      final authForm = tester.widget<AuthBearerForm>(find.byType(AuthBearerForm).first);
       final authController = authForm.controller;
 
       // authController.usernameController.text = 'admin';
-      expect(authController.usernameController.text, 'helloss');
-      expect(authController.passwordController.text, 'worldss');
+      expect(authController.tokenController.text, 'helloworld');
       await tester.pumpAndSettle();
 
       // Modify the auth form
-      authController.usernameController.text = 'hello';
-      authController.passwordController.text = 'world';
+      authController.tokenController.text = 'helloworldx';
       await tester.pumpAndSettle();
 
       // Check the tab title has a *
-      expect(find.text('auth-basic-test*'), findsOneWidget);
+      expect(find.text('auth-bearer-test*'), findsOneWidget);
 
       // Save the request
       await pressCtrlS(tester);
       await tester.pumpAndSettle();
 
       // Check the tab title no longer has a *
-      expect(find.text('auth-basic-test*'), findsNothing);
+      expect(find.text('auth-bearer-test*'), findsNothing);
 
       // Cleanup
       deleteFile(reqPath);
