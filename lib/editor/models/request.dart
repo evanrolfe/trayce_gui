@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -405,13 +406,8 @@ class Request {
 
     final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
 
-    request.headers.addAll(
-      Map.fromEntries(
-        headers
-            .where((h) => h.enabled)
-            .map((h) => MapEntry(_getInterpolatedString(h.name), _getInterpolatedString(h.value))),
-      ),
-    );
+    _addHeaders(request);
+    _addBasicAuth(request);
 
     // Set the request body
     Body? body = getBody();
@@ -454,9 +450,33 @@ class Request {
     return value;
   }
 
+  void _addHeaders(http.BaseRequest request) {
+    request.headers.addAll(
+      Map.fromEntries(
+        headers
+            .where((h) => h.enabled)
+            .map((h) => MapEntry(_getInterpolatedString(h.name), _getInterpolatedString(h.value))),
+      ),
+    );
+  }
+
+  void _addBasicAuth(http.BaseRequest request) {
+    if (authType == AuthType.basic && authBasic != null) {
+      final basicAuth = authBasic as BasicAuth;
+      final username = _getInterpolatedString(basicAuth.username);
+      final password = _getInterpolatedString(basicAuth.password);
+      if (username.isNotEmpty || password.isNotEmpty) {
+        final credentials = '$username:$password';
+        final encoded = base64Encode(utf8.encode(credentials));
+        request.headers['Authorization'] = 'Basic $encoded';
+      }
+    }
+  }
+
   Future<http.Response> _sendMultipart() async {
-    final request = http.MultipartRequest(method, Uri.parse(url));
-    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
+    final request = http.MultipartRequest(method, Uri.parse(_getInterpolatedString(url)));
+    _addHeaders(request);
+    _addBasicAuth(request);
 
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
@@ -477,7 +497,10 @@ class Request {
   }
 
   Future<http.Response> _sendFile() async {
-    final request = http.Request(method, Uri.parse(url));
+    final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
+
+    _addHeaders(request);
+    _addBasicAuth(request);
 
     final body = bodyFile as FileBody;
     final selectedFile = body.selectedFile();

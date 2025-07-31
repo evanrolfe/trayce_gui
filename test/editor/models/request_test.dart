@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
+import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
@@ -336,6 +337,39 @@ void main() {
     expect(mockServer.sentFiles, isNotNull);
     expect(mockServer.sentFiles!.length, 1);
     expect(mockServer.sentFiles![0].length, 6);
+    mockServer.reset();
+  });
+
+  test('sending a GET request with basic auth', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'get',
+      url: url,
+      bodyType: BodyType.none,
+      authType: AuthType.basic,
+      authBasic: BasicAuth(username: '{{B_var}}', password: '{{C_var}}'),
+      params: [],
+      headers: [],
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final response = await request.send();
+
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    expect(mockServer.sentRequest!.headers['Authorization'], 'Basic YWJjZDEyMzQ6eC10cmF5Y2UtdG9rZW4=');
     mockServer.reset();
   });
 }
