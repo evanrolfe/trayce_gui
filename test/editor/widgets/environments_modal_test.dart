@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
@@ -29,6 +30,7 @@ void main() {
         file: File('test/support/collection2/collection.bru'),
         dir: Directory('test/support/collection2'),
         type: 'collection',
+        authType: AuthType.none,
         environments: [], // Empty environments array
         headers: [],
         query: [],
@@ -117,6 +119,7 @@ void main() {
         file: File('test/support/collection1/collection.bru'),
         dir: Directory('test/support/collection1'),
         type: 'collection',
+        authType: AuthType.none,
         environments: [environment], // Add at least one environment
         headers: [],
         query: [],
@@ -294,6 +297,7 @@ void main() {
         file: File('test/support/collection1/collection.bru'),
         dir: Directory('test/support/collection1'),
         type: 'collection',
+        authType: AuthType.none,
         environments: [environment], // Add at least one environment
         headers: [],
         query: [],

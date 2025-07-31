@@ -87,7 +87,7 @@ void main() {
 
     // Check auth
     final expectedAuth = expected['auth']['bearer'];
-    final auth = result.auth;
+    final auth = result.getAuth();
     expect(auth, isNotNull);
 
     // Check for JSON body

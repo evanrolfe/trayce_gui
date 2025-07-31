@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -14,6 +15,7 @@ import 'script.dart';
 import 'utils.dart';
 import 'variable.dart';
 
+// TODO: Move these enums to the body.dart and auth.dart
 enum BodyType { none, text, json, xml, sparql, graphql, formUrlEncoded, multipartForm, file }
 
 final bodyTypeEnumToBru = {
@@ -26,6 +28,18 @@ final bodyTypeEnumToBru = {
   BodyType.formUrlEncoded: 'form-urlencoded',
   BodyType.multipartForm: 'multipart-form',
   BodyType.file: 'file',
+};
+
+enum AuthType { none, awsV4, basic, bearer, digest, oauth2, wsse }
+
+final authTypeEnumToBru = {
+  AuthType.none: 'none',
+  AuthType.awsV4: 'awsv4',
+  AuthType.basic: 'basic',
+  AuthType.bearer: 'bearer',
+  AuthType.digest: 'digest',
+  AuthType.oauth2: 'oauth2',
+  AuthType.wsse: 'wsse',
 };
 
 class Request {
@@ -41,7 +55,7 @@ class Request {
   String? tests;
   String? docs;
   BodyType bodyType;
-  Auth? auth;
+  AuthType authType;
 
   List<Param> params;
   List<Header> headers;
@@ -63,6 +77,14 @@ class Request {
   Body? bodyMultipartForm;
   Body? bodyFile;
 
+  // All Auth types
+  Auth? authAwsV4;
+  Auth? authBasic;
+  Auth? authBearer;
+  Auth? authDigest;
+  Auth? authOauth2;
+  Auth? authWsse;
+
   Request({
     this.file,
     required this.name,
@@ -71,7 +93,7 @@ class Request {
     required this.method,
     required this.url,
     required this.bodyType,
-    this.auth,
+    required this.authType,
     required this.params,
     required this.headers,
     required this.requestVars,
@@ -90,6 +112,14 @@ class Request {
     this.bodyFormUrlEncoded,
     this.bodyMultipartForm,
     this.bodyFile,
+
+    // All Auth types
+    this.authAwsV4,
+    this.authBasic,
+    this.authBearer,
+    this.authDigest,
+    this.authOauth2,
+    this.authWsse,
   });
 
   static Request blank() {
@@ -100,6 +130,7 @@ class Request {
       method: 'get',
       url: '',
       bodyType: BodyType.none,
+      authType: AuthType.none,
       params: [],
       headers: [],
       requestVars: [],
@@ -126,8 +157,8 @@ class Request {
       bru += '\n  body: ${bodyTypeEnumToBru[bodyType]}';
     }
 
-    if (auth != null) {
-      bru += '\n  auth: ${auth!.type}';
+    if (authType != AuthType.none) {
+      bru += '\n  auth: ${authTypeEnumToBru[authType]}';
     }
 
     bru += '\n}\n';
@@ -148,9 +179,24 @@ class Request {
       bru += '\n${headersToBru(headers)}\n';
     }
 
-    // Convert auth to bru
-    if (auth != null) {
-      bru += '\n${auth!.toBru()}\n';
+    // Convert auth(s) to bru
+    if (authAwsV4 != null && !authAwsV4!.isEmpty()) {
+      bru += '\n${authAwsV4!.toBru()}\n';
+    }
+    if (authBasic != null && !authBasic!.isEmpty()) {
+      bru += '\n${authBasic!.toBru()}\n';
+    }
+    if (authBearer != null && !authBearer!.isEmpty()) {
+      bru += '\n${authBearer!.toBru()}\n';
+    }
+    if (authDigest != null && !authDigest!.isEmpty()) {
+      bru += '\n${authDigest!.toBru()}\n';
+    }
+    if (authOauth2 != null && !authOauth2!.isEmpty()) {
+      bru += '\n${authOauth2!.toBru()}\n';
+    }
+    if (authWsse != null && !authWsse!.isEmpty()) {
+      bru += '\n${authWsse!.toBru()}\n';
     }
 
     // Convert body(s) to bru
@@ -226,9 +272,7 @@ class Request {
     }
 
     // Compare body
-    if (bodyType != other.bodyType) {
-      return false;
-    }
+    if (bodyType != other.bodyType) return false;
 
     final body = getBody();
     final otherBody = other.getBody();
@@ -243,6 +287,22 @@ class Request {
       if (!body.equals(otherBody)) return false;
     }
 
+    // Compare auth
+    if (authType != other.authType) return false;
+
+    final auth = getAuth();
+    final otherAuth = other.getAuth();
+
+    final authEmpty = auth == null || auth.isEmpty();
+    final otherauthEmpty = otherAuth == null || otherAuth.isEmpty();
+
+    if (authEmpty && !otherauthEmpty) return false;
+    if (!authEmpty && otherauthEmpty) return false;
+
+    if (!authEmpty && !otherauthEmpty) {
+      if (!auth.equals(otherAuth)) return false;
+    }
+
     // Compare headers
     if (headers.length != other.headers.length) return false;
 
@@ -251,16 +311,6 @@ class Request {
         return false;
       }
     }
-
-    // Compare auth
-    // if ((auth == null) != (other.auth == null)) return false;
-    // if (auth != null && !auth!.equals(other.auth!)) return false;
-
-    // Compare params
-    // if (params.length != other.params.length) return false;
-    // for (var i = 0; i < params.length; i++) {
-    //   if (!params[i].equals(other.params[i])) return false;
-    // }
 
     // Compare request variables
     if (requestVars.length != other.requestVars.length) return false;
@@ -356,13 +406,8 @@ class Request {
 
     final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
 
-    request.headers.addAll(
-      Map.fromEntries(
-        headers
-            .where((h) => h.enabled)
-            .map((h) => MapEntry(_getInterpolatedString(h.name), _getInterpolatedString(h.value))),
-      ),
-    );
+    _addHeaders(request);
+    _addBasicAuth(request);
 
     // Set the request body
     Body? body = getBody();
@@ -405,9 +450,33 @@ class Request {
     return value;
   }
 
+  void _addHeaders(http.BaseRequest request) {
+    request.headers.addAll(
+      Map.fromEntries(
+        headers
+            .where((h) => h.enabled)
+            .map((h) => MapEntry(_getInterpolatedString(h.name), _getInterpolatedString(h.value))),
+      ),
+    );
+  }
+
+  void _addBasicAuth(http.BaseRequest request) {
+    if (authType == AuthType.basic && authBasic != null) {
+      final basicAuth = authBasic as BasicAuth;
+      final username = _getInterpolatedString(basicAuth.username);
+      final password = _getInterpolatedString(basicAuth.password);
+      if (username.isNotEmpty || password.isNotEmpty) {
+        final credentials = '$username:$password';
+        final encoded = base64Encode(utf8.encode(credentials));
+        request.headers['Authorization'] = 'Basic $encoded';
+      }
+    }
+  }
+
   Future<http.Response> _sendMultipart() async {
-    final request = http.MultipartRequest(method, Uri.parse(url));
-    request.headers.addAll(Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value))));
+    final request = http.MultipartRequest(method, Uri.parse(_getInterpolatedString(url)));
+    _addHeaders(request);
+    _addBasicAuth(request);
 
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
@@ -428,7 +497,10 @@ class Request {
   }
 
   Future<http.Response> _sendFile() async {
-    final request = http.Request(method, Uri.parse(url));
+    final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
+
+    _addHeaders(request);
+    _addBasicAuth(request);
 
     final body = bodyFile as FileBody;
     final selectedFile = body.selectedFile();
@@ -466,6 +538,25 @@ class Request {
       case BodyType.file:
         return bodyFile;
       case BodyType.none:
+        return null;
+    }
+  }
+
+  Auth? getAuth() {
+    switch (authType) {
+      case AuthType.awsV4:
+        return authAwsV4;
+      case AuthType.basic:
+        return authBasic;
+      case AuthType.bearer:
+        return authBearer;
+      case AuthType.digest:
+        return authDigest;
+      case AuthType.oauth2:
+        return authOauth2;
+      case AuthType.wsse:
+        return authWsse;
+      case AuthType.none:
         return null;
     }
   }
@@ -509,8 +600,25 @@ class Request {
     }
 
     // Copy auth if it exists
-    // TODO: This should deep copy the auth
-    auth = request.auth;
+    authType = request.authType;
+    if (request.authAwsV4 != null) {
+      authAwsV4 = request.authAwsV4!.deepCopy();
+    }
+    if (request.authBasic != null) {
+      authBasic = request.authBasic!.deepCopy();
+    }
+    if (request.authBearer != null) {
+      authBearer = request.authBearer!.deepCopy();
+    }
+    if (request.authDigest != null) {
+      authDigest = request.authDigest!.deepCopy();
+    }
+    if (request.authOauth2 != null) {
+      authOauth2 = request.authOauth2!.deepCopy();
+    }
+    if (request.authWsse != null) {
+      authWsse = request.authWsse!.deepCopy();
+    }
 
     // Copy params
     params = List.from(request.params);
@@ -543,6 +651,10 @@ class Request {
 
   void setRequestVars(List<Variable> vars) {
     requestVars = vars;
+  }
+
+  void setAuthType(AuthType authType) {
+    this.authType = authType;
   }
 
   void setBodyType(BodyType bodyType) {

@@ -8,6 +8,7 @@ class EditorFocusManager {
   late final FocusNode editorFocusNode;
   late final FocusNode methodFocusNode;
   late final FocusNode bodyTypeFocusNode;
+  late final FocusNode authTypeFocusNode;
   late final FocusNode formatFocusNode;
   late final FocusNode topTabFocusNode;
   late final FocusNode urlFocusNode;
@@ -17,6 +18,9 @@ class EditorFocusManager {
   late final List<Map<String, FocusNode>> _rowFocusNodes;
   late final List<Map<String, FocusNode>> _pathParamsRowFocusNodes;
 
+  late final FocusNode authBasicUsernameFocusNode;
+  late final FocusNode authBasicPasswordFocusNode;
+
   final EventBus _eventBus;
   final ValueKey tabKey;
 
@@ -24,6 +28,7 @@ class EditorFocusManager {
     editorFocusNode = FocusNode();
     methodFocusNode = FocusNode();
     bodyTypeFocusNode = FocusNode();
+    authTypeFocusNode = FocusNode();
     formatFocusNode = FocusNode();
     topTabFocusNode = FocusNode();
     urlFocusNode = FocusNode();
@@ -33,15 +38,21 @@ class EditorFocusManager {
     _rowFocusNodes = [];
     _pathParamsRowFocusNodes = [];
 
+    authBasicUsernameFocusNode = FocusNode();
+    authBasicPasswordFocusNode = FocusNode();
+
     editorFocusNode.onKeyEvent = _onKeyUp;
     methodFocusNode.onKeyEvent = _onKeyUp;
     bodyTypeFocusNode.onKeyEvent = _onKeyUp;
+    authTypeFocusNode.onKeyEvent = _onKeyUp;
     formatFocusNode.onKeyEvent = _onKeyUp;
     topTabFocusNode.onKeyEvent = _onKeyUp;
     urlFocusNode.onKeyEvent = _onKeyUp;
     checkboxFocusNode.onKeyEvent = _onKeyUp;
     reqBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    authBasicUsernameFocusNode.onKeyEvent = _onKeyUp;
+    authBasicPasswordFocusNode.onKeyEvent = _onKeyUp;
 
     // Add listener to transfer focus when method dropdown loses focus
     methodFocusNode.addListener(() {
@@ -51,6 +62,11 @@ class EditorFocusManager {
     });
     bodyTypeFocusNode.addListener(() {
       if (!bodyTypeFocusNode.hasFocus) {
+        editorFocusNode.requestFocus();
+      }
+    });
+    authTypeFocusNode.addListener(() {
+      if (!authTypeFocusNode.hasFocus) {
         editorFocusNode.requestFocus();
       }
     });
@@ -201,11 +217,14 @@ class EditorFocusManager {
     editorFocusNode.dispose();
     methodFocusNode.dispose();
     bodyTypeFocusNode.dispose();
+    authTypeFocusNode.dispose();
     formatFocusNode.dispose();
     topTabFocusNode.dispose();
     urlFocusNode.dispose();
     checkboxFocusNode.dispose();
     reqBodyFocusNode.dispose();
     respBodyFocusNode.dispose();
+    authBasicUsernameFocusNode.dispose();
+    authBasicPasswordFocusNode.dispose();
   }
 }

@@ -16,6 +16,9 @@ import 'package:trayce/editor/widgets/code_editor/url_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
+import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_not_implemented.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/request_form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
 
@@ -87,6 +90,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   // Static form options
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+  static const List<String> _topTabTitles = ['Params', 'Body', 'Headers', 'Auth', 'Variables'];
 
   // State variables
   bool isDividerHovered = false;
@@ -113,7 +117,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     // Init the tab controllers
     _bottomTabController = TabController(length: 2, vsync: this);
-    _topTabController = TabController(length: 4, vsync: this);
+    _topTabController = TabController(length: _topTabTitles.length, vsync: this);
     _topTabController.addListener(() {
       setState(() {}); // This will trigger a rebuild when the tab changes
     });
@@ -254,6 +258,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     int bodyTypeIndex = 1;
+    int authTypeIndex = 0;
 
     if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[0]) {
       bodyTypeIndex = 0;
@@ -266,6 +271,20 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     } else if (_formController.selectedBodyType == RequestFormController.bodyTypeOptions[6]) {
       // File
       bodyTypeIndex = 4;
+    }
+
+    if (_formController.selectedAuthType == RequestFormController.authTypeOptions[0]) {
+      authTypeIndex = 0;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[1]) {
+      authTypeIndex = 1;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[2]) {
+      authTypeIndex = 2;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[3]) {
+      authTypeIndex = 3;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[4]) {
+      authTypeIndex = 4;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[5]) {
+      authTypeIndex = 5;
     }
 
     final tabContentBorder = Border(
@@ -364,7 +383,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                         ElevatedButton(
                           key: const Key('flow_editor_http_send_btn'),
                           onPressed: sendRequest,
-                          style: commonButtonStyle.copyWith(minimumSize: WidgetStateProperty.all(const Size(80, 36))),
+                          style: commonButtonStyle.copyWith(
+                            minimumSize: WidgetStateProperty.all(const Size(80, 36)),
+                            backgroundColor: WidgetStateProperty.all(selectedMenuItemColor),
+                          ),
                           child:
                               _isSending
                                   ? const SizedBox(
@@ -375,7 +397,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                     ),
                                   )
-                                  : const Text('Send'),
+                                  : const Text(
+                                    'Send',
+                                    style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                                  ),
                         ),
                       ],
                     ),
@@ -420,11 +445,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 Expanded(
                                                   child: InlineTabBar(
                                                     controller: _topTabController,
-                                                    tabTitles: const ['Params', 'Headers', 'Body', 'Variables'],
+                                                    tabTitles: _topTabTitles,
                                                     focusNode: _focusManager.topTabFocusNode,
                                                   ),
                                                 ),
-                                                if (_topTabController.index == 2) ...[
+                                                // -----------------------------------------------------------
+                                                // Body Type Dropdown
+                                                // -----------------------------------------------------------
+                                                if (_topTabController.index == 1) ...[
                                                   const SizedBox(width: 12),
                                                   Container(
                                                     width: 120,
@@ -465,6 +493,50 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ),
                                                   const SizedBox(width: 20),
                                                 ],
+                                                // -----------------------------------------------------------
+                                                // Auth Type Dropdown
+                                                // -----------------------------------------------------------
+                                                if (_topTabController.index == 3) ...[
+                                                  const SizedBox(width: 12),
+                                                  Container(
+                                                    width: 120,
+                                                    height: 20,
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(color: const Color(0xFF474747), width: 0),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: DropdownButton2<String>(
+                                                      key: const Key('flow_editor_http_auth_type_dropdown'),
+                                                      focusNode: _focusManager.authTypeFocusNode,
+                                                      value: _formController.selectedAuthType,
+                                                      underline: Container(),
+                                                      dropdownStyleData: DropdownStyleData(
+                                                        decoration: dropdownDecoration,
+                                                        width: 150,
+                                                        openInterval: Interval(0.0, 0.0),
+                                                      ),
+                                                      buttonStyleData: ButtonStyleData(
+                                                        padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                                      ),
+                                                      menuItemStyleData: menuItemStyleData,
+                                                      iconStyleData: iconStyleData,
+                                                      style: textFieldStyle,
+                                                      isExpanded: true,
+                                                      items:
+                                                          RequestFormController.authTypeOptions.map((String format) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: format,
+                                                              child: Padding(
+                                                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                                                child: Text(format),
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                      onChanged: _formController.setAuthType,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                ],
                                               ],
                                             ),
                                           ),
@@ -473,6 +545,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                           child: TabBarView(
                                             controller: _topTabController,
                                             children: [
+                                              // -----------------------------------------------------------
+                                              // Params Tab
+                                              // -----------------------------------------------------------
                                               SingleChildScrollView(
                                                 child: Column(
                                                   children: [
@@ -530,17 +605,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ],
                                                 ),
                                               ),
-                                              SingleChildScrollView(
-                                                child: FormTable(
-                                                  controller: _formController.headersController,
-                                                  columns: [
-                                                    FormTableColumn.enabled,
-                                                    FormTableColumn.key,
-                                                    FormTableColumn.value,
-                                                    FormTableColumn.delete,
-                                                  ],
-                                                ),
-                                              ),
+                                              // -----------------------------------------------------------
+                                              // Body Tab
+                                              // -----------------------------------------------------------
                                               IndexedStack(
                                                 index: bodyTypeIndex,
                                                 children: [
@@ -596,6 +663,52 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ),
                                                 ],
                                               ),
+                                              // -----------------------------------------------------------
+                                              // Headers Tab
+                                              // -----------------------------------------------------------
+                                              SingleChildScrollView(
+                                                child: FormTable(
+                                                  controller: _formController.headersController,
+                                                  columns: [
+                                                    FormTableColumn.enabled,
+                                                    FormTableColumn.key,
+                                                    FormTableColumn.value,
+                                                    FormTableColumn.delete,
+                                                  ],
+                                                ),
+                                              ),
+                                              // -----------------------------------------------------------
+                                              // Auth Tab
+                                              // -----------------------------------------------------------
+                                              IndexedStack(
+                                                index: authTypeIndex,
+                                                children: [
+                                                  // No Body
+                                                  Center(
+                                                    child: Text(
+                                                      'No Auth',
+                                                      style: TextStyle(color: Color(0xFF808080), fontSize: 16),
+                                                    ),
+                                                  ),
+                                                  // Basic Auth
+                                                  AuthBasicForm(
+                                                    controller: _formController.authBasicController,
+                                                    usernameFocusNode: _focusManager.authBasicUsernameFocusNode,
+                                                    passwordFocusNode: _focusManager.authBasicPasswordFocusNode,
+                                                  ),
+                                                  // Bearer Token
+                                                  AuthNotImplemented(authType: 'Bearer auth'),
+                                                  // Digest
+                                                  AuthNotImplemented(authType: 'Digest auth'),
+                                                  // OAuth2
+                                                  AuthNotImplemented(authType: 'OAuth2'),
+                                                  // WSSE
+                                                  AuthNotImplemented(authType: 'WSSE auth'),
+                                                ],
+                                              ),
+                                              // -----------------------------------------------------------
+                                              // Variables Tab
+                                              // -----------------------------------------------------------
                                               SingleChildScrollView(
                                                 child: FormTable(
                                                   controller: _formController.varsController,
@@ -705,6 +818,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               focusNode: _focusManager.respBodyFocusNode,
                                               border: tabContentBorder,
                                               controller: _formController.respBodyController,
+                                              readOnly: true,
                                             ),
                                             SingleChildScrollView(
                                               child: Padding(

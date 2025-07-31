@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
+import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
@@ -93,6 +94,7 @@ void main() {
       method: 'get',
       url: url,
       bodyType: BodyType.none,
+      authType: AuthType.none,
       params: [],
       headers: [Header(name: '{{C_var}}', value: '{{B_var}}', enabled: true)],
       requestVars: [
@@ -124,6 +126,7 @@ void main() {
       url: url,
       bodyType: BodyType.text,
       bodyText: TextBody(content: 'helloworld, my token is {{B_var}}'),
+      authType: AuthType.none,
       params: [],
       headers: [],
       requestVars: [
@@ -155,6 +158,7 @@ void main() {
       url: url,
       bodyType: BodyType.json,
       bodyJson: JsonBody(content: '{"hello": "world"}'),
+      authType: AuthType.none,
       params: [],
       headers: [Header(name: 'x-trayce-token', value: 'abcd1234', enabled: true)],
       requestVars: [],
@@ -184,6 +188,7 @@ void main() {
       method: 'post',
       url: url,
       bodyType: BodyType.xml,
+      authType: AuthType.none,
       bodyXml: XmlBody(content: '<hello>world</hello>'),
       params: [],
       headers: [Header(name: 'x-trayce-token', value: 'abcd1234', enabled: false)],
@@ -213,6 +218,7 @@ void main() {
       seq: 1,
       method: 'post',
       url: url,
+      authType: AuthType.none,
       bodyType: BodyType.formUrlEncoded,
       bodyFormUrlEncoded: FormUrlEncodedBody(
         params: [
@@ -250,6 +256,7 @@ void main() {
       seq: 1,
       method: 'post',
       url: url,
+      authType: AuthType.none,
       bodyType: BodyType.multipartForm,
       bodyMultipartForm: MultipartFormBody(
         files: [
@@ -298,6 +305,7 @@ void main() {
       seq: 1,
       method: 'post',
       url: url,
+      authType: AuthType.none,
       bodyType: BodyType.file,
       bodyFile: FileBody(
         files: [
@@ -329,6 +337,39 @@ void main() {
     expect(mockServer.sentFiles, isNotNull);
     expect(mockServer.sentFiles!.length, 1);
     expect(mockServer.sentFiles![0].length, 6);
+    mockServer.reset();
+  });
+
+  test('sending a GET request with basic auth', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'get',
+      url: url,
+      bodyType: BodyType.none,
+      authType: AuthType.basic,
+      authBasic: BasicAuth(username: '{{B_var}}', password: '{{C_var}}'),
+      params: [],
+      headers: [],
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final response = await request.send();
+
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    expect(mockServer.sentRequest!.headers['Authorization'], 'Basic YWJjZDEyMzQ6eC10cmF5Y2UtdG9rZW4=');
     mockServer.reset();
   });
 }

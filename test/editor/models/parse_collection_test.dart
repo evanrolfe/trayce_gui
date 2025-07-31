@@ -56,7 +56,7 @@ void main() {
 
     // Check auth
     final expectedAuth = expected['auth']['basic'];
-    final auth = result.auth;
+    final auth = result.getAuth();
     expect(auth, isNotNull);
     expect(auth is BasicAuth, isTrue);
     expect((auth as BasicAuth).username, expectedAuth['username']);

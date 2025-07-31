@@ -67,36 +67,69 @@ Request parseRequest(String request) {
   final bodyMultipartForm = parseBodyMultipartForm(result);
   final bodyFile = parseBodyFile(result);
 
-  BodyType bodyType;
+  final authAwsV4 = parseAuthAwsV4(result);
+  final authBasic = parseAuthBasic(result);
+  final authBearer = parseAuthBearer(result);
+  final authDigest = parseAuthDigest(result);
+  final authOauth2 = parseAuthOauth2(result);
+  final authWsse = parseAuthWsse(result);
+
+  BodyType bodyTypeEnum;
   switch (bodyTypeStr) {
     case 'json':
-      bodyType = BodyType.json;
+      bodyTypeEnum = BodyType.json;
       break;
     case 'text':
-      bodyType = BodyType.text;
+      bodyTypeEnum = BodyType.text;
       break;
     case 'xml':
-      bodyType = BodyType.xml;
+      bodyTypeEnum = BodyType.xml;
       break;
     case 'sparql':
-      bodyType = BodyType.sparql;
+      bodyTypeEnum = BodyType.sparql;
       break;
     case 'graphql':
-      bodyType = BodyType.graphql;
+      bodyTypeEnum = BodyType.graphql;
       break;
     case 'form-urlencoded':
-      bodyType = BodyType.formUrlEncoded;
+      bodyTypeEnum = BodyType.formUrlEncoded;
       break;
     case 'multipart-form':
-      bodyType = BodyType.multipartForm;
+      bodyTypeEnum = BodyType.multipartForm;
       break;
     case 'file':
-      bodyType = BodyType.file;
+      bodyTypeEnum = BodyType.file;
       break;
     default:
-      bodyType = BodyType.none;
+      bodyTypeEnum = BodyType.none;
   }
-  final auth = parseAuth(result, authType);
+
+  AuthType authTypeEnum;
+  switch (authType) {
+    case 'none':
+      authTypeEnum = AuthType.none;
+      break;
+    case 'awsv4':
+      authTypeEnum = AuthType.awsV4;
+      break;
+    case 'basic':
+      authTypeEnum = AuthType.basic;
+      break;
+    case 'bearer':
+      authTypeEnum = AuthType.bearer;
+      break;
+    case 'digest':
+      authTypeEnum = AuthType.digest;
+      break;
+    case 'oauth2':
+      authTypeEnum = AuthType.oauth2;
+      break;
+    case 'wsse':
+      authTypeEnum = AuthType.wsse;
+      break;
+    default:
+      authTypeEnum = AuthType.none;
+  }
 
   final assertions = parseAssertions(result);
 
@@ -112,7 +145,6 @@ Request parseRequest(String request) {
     seq: seq,
     method: method ?? '',
     url: url ?? '',
-    auth: auth,
     params: params,
     headers: headers,
     requestVars: requestVars,
@@ -122,7 +154,8 @@ Request parseRequest(String request) {
     tests: tests,
     docs: docs,
 
-    bodyType: bodyType,
+    authType: authTypeEnum,
+    bodyType: bodyTypeEnum,
 
     bodyText: bodyText,
     bodyJson: bodyJson,
@@ -132,6 +165,13 @@ Request parseRequest(String request) {
     bodyFormUrlEncoded: bodyFormUrlEncoded,
     bodyMultipartForm: bodyMultipartForm,
     bodyFile: bodyFile,
+
+    authAwsV4: authAwsV4,
+    authBasic: authBasic,
+    authBearer: authBearer,
+    authDigest: authDigest,
+    authOauth2: authOauth2,
+    authWsse: authWsse,
   );
 }
 
@@ -385,85 +425,81 @@ Body? parseBodyFile(Result<dynamic> result) {
   return FileBody(files: files);
 }
 
-Auth? parseAuth(Result<dynamic> result, String? authType) {
-  if (authType == null) return null;
+Auth? parseAuthAwsV4(Result<dynamic> result) {
+  const authKey = 'auth:awsv4';
+  if (result.value[authKey] == null) return null;
 
-  // Map authType to the correct key in the parsed result
-  String? authKey;
-  switch (authType) {
-    case 'awsv4':
-      authKey = 'auth:awsv4';
-      break;
-    case 'basic':
-      authKey = 'auth:basic';
-      break;
-    case 'bearer':
-      authKey = 'auth:bearer';
-      break;
-    case 'digest':
-      authKey = 'auth:digest';
-      break;
-    case 'oauth2':
-      authKey = 'auth:oauth2';
-      break;
-    case 'wsse':
-      authKey = 'auth:wsse';
-      break;
-    // Add more cases as needed
-    default:
-      authKey = null;
-  }
+  final authBlock = result.value[authKey];
 
-  Auth? auth;
-  if (authKey != null && result.value[authKey] != null) {
-    final authBlock = result.value[authKey];
-    switch (authType) {
-      case 'awsv4':
-        auth = AwsV4Auth(
-          accessKeyId: authBlock['accessKeyId'] ?? '',
-          secretAccessKey: authBlock['secretAccessKey'] ?? '',
-          sessionToken: authBlock['sessionToken'] ?? '',
-          service: authBlock['service'] ?? '',
-          region: authBlock['region'] ?? '',
-          profileName: authBlock['profileName'] ?? '',
-        );
-        break;
-      case 'basic':
-        auth = BasicAuth(username: authBlock['username'] ?? '', password: authBlock['password'] ?? '');
-        break;
-      case 'bearer':
-        auth = BearerAuth(token: authBlock['token'] ?? '');
-        break;
-      case 'digest':
-        auth = DigestAuth(username: authBlock['username'] ?? '', password: authBlock['password'] ?? '');
-        break;
-      case 'oauth2':
-        auth = OAuth2Auth(
-          accessTokenUrl: authBlock['access_token_url'] ?? authBlock['accessTokenUrl'] ?? '',
-          authorizationUrl: authBlock['authorization_url'] ?? authBlock['authorizationUrl'] ?? '',
-          autoFetchToken: parseBool(authBlock['auto_fetch_token']),
-          autoRefreshToken: parseBool(authBlock['auto_refresh_token']),
-          callbackUrl: authBlock['callback_url'] ?? authBlock['callbackUrl'] ?? '',
-          clientId: authBlock['client_id'] ?? authBlock['clientId'] ?? '',
-          clientSecret: authBlock['client_secret'] ?? authBlock['clientSecret'] ?? '',
-          credentialsId: authBlock['credentials_id'] ?? authBlock['credentialsId'] ?? '',
-          credentialsPlacement: authBlock['credentials_placement'] ?? authBlock['credentialsPlacement'] ?? '',
-          grantType: authBlock['grant_type'] ?? authBlock['grantType'] ?? '',
-          pkce: parseBool(authBlock['pkce']),
-          refreshTokenUrl: authBlock['refresh_token_url'] ?? authBlock['refreshTokenUrl'] ?? '',
-          scope: authBlock['scope'] ?? '',
-          state: authBlock['state'] ?? '',
-          tokenHeaderPrefix: authBlock['token_header_prefix'] ?? authBlock['tokenHeaderPrefix'] ?? '',
-          tokenPlacement: authBlock['token_placement'] ?? authBlock['tokenPlacement'] ?? '',
-          tokenQueryKey: authBlock['token_query_key'] ?? authBlock['tokenQueryKey'] ?? '',
-        );
-        break;
-      case 'wsse':
-        auth = WsseAuth(username: authBlock['username'] ?? '', password: authBlock['password'] ?? '');
-        break;
-      // Add more cases as needed
-    }
-  }
+  return AwsV4Auth(
+    accessKeyId: authBlock['accessKeyId'] ?? '',
+    secretAccessKey: authBlock['secretAccessKey'] ?? '',
+    sessionToken: authBlock['sessionToken'] ?? '',
+    service: authBlock['service'] ?? '',
+    region: authBlock['region'] ?? '',
+    profileName: authBlock['profileName'] ?? '',
+  );
+}
 
-  return auth;
+Auth? parseAuthBasic(Result<dynamic> result) {
+  const authKey = 'auth:basic';
+  if (result.value[authKey] == null) return null;
+
+  final authBlock = result.value[authKey];
+
+  return BasicAuth(username: authBlock['username'] ?? '', password: authBlock['password'] ?? '');
+}
+
+Auth? parseAuthBearer(Result<dynamic> result) {
+  const authKey = 'auth:bearer';
+  if (result.value[authKey] == null) return null;
+
+  final authBlock = result.value[authKey];
+
+  return BearerAuth(token: authBlock['token'] ?? '');
+}
+
+Auth? parseAuthDigest(Result<dynamic> result) {
+  const authKey = 'auth:digest';
+  if (result.value[authKey] == null) return null;
+
+  final authBlock = result.value[authKey];
+
+  return DigestAuth(username: authBlock['username'] ?? '', password: authBlock['password'] ?? '');
+}
+
+Auth? parseAuthOauth2(Result<dynamic> result) {
+  const authKey = 'auth:oauth2';
+  if (result.value[authKey] == null) return null;
+
+  final authBlock = result.value[authKey];
+
+  return OAuth2Auth(
+    accessTokenUrl: authBlock['access_token_url'] ?? authBlock['accessTokenUrl'] ?? '',
+    authorizationUrl: authBlock['authorization_url'] ?? authBlock['authorizationUrl'] ?? '',
+    autoFetchToken: parseBool(authBlock['auto_fetch_token']),
+    autoRefreshToken: parseBool(authBlock['auto_refresh_token']),
+    callbackUrl: authBlock['callback_url'] ?? authBlock['callbackUrl'] ?? '',
+    clientId: authBlock['client_id'] ?? authBlock['clientId'] ?? '',
+    clientSecret: authBlock['client_secret'] ?? authBlock['clientSecret'] ?? '',
+    credentialsId: authBlock['credentials_id'] ?? authBlock['credentialsId'] ?? '',
+    credentialsPlacement: authBlock['credentials_placement'] ?? authBlock['credentialsPlacement'] ?? '',
+    grantType: authBlock['grant_type'] ?? authBlock['grantType'] ?? '',
+    pkce: parseBool(authBlock['pkce']),
+    refreshTokenUrl: authBlock['refresh_token_url'] ?? authBlock['refreshTokenUrl'] ?? '',
+    scope: authBlock['scope'] ?? '',
+    state: authBlock['state'] ?? '',
+    tokenHeaderPrefix: authBlock['token_header_prefix'] ?? authBlock['tokenHeaderPrefix'] ?? '',
+    tokenPlacement: authBlock['token_placement'] ?? authBlock['tokenPlacement'] ?? '',
+    tokenQueryKey: authBlock['token_query_key'] ?? authBlock['tokenQueryKey'] ?? '',
+  );
+}
+
+Auth? parseAuthWsse(Result<dynamic> result) {
+  const authKey = 'auth:wsse';
+  if (result.value[authKey] == null) return null;
+
+  final authBlock = result.value[authKey];
+
+  return WsseAuth(username: authBlock['username'] ?? '', password: authBlock['password'] ?? '');
 }
