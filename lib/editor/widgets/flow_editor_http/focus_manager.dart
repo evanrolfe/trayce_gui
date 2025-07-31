@@ -20,6 +20,7 @@ class EditorFocusManager {
 
   late final FocusNode authBasicUsernameFocusNode;
   late final FocusNode authBasicPasswordFocusNode;
+  late final FocusNode authBearerTokenFocusNode;
 
   final EventBus _eventBus;
   final ValueKey tabKey;
@@ -40,6 +41,7 @@ class EditorFocusManager {
 
     authBasicUsernameFocusNode = FocusNode();
     authBasicPasswordFocusNode = FocusNode();
+    authBearerTokenFocusNode = FocusNode();
 
     editorFocusNode.onKeyEvent = _onKeyUp;
     methodFocusNode.onKeyEvent = _onKeyUp;
@@ -53,6 +55,7 @@ class EditorFocusManager {
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     authBasicUsernameFocusNode.onKeyEvent = _onKeyUp;
     authBasicPasswordFocusNode.onKeyEvent = _onKeyUp;
+    authBearerTokenFocusNode.onKeyEvent = _onKeyUp;
 
     // Add listener to transfer focus when method dropdown loses focus
     methodFocusNode.addListener(() {
@@ -226,5 +229,6 @@ class EditorFocusManager {
     respBodyFocusNode.dispose();
     authBasicUsernameFocusNode.dispose();
     authBasicPasswordFocusNode.dispose();
+    authBearerTokenFocusNode.dispose();
   }
 }

@@ -9,6 +9,7 @@ import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_files_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
@@ -48,6 +49,7 @@ class RequestFormController {
   late final FormFilesController fileController;
 
   late final AuthBasicController authBasicController;
+  late final AuthBearerController authBearerController;
 
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
@@ -211,6 +213,9 @@ class RequestFormController {
 
     // Auth Basic
     authBasicController = AuthBasicController(_formRequest, _flowModified);
+
+    // Auth Bearer
+    authBearerController = AuthBearerController(_formRequest, _flowModified);
   }
 
   void _urlModified() {
@@ -365,5 +370,7 @@ class RequestFormController {
     formUrlEncodedController.dispose();
     multipartFormController.dispose();
     fileController.dispose();
+    authBasicController.dispose();
+    authBearerController.dispose();
   }
 }

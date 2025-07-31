@@ -18,6 +18,7 @@ import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_form.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_not_implemented.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/request_form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
@@ -697,7 +698,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     passwordFocusNode: _focusManager.authBasicPasswordFocusNode,
                                                   ),
                                                   // Bearer Token
-                                                  AuthNotImplemented(authType: 'Bearer auth'),
+                                                  AuthBearerForm(
+                                                    controller: _formController.authBearerController,
+                                                    tokenFocusNode: _focusManager.authBearerTokenFocusNode,
+                                                  ),
                                                   // Digest
                                                   AuthNotImplemented(authType: 'Digest auth'),
                                                   // OAuth2

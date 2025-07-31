@@ -372,4 +372,37 @@ void main() {
     expect(mockServer.sentRequest!.headers['Authorization'], 'Basic YWJjZDEyMzQ6eC10cmF5Y2UtdG9rZW4=');
     mockServer.reset();
   });
+
+  test('sending a GET request with bearer auth', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'get',
+      url: url,
+      bodyType: BodyType.none,
+      authType: AuthType.bearer,
+      authBearer: BearerAuth(token: '{{B_var}}'),
+      params: [],
+      headers: [],
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final response = await request.send();
+
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    expect(mockServer.sentRequest!.headers['Authorization'], 'Bearer abcd1234');
+    mockServer.reset();
+  });
 }
