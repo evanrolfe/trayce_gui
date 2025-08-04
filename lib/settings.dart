@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:trayce/agent/server.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/network/models/license_key.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 
@@ -112,13 +113,7 @@ class _SettingsModalState extends State<SettingsModal> {
                   'Settings',
                   style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  splashRadius: 16,
-                ),
+                HoverableIconButton(onPressed: () => Navigator.of(context).pop(), icon: Icons.close),
               ],
             ),
             const SizedBox(height: 24),

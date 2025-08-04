@@ -6,6 +6,7 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -41,11 +42,12 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
   late FormVarsController _varsController;
   late AuthBasicControllerI _authBasicController;
   late AuthBearerControllerI _authBearerController;
+  late EditorFocusManager _focusManager;
   int _selectedAuthTypeIndex = 0;
 
   late String _title;
 
-  static const List<String> _tabTitles = ['Headers', 'Variables', 'Auth'];
+  static const List<String> _tabTitles = ['Headers', 'Auth', 'Variables'];
   static const List<String> _authTypeOptions = ['No Auth', 'Basic Auth', 'Bearer Token', 'Digest', 'OAuth2', 'WSSE'];
 
   @override
@@ -59,7 +61,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     final config = context.read<Config>();
     final eventBus = context.read<EventBus>();
     final filePicker = context.read<FilePickerI>();
-    final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
+    _focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
     _title = widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';
 
@@ -75,7 +77,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       initialRows: headers,
       onStateChanged: () => setState(() {}),
       config: config,
-      focusManager: focusManager,
+      focusManager: _focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
     );
@@ -92,7 +94,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       onStateChanged: () => setState(() {}),
       initialRows: vars,
       config: config,
-      focusManager: focusManager,
+      focusManager: _focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
     );
@@ -229,13 +231,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                     _title,
                     style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: Color(0xFFD4D4D4), size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: 16,
-                  ),
+                  HoverableIconButton(onPressed: () => Navigator.of(context).pop(), icon: Icons.close),
                 ],
               ),
             ),
@@ -256,11 +252,11 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                           Expanded(
                             child: InlineTabBar(
                               controller: _tabController,
-                              tabTitles: const ['Headers', 'Variables', 'Auth'],
+                              tabTitles: _tabTitles,
                               focusNode: FocusNode(),
                             ),
                           ),
-                          if (_tabController.index == 2) ...[
+                          if (_tabController.index == 1) ...[
                             const SizedBox(width: 12),
                             Container(
                               width: 120,
@@ -330,20 +326,6 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                               ),
                             ),
                             // -----------------------------------------------------------
-                            // Variables Tab
-                            // -----------------------------------------------------------
-                            SingleChildScrollView(
-                              child: FormTable(
-                                controller: _varsController,
-                                columns: [
-                                  FormTableColumn.enabled,
-                                  FormTableColumn.key,
-                                  FormTableColumn.value,
-                                  FormTableColumn.delete,
-                                ],
-                              ),
-                            ),
-                            // -----------------------------------------------------------
                             // Auth Tab
                             // -----------------------------------------------------------
                             IndexedStack(
@@ -356,11 +338,14 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                                 // Basic Auth
                                 AuthBasicForm(
                                   controller: _authBasicController,
-                                  usernameFocusNode: FocusNode(),
-                                  passwordFocusNode: FocusNode(),
+                                  usernameFocusNode: _focusManager.authBasicUsernameFocusNode,
+                                  passwordFocusNode: _focusManager.authBasicPasswordFocusNode,
                                 ),
                                 // Bearer Token
-                                AuthBearerForm(controller: _authBearerController, tokenFocusNode: FocusNode()),
+                                AuthBearerForm(
+                                  controller: _authBearerController,
+                                  tokenFocusNode: _focusManager.authBearerTokenFocusNode,
+                                ),
                                 // Digest
                                 AuthNotImplemented(authType: 'Digest auth'),
                                 // OAuth2
@@ -368,6 +353,20 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                                 // WSSE
                                 AuthNotImplemented(authType: 'WSSE auth'),
                               ],
+                            ),
+                            // -----------------------------------------------------------
+                            // Variables Tab
+                            // -----------------------------------------------------------
+                            SingleChildScrollView(
+                              child: FormTable(
+                                controller: _varsController,
+                                columns: [
+                                  FormTableColumn.enabled,
+                                  FormTableColumn.key,
+                                  FormTableColumn.value,
+                                  FormTableColumn.delete,
+                                ],
+                              ),
                             ),
                           ],
                         ),

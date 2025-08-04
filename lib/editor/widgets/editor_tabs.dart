@@ -12,6 +12,7 @@ import 'package:trayce/common/dialog.dart';
 import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/common/file_picker.dart';
+import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -49,7 +50,6 @@ class _EditorTabsState extends State<EditorTabs> {
   late final FocusNode _focusNode;
   late final FocusNode _focusNodeBtn;
   int? _hoveredTabIndex;
-  int? _hoveredCloseButtonIndex;
   String _selectedTabUuid = '';
   Collection? _currentCollection;
 
@@ -396,9 +396,6 @@ class _EditorTabsState extends State<EditorTabs> {
       currentTabs().remove(tab);
       _tabEditors.removeWhere((entry) => entry.uuid == tab.uuid);
 
-      _hoveredCloseButtonIndex = null;
-      _hoveredTabIndex = null;
-
       // if we have close a tab which isn't the currently selected one, then do not change the selection
       if (_selectedTabUuid != tab.uuid) return;
 
@@ -597,22 +594,11 @@ class _EditorTabsState extends State<EditorTabs> {
                     const SizedBox(width: 8),
                     Text(tabEntry.getDisplayName(), style: tabTextStyle),
                     const SizedBox(width: 8),
-                    MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      onEnter: (_) => setState(() => _hoveredCloseButtonIndex = index),
-                      onExit: (_) => setState(() => _hoveredCloseButtonIndex = null),
-                      child: GestureDetector(
-                        onTap: () => _closeTab(tabEntry),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color:
-                                _hoveredCloseButtonIndex == index ? Colors.grey.withOpacity(0.2) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Icon(Icons.close, size: 16, color: lightTextColor),
-                        ),
-                      ),
+                    HoverableIconButton(
+                      onPressed: () => _closeTab(tabEntry),
+                      icon: Icons.close,
+                      iconSize: 16,
+                      iconColor: lightTextColor,
                     ),
                   ],
                 ),
