@@ -42,12 +42,12 @@ class AppMenuBar extends StatelessWidget {
             label: 'File',
             menus: [
               PlatformMenuItem(
-                label: 'Open',
+                label: 'Open Network File',
                 shortcut: const SingleActivator(LogicalKeyboardKey.keyO, meta: true),
                 onSelected: () => _handleOpen(context),
               ),
               PlatformMenuItem(
-                label: 'Save As',
+                label: 'Save Network File As',
                 shortcut: const SingleActivator(LogicalKeyboardKey.keyS, meta: true),
                 onSelected: () => _handleSave(context),
               ),
@@ -101,20 +101,14 @@ class AppMenuBar extends StatelessWidget {
                     onTap: () => _handleOpen(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Open', style: contextMenuTextStyle),
-                        Text('Ctrl+O', style: contextMenuTextStyle),
-                      ],
+                      children: [Text('Open Network File', style: contextMenuTextStyle)],
                     ),
                   ),
                   CustomPopupMenuItem(
                     onTap: () => _handleSave(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Save As', style: contextMenuTextStyle),
-                        Text('Ctrl+S', style: contextMenuTextStyle),
-                      ],
+                      children: [Text('Save Network File As', style: contextMenuTextStyle)],
                     ),
                   ),
                   CustomPopupMenuItem(

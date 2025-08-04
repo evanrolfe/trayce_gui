@@ -1,16 +1,24 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_controller.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_not_implemented.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_headers_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
@@ -31,11 +39,22 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
   late TabController _tabController;
   late FormHeadersController _headersController;
   late FormVarsController _varsController;
+  late AuthBasicControllerI _authBasicController;
+  late AuthBearerControllerI _authBearerController;
+  int _selectedAuthTypeIndex = 0;
+
   late String _title;
+
+  static const List<String> _tabTitles = ['Headers', 'Variables', 'Auth'];
+  static const List<String> _authTypeOptions = ['No Auth', 'Basic Auth', 'Bearer Token', 'Digest', 'OAuth2', 'WSSE'];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: _tabTitles.length, vsync: this);
+    _tabController.addListener(() {
+      setState(() {}); // This will trigger a rebuild when the tab changes
+    });
 
     final config = context.read<Config>();
     final eventBus = context.read<EventBus>();
@@ -77,11 +96,51 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       eventBus: eventBus,
       filePicker: filePicker,
     );
+
+    // Auth Type
+    AuthType authType = AuthType.none;
+    if (widget.node.type == NodeType.folder) {
+      authType = widget.node.folder!.authType;
+    } else if (widget.node.type == NodeType.collection) {
+      authType = widget.node.collection!.authType;
+    }
+
+    switch (authType) {
+      case AuthType.none:
+        _selectedAuthTypeIndex = 0;
+      case AuthType.basic:
+        _selectedAuthTypeIndex = 1;
+      case AuthType.bearer:
+        _selectedAuthTypeIndex = 2;
+      case AuthType.digest:
+        _selectedAuthTypeIndex = 3;
+      case AuthType.oauth2:
+        _selectedAuthTypeIndex = 4;
+      case AuthType.wsse:
+        _selectedAuthTypeIndex = 5;
+      default:
+        _selectedAuthTypeIndex = 0;
+    }
+
+    // Auth Basic
+    if (widget.node.type == NodeType.folder) {
+      _authBasicController = AuthBasicControllerFolder(widget.node.folder!);
+    } else if (widget.node.type == NodeType.collection) {
+      _authBasicController = AuthBasicControllerCollection(widget.node.collection!);
+    }
+
+    // Auth Bearer
+    if (widget.node.type == NodeType.folder) {
+      _authBearerController = AuthBearerControllerFolder(widget.node.folder!);
+    } else if (widget.node.type == NodeType.collection) {
+      _authBearerController = AuthBearerControllerCollection(widget.node.collection!);
+    }
   }
 
   Future<void> _onSave() async {
     // Set the headers
     if (widget.node.type == NodeType.folder) {
+      widget.node.folder!.authType = AuthType.basic;
       widget.node.folder!.headers = _headersController.getHeaders();
     } else if (widget.node.type == NodeType.collection) {
       widget.node.collection!.headers = _headersController.getHeaders();
@@ -92,6 +151,27 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       widget.node.folder!.requestVars = _varsController.getVars();
     } else if (widget.node.type == NodeType.collection) {
       widget.node.collection!.requestVars = _varsController.getVars();
+    }
+
+    // Set the auth
+    AuthType authType = switch (_selectedAuthTypeIndex) {
+      0 => AuthType.none,
+      1 => AuthType.basic,
+      2 => AuthType.bearer,
+      3 => AuthType.digest,
+      4 => AuthType.oauth2,
+      5 => AuthType.wsse,
+      _ => AuthType.none,
+    };
+
+    if (widget.node.type == NodeType.folder) {
+      widget.node.folder!.authType = authType;
+      widget.node.folder!.authBasic = _authBasicController.getAuth();
+      widget.node.folder!.authBearer = _authBearerController.getAuth();
+    } else if (widget.node.type == NodeType.collection) {
+      widget.node.collection!.authType = authType;
+      widget.node.collection!.authBasic = _authBasicController.getAuth();
+      widget.node.collection!.authBearer = _authBearerController.getAuth();
     }
 
     // Save
@@ -110,11 +190,27 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     _tabController.dispose();
     _headersController.dispose();
     _varsController.dispose();
+    _authBasicController.dispose();
+    _authBearerController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[0]) {
+      _selectedAuthTypeIndex = 0;
+    } else if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[1]) {
+      _selectedAuthTypeIndex = 1;
+    } else if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[2]) {
+      _selectedAuthTypeIndex = 2;
+    } else if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[3]) {
+      _selectedAuthTypeIndex = 3;
+    } else if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[4]) {
+      _selectedAuthTypeIndex = 4;
+    } else if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[5]) {
+      _selectedAuthTypeIndex = 5;
+    }
+
     return Dialog(
       backgroundColor: lightBackgroundColor,
       shape: dialogShape,
@@ -160,11 +256,56 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                           Expanded(
                             child: InlineTabBar(
                               controller: _tabController,
-                              tabTitles: const ['Headers', 'Variables'],
+                              tabTitles: const ['Headers', 'Variables', 'Auth'],
                               focusNode: FocusNode(),
                             ),
                           ),
-                          const SizedBox(width: 20),
+                          if (_tabController.index == 2) ...[
+                            const SizedBox(width: 12),
+                            Container(
+                              width: 120,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFF474747), width: 0),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: DropdownButton2<String>(
+                                key: const Key('flow_editor_node_settings_auth_type_dropdown'),
+                                focusNode: FocusNode(),
+                                value: _authTypeOptions[_selectedAuthTypeIndex],
+                                underline: Container(),
+                                dropdownStyleData: DropdownStyleData(
+                                  decoration: dropdownDecoration,
+                                  width: 150,
+                                  openInterval: Interval(0.0, 0.0),
+                                ),
+                                buttonStyleData: ButtonStyleData(
+                                  padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                ),
+                                menuItemStyleData: menuItemStyleData,
+                                iconStyleData: iconStyleData,
+                                style: textFieldStyle,
+                                isExpanded: true,
+                                items:
+                                    _authTypeOptions.map((String format) {
+                                      return DropdownMenuItem<String>(
+                                        value: format,
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 8),
+                                          child: Text(format),
+                                        ),
+                                      );
+                                    }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value == null) return;
+                                    _selectedAuthTypeIndex = _authTypeOptions.indexOf(value);
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                          ],
                         ],
                       ),
                     ),
@@ -174,6 +315,9 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                         child: TabBarView(
                           controller: _tabController,
                           children: [
+                            // -----------------------------------------------------------
+                            // Headers Tab
+                            // -----------------------------------------------------------
                             SingleChildScrollView(
                               child: FormTable(
                                 controller: _headersController,
@@ -185,6 +329,9 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                                 ],
                               ),
                             ),
+                            // -----------------------------------------------------------
+                            // Variables Tab
+                            // -----------------------------------------------------------
                             SingleChildScrollView(
                               child: FormTable(
                                 controller: _varsController,
@@ -195,6 +342,32 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                                   FormTableColumn.delete,
                                 ],
                               ),
+                            ),
+                            // -----------------------------------------------------------
+                            // Auth Tab
+                            // -----------------------------------------------------------
+                            IndexedStack(
+                              index: _selectedAuthTypeIndex,
+                              children: [
+                                // No Body
+                                Center(
+                                  child: Text('No Auth', style: TextStyle(color: Color(0xFF808080), fontSize: 16)),
+                                ),
+                                // Basic Auth
+                                AuthBasicForm(
+                                  controller: _authBasicController,
+                                  usernameFocusNode: FocusNode(),
+                                  passwordFocusNode: FocusNode(),
+                                ),
+                                // Bearer Token
+                                AuthBearerForm(controller: _authBearerController, tokenFocusNode: FocusNode()),
+                                // Digest
+                                AuthNotImplemented(authType: 'Digest auth'),
+                                // OAuth2
+                                AuthNotImplemented(authType: 'OAuth2'),
+                                // WSSE
+                                AuthNotImplemented(authType: 'WSSE auth'),
+                              ],
                             ),
                           ],
                         ),

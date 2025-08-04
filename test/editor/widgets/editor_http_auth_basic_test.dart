@@ -83,8 +83,8 @@ void main() {
       final authForm = tester.widget<AuthBasicForm>(find.byType(AuthBasicForm).first);
       final authController = authForm.controller;
 
-      authController.usernameController.text = 'admin';
-      authController.passwordController.text = '1234abcd';
+      authController.getUsernameController().text = 'admin';
+      authController.getPasswordController().text = '1234abcd';
 
       // Save the request
       await pressCtrlS(tester);
@@ -157,13 +157,13 @@ auth:basic {
       final authController = authForm.controller;
 
       // authController.usernameController.text = 'admin';
-      expect(authController.usernameController.text, 'helloss');
-      expect(authController.passwordController.text, 'worldss');
+      expect(authController.getUsernameController().text, 'helloss');
+      expect(authController.getPasswordController().text, 'worldss');
       await tester.pumpAndSettle();
 
       // Modify the auth form
-      authController.usernameController.text = 'hello';
-      authController.passwordController.text = 'world';
+      authController.getUsernameController().text = 'hello';
+      authController.getPasswordController().text = 'world';
       await tester.pumpAndSettle();
 
       // Check the tab title has a *

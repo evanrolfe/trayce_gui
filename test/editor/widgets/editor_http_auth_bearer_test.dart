@@ -84,7 +84,7 @@ void main() {
       final authForm = tester.widget<AuthBearerForm>(find.byType(AuthBearerForm).first);
       final authController = authForm.controller;
 
-      authController.tokenController.text = 'asdf';
+      authController.getTokenController().text = 'asdf';
 
       // Save the request
       await pressCtrlS(tester);
@@ -155,11 +155,11 @@ auth:bearer {
       final authController = authForm.controller;
 
       // authController.usernameController.text = 'admin';
-      expect(authController.tokenController.text, 'helloworld');
+      expect(authController.getTokenController().text, 'helloworld');
       await tester.pumpAndSettle();
 
       // Modify the auth form
-      authController.tokenController.text = 'helloworldx';
+      authController.getTokenController().text = 'helloworldx';
       await tester.pumpAndSettle();
 
       // Check the tab title has a *
