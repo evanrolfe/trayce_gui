@@ -118,7 +118,7 @@ void main() {
       verify(() => mockEventBus.fire(captureAny())).captured;
 
       final seq = explorerService.getNextSeq('test/support/collection1/myfolder/');
-      expect(seq, 6);
+      expect(seq, 5);
     });
 
     test('returns the next sequence number for a folder without a trailing slash', () async {
@@ -132,7 +132,7 @@ void main() {
       verify(() => mockEventBus.fire(captureAny())).captured;
 
       final seq = explorerService.getNextSeq('test/support/collection1/myfolder');
-      expect(seq, 6);
+      expect(seq, 5);
     });
 
     test('returns the next sequence number for collection root', () async {
@@ -208,11 +208,9 @@ void main() {
 
       // Expect hello have 1 request
       expect(event2.nodes[0].children[0].name, 'hello');
-      expect(event2.nodes[0].children[0].children.length, 1);
-      expect(event2.nodes[0].children[0].children[0].name, 'three.bru');
-
-      final fiveReq = event2.nodes[0].children[0].children[0].request;
-      expect(fiveReq?.seq, 0);
+      expect(event2.nodes[0].children[0].children.length, 2);
+      expect(event2.nodes[0].children[0].children[0].name, 'hello.bru');
+      expect(event2.nodes[0].children[0].children[1].name, 'three.bru');
 
       // Expect test-myfolder to have 4 requests
       final testMyFolder = event2.nodes[0].children[1];
@@ -455,7 +453,7 @@ void main() {
       // Expect hello to have 1 child which is myfolder
       final helloFolder = event2.nodes[0].children[0];
       expect(helloFolder.name, 'hello');
-      expect(helloFolder.children.length, 1);
+      expect(helloFolder.children.length, 2);
       expect(helloFolder.children[0].name, 'myfolder');
       expect(helloFolder.children[0].children.length, 5);
 

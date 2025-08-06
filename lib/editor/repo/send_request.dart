@@ -23,7 +23,7 @@ class SendRequest {
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
       final node = nodeHierarchy[i];
 
-      // Add headers, vars from collection & environment
+      // Add headers, vars, auth from collection & environment
       if (node.type == NodeType.collection && node.collection != null) {
         // Add vars from environment
         final currentEnv = node.collection!.getCurrentEnvironment();
@@ -43,9 +43,15 @@ class SendRequest {
           finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
           finalReq.requestVars.add(reqvar);
         }
+
+        final collectionAuth = node.collection!.getAuth();
+        if (node.collection!.authType != AuthType.none && collectionAuth != null) {
+          finalReq.authType = node.collection!.authType;
+          finalReq.setAuth(collectionAuth);
+        }
       }
 
-      // Add headers, vars from folder
+      // Add headers, vars, auth from folder
       if (node.type == NodeType.folder && node.folder != null) {
         for (final header in node.folder!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
@@ -55,6 +61,12 @@ class SendRequest {
         for (final reqvar in node.folder!.requestVars) {
           finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
           finalReq.requestVars.add(reqvar);
+        }
+
+        final folderAuth = node.folder!.getAuth();
+        if (node.folder!.authType != AuthType.none && folderAuth != null) {
+          finalReq.authType = node.folder!.authType;
+          finalReq.setAuth(folderAuth);
         }
       }
 
@@ -68,6 +80,12 @@ class SendRequest {
         for (final reqvar in node.request!.requestVars) {
           finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
           finalReq.requestVars.add(reqvar);
+        }
+
+        final requestAuth = node.request!.getAuth();
+        if (node.request!.authType != AuthType.none && requestAuth != null) {
+          finalReq.authType = node.request!.authType;
+          finalReq.setAuth(requestAuth);
         }
       }
     }

@@ -127,6 +127,9 @@ Request parseRequest(String request) {
     case 'wsse':
       authTypeEnum = AuthType.wsse;
       break;
+    case 'inherit':
+      authTypeEnum = AuthType.inherit;
+      break;
     default:
       authTypeEnum = AuthType.none;
   }

@@ -30,7 +30,7 @@ final bodyTypeEnumToBru = {
   BodyType.file: 'file',
 };
 
-enum AuthType { none, awsV4, basic, bearer, digest, oauth2, wsse }
+enum AuthType { none, awsV4, basic, bearer, digest, oauth2, wsse, inherit }
 
 final authTypeEnumToBru = {
   AuthType.none: 'none',
@@ -40,6 +40,7 @@ final authTypeEnumToBru = {
   AuthType.digest: 'digest',
   AuthType.oauth2: 'oauth2',
   AuthType.wsse: 'wsse',
+  AuthType.inherit: 'inherit',
 };
 
 class Request {
@@ -567,8 +568,38 @@ class Request {
         return authOauth2;
       case AuthType.wsse:
         return authWsse;
+      case AuthType.inherit:
+        // TODO: Implement inherit auth
+        return null;
       case AuthType.none:
         return null;
+    }
+  }
+
+  void setAuth(Auth auth) {
+    switch (authType) {
+      case AuthType.awsV4:
+        authAwsV4 = auth;
+        break;
+      case AuthType.basic:
+        authBasic = auth;
+        break;
+      case AuthType.bearer:
+        authBearer = auth;
+        break;
+      case AuthType.digest:
+        authDigest = auth;
+        break;
+      case AuthType.oauth2:
+        authOauth2 = auth;
+        break;
+      case AuthType.wsse:
+        authWsse = auth;
+        break;
+      case AuthType.inherit:
+        break;
+      case AuthType.none:
+        break;
     }
   }
 

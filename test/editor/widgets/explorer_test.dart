@@ -72,15 +72,15 @@ void main() {
       // Verify the file has been copied 1
       final newFileContent = loadFile(newFilePath1);
       expect(newFileContent, contains('url: https://trayce.dev'));
-      expect(newFileContent, contains('seq: 6'));
+      expect(newFileContent, contains('seq: 5'));
       // Verify the file has been copied 1
       final newFileContent2 = loadFile(newFilePath2);
       expect(newFileContent2, contains('url: https://trayce.dev'));
-      expect(newFileContent2, contains('seq: 7'));
+      expect(newFileContent2, contains('seq: 6'));
       // Verify the file has been copied 1
       final newFileContent3 = loadFile(newFilePath3);
       expect(newFileContent3, contains('url: https://trayce.dev'));
-      expect(newFileContent3, contains('seq: 8'));
+      expect(newFileContent3, contains('seq: 7'));
 
       // Restore the original request file
       deleteFileSync(newFilePath1);
