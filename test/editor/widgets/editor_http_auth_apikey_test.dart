@@ -79,12 +79,19 @@ void main() {
       await tester.tap(find.text('API Key'));
       await tester.pumpAndSettle();
 
-      // Verify the Auth form
+      // Populate the Auth form
       final authForm = tester.widget<AuthApiKeyForm>(find.byType(AuthApiKeyForm).first);
       final authController = authForm.controller;
 
       authController.getKeyController().text = 'X-Api-Key';
       authController.getValueController().text = '1234abcd';
+
+      // Select placement
+      final placementDropdown = find.byKey(const Key('flow_editor_auth_api_key_placement_dropdown')).first;
+      await tester.tap(placementDropdown);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('queryparams'));
+      await tester.pumpAndSettle();
 
       // Save the request
       await pressCtrlS(tester);
@@ -100,6 +107,7 @@ void main() {
         contains('''auth:apikey {
   key: X-Api-Key
   value: 1234abcd
+  placement: queryparams
 }'''),
       );
       // Cleanup the files
@@ -123,6 +131,7 @@ get {
 auth:apikey {
   key: X-Api-Key
   value: 1234abcd
+  placement: queryparams
 }''');
 
       // Open collection
@@ -160,6 +169,7 @@ auth:apikey {
       expect(authController.getKeyController().text, 'X-Api-Key');
       expect(authController.getValueController().text, '1234abcd');
       await tester.pumpAndSettle();
+      expect(authController.getPlacement().name, 'queryparams');
 
       // Modify the auth form
       authController.getKeyController().text = 'X-Api-Key';

@@ -439,7 +439,17 @@ Auth? parseAuthApiKey(Result<dynamic> result) {
 
   final authBlock = result.value[authKey];
 
-  return ApiKeyAuth(key: authBlock['key'] ?? '', value: authBlock['value'] ?? '');
+  final placement = authBlock['placement'];
+  ApiKeyPlacement placementEnum;
+  if (placement == 'header') {
+    placementEnum = ApiKeyPlacement.header;
+  } else if (placement == 'queryparams') {
+    placementEnum = ApiKeyPlacement.queryparams;
+  } else {
+    placementEnum = ApiKeyPlacement.header;
+  }
+
+  return ApiKeyAuth(key: authBlock['key'] ?? '', value: authBlock['value'] ?? '', placement: placementEnum);
 }
 
 Auth? parseAuthAwsV4(Result<dynamic> result) {

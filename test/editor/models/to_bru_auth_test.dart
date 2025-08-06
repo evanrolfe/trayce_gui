@@ -18,6 +18,7 @@ get {
 auth:apikey {
   key: hello
   value: world
+  placement: header
 }
 ''';
 

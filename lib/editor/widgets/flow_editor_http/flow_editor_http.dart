@@ -709,6 +709,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     controller: _formController.authApiKeyController,
                                                     keyFocusNode: _focusManager.authApiKeyKeyFocusNode,
                                                     valueFocusNode: _focusManager.authApiKeyValueFocusNode,
+                                                    placementFocusNode: _focusManager.authApiKeyPlacementFocusNode,
                                                   ),
                                                   // Basic Auth
                                                   AuthBasicForm(

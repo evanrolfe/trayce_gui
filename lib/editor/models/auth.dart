@@ -8,30 +8,36 @@ abstract class Auth {
   bool isEmpty();
 }
 
+enum ApiKeyPlacement { header, queryparams }
+
 class ApiKeyAuth extends Auth {
   @override
   final String type = 'apikey';
   String key;
   String value;
+  ApiKeyPlacement placement;
 
-  ApiKeyAuth({required this.key, required this.value});
+  ApiKeyAuth({required this.key, required this.value, required this.placement});
 
   @override
   bool equals(Auth other) {
     if (other is! ApiKeyAuth) return false;
-    return key == other.key && value == other.value;
+    return key == other.key && value == other.value && placement == other.placement;
   }
 
   @override
   Auth deepCopy() {
-    return ApiKeyAuth(key: key, value: value);
+    return ApiKeyAuth(key: key, value: value, placement: placement);
   }
 
   @override
   String toBru() {
+    final placementStr = placement == ApiKeyPlacement.header ? 'header' : 'queryparams';
+
     return '''auth:apikey {
 ${indentString('key: $key')}
 ${indentString('value: $value')}
+${indentString('placement: $placementStr')}
 }''';
   }
 

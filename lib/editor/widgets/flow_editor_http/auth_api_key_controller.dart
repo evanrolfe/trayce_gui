@@ -7,6 +7,8 @@ import 'package:trayce/editor/models/request.dart';
 abstract interface class AuthApiKeyControllerI {
   CodeLineEditingController getKeyController();
   CodeLineEditingController getValueController();
+  ApiKeyPlacement getPlacement();
+  void setPlacement(ApiKeyPlacement placement);
   ApiKeyAuth getAuth();
   void dispose();
 }
@@ -16,17 +18,20 @@ class AuthApiKeyController implements AuthApiKeyControllerI {
   late final CodeLineEditingController valueController;
   late final Request _formRequest;
   late final void Function() _flowModified;
+  late ApiKeyPlacement _placement;
 
   AuthApiKeyController(Request request, void Function() flowModified) {
     _formRequest = request;
     _flowModified = flowModified;
     keyController = CodeLineEditingController();
     valueController = CodeLineEditingController();
+    _placement = ApiKeyPlacement.header;
 
     if (request.authApiKey != null) {
       final auth = request.authApiKey as ApiKeyAuth;
       keyController.text = auth.key;
       valueController.text = auth.value;
+      _placement = auth.placement;
     }
 
     keyController.addListener(_keyModified);
@@ -39,15 +44,27 @@ class AuthApiKeyController implements AuthApiKeyControllerI {
   CodeLineEditingController getValueController() => valueController;
 
   @override
+  ApiKeyPlacement getPlacement() => _placement;
+
+  @override
+  void setPlacement(ApiKeyPlacement placement) {
+    _placement = placement;
+    final auth = _formRequest.authApiKey as ApiKeyAuth;
+    auth.placement = _placement;
+
+    _flowModified(); // Trigger UI update
+  }
+
+  @override
   ApiKeyAuth getAuth() {
-    return ApiKeyAuth(key: keyController.text, value: valueController.text);
+    return ApiKeyAuth(key: keyController.text, value: valueController.text, placement: _placement);
   }
 
   void _keyModified() {
     final key = keyController.text;
 
     if (_formRequest.authApiKey == null) {
-      _formRequest.authApiKey = ApiKeyAuth(key: key, value: '');
+      _formRequest.authApiKey = ApiKeyAuth(key: key, value: '', placement: _placement);
     } else {
       final auth = _formRequest.authApiKey as ApiKeyAuth;
       auth.key = key;
@@ -60,7 +77,7 @@ class AuthApiKeyController implements AuthApiKeyControllerI {
     final value = valueController.text;
 
     if (_formRequest.authApiKey == null) {
-      _formRequest.authApiKey = ApiKeyAuth(key: '', value: value);
+      _formRequest.authApiKey = ApiKeyAuth(key: '', value: value, placement: _placement);
     } else {
       final auth = _formRequest.authApiKey as ApiKeyAuth;
       auth.value = value;
@@ -80,16 +97,21 @@ class AuthApiKeyControllerFolder implements AuthApiKeyControllerI {
   late final CodeLineEditingController keyController;
   late final CodeLineEditingController valueController;
   late final Folder _folder;
+  late final void Function() _flowModified;
+  late ApiKeyPlacement _placement;
 
-  AuthApiKeyControllerFolder(Folder folder) {
+  AuthApiKeyControllerFolder(Folder folder, void Function() flowModified) {
     _folder = folder;
+    _flowModified = flowModified;
     keyController = CodeLineEditingController();
     valueController = CodeLineEditingController();
+    _placement = ApiKeyPlacement.header; // Initialize with default value
 
     if (_folder.authApiKey != null) {
       final auth = _folder.authApiKey as ApiKeyAuth;
       keyController.text = auth.key;
       valueController.text = auth.value;
+      _placement = auth.placement; // Set from existing auth data
     }
   }
 
@@ -99,8 +121,17 @@ class AuthApiKeyControllerFolder implements AuthApiKeyControllerI {
   CodeLineEditingController getValueController() => valueController;
 
   @override
+  ApiKeyPlacement getPlacement() => _placement;
+
+  @override
+  void setPlacement(ApiKeyPlacement placement) {
+    _placement = placement;
+    _flowModified(); // Trigger UI update
+  }
+
+  @override
   ApiKeyAuth getAuth() {
-    return ApiKeyAuth(key: keyController.text, value: valueController.text);
+    return ApiKeyAuth(key: keyController.text, value: valueController.text, placement: _placement);
   }
 
   @override
@@ -114,16 +145,21 @@ class AuthApiKeyControllerCollection implements AuthApiKeyControllerI {
   late final CodeLineEditingController keyController;
   late final CodeLineEditingController valueController;
   late final Collection _collection;
+  late final void Function() _flowModified;
+  late ApiKeyPlacement _placement;
 
-  AuthApiKeyControllerCollection(Collection collection) {
+  AuthApiKeyControllerCollection(Collection collection, void Function() flowModified) {
     _collection = collection;
+    _flowModified = flowModified;
     keyController = CodeLineEditingController();
     valueController = CodeLineEditingController();
+    _placement = ApiKeyPlacement.header; // Initialize with default value
 
     if (_collection.authApiKey != null) {
       final auth = _collection.authApiKey as ApiKeyAuth;
       keyController.text = auth.key;
       valueController.text = auth.value;
+      _placement = auth.placement; // Set from existing auth data
     }
   }
 
@@ -133,8 +169,17 @@ class AuthApiKeyControllerCollection implements AuthApiKeyControllerI {
   CodeLineEditingController getValueController() => valueController;
 
   @override
+  ApiKeyPlacement getPlacement() => _placement;
+
+  @override
+  void setPlacement(ApiKeyPlacement placement) {
+    _placement = placement;
+    _flowModified(); // Trigger UI update
+  }
+
+  @override
   ApiKeyAuth getAuth() {
-    return ApiKeyAuth(key: keyController.text, value: valueController.text);
+    return ApiKeyAuth(key: keyController.text, value: valueController.text, placement: _placement);
   }
 
   @override

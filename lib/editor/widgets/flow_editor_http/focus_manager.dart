@@ -20,6 +20,7 @@ class EditorFocusManager {
 
   late final FocusNode authApiKeyKeyFocusNode;
   late final FocusNode authApiKeyValueFocusNode;
+  late final FocusNode authApiKeyPlacementFocusNode;
   late final FocusNode authBasicUsernameFocusNode;
   late final FocusNode authBasicPasswordFocusNode;
   late final FocusNode authBearerTokenFocusNode;
@@ -43,6 +44,7 @@ class EditorFocusManager {
 
     authApiKeyKeyFocusNode = FocusNode();
     authApiKeyValueFocusNode = FocusNode();
+    authApiKeyPlacementFocusNode = FocusNode();
     authBasicUsernameFocusNode = FocusNode();
     authBasicPasswordFocusNode = FocusNode();
     authBearerTokenFocusNode = FocusNode();
@@ -59,6 +61,7 @@ class EditorFocusManager {
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     authApiKeyKeyFocusNode.onKeyEvent = _onKeyUpAuthApiKeyKey;
     authApiKeyValueFocusNode.onKeyEvent = _onKeyUpAuthApiKeyValue;
+    authApiKeyPlacementFocusNode.onKeyEvent = _onKeyUp;
     authBasicUsernameFocusNode.onKeyEvent = _onKeyUpAuthBasicUsername;
     authBasicPasswordFocusNode.onKeyEvent = _onKeyUpAuthBasicPassword;
     authBearerTokenFocusNode.onKeyEvent = _onKeyUp;
@@ -261,6 +264,7 @@ class EditorFocusManager {
     respBodyFocusNode.dispose();
     authApiKeyKeyFocusNode.dispose();
     authApiKeyValueFocusNode.dispose();
+    authApiKeyPlacementFocusNode.dispose();
     authBasicUsernameFocusNode.dispose();
     authBasicPasswordFocusNode.dispose();
     authBearerTokenFocusNode.dispose();
