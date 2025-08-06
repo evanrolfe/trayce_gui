@@ -30,10 +30,11 @@ final bodyTypeEnumToBru = {
   BodyType.file: 'file',
 };
 
-enum AuthType { none, awsV4, basic, bearer, digest, oauth2, wsse, inherit }
+enum AuthType { none, apikey, awsV4, basic, bearer, digest, oauth2, wsse, inherit }
 
 final authTypeEnumToBru = {
   AuthType.none: 'none',
+  AuthType.apikey: 'apikey',
   AuthType.awsV4: 'awsv4',
   AuthType.basic: 'basic',
   AuthType.bearer: 'bearer',
@@ -79,6 +80,7 @@ class Request {
   Body? bodyFile;
 
   // All Auth types
+  Auth? authApiKey;
   Auth? authAwsV4;
   Auth? authBasic;
   Auth? authBearer;
@@ -115,6 +117,7 @@ class Request {
     this.bodyFile,
 
     // All Auth types
+    this.authApiKey,
     this.authAwsV4,
     this.authBasic,
     this.authBearer,
@@ -181,6 +184,9 @@ class Request {
     }
 
     // Convert auth(s) to bru
+    if (authApiKey != null && !authApiKey!.isEmpty()) {
+      bru += '\n${authApiKey!.toBru()}\n';
+    }
     if (authAwsV4 != null && !authAwsV4!.isEmpty()) {
       bru += '\n${authAwsV4!.toBru()}\n';
     }
@@ -556,6 +562,8 @@ class Request {
 
   Auth? getAuth() {
     switch (authType) {
+      case AuthType.apikey:
+        return authApiKey;
       case AuthType.awsV4:
         return authAwsV4;
       case AuthType.basic:
@@ -578,6 +586,9 @@ class Request {
 
   void setAuth(Auth auth) {
     switch (authType) {
+      case AuthType.apikey:
+        authApiKey = auth;
+        break;
       case AuthType.awsV4:
         authAwsV4 = auth;
         break;
@@ -643,6 +654,9 @@ class Request {
 
     // Copy auth if it exists
     authType = request.authType;
+    if (request.authApiKey != null) {
+      authApiKey = request.authApiKey!.deepCopy();
+    }
     if (request.authAwsV4 != null) {
       authAwsV4 = request.authAwsV4!.deepCopy();
     }

@@ -8,6 +8,39 @@ abstract class Auth {
   bool isEmpty();
 }
 
+class ApiKeyAuth extends Auth {
+  @override
+  final String type = 'apikey';
+  String key;
+  String value;
+
+  ApiKeyAuth({required this.key, required this.value});
+
+  @override
+  bool equals(Auth other) {
+    if (other is! ApiKeyAuth) return false;
+    return key == other.key && value == other.value;
+  }
+
+  @override
+  Auth deepCopy() {
+    return ApiKeyAuth(key: key, value: value);
+  }
+
+  @override
+  String toBru() {
+    return '''auth:apikey {
+${indentString('key: $key')}
+${indentString('value: $value')}
+}''';
+  }
+
+  @override
+  bool isEmpty() {
+    return key.isEmpty && value.isEmpty;
+  }
+}
+
 class AwsV4Auth extends Auth {
   @override
   final String type = 'awsv4';

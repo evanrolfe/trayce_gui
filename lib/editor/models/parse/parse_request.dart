@@ -67,6 +67,7 @@ Request parseRequest(String request) {
   final bodyMultipartForm = parseBodyMultipartForm(result);
   final bodyFile = parseBodyFile(result);
 
+  final authApiKey = parseAuthApiKey(result);
   final authAwsV4 = parseAuthAwsV4(result);
   final authBasic = parseAuthBasic(result);
   final authBearer = parseAuthBearer(result);
@@ -108,6 +109,9 @@ Request parseRequest(String request) {
   switch (authType) {
     case 'none':
       authTypeEnum = AuthType.none;
+      break;
+    case 'apikey':
+      authTypeEnum = AuthType.apikey;
       break;
     case 'awsv4':
       authTypeEnum = AuthType.awsV4;
@@ -169,6 +173,7 @@ Request parseRequest(String request) {
     bodyMultipartForm: bodyMultipartForm,
     bodyFile: bodyFile,
 
+    authApiKey: authApiKey,
     authAwsV4: authAwsV4,
     authBasic: authBasic,
     authBearer: authBearer,
@@ -426,6 +431,15 @@ Body? parseBodyFile(Result<dynamic> result) {
   }
 
   return FileBody(files: files);
+}
+
+Auth? parseAuthApiKey(Result<dynamic> result) {
+  const authKey = 'auth:apikey';
+  if (result.value[authKey] == null) return null;
+
+  final authBlock = result.value[authKey];
+
+  return ApiKeyAuth(key: authBlock['key'] ?? '', value: authBlock['value'] ?? '');
 }
 
 Auth? parseAuthAwsV4(Result<dynamic> result) {

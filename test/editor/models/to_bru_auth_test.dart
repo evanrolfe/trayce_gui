@@ -2,6 +2,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trayce/editor/models/parse/parse_request.dart';
 
 void main() {
+  test('auth to bru - apikey', () async {
+    // Load the BRU file
+    final input = '''meta {
+  name: Send Bulk SMS
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.textlocal.in/send/:id
+  auth: apikey
+}
+
+auth:apikey {
+  key: hello
+  value: world
+}
+''';
+
+    // Parse the BRU data
+    final result = parseRequest(input);
+    // print("--->${result.toBru()}<----");
+    expect(result.toBru(), input);
+  });
+
   test('auth to bru - awsv4', () async {
     // Load the BRU file
     final input = '''meta {

@@ -25,6 +25,7 @@ class Folder {
 
   AuthType authType;
   // All Auth types
+  Auth? authApiKey;
   Auth? authAwsV4;
   Auth? authBasic;
   Auth? authBearer;
@@ -48,6 +49,7 @@ class Folder {
     required this.headers,
     required this.query,
     required this.authType,
+    this.authApiKey,
     this.authAwsV4,
     this.authBasic,
     this.authBearer,
@@ -81,6 +83,9 @@ class Folder {
       bru += '}\n';
 
       // Convert auth(s) to bru
+      if (authApiKey != null && !authApiKey!.isEmpty()) {
+        bru += '\n${authApiKey!.toBru()}\n';
+      }
       if (authAwsV4 != null && !authAwsV4!.isEmpty()) {
         bru += '\n${authAwsV4!.toBru()}\n';
       }
@@ -136,6 +141,8 @@ class Folder {
 
   Auth? getAuth() {
     switch (authType) {
+      case AuthType.apikey:
+        return authApiKey;
       case AuthType.awsV4:
         return authAwsV4;
       case AuthType.basic:
