@@ -30,7 +30,15 @@ class RequestFormController {
     'Files',
   ];
 
-  static const List<String> authTypeOptions = ['No Auth', 'Basic Auth', 'Bearer Token', 'Digest', 'OAuth2', 'WSSE'];
+  static const List<String> authTypeOptions = [
+    'No Auth',
+    'Basic Auth',
+    'Bearer Token',
+    'Digest',
+    'OAuth2',
+    'WSSE',
+    'Inherit',
+  ];
 
   late String selectedMethod;
   late String selectedBodyType;
@@ -119,6 +127,8 @@ class RequestFormController {
         selectedAuthType = authTypeOptions[4];
       case AuthType.wsse:
         selectedAuthType = authTypeOptions[5];
+      case AuthType.inherit:
+        selectedAuthType = authTypeOptions[6];
       default:
         selectedAuthType = authTypeOptions[0];
     }
@@ -318,6 +328,8 @@ class RequestFormController {
       _formRequest.setAuthType(AuthType.oauth2);
     } else if (newValue == authTypeOptions[5]) {
       _formRequest.setAuthType(AuthType.wsse);
+    } else if (newValue == authTypeOptions[6]) {
+      _formRequest.setAuthType(AuthType.inherit);
     }
 
     setState();

@@ -1,11 +1,15 @@
 meta {
   name: test-request
   type: http
-  seq: 4
+  seq: 3
 }
 
 get {
   url: https://google.com/four
-  body: none
-  auth: inherit
+  auth: basic
+}
+
+auth:basic {
+  username: hello
+  password: world
 }

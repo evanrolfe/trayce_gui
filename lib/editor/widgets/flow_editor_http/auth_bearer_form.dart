@@ -3,7 +3,7 @@ import 'package:trayce/editor/widgets/common/text_input.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_controller.dart';
 
 class AuthBearerForm extends StatelessWidget {
-  final AuthBearerController controller;
+  final AuthBearerControllerI controller;
   final FocusNode tokenFocusNode;
 
   const AuthBearerForm({super.key, required this.controller, required this.tokenFocusNode});
@@ -49,7 +49,7 @@ class AuthBearerForm extends StatelessWidget {
                       height: 30,
                       child: TextInput(
                         key: const Key('auth_bearer_form_token_input'),
-                        controller: controller.tokenController,
+                        controller: controller.getTokenController(),
                         focusNode: tokenFocusNode,
                       ),
                     ),

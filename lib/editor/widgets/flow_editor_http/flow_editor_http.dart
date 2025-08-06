@@ -19,6 +19,7 @@ import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_form.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_inherit.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_not_implemented.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/request_form_controller.dart';
 import 'package:trayce/utils/parsing.dart';
@@ -286,6 +287,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       authTypeIndex = 4;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[5]) {
       authTypeIndex = 5;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[6]) {
+      authTypeIndex = 6;
     }
 
     final tabContentBorder = Border(
@@ -708,6 +711,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   AuthNotImplemented(authType: 'OAuth2'),
                                                   // WSSE
                                                   AuthNotImplemented(authType: 'WSSE auth'),
+                                                  // Inherit
+                                                  AuthInherit(),
                                                 ],
                                               ),
                                               // -----------------------------------------------------------

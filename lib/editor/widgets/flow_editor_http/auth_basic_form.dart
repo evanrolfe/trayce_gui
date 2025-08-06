@@ -3,7 +3,7 @@ import 'package:trayce/editor/widgets/common/text_input.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dart';
 
 class AuthBasicForm extends StatelessWidget {
-  final AuthBasicController controller;
+  final AuthBasicControllerI controller;
   final FocusNode usernameFocusNode;
   final FocusNode passwordFocusNode;
 
@@ -69,7 +69,7 @@ class AuthBasicForm extends StatelessWidget {
                       height: 30,
                       child: TextInput(
                         key: const Key('auth_basic_form_username_input'),
-                        controller: controller.usernameController,
+                        controller: controller.getUsernameController(),
                         focusNode: usernameFocusNode,
                       ),
                     ),
@@ -78,7 +78,7 @@ class AuthBasicForm extends StatelessWidget {
                       height: 30,
                       child: TextInput(
                         key: const Key('auth_basic_form_password_input'),
-                        controller: controller.passwordController,
+                        controller: controller.getPasswordController(),
                         focusNode: passwordFocusNode,
                       ),
                     ),

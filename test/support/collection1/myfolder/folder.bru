@@ -8,6 +8,14 @@ headers {
   C: set from folder
 }
 
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: helloworld
+}
+
 vars:pre-request {
   A_var: set from folder
   B_var: set from folder

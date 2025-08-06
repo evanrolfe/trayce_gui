@@ -53,8 +53,8 @@ class EditorFocusManager {
     checkboxFocusNode.onKeyEvent = _onKeyUp;
     reqBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
-    authBasicUsernameFocusNode.onKeyEvent = _onKeyUp;
-    authBasicPasswordFocusNode.onKeyEvent = _onKeyUp;
+    authBasicUsernameFocusNode.onKeyEvent = _onKeyUpAuthBasicUsername;
+    authBasicPasswordFocusNode.onKeyEvent = _onKeyUpAuthBasicPassword;
     authBearerTokenFocusNode.onKeyEvent = _onKeyUp;
 
     // Add listener to transfer focus when method dropdown loses focus
@@ -117,6 +117,19 @@ class EditorFocusManager {
 
     _pathParamsRowFocusNodes.add(rowFocusNodes);
     return rowFocusNodes;
+  }
+
+  KeyEventResult _onKeyUpAuthBasicUsername(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+      authBasicPasswordFocusNode.requestFocus();
+      return KeyEventResult.handled;
+    }
+
+    return _onKeyUp(node, event);
+  }
+
+  KeyEventResult _onKeyUpAuthBasicPassword(FocusNode node, KeyEvent event) {
+    return _onKeyUp(node, event);
   }
 
   KeyEventResult _onKeyUp(FocusNode node, KeyEvent event) {

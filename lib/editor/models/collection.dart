@@ -88,6 +88,8 @@ class Collection {
         return authOauth2;
       case AuthType.wsse:
         return authWsse;
+      case AuthType.inherit:
+        return null;
       case AuthType.none:
         return null;
     }

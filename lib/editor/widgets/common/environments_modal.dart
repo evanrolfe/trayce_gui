@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/variable.dart';
@@ -145,13 +146,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                     _title,
                     style: const TextStyle(color: lightTextColor, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: lightTextColor, size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: 16,
-                  ),
+                  HoverableIconButton(onPressed: () => Navigator.of(context).pop(), icon: Icons.close),
                 ],
               ),
             ),

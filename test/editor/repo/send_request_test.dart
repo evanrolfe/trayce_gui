@@ -2,6 +2,8 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trayce/common/app_storage.dart';
+import 'package:trayce/editor/models/auth.dart';
+import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
@@ -61,7 +63,7 @@ void main() {
       // Verify the URL
       expect(finalReq.url, 'www.synack.com/three/users/show/123');
 
-      // Verify the headers
+      // Verify headers
       expect(finalReq.headers.length, 5);
       expect(finalReq.headers[0].name, 'D');
       expect(finalReq.headers[0].value, "set from collection");
@@ -77,7 +79,7 @@ void main() {
       //   print('  ${reqvar.name}: ${reqvar.value}');
       // }
 
-      // Verify the variables
+      // Verify variables
       expect(finalReq.requestVars.length, 6);
       expect(finalReq.requestVars[0].name, 'my_key');
       expect(finalReq.requestVars[0].value, '1234abcd');
@@ -91,6 +93,79 @@ void main() {
       expect(finalReq.requestVars[4].value, 'set from folder');
       expect(finalReq.requestVars[5].name, 'A_var');
       expect(finalReq.requestVars[5].value, 'set from request');
+
+      // Verify auth
+      expect(finalReq.authType, AuthType.bearer);
+      // final auth = finalReq.getAuth() as BearerAuth;
+      // expect(auth.token, 'helloworld');
+    });
+
+    test('sends a request using the request auth', () async {
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      final collection = explorerService.getOpenCollections()[0];
+      collection.setCurrentEnvironment(collection.environments[0].fileName());
+
+      final reqFour = event.nodes[0].children[1].children[3];
+      expect(reqFour.name, 'four.bru');
+
+      final hierarchy = explorerService.getNodeHierarchy(reqFour);
+      expect(hierarchy.length, 3);
+      expect(hierarchy[0].name, 'four.bru');
+      expect(hierarchy[1].name, 'myfolder');
+      expect(hierarchy[2].name, 'collection1');
+
+      final finalReq = SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy).getFinalRequest();
+
+      // Verify auth
+      expect(finalReq.authType, AuthType.basic);
+      final auth = finalReq.getAuth() as BasicAuth;
+      expect(auth.username, 'hello');
+      expect(auth.password, 'world');
+    });
+
+    test('sends a request using the collection auth', () async {
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      final collection = explorerService.getOpenCollections()[0];
+      collection.setCurrentEnvironment(collection.environments[0].fileName());
+
+      final reqFour = event.nodes[0].children[0].children[0];
+      expect(reqFour.name, 'hello.bru');
+
+      final hierarchy = explorerService.getNodeHierarchy(reqFour);
+      expect(hierarchy.length, 3);
+      expect(hierarchy[0].name, 'hello.bru');
+      expect(hierarchy[1].name, 'hello');
+      expect(hierarchy[2].name, 'collection1');
+
+      final finalReq = SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy).getFinalRequest();
+
+      // Verify auth
+      expect(finalReq.authType, AuthType.basic);
+      final auth = finalReq.getAuth() as BasicAuth;
+      expect(auth.username, 'asdf');
+      expect(auth.password, 'asdf');
     });
   });
 }
