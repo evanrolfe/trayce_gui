@@ -17,6 +17,7 @@ import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/headers_table_read_only.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/explorer/explorer_style.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_api_key_form.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_form.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_form.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_inherit.dart';
@@ -278,17 +279,26 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     if (_formController.selectedAuthType == RequestFormController.authTypeOptions[0]) {
       authTypeIndex = 0;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[1]) {
+      // API Key
       authTypeIndex = 1;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[2]) {
+      // Basic Auth
       authTypeIndex = 2;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[3]) {
+      // Bearer Token
       authTypeIndex = 3;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[4]) {
+      // Digest
       authTypeIndex = 4;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[5]) {
+      // OAuth2
       authTypeIndex = 5;
     } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[6]) {
+      // WSSE
       authTypeIndex = 6;
+    } else if (_formController.selectedAuthType == RequestFormController.authTypeOptions[7]) {
+      // Inherit
+      authTypeIndex = 7;
     }
 
     final tabContentBorder = Border(
@@ -693,6 +703,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                       'No Auth',
                                                       style: TextStyle(color: Color(0xFF808080), fontSize: 16),
                                                     ),
+                                                  ),
+                                                  // API Key
+                                                  AuthApiKeyForm(
+                                                    controller: _formController.authApiKeyController,
+                                                    keyFocusNode: _focusManager.authApiKeyKeyFocusNode,
+                                                    valueFocusNode: _focusManager.authApiKeyValueFocusNode,
+                                                    placementFocusNode: _focusManager.authApiKeyPlacementFocusNode,
                                                   ),
                                                   // Basic Auth
                                                   AuthBasicForm(

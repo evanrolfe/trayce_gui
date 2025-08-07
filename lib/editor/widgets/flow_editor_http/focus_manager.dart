@@ -18,6 +18,9 @@ class EditorFocusManager {
   late final List<Map<String, FocusNode>> _rowFocusNodes;
   late final List<Map<String, FocusNode>> _pathParamsRowFocusNodes;
 
+  late final FocusNode authApiKeyKeyFocusNode;
+  late final FocusNode authApiKeyValueFocusNode;
+  late final FocusNode authApiKeyPlacementFocusNode;
   late final FocusNode authBasicUsernameFocusNode;
   late final FocusNode authBasicPasswordFocusNode;
   late final FocusNode authBearerTokenFocusNode;
@@ -39,6 +42,9 @@ class EditorFocusManager {
     _rowFocusNodes = [];
     _pathParamsRowFocusNodes = [];
 
+    authApiKeyKeyFocusNode = FocusNode();
+    authApiKeyValueFocusNode = FocusNode();
+    authApiKeyPlacementFocusNode = FocusNode();
     authBasicUsernameFocusNode = FocusNode();
     authBasicPasswordFocusNode = FocusNode();
     authBearerTokenFocusNode = FocusNode();
@@ -53,6 +59,9 @@ class EditorFocusManager {
     checkboxFocusNode.onKeyEvent = _onKeyUp;
     reqBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    authApiKeyKeyFocusNode.onKeyEvent = _onKeyUpAuthApiKeyKey;
+    authApiKeyValueFocusNode.onKeyEvent = _onKeyUpAuthApiKeyValue;
+    authApiKeyPlacementFocusNode.onKeyEvent = _onKeyUp;
     authBasicUsernameFocusNode.onKeyEvent = _onKeyUpAuthBasicUsername;
     authBasicPasswordFocusNode.onKeyEvent = _onKeyUpAuthBasicPassword;
     authBearerTokenFocusNode.onKeyEvent = _onKeyUp;
@@ -117,6 +126,19 @@ class EditorFocusManager {
 
     _pathParamsRowFocusNodes.add(rowFocusNodes);
     return rowFocusNodes;
+  }
+
+  KeyEventResult _onKeyUpAuthApiKeyKey(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+      authApiKeyValueFocusNode.requestFocus();
+      return KeyEventResult.handled;
+    }
+
+    return _onKeyUp(node, event);
+  }
+
+  KeyEventResult _onKeyUpAuthApiKeyValue(FocusNode node, KeyEvent event) {
+    return _onKeyUp(node, event);
   }
 
   KeyEventResult _onKeyUpAuthBasicUsername(FocusNode node, KeyEvent event) {
@@ -240,6 +262,9 @@ class EditorFocusManager {
     checkboxFocusNode.dispose();
     reqBodyFocusNode.dispose();
     respBodyFocusNode.dispose();
+    authApiKeyKeyFocusNode.dispose();
+    authApiKeyValueFocusNode.dispose();
+    authApiKeyPlacementFocusNode.dispose();
     authBasicUsernameFocusNode.dispose();
     authBasicPasswordFocusNode.dispose();
     authBearerTokenFocusNode.dispose();

@@ -8,6 +8,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/widgets/flow_editor_http/auth_api_key_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_bearer_controller.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
@@ -32,6 +33,7 @@ class RequestFormController {
 
   static const List<String> authTypeOptions = [
     'No Auth',
+    'API Key',
     'Basic Auth',
     'Bearer Token',
     'Digest',
@@ -56,6 +58,7 @@ class RequestFormController {
   late final FormMultipartController multipartFormController;
   late final FormFilesController fileController;
 
+  late final AuthApiKeyController authApiKeyController;
   late final AuthBasicController authBasicController;
   late final AuthBearerController authBearerController;
 
@@ -117,18 +120,20 @@ class RequestFormController {
     switch (_formRequest.authType) {
       case AuthType.none:
         selectedAuthType = authTypeOptions[0];
-      case AuthType.basic:
+      case AuthType.apikey:
         selectedAuthType = authTypeOptions[1];
-      case AuthType.bearer:
+      case AuthType.basic:
         selectedAuthType = authTypeOptions[2];
-      case AuthType.digest:
+      case AuthType.bearer:
         selectedAuthType = authTypeOptions[3];
-      case AuthType.oauth2:
+      case AuthType.digest:
         selectedAuthType = authTypeOptions[4];
-      case AuthType.wsse:
+      case AuthType.oauth2:
         selectedAuthType = authTypeOptions[5];
-      case AuthType.inherit:
+      case AuthType.wsse:
         selectedAuthType = authTypeOptions[6];
+      case AuthType.inherit:
+        selectedAuthType = authTypeOptions[7];
       default:
         selectedAuthType = authTypeOptions[0];
     }
@@ -220,6 +225,9 @@ class RequestFormController {
       eventBus: eventBus,
       filePicker: filePicker,
     );
+
+    // Auth API Key
+    authApiKeyController = AuthApiKeyController(_formRequest, _flowModified);
 
     // Auth Basic
     authBasicController = AuthBasicController(_formRequest, _flowModified);
@@ -319,16 +327,18 @@ class RequestFormController {
     if (newValue == authTypeOptions[0]) {
       _formRequest.setAuthType(AuthType.none);
     } else if (newValue == authTypeOptions[1]) {
-      _formRequest.setAuthType(AuthType.basic);
+      _formRequest.setAuthType(AuthType.apikey);
     } else if (newValue == authTypeOptions[2]) {
-      _formRequest.setAuthType(AuthType.bearer);
+      _formRequest.setAuthType(AuthType.basic);
     } else if (newValue == authTypeOptions[3]) {
-      _formRequest.setAuthType(AuthType.digest);
+      _formRequest.setAuthType(AuthType.bearer);
     } else if (newValue == authTypeOptions[4]) {
-      _formRequest.setAuthType(AuthType.oauth2);
+      _formRequest.setAuthType(AuthType.digest);
     } else if (newValue == authTypeOptions[5]) {
-      _formRequest.setAuthType(AuthType.wsse);
+      _formRequest.setAuthType(AuthType.oauth2);
     } else if (newValue == authTypeOptions[6]) {
+      _formRequest.setAuthType(AuthType.wsse);
+    } else if (newValue == authTypeOptions[7]) {
       _formRequest.setAuthType(AuthType.inherit);
     }
 
@@ -382,6 +392,7 @@ class RequestFormController {
     formUrlEncodedController.dispose();
     multipartFormController.dispose();
     fileController.dispose();
+    authApiKeyController.dispose();
     authBasicController.dispose();
     authBearerController.dispose();
   }

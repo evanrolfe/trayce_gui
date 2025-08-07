@@ -67,3 +67,34 @@ Future<bool> showMessageDialog({
     },
   ).then((value) => value ?? false);
 }
+
+Future<bool> showLicenseDialog({required BuildContext context, String okText = 'Ok'}) {
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: lightBackgroundColor,
+        shape: dialogShape,
+        title: SelectableText(
+          'License Required',
+          style: const TextStyle(color: lightTextColor, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: SelectableText(
+          'Please purchase a license to continue using Trayce. You can purchase one from the link in the settings.',
+          style: const TextStyle(color: lightTextColor, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            key: const Key('message_dialog_ok_btn'),
+            style: commonButtonStyle,
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: Text(okText),
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false);
+}

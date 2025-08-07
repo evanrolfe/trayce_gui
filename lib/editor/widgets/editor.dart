@@ -1,5 +1,11 @@
+import 'dart:async';
+
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trayce/common/dialog.dart';
+import 'package:trayce/network/repo/containers_repo.dart';
 
 import 'editor_tabs.dart';
 import 'explorer/explorer.dart';
@@ -33,6 +39,8 @@ class Editor extends StatefulWidget {
 class _EditorState extends State<Editor> {
   late final ValueNotifier<double> _widthNotifier;
   bool isDividerHovered = false;
+  bool _isLicenseDialogShowing = false;
+  late final StreamSubscription _licenseSub;
 
   @override
   void initState() {
@@ -40,6 +48,16 @@ class _EditorState extends State<Editor> {
     _widthNotifier = ValueNotifier(EditorCache.width);
     EditorCache.preloadWidth().then((_) {
       _widthNotifier.value = EditorCache.width;
+    });
+
+    _licenseSub = context.read<EventBus>().on<EventLicenseRequired>().listen((event) {
+      if (!mounted) return;
+      if (_isLicenseDialogShowing) return;
+
+      _isLicenseDialogShowing = true;
+      showLicenseDialog(context: context).then((value) {
+        _isLicenseDialogShowing = false;
+      });
     });
   }
 
@@ -115,6 +133,7 @@ class _EditorState extends State<Editor> {
   @override
   void dispose() {
     _widthNotifier.dispose();
+    _licenseSub.cancel();
     super.dispose();
   }
 }

@@ -30,10 +30,11 @@ final bodyTypeEnumToBru = {
   BodyType.file: 'file',
 };
 
-enum AuthType { none, awsV4, basic, bearer, digest, oauth2, wsse, inherit }
+enum AuthType { none, apikey, awsV4, basic, bearer, digest, oauth2, wsse, inherit }
 
 final authTypeEnumToBru = {
   AuthType.none: 'none',
+  AuthType.apikey: 'apikey',
   AuthType.awsV4: 'awsv4',
   AuthType.basic: 'basic',
   AuthType.bearer: 'bearer',
@@ -79,6 +80,7 @@ class Request {
   Body? bodyFile;
 
   // All Auth types
+  Auth? authApiKey;
   Auth? authAwsV4;
   Auth? authBasic;
   Auth? authBearer;
@@ -115,6 +117,7 @@ class Request {
     this.bodyFile,
 
     // All Auth types
+    this.authApiKey,
     this.authAwsV4,
     this.authBasic,
     this.authBearer,
@@ -181,6 +184,9 @@ class Request {
     }
 
     // Convert auth(s) to bru
+    if (authApiKey != null && !authApiKey!.isEmpty()) {
+      bru += '\n${authApiKey!.toBru()}\n';
+    }
     if (authAwsV4 != null && !authAwsV4!.isEmpty()) {
       bru += '\n${authAwsV4!.toBru()}\n';
     }
@@ -361,6 +367,10 @@ class Request {
         url = url + (queryString.isNotEmpty ? '?$queryString' : '');
       }
     }
+
+    // Uri.parse will url-encode the {{ and }} around any vars in the url, so we need
+    // to manually decode them
+    url = url.replaceAll('%7B%7B', '{{').replaceAll('%7D%7D', '}}');
   }
 
   void interpolatePathParams() {
@@ -405,9 +415,12 @@ class Request {
       return _sendFile();
     }
 
-    final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
+    String urlStr = _getInterpolatedString(url);
+    urlStr = _addApiKeyAuthToUrl(urlStr);
+    final request = http.Request(method, Uri.parse(urlStr));
 
     _addHeaders(request);
+    _addApiKeyAuth(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
 
@@ -462,25 +475,53 @@ class Request {
     );
   }
 
+  String _addApiKeyAuthToUrl(String url) {
+    if (authType != AuthType.apikey || authApiKey == null) return url;
+    final auth = authApiKey as ApiKeyAuth;
+    final key = _getInterpolatedString(auth.key);
+    final value = _getInterpolatedString(auth.value);
+
+    if (auth.placement != ApiKeyPlacement.queryparams) return url;
+
+    if (url.contains('?')) {
+      url = '$url&$key=$value';
+    } else {
+      url = '$url?$key=$value';
+    }
+
+    return url;
+  }
+
+  void _addApiKeyAuth(http.BaseRequest request) {
+    if (authType != AuthType.apikey || authApiKey == null) return;
+    final auth = authApiKey as ApiKeyAuth;
+    final key = _getInterpolatedString(auth.key);
+    final value = _getInterpolatedString(auth.value);
+
+    if (auth.placement != ApiKeyPlacement.header) return;
+
+    request.headers[key] = value;
+  }
+
   void _addBasicAuth(http.BaseRequest request) {
-    if (authType == AuthType.basic && authBasic != null) {
-      final basicAuth = authBasic as BasicAuth;
-      final username = _getInterpolatedString(basicAuth.username);
-      final password = _getInterpolatedString(basicAuth.password);
-      if (username.isNotEmpty || password.isNotEmpty) {
-        final credentials = '$username:$password';
-        final encoded = base64Encode(utf8.encode(credentials));
-        request.headers['Authorization'] = 'Basic $encoded';
-      }
+    if (authType != AuthType.basic || authBasic == null) return;
+
+    final basicAuth = authBasic as BasicAuth;
+    final username = _getInterpolatedString(basicAuth.username);
+    final password = _getInterpolatedString(basicAuth.password);
+    if (username.isNotEmpty || password.isNotEmpty) {
+      final credentials = '$username:$password';
+      final encoded = base64Encode(utf8.encode(credentials));
+      request.headers['Authorization'] = 'Basic $encoded';
     }
   }
 
   void _addBearerAuth(http.BaseRequest request) {
-    if (authType == AuthType.bearer && authBearer != null) {
-      final bearerAuth = authBearer as BearerAuth;
-      final token = _getInterpolatedString(bearerAuth.token);
-      request.headers['Authorization'] = 'Bearer $token';
-    }
+    if (authType != AuthType.bearer || authBearer == null) return;
+
+    final bearerAuth = authBearer as BearerAuth;
+    final token = _getInterpolatedString(bearerAuth.token);
+    request.headers['Authorization'] = 'Bearer $token';
   }
 
   Future<http.Response> _sendMultipart() async {
@@ -556,6 +597,8 @@ class Request {
 
   Auth? getAuth() {
     switch (authType) {
+      case AuthType.apikey:
+        return authApiKey;
       case AuthType.awsV4:
         return authAwsV4;
       case AuthType.basic:
@@ -578,6 +621,9 @@ class Request {
 
   void setAuth(Auth auth) {
     switch (authType) {
+      case AuthType.apikey:
+        authApiKey = auth;
+        break;
       case AuthType.awsV4:
         authAwsV4 = auth;
         break;
@@ -643,6 +689,9 @@ class Request {
 
     // Copy auth if it exists
     authType = request.authType;
+    if (request.authApiKey != null) {
+      authApiKey = request.authApiKey!.deepCopy();
+    }
     if (request.authAwsV4 != null) {
       authAwsV4 = request.authAwsV4!.deepCopy();
     }
