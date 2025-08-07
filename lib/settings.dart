@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import 'package:trayce/common/style.dart';
 import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/network/models/license_key.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> showSettingsModal(BuildContext context) {
   return showDialog(context: context, builder: (dialogContext) => const SettingsModal());
@@ -100,7 +102,7 @@ class _SettingsModalState extends State<SettingsModal> {
       backgroundColor: lightBackgroundColor,
       shape: dialogShape,
       child: Container(
-        width: 400,
+        width: 600,
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -117,7 +119,32 @@ class _SettingsModalState extends State<SettingsModal> {
               ],
             ),
             const SizedBox(height: 24),
-            const Text('License Key', style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14)),
+            SelectableText.rich(
+              TextSpan(
+                text:
+                    'Trayce may be evaluated for free, however a license must be purchased for continued use. You can purchase one from the link below:\n',
+                style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: 'https://get.trayce.dev/',
+                    style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline, fontSize: 14),
+                    recognizer:
+                        TapGestureRecognizer()
+                          ..onTap = () async {
+                            final url = Uri.parse('https://get.trayce.dev/');
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url);
+                            }
+                          },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const SelectableText(
+              'License Key',
+              style: TextStyle(color: Color(0xFFD4D4D4), fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [

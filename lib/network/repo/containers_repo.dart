@@ -51,6 +51,10 @@ class EventLicenseVerified {
   EventLicenseVerified(this.isValid);
 }
 
+class EventLicenseRequired {
+  EventLicenseRequired();
+}
+
 class ContainersRepo {
   final EventBus _eventBus;
   String? _agentVersion = '';
@@ -93,6 +97,9 @@ class ContainersRepo {
     // Start heartbeat check timer
     Timer.periodic(const Duration(milliseconds: 100), (_) => _checkHeartbeat());
 
+    // Start license check timer
+    Timer.periodic(const Duration(minutes: 5), (_) => _checkLicense());
+
     _sendSettings();
   }
 
@@ -109,6 +116,14 @@ class ContainersRepo {
     await prefs.setString(_licenseKeyPref, licenseKey.toJSON());
 
     _eventBus.fire(EventLicenseVerified(licenseKey.isValid));
+  }
+
+  Future<void> _checkLicense() async {
+    print('Checking license');
+    final licenseKey = await getLicenseKey();
+    if (licenseKey == null || !licenseKey.isValid) {
+      _eventBus.fire(EventLicenseRequired());
+    }
   }
 
   void _checkHeartbeat() {
