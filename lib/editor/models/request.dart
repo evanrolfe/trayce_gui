@@ -504,7 +504,7 @@ class Request {
   }
 
   void _addBasicAuth(http.BaseRequest request) {
-    if (authType != AuthType.basic || authBasic != null) return;
+    if (authType != AuthType.basic || authBasic == null) return;
 
     final basicAuth = authBasic as BasicAuth;
     final username = _getInterpolatedString(basicAuth.username);
@@ -517,7 +517,7 @@ class Request {
   }
 
   void _addBearerAuth(http.BaseRequest request) {
-    if (authType != AuthType.bearer || authBearer != null) return;
+    if (authType != AuthType.bearer || authBearer == null) return;
 
     final bearerAuth = authBearer as BearerAuth;
     final token = _getInterpolatedString(bearerAuth.token);

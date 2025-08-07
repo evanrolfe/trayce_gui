@@ -10,13 +10,16 @@ import '../../support/widget_helpers.dart';
 
 void main() {
   late WidgetDependencies deps;
+  late WidgetDependencies deps2;
 
   setUpAll(() async {
     deps = await setupTestDependencies();
+    deps2 = await setupTestDependencies();
   });
 
   tearDownAll(() async {
     await deps.close();
+    await deps2.close();
   });
 
   group('Editor HTTP Params', () {
@@ -93,9 +96,8 @@ void main() {
       // Init widget
       FlutterError.onError = ignoreOverflowErrors;
 
-      when(() => deps.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
-      when(() => deps.filePicker.saveBruFile(any())).thenAnswer((_) async => 'test/support/collection1/hello.bru');
-      final widget = deps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
+      when(() => deps2.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
+      final widget = deps2.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
