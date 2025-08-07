@@ -80,7 +80,8 @@ class _SettingsModalState extends State<SettingsModal> {
 
   Future<bool> _isLicenseValid(String licenseKey) async {
     final trayceApiUrl = context.read<Config>().trayceApiUrl;
-    final url = '$trayceApiUrl/verify/$licenseKey';
+    final encodedLicenseKey = Uri.encodeComponent(licenseKey);
+    final url = '$trayceApiUrl/verify/$encodedLicenseKey';
 
     try {
       final response = await http.get(Uri.parse(url));
