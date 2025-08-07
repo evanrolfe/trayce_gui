@@ -367,6 +367,10 @@ class Request {
         url = url + (queryString.isNotEmpty ? '?$queryString' : '');
       }
     }
+
+    // Uri.parse will url-encode the {{ and }} around any vars in the url, so we need
+    // to manually decode them
+    url = url.replaceAll('%7B%7B', '{{').replaceAll('%7D%7D', '}}');
   }
 
   void interpolatePathParams() {

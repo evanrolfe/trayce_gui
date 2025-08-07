@@ -88,5 +88,53 @@ void main() {
       // Cleanup the files
       deleteFile(path);
     });
+
+    testWidgets('new request with params and variables in the URL', (WidgetTester tester) async {
+      // Init widget
+      FlutterError.onError = ignoreOverflowErrors;
+
+      when(() => deps.filePicker.getCollectionPath()).thenAnswer((_) async => './test/support/collection1');
+      when(() => deps.filePicker.saveBruFile(any())).thenAnswer((_) async => 'test/support/collection1/hello.bru');
+      final widget = deps.wrapWidget(SizedBox(width: 1600, height: 800, child: Editor()));
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      // Open collection1
+      final openCollectionBtn = find.byKey(const Key('editor_tabs_open_collection_button'));
+      expect(openCollectionBtn, findsOneWidget);
+      await tester.tap(openCollectionBtn);
+      await tester.pumpAndSettle();
+      expect(find.text('collection1'), findsOneWidget);
+
+      // Find and click the three dots icon
+      final rootBtn = find.byKey(const Key('collection_btn'));
+      await tester.tap(rootBtn);
+      await tester.pumpAndSettle();
+
+      // Find and click "New Request"
+      final newReqBtn = find.text('New Request');
+      expect(newReqBtn, findsOneWidget);
+      await tester.tap(newReqBtn);
+      await tester.pumpAndSettle();
+
+      // Verify the URL input exists and can be accessed
+      expect(find.byKey(Key('flow_editor_http_url_input')), findsOneWidget);
+
+      final urlInput = tester.widget<URLInput>(find.byKey(Key('flow_editor_http_url_input')));
+      urlInput.controller.text = 'https://example.com/{{A_var}}/something?hello=world';
+      await tester.pumpAndSettle();
+
+      // Add a params to the table
+      final paramsTable = tester.widget<FormTable>(find.byType(FormTable).first);
+      final paramsController = paramsTable.controller;
+
+      expect(paramsController.rows().length, 2);
+      paramsController.rows()[1].keyController.text = 'a';
+      paramsController.rows()[1].valueController.text = 'b';
+      await tester.pumpAndSettle();
+
+      expect(paramsController.rows().length, 3);
+      expect(urlInput.controller.text, 'https://example.com/{{A_var}}/something?hello=world&a=b');
+    });
   });
 }
