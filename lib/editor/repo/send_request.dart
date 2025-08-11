@@ -1,6 +1,6 @@
-import 'package:http/http.dart' as http;
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/send_result.dart';
 
 class SendRequest {
   final Request request;
@@ -8,10 +8,9 @@ class SendRequest {
 
   SendRequest({required this.request, required this.nodeHierarchy});
 
-  Future<http.Response> send() async {
+  Future<SendResult> send() async {
     final finalReq = getFinalRequest();
-    final response = await finalReq.send();
-    return response;
+    return finalReq.send();
   }
 
   Request getFinalRequest() {

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/parse/parse_url.dart';
+import 'package:trayce/editor/models/send_result.dart';
 import 'package:uuid/uuid.dart';
 
 import 'assertion.dart';
@@ -407,7 +408,7 @@ class Request {
     return parseUrlPathParams(url);
   }
 
-  Future<http.Response> send() async {
+  Future<SendResult> send() async {
     if (bodyType == BodyType.multipartForm) {
       return _sendMultipart();
     }
@@ -424,7 +425,7 @@ class Request {
     _addApiKeyAuth(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
-    _executePreRequestScript();
+    final output = await _executePreRequestScript();
 
     // Set the request body
     Body? body = getBody();
@@ -451,12 +452,12 @@ class Request {
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
-    return response;
+    return SendResult(response: response, output: output);
   }
 
-  void _executePreRequestScript() async {
+  Future<List<String>> _executePreRequestScript() async {
     final script = this.script;
-    if (script == null || script.req == null || script.req!.isEmpty) return;
+    if (script == null || script.req == null || script.req!.isEmpty) return [];
 
     final preReqScript = script.req!;
 
@@ -473,28 +474,28 @@ class Request {
 
       // Write the script content to the file
       scriptFile.writeAsStringSync(preReqScript);
-      print('Pre-request script saved to: ${scriptFile.path}');
 
       // Run the CLI command
       final result = await Process.run('node', ['script_req.js', scriptFile.path, toJson()]);
 
+      final output = <String>[];
+
       if (result.exitCode == 0) {
-        print('Pre-request script executed successfully');
         if (result.stdout.isNotEmpty) {
           print('Script output: ${result.stdout}');
+          output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
         }
       } else {
-        print('Pre-request script failed with exit code: ${result.exitCode}');
         if (result.stderr.isNotEmpty) {
           print('Script error: ${result.stderr}');
+          output.addAll(result.stderr.toString().split('\n').where((line) => line.isNotEmpty));
         }
       }
-    } catch (e) {
-      print('Failed to execute pre-request script: $e');
-    }
 
-    print('Executing pre-request script: $preReqScript');
-    print(toJson());
+      return output;
+    } catch (e) {
+      return ['Failed to execute pre-request script: $e'];
+    }
   }
 
   String _getInterpolatedString(String value) {
@@ -569,11 +570,12 @@ class Request {
     request.headers['Authorization'] = 'Bearer $token';
   }
 
-  Future<http.Response> _sendMultipart() async {
+  Future<SendResult> _sendMultipart() async {
     final request = http.MultipartRequest(method, Uri.parse(_getInterpolatedString(url)));
     _addHeaders(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
+    final output = await _executePreRequestScript();
 
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
@@ -590,15 +592,16 @@ class Request {
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
-    return response;
+    return SendResult(response: response, output: output);
   }
 
-  Future<http.Response> _sendFile() async {
+  Future<SendResult> _sendFile() async {
     final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
 
     _addHeaders(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
+    final output = await _executePreRequestScript();
 
     final body = bodyFile as FileBody;
     final selectedFile = body.selectedFile();
@@ -614,7 +617,7 @@ class Request {
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
-    return response;
+    return SendResult(response: response, output: output);
   }
 
   Body? getBody() {

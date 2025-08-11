@@ -107,7 +107,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -138,7 +139,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -167,7 +169,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -198,7 +201,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -237,7 +241,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -280,7 +285,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -324,7 +330,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -366,7 +373,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -399,7 +407,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -432,7 +441,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -465,7 +475,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
@@ -499,7 +510,8 @@ void main() {
       assertions: [],
     );
 
-    final response = await request.send();
+    final result = await request.send();
+    final response = result.response;
 
     expect(response.statusCode, 200);
     expect(response.body, jsonResponse);
