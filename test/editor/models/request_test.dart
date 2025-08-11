@@ -9,6 +9,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
@@ -455,6 +456,40 @@ void main() {
       authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
       params: [],
       headers: [],
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final response = await request.send();
+
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    expect(mockServer.sentRequest!.url.query, 'hello=world&x-trayce-token=abcd1234');
+    mockServer.reset();
+  });
+
+  test('sending a GET request with a pre-request script', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'get',
+      url: url,
+      bodyType: BodyType.none,
+      authType: AuthType.apikey,
+      authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
+      params: [],
+      headers: [],
+      script: Script(req: 'console.log("URL FROM test is:",req.url);'),
       requestVars: [
         Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
         Variable(name: 'B_var', value: 'abcd1234', enabled: true),

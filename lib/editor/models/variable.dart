@@ -14,4 +14,8 @@ class Variable {
         secret == other.secret &&
         local == other.local;
   }
+
+  String toJson() {
+    return '{"name": "$name", "value": ${value != null ? '"$value"' : 'null'}, "enabled": $enabled, "secret": $secret, "local": $local}';
+  }
 }

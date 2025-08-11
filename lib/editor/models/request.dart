@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/parse/parse_url.dart';
+import 'package:uuid/uuid.dart';
 
 import 'assertion.dart';
 import 'auth.dart';
@@ -423,6 +424,7 @@ class Request {
     _addApiKeyAuth(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
+    _executePreRequestScript();
 
     // Set the request body
     Body? body = getBody();
@@ -450,6 +452,49 @@ class Request {
     final response = await http.Response.fromStream(streamedResponse);
 
     return response;
+  }
+
+  void _executePreRequestScript() async {
+    final script = this.script!;
+    if (script.req == null || script.req!.isEmpty) return;
+
+    final preReqScript = script.req!;
+
+    // Generate a random UUID
+    final uuid = Uuid().v4();
+    final tempDir = Directory('/tmp');
+    final scriptFile = File('/tmp/trayce_pre_req-$uuid.js');
+
+    try {
+      // Ensure /tmp directory exists
+      if (!tempDir.existsSync()) {
+        tempDir.createSync(recursive: true);
+      }
+
+      // Write the script content to the file
+      scriptFile.writeAsStringSync(preReqScript);
+      print('Pre-request script saved to: ${scriptFile.path}');
+
+      // Run the CLI command
+      final result = await Process.run('node', ['script_req.js', scriptFile.path, toJson()]);
+
+      if (result.exitCode == 0) {
+        print('Pre-request script executed successfully');
+        if (result.stdout.isNotEmpty) {
+          print('Script output: ${result.stdout}');
+        }
+      } else {
+        print('Pre-request script failed with exit code: ${result.exitCode}');
+        if (result.stderr.isNotEmpty) {
+          print('Script error: ${result.stderr}');
+        }
+      }
+    } catch (e) {
+      print('Failed to execute pre-request script: $e');
+    }
+
+    print('Executing pre-request script: $preReqScript');
+    print(toJson());
   }
 
   String _getInterpolatedString(String value) {
@@ -804,6 +849,36 @@ class Request {
   void setBodyFilesContent(List<FileBodyItem> files) {
     bodyFile ??= FileBody(files: []);
     (bodyFile as FileBody).setFiles(files);
+  }
+
+  String toJson() {
+    final Map<String, dynamic> json = {
+      'method': method.toUpperCase(),
+      'url': url,
+      'mode': bodyType == BodyType.none ? 'none' : bodyTypeEnumToBru[bodyType]!,
+      'vars': requestVars.map((v) => jsonDecode(v.toJson())).toList(),
+    };
+
+    // Add auth if present
+    final auth = getAuth();
+    if (auth != null && !auth.isEmpty()) {
+      json['auth'] = jsonDecode(auth.toJson());
+    }
+
+    // Add headers
+    if (headers.isNotEmpty) {
+      final headerMap = <String, String>{};
+      for (final header in headers) {
+        if (header.enabled) {
+          headerMap[header.name] = header.value;
+        }
+      }
+      if (headerMap.isNotEmpty) {
+        json['headers'] = headerMap;
+      }
+    }
+
+    return jsonEncode(json);
   }
 }
 
