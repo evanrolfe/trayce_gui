@@ -93,11 +93,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   // Static form options
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
-  static const List<String> _topTabTitles = ['Params', 'Body', 'Headers', 'Auth', 'Variables'];
+  static const List<String> _topTabTitles = ['Params', 'Body', 'Headers', 'Auth', 'Variables', 'Script'];
 
   // State variables
   bool isDividerHovered = false;
   bool _isSending = false;
+  int _scriptTypeIndex = 0;
 
   // Controllers
   late TabController _bottomTabController;
@@ -551,6 +552,56 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ),
                                                   const SizedBox(width: 20),
                                                 ],
+                                                // -----------------------------------------------------------
+                                                // Script Type Dropdown
+                                                // -----------------------------------------------------------
+                                                if (_topTabController.index == 5) ...[
+                                                  const SizedBox(width: 12),
+                                                  Container(
+                                                    width: 130,
+                                                    height: 20,
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(color: const Color(0xFF474747), width: 0),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: DropdownButton2<String>(
+                                                      key: const Key('flow_editor_script_type_dropdown'),
+                                                      focusNode: _focusManager.authTypeFocusNode,
+                                                      value: _scriptTypeIndex == 0 ? 'Pre-Request' : 'Post-Response',
+                                                      underline: Container(),
+                                                      dropdownStyleData: DropdownStyleData(
+                                                        decoration: dropdownDecoration,
+                                                        width: 150,
+                                                        openInterval: Interval(0.0, 0.0),
+                                                      ),
+                                                      buttonStyleData: ButtonStyleData(
+                                                        padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                                      ),
+                                                      menuItemStyleData: menuItemStyleData,
+                                                      iconStyleData: iconStyleData,
+                                                      style: textFieldStyle,
+                                                      isExpanded: true,
+                                                      items:
+                                                          ['Pre-Request', 'Post-Response'].map((String format) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: format,
+                                                              child: Padding(
+                                                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                                                child: Text(format),
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                      onChanged: (String? newValue) {
+                                                        if (newValue != null) {
+                                                          setState(() {
+                                                            _scriptTypeIndex = newValue == 'Pre-Request' ? 0 : 1;
+                                                          });
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                ],
                                               ],
                                             ),
                                           ),
@@ -745,6 +796,26 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                     FormTableColumn.delete,
                                                   ],
                                                 ),
+                                              ),
+                                              // -----------------------------------------------------------
+                                              // Script Tab
+                                              // -----------------------------------------------------------
+                                              IndexedStack(
+                                                index: _scriptTypeIndex,
+                                                children: [
+                                                  // Pre-Request Script
+                                                  MultiLineCodeEditor(
+                                                    focusNode: _focusManager.preRequestFocusNode,
+                                                    border: tabContentBorder,
+                                                    controller: _formController.preRequestController,
+                                                  ),
+                                                  // Post Response Scrip
+                                                  MultiLineCodeEditor(
+                                                    focusNode: _focusManager.postResponseFocusNode,
+                                                    border: tabContentBorder,
+                                                    controller: _formController.postResponseController,
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),

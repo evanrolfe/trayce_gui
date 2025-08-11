@@ -7,4 +7,12 @@ class Script {
   bool equals(Script other) {
     return req == other.req && res == other.res;
   }
+
+  bool isEmpty() {
+    return (req == null || req!.isEmpty) && (res == null || res!.isEmpty);
+  }
+
+  Script deepCopy() {
+    return Script(req: req, res: res);
+  }
 }

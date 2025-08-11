@@ -329,11 +329,6 @@ class Request {
       }
     }
 
-    // if (requestVars.length != other.requestVars.length) return false;
-    // for (var i = 0; i < requestVars.length; i++) {
-    //   if (!requestVars[i].equals(other.requestVars[i])) return false;
-    // }
-
     // Compare response variables
     // if (responseVars.length != other.responseVars.length) return false;
     // for (var i = 0; i < responseVars.length; i++) {
@@ -347,9 +342,14 @@ class Request {
     // }
 
     // Compare script
-    // if ((script == null) != (other.script == null)) return false;
-    // if (script != null && !script!.equals(other.script!)) return false;
+    final scriptEmpty = script == null || script!.isEmpty();
+    final otherScriptEmpty = other.script == null || other.script!.isEmpty();
+    if (scriptEmpty && !otherScriptEmpty) return false;
+    if (!scriptEmpty && otherScriptEmpty) return false;
 
+    if (!scriptEmpty && !otherScriptEmpty) {
+      if (!script!.equals(other.script!)) return false;
+    }
     return true;
   }
 
@@ -455,8 +455,8 @@ class Request {
   }
 
   void _executePreRequestScript() async {
-    final script = this.script!;
-    if (script.req == null || script.req!.isEmpty) return;
+    final script = this.script;
+    if (script == null || script.req == null || script.req!.isEmpty) return;
 
     final preReqScript = script.req!;
 
@@ -770,7 +770,9 @@ class Request {
     assertions = List.from(request.assertions);
 
     // Copy script if it exists
-    script = request.script;
+    if (request.script != null) {
+      script = request.script!.deepCopy();
+    }
   }
 
   void setUrl(String url) {
@@ -795,6 +797,22 @@ class Request {
 
   void setBodyType(BodyType bodyType) {
     this.bodyType = bodyType;
+  }
+
+  void setPreRequest(String preRequest) {
+    if (script == null) {
+      script = Script(req: preRequest);
+    } else {
+      script!.req = preRequest;
+    }
+  }
+
+  void setPostResponse(String postResponse) {
+    if (script == null) {
+      script = Script(res: postResponse);
+    } else {
+      script!.res = postResponse;
+    }
   }
 
   void setBodyContent(String content) {
