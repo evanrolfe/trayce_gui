@@ -94,6 +94,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
   static const List<String> _topTabTitles = ['Params', 'Body', 'Headers', 'Auth', 'Variables', 'Script'];
+  static const List<String> _bottomTabTitles = ['Response', 'Headers', 'Output'];
 
   // State variables
   bool isDividerHovered = false;
@@ -113,6 +114,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   String _selectedFormat = 'Unformatted';
   late final Request _formRequest; // the request as it appears in the form
   http.Response? _response;
+  List<String> _consoleOutput = [];
 
   @override
   void initState() {
@@ -120,7 +122,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     HttpEditorState.initialize();
 
     // Init the tab controllers
-    _bottomTabController = TabController(length: 2, vsync: this);
+    _bottomTabController = TabController(length: _bottomTabTitles.length, vsync: this);
     _topTabController = TabController(length: _topTabTitles.length, vsync: this);
     _topTabController.addListener(() {
       setState(() {}); // This will trigger a rebuild when the tab changes
@@ -186,6 +188,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
       final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy).send();
       _response = sendResult.response;
+      _consoleOutput = sendResult.output;
 
       // Set the selected format
       final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';
@@ -199,6 +202,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
       // Display the response
       displayResponse();
+      displayConsoleOutput();
     } catch (e) {
       _response = null;
       setState(() {
@@ -238,6 +242,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       } else {
         _formController.respBodyController.text = _response!.body;
       }
+    });
+  }
+
+  void displayConsoleOutput() {
+    setState(() {
+      _formController.respOutputController.text = _consoleOutput.join('\n');
     });
   }
 
@@ -839,7 +849,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             Expanded(
                                               child: InlineTabBar(
                                                 controller: _bottomTabController,
-                                                tabTitles: const ['Response', 'Headers'],
+                                                tabTitles: _bottomTabTitles,
+                                                tabTooltips: [
+                                                  'Response Body',
+                                                  'Response Headers',
+                                                  'The console output from scripts',
+                                                ],
                                                 focusNode: _focusManager.topTabFocusNode,
                                               ),
                                             ),
@@ -923,6 +938,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 padding: const EdgeInsets.all(20.0),
                                                 child: HeadersTableReadOnly(headers: _respHeaders),
                                               ),
+                                            ),
+                                            MultiLineCodeEditor(
+                                              focusNode: _focusManager.respOutputFocusNode,
+                                              border: tabContentBorder,
+                                              controller: _formController.respOutputController,
+                                              readOnly: true,
                                             ),
                                           ],
                                         ),

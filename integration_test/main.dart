@@ -14,6 +14,7 @@ import 'editor_modifying_requests.dart' as editor_modifying_requests;
 import 'editor_new_request_in_folder_test.dart' as editor_new_request_in_folder;
 import 'editor_saving_request.dart' as editor_saving_request;
 import 'editor_sending_a_request.dart' as editor_sending_a_request;
+import 'editor_sending_a_request_with_script_test.dart' as editor_sending_a_request_with_script;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
 import 'license_key_test.dart' as license_key_test;
@@ -64,6 +65,7 @@ void main() {
       {'func': editor_modifying_requests.test},
       {'func': editor_saving_request.test},
       {'func': editor_sending_a_request.test},
+      {'func': editor_sending_a_request_with_script.test},
       {'func': editor_create_collection.test},
       {'func': license_key_test.test},
     ];

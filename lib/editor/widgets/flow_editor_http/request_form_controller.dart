@@ -49,6 +49,7 @@ class RequestFormController {
   final CodeLineEditingController urlController = CodeLineEditingController();
   final CodeLineEditingController reqBodyController = CodeLineEditingController();
   final CodeLineEditingController respBodyController = CodeLineEditingController();
+  final CodeLineEditingController respOutputController = CodeLineEditingController();
   final CodeLineEditingController preRequestController = CodeLineEditingController();
   final CodeLineEditingController postResponseController = CodeLineEditingController();
 
@@ -415,6 +416,7 @@ class RequestFormController {
     urlController.dispose();
     reqBodyController.dispose();
     respBodyController.dispose();
+    respOutputController.dispose();
     headersController.dispose();
     formUrlEncodedController.dispose();
     multipartFormController.dispose();
