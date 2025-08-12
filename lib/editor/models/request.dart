@@ -90,6 +90,10 @@ class Request {
   Auth? authOauth2;
   Auth? authWsse;
 
+  Duration _timeout = Duration(seconds: 10);
+  String _executionMode = 'standalone';
+  String _executionPlatform = 'app';
+
   Request({
     this.file,
     required this.name,
@@ -417,6 +421,8 @@ class Request {
       return _sendFile();
     }
 
+    final output = await _executePreRequestScript();
+
     String urlStr = _getInterpolatedString(url);
     urlStr = _addApiKeyAuthToUrl(urlStr);
     final request = http.Request(method, Uri.parse(urlStr));
@@ -425,7 +431,6 @@ class Request {
     _addApiKeyAuth(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
-    final output = await _executePreRequestScript();
 
     // Set the request body
     Body? body = getBody();
@@ -449,8 +454,10 @@ class Request {
       request.body = _getInterpolatedString(body.toString());
     }
 
-    final streamedResponse = await request.send();
+    final client = http.Client();
+    final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    client.close();
 
     return SendResult(response: response, output: output);
   }
@@ -482,12 +489,13 @@ class Request {
 
       if (result.exitCode == 0) {
         if (result.stdout.isNotEmpty) {
-          print('Script output: ${result.stdout}');
           output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
+
+          processScriptOutput(output.last);
+          output.removeLast();
         }
       } else {
         if (result.stderr.isNotEmpty) {
-          print('Script error: ${result.stderr}');
           output.addAll(result.stderr.toString().split('\n').where((line) => line.isNotEmpty));
         }
       }
@@ -495,6 +503,36 @@ class Request {
       return output;
     } catch (e) {
       return ['Failed to execute pre-request script: $e'];
+    }
+  }
+
+  void processScriptOutput(String output) {
+    final json = jsonDecode(output);
+    if (json['url'] != null) {
+      url = json['url'];
+    }
+    if (json['method'] != null) {
+      method = json['method'].toString().toLowerCase();
+    }
+    if (json['timeout'] != null) {
+      _timeout = Duration(milliseconds: json['timeout']);
+    }
+    if (json['headers'] != null) {
+      final headersMap = json['headers'] as Map<String, dynamic>;
+      headers =
+          headersMap.entries
+              .map((entry) => Header(name: entry.key, value: entry.value.toString(), enabled: true))
+              .toList();
+    }
+    if (json['body'] != null) {
+      final body = getBody();
+      if (body != null) {
+        if (body is JsonBody) {
+          body.setContent(jsonEncode(json['body']));
+        } else {
+          body.setContent(json['body']);
+        }
+      }
     }
   }
 
@@ -589,8 +627,10 @@ class Request {
       }
     }
 
-    final streamedResponse = await request.send();
+    final client = http.Client();
+    final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    client.close();
 
     return SendResult(response: response, output: output);
   }
@@ -614,8 +654,10 @@ class Request {
       }
     }
 
-    final streamedResponse = await request.send();
+    final client = http.Client();
+    final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    client.close();
 
     return SendResult(response: response, output: output);
   }
@@ -873,11 +915,18 @@ class Request {
   }
 
   String toJson() {
+    final headersMap = Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value)));
     final Map<String, dynamic> json = {
+      'name': name,
       'method': method.toUpperCase(),
       'url': url,
+      'headers': headersMap,
+      'authMode': authTypeEnumToBru[authType]!,
       'mode': bodyType == BodyType.none ? 'none' : bodyTypeEnumToBru[bodyType]!,
       'vars': requestVars.map((v) => jsonDecode(v.toJson())).toList(),
+      'timeout': _timeout.inMilliseconds,
+      'executionMode': _executionMode,
+      'executionPlatform': _executionPlatform,
     };
 
     // Add auth if present
@@ -886,17 +935,10 @@ class Request {
       json['auth'] = jsonDecode(auth.toJson());
     }
 
-    // Add headers
-    if (headers.isNotEmpty) {
-      final headerMap = <String, String>{};
-      for (final header in headers) {
-        if (header.enabled) {
-          headerMap[header.name] = header.value;
-        }
-      }
-      if (headerMap.isNotEmpty) {
-        json['headers'] = headerMap;
-      }
+    // Add body if present
+    final body = getBody();
+    if (body != null && !body.isEmpty()) {
+      json['body'] = body.toString();
     }
 
     return jsonEncode(json);
