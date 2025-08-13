@@ -128,7 +128,7 @@ class SendRequest {
     try {
       // Write the script content to the file
       scriptFile.writeAsStringSync(preReqScript);
-      print('scriptFile: ${scriptFile.path}');
+
       // Run the CLI command
       final result = await Process.run('npm', [
         'run',

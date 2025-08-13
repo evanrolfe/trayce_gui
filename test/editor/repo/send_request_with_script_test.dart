@@ -11,6 +11,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/send_request.dart';
+import 'package:trayce/setup_nodejs.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 
@@ -77,6 +78,7 @@ late HttpTestServer mockServer;
 void main() {
   setUpAll(() async {
     mockServer = await HttpTestServer.create();
+    setupNodeJs();
   });
 
   tearDownAll(() async {
