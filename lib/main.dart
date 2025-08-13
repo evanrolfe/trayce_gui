@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grpc/grpc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:trayce/app.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
@@ -33,12 +34,13 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
   await GrpcParserLib.ensureExists();
+  final appSupportDir = await getApplicationSupportDirectory();
 
   // Core dependencies
   final eventBus = EventBus();
   final db = await connectDB();
   final grpcService = TrayceAgentService(eventBus: eventBus);
-  final config = Config.fromArgs(args);
+  final config = Config.fromArgs(args, appSupportDir);
   final appStorage = await AppStorage.getInstance();
   final filePicker = FilePicker();
 

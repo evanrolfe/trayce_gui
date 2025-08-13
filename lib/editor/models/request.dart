@@ -6,7 +6,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/parse/parse_url.dart';
 import 'package:trayce/editor/models/send_result.dart';
-import 'package:uuid/uuid.dart';
 
 import 'assertion.dart';
 import 'auth.dart';
@@ -421,8 +420,6 @@ class Request {
       return _sendFile();
     }
 
-    final output = await _executePreRequestScript();
-
     String urlStr = _getInterpolatedString(url);
     urlStr = _addApiKeyAuthToUrl(urlStr);
     final request = http.Request(method, Uri.parse(urlStr));
@@ -462,179 +459,7 @@ class Request {
     final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    final result2 = await _executePostResponseScript(response, responseTime);
-    output.addAll(result2.output);
-
-    return SendResult(response: result2.response, output: output, responseTime: responseTime);
-  }
-
-  String _httpResponseToJson(http.Response response, int responseTime) {
-    // Calculate header bytes by encoding each header key-value pair
-    int headerBytes = 0;
-    response.headers.forEach((key, value) {
-      headerBytes += utf8.encode('$key: $value\r\n').length;
-    });
-
-    // Calculate body bytes
-    int bodyBytes = utf8.encode(response.body).length;
-
-    return jsonEncode({
-      'url': response.request?.url.toString(),
-      'status': response.statusCode,
-      'statusText': response.reasonPhrase,
-      'headers': response.headers,
-      'body': response.body,
-      'size': {'body': bodyBytes, 'headers': headerBytes, 'total': bodyBytes + headerBytes},
-      'responseTime': responseTime,
-    });
-  }
-
-  Future<List<String>> _executePreRequestScript() async {
-    final script = this.script;
-    if (script == null || script.req == null || script.req!.isEmpty) return [];
-
-    final preReqScript = script.req!;
-
-    // Generate a random UUID
-    final uuid = Uuid().v4();
-    final tempDir = Directory('/tmp');
-    final scriptFile = File('/tmp/trayce_pre_req-$uuid.js');
-
-    try {
-      // Ensure /tmp directory exists
-      if (!tempDir.existsSync()) {
-        tempDir.createSync(recursive: true);
-      }
-
-      // Write the script content to the file
-      scriptFile.writeAsStringSync(preReqScript);
-
-      // Run the CLI command
-      final result = await Process.run('node', ['script_req.js', scriptFile.path, toJson()]);
-
-      final output = <String>[];
-
-      if (result.exitCode == 0) {
-        if (result.stdout.isNotEmpty) {
-          output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
-
-          processScriptOutputRequest(output.last);
-          output.removeLast();
-        }
-      } else {
-        if (result.stderr.isNotEmpty) {
-          output.addAll(result.stderr.toString().split('\n').where((line) => line.isNotEmpty));
-        }
-      }
-
-      return output;
-    } catch (e) {
-      return ['Failed to execute pre-request script: $e'];
-    }
-  }
-
-  Future<SendResult> _executePostResponseScript(http.Response response, int responseTime) async {
-    final script = this.script;
-    if (script == null || script.res == null || script.res!.isEmpty) {
-      return SendResult(response: response, output: [], responseTime: responseTime);
-    }
-
-    final postRespScript = script.res!;
-
-    // Generate a random UUID
-    final uuid = Uuid().v4();
-    final tempDir = Directory('/tmp');
-    final scriptFile = File('/tmp/trayce_post_resp-$uuid.js');
-
-    try {
-      // Ensure /tmp directory exists
-      if (!tempDir.existsSync()) {
-        tempDir.createSync(recursive: true);
-      }
-
-      // Write the script content to the file
-      scriptFile.writeAsStringSync(postRespScript);
-
-      // Run the CLI command
-      final result = await Process.run('node', [
-        'script_req.js',
-        scriptFile.path,
-        toJson(),
-        _httpResponseToJson(response, responseTime),
-      ]);
-
-      final output = <String>[];
-
-      if (result.exitCode == 0) {
-        if (result.stdout.isNotEmpty) {
-          output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
-
-          response = processScriptOutputResponse(response, output.last);
-          output.removeLast();
-        }
-      } else {
-        if (result.stderr.isNotEmpty) {
-          output.addAll(result.stderr.toString().split('\n').where((line) => line.isNotEmpty));
-        }
-      }
-
-      return SendResult(response: response, output: output, responseTime: responseTime);
-    } catch (e) {
-      return SendResult(
-        response: response,
-        output: ['Failed to execute post-response script: $e'],
-        responseTime: responseTime,
-      );
-    }
-  }
-
-  void processScriptOutputRequest(String output) {
-    final json = jsonDecode(output);
-    if (json['url'] != null) {
-      url = json['url'];
-    }
-    if (json['method'] != null) {
-      method = json['method'].toString().toLowerCase();
-    }
-    if (json['timeout'] != null) {
-      _timeout = Duration(milliseconds: json['timeout']);
-    }
-    if (json['headers'] != null) {
-      final headersMap = json['headers'] as Map<String, dynamic>;
-      headers =
-          headersMap.entries
-              .map((entry) => Header(name: entry.key, value: entry.value.toString(), enabled: true))
-              .toList();
-    }
-    if (json['body'] != null) {
-      final body = getBody();
-      if (body != null) {
-        if (body is JsonBody) {
-          body.setContent(jsonEncode(json['body']));
-        } else {
-          body.setContent(json['body']);
-        }
-      }
-    }
-  }
-
-  http.Response processScriptOutputResponse(http.Response response, String output) {
-    final json = jsonDecode(output);
-
-    if (json['body'] != null) {
-      // Create a new response with the modified body
-      return http.Response(
-        json['body'],
-        response.statusCode,
-        headers: response.headers,
-        reasonPhrase: response.reasonPhrase,
-        request: response.request,
-        isRedirect: response.isRedirect,
-        persistentConnection: response.persistentConnection,
-      );
-    }
-
-    return response;
+    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
   String _getInterpolatedString(String value) {
@@ -714,7 +539,6 @@ class Request {
     _addHeaders(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
-    final output = await _executePreRequestScript();
 
     final multipartBody = bodyMultipartForm as MultipartFormBody;
     for (var file in multipartBody.files) {
@@ -736,10 +560,7 @@ class Request {
     final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    final result2 = await _executePostResponseScript(response, responseTime);
-    output.addAll(result2.output);
-
-    return SendResult(response: result2.response, output: output, responseTime: responseTime);
+    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
   Future<SendResult> _sendFile() async {
@@ -748,7 +569,6 @@ class Request {
     _addHeaders(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
-    final output = await _executePreRequestScript();
 
     final body = bodyFile as FileBody;
     final selectedFile = body.selectedFile();
@@ -769,10 +589,7 @@ class Request {
     final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    final result2 = await _executePostResponseScript(response, responseTime);
-    output.addAll(result2.output);
-
-    return SendResult(response: result2.response, output: output, responseTime: responseTime);
+    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
   Body? getBody() {

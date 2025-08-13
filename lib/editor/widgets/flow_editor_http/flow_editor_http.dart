@@ -186,7 +186,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       List<ExplorerNode> nodeHierarchy = [];
       if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
 
-      final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy).send();
+      final config = context.read<Config>();
+      final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy, config: config).send();
       _response = sendResult.response;
       _consoleOutput = sendResult.output;
 

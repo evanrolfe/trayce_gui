@@ -45,3 +45,4 @@ app.*.symbols
 app.*.map.json
 
 coverage/
+nodejs/node_modules/

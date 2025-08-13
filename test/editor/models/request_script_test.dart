@@ -1,12 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/send_request.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 
@@ -79,6 +83,8 @@ void main() {
     await mockServer.close();
   });
 
+  final config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: Directory.current.path);
+
   test('sending a request with a pre-request script using the request object getters', () async {
     mockServer.newHandler('POST', '/test_endpoint');
 
@@ -122,7 +128,7 @@ void main() {
       assertions: [],
     );
 
-    final result = await request.send();
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -183,7 +189,7 @@ void main() {
       assertions: [],
     );
 
-    final result = await request.send();
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -229,7 +235,7 @@ void main() {
       assertions: [],
     );
 
-    final result = await request.send();
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -270,7 +276,7 @@ void main() {
       assertions: [],
     );
 
-    final result = await request.send();
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -295,6 +301,7 @@ void main() {
     console.log(res.getSize().headers);
     console.log(res.getSize().total);
     console.log(res.getResponseTime());
+    console.log(res('message'));
     ''';
 
     final request = Request(
@@ -322,14 +329,14 @@ void main() {
       assertions: [],
     );
 
-    final result = await request.send();
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
     mockServer.reset();
 
     print(result.output);
-    expect(result.output.length, 9);
+    expect(result.output.length, 10);
     expect(result.output[0], '200');
     expect(result.output[1], 'OK');
     expect(result.output[2], contains('http://localhost:'));
@@ -340,6 +347,51 @@ void main() {
     expect(result.output[6], '223');
     expect(result.output[7], '263');
     expect(result.output[8], isNotEmpty);
+  });
+
+  test('sending a request with a post-response script using the response query', () async {
+    mockServer.newHandler('POST', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
+
+    final jsScript = '''
+    console.log(res('message'));
+    ''';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.json,
+      bodyJson: JsonBody(content: '{"hello":"world"}'),
+      authType: AuthType.apikey,
+      authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
+      params: [],
+      headers: [
+        Header(name: 'X-Trayce-Token', value: 'abcd1234', enabled: true),
+        Header(name: 'content-type', value: 'application/json', enabled: true),
+      ],
+      script: Script(res: jsScript),
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final response = result.response;
+
+    expect(response.statusCode, 200);
+    mockServer.reset();
+
+    print(result.output);
+    expect(result.output.length, 1);
+    expect(result.output[0], 'Hello, World!');
   });
 
   test('sending a request with a post-response script calling res.setBody()', () async {
@@ -374,7 +426,7 @@ void main() {
       assertions: [],
     );
 
-    final result = await request.send();
+    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
     final response = result.response;
 
     expect(response.statusCode, 200);

@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { get } = require('@usebruno/query');
 
 // Log function that only outputs if LOG_LEVEL=debug
 function log(...args) {
@@ -195,6 +196,14 @@ class Response {
     this.statusText = data.statusText || null;
     this.size = data.size || null;
     this.responseTime = data.responseTime || null;
+
+
+    // Make the instance callable
+    const callable = (...args) => get(this.getBody(), ...args);
+    Object.setPrototypeOf(callable, this.constructor.prototype);
+    Object.assign(callable, this);
+
+    return callable;
   }
 
   getStatus() {
