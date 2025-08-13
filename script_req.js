@@ -184,16 +184,110 @@ class Request {
   }
 }
 
+// Response class to encapsulate all response properties
+class Response {
+  constructor(data) {
+    this.status = data.status;
+    this.statusText = data.statusText;
+    this.body = data.body || null;
+    this.headers = data.headers || {};
+    this.url = data.url || null;
+    this.statusText = data.statusText || null;
+    this.size = data.size || null;
+    this.responseTime = data.responseTime || null;
+  }
+
+  getStatus() {
+    return this.status;
+  }
+
+  getStatusText() {
+    return this.statusText;
+  }
+
+  /**
+   * Get the parsed JSON body if the content type is JSON
+   * If the user wants the raw body, they can pass the raw option as true
+   */
+  getBody(options = {}) {
+    if (options.raw) {
+      return this.body;
+    }
+
+    const isJson = this.hasJSONContentType(this.headers);
+    if (isJson) {
+      return this.__safeParseJSON(this.body);
+    }
+
+    return this.body;
+  }
+
+  getHeaders() {
+    return this.headers;
+  }
+
+  getHeader(name) {
+    // Case-insensitive header lookup
+    const lowerName = name.toLowerCase();
+    for (const [key, value] of Object.entries(this.headers)) {
+      if (key.toLowerCase() === lowerName) {
+        return value;
+      }
+    }
+    return null;
+  }
+
+  getUrl() {
+    return this.url;
+  }
+
+  getStatusText() {
+    return this.statusText;
+  }
+
+  getSize() {
+    return this.size;
+  }
+
+  getResponseTime() {
+    return this.responseTime;
+  }
+
+  hasJSONContentType() {
+    const contentType = this.headers?.['Content-Type'] || this.headers?.['content-type'] || '';
+    return contentType.includes('json');
+  }
+
+  toMap() {
+    return {
+      status: this.status,
+      body: this.body,
+      headers: this.headers,
+      url: this.url,
+      statusText: this.statusText,
+      size: this.size,
+    };
+  }
+
+  __safeParseJSON(str) {
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      return str;
+    }
+  }
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
-
-if (args.length !== 2) {
-  console.error('Usage: node script_req.js <file_path> <request_json>');
+if (args.length < 2 || args.length > 3) {
+  console.error('Usage: node script_req.js <file_path> <request_json> [response_json]');
   console.error('Example: node script_req.js myfile.js \'{"method":"GET","url":"http://localhost:46725{{A_var}}?hello=world"}\'');
+  console.error('Example with response: node script_req.js myfile.js \'{"method":"GET","url":"http://localhost:46725"}\' \'{"status":200,"body":"Hello World"}\'');
   process.exit(1);
 }
 
-const [filePath, requestJson] = args;
+const [filePath, requestJson, responseJson] = args;
 
 // Parse the request JSON
 let reqData;
@@ -213,6 +307,18 @@ if (!reqData.method || !reqData.url) {
 // Create Request instance
 const req = new Request(reqData);
 
+// Parse and create Response instance if responseJson is provided
+let res = null;
+if (responseJson) {
+  try {
+    const resData = JSON.parse(responseJson);
+    res = new Response(resData);
+  } catch (error) {
+    console.error('Error parsing response JSON:', error.message);
+    process.exit(1);
+  }
+}
+
 // Check if the file exists
 if (!fs.existsSync(filePath)) {
   console.error(`File not found: ${filePath}`);
@@ -222,6 +328,7 @@ if (!fs.existsSync(filePath)) {
 // Create a context object with all the variables and request data
 const scriptContext = {
   req: req,
+  res: res,
   vars: req.vars,
   getVar: (name) => req.getVar(name),
   fs: fs,
@@ -239,6 +346,7 @@ try {
         // Make all context properties available in scope
         const {
             req,
+            res,
             vars,
             getVar,
             fs,

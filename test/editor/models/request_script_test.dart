@@ -279,4 +279,66 @@ void main() {
     expect(mockServer.sentRequestBody, 'modified by script');
     mockServer.reset();
   });
+
+  test('sending a request with a post-response script using the response object getters', () async {
+    mockServer.newHandler('POST', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
+
+    final jsScript = '''
+    console.log(res.getStatus());
+    console.log(res.getStatusText());
+    console.log(res.getUrl());
+    console.log(res.getHeader('content-type'));
+    console.log(res.getBody({raw: true}));
+    console.log(res.getSize().body);
+    console.log(res.getSize().headers);
+    console.log(res.getSize().total);
+    console.log(res.getResponseTime());
+    ''';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.json,
+      bodyJson: JsonBody(content: '{"hello":"world"}'),
+      authType: AuthType.apikey,
+      authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
+      params: [],
+      headers: [
+        Header(name: 'X-Trayce-Token', value: 'abcd1234', enabled: true),
+        Header(name: 'content-type', value: 'application/json', enabled: true),
+      ],
+      script: Script(res: jsScript),
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final result = await request.send();
+    final response = result.response;
+
+    expect(response.statusCode, 200);
+    mockServer.reset();
+
+    print(result.output);
+    expect(result.output.length, 9);
+    expect(result.output[0], '200');
+    expect(result.output[1], 'OK');
+    expect(result.output[2], contains('http://localhost:'));
+    expect(result.output[2], contains('/test_endpoint?hello=world&x-trayce-token=abcd1234'));
+    expect(result.output[3], 'application/json');
+    expect(result.output[4], '{"message":"Hello, World!","status":200}');
+    expect(result.output[5], '40');
+    expect(result.output[6], '223');
+    expect(result.output[7], '263');
+    expect(result.output[8], isNotEmpty);
+  });
 }

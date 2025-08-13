@@ -455,11 +455,38 @@ class Request {
     }
 
     final client = http.Client();
+    final startTime = DateTime.now();
     final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    return SendResult(response: response, output: output);
+    final output2 = await _executePostResponseScript(response, responseTime);
+    output.addAll(output2);
+
+    return SendResult(response: response, output: output, responseTime: responseTime);
+  }
+
+  String _httpResponseToJson(http.Response response, int responseTime) {
+    // Calculate header bytes by encoding each header key-value pair
+    int headerBytes = 0;
+    response.headers.forEach((key, value) {
+      headerBytes += utf8.encode('$key: $value\r\n').length;
+    });
+
+    // Calculate body bytes
+    int bodyBytes = utf8.encode(response.body).length;
+
+    return jsonEncode({
+      'url': response.request?.url.toString(),
+      'status': response.statusCode,
+      'statusText': response.reasonPhrase,
+      'headers': response.headers,
+      'body': response.body,
+      'size': {'body': bodyBytes, 'headers': headerBytes, 'total': bodyBytes + headerBytes},
+      'responseTime': responseTime,
+    });
   }
 
   Future<List<String>> _executePreRequestScript() async {
@@ -503,6 +530,55 @@ class Request {
       return output;
     } catch (e) {
       return ['Failed to execute pre-request script: $e'];
+    }
+  }
+
+  Future<List<String>> _executePostResponseScript(http.Response response, int responseTime) async {
+    final script = this.script;
+    if (script == null || script.res == null || script.res!.isEmpty) return [];
+
+    final postRespScript = script.res!;
+
+    // Generate a random UUID
+    final uuid = Uuid().v4();
+    final tempDir = Directory('/tmp');
+    final scriptFile = File('/tmp/trayce_post_resp-$uuid.js');
+
+    try {
+      // Ensure /tmp directory exists
+      if (!tempDir.existsSync()) {
+        tempDir.createSync(recursive: true);
+      }
+
+      // Write the script content to the file
+      scriptFile.writeAsStringSync(postRespScript);
+
+      // Run the CLI command
+      final result = await Process.run('node', [
+        'script_req.js',
+        scriptFile.path,
+        toJson(),
+        _httpResponseToJson(response, responseTime),
+      ]);
+
+      final output = <String>[];
+
+      if (result.exitCode == 0) {
+        if (result.stdout.isNotEmpty) {
+          output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
+
+          processScriptOutput(output.last);
+          output.removeLast();
+        }
+      } else {
+        if (result.stderr.isNotEmpty) {
+          output.addAll(result.stderr.toString().split('\n').where((line) => line.isNotEmpty));
+        }
+      }
+
+      return output;
+    } catch (e) {
+      return ['Failed to execute post-response script: $e'];
     }
   }
 
@@ -628,11 +704,17 @@ class Request {
     }
 
     final client = http.Client();
+    final startTime = DateTime.now();
     final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    return SendResult(response: response, output: output);
+    final output2 = await _executePostResponseScript(response, responseTime);
+    output.addAll(output2);
+
+    return SendResult(response: response, output: output, responseTime: responseTime);
   }
 
   Future<SendResult> _sendFile() async {
@@ -655,11 +737,17 @@ class Request {
     }
 
     final client = http.Client();
+    final startTime = DateTime.now();
     final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    return SendResult(response: response, output: output);
+    final output2 = await _executePostResponseScript(response, responseTime);
+    output.addAll(output2);
+
+    return SendResult(response: response, output: output, responseTime: responseTime);
   }
 
   Body? getBody() {
