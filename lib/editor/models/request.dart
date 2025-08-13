@@ -462,10 +462,10 @@ class Request {
     final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    final output2 = await _executePostResponseScript(response, responseTime);
-    output.addAll(output2);
+    final result2 = await _executePostResponseScript(response, responseTime);
+    output.addAll(result2.output);
 
-    return SendResult(response: response, output: output, responseTime: responseTime);
+    return SendResult(response: result2.response, output: output, responseTime: responseTime);
   }
 
   String _httpResponseToJson(http.Response response, int responseTime) {
@@ -518,7 +518,7 @@ class Request {
         if (result.stdout.isNotEmpty) {
           output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
 
-          processScriptOutput(output.last);
+          processScriptOutputRequest(output.last);
           output.removeLast();
         }
       } else {
@@ -533,9 +533,11 @@ class Request {
     }
   }
 
-  Future<List<String>> _executePostResponseScript(http.Response response, int responseTime) async {
+  Future<SendResult> _executePostResponseScript(http.Response response, int responseTime) async {
     final script = this.script;
-    if (script == null || script.res == null || script.res!.isEmpty) return [];
+    if (script == null || script.res == null || script.res!.isEmpty) {
+      return SendResult(response: response, output: [], responseTime: responseTime);
+    }
 
     final postRespScript = script.res!;
 
@@ -567,7 +569,7 @@ class Request {
         if (result.stdout.isNotEmpty) {
           output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
 
-          processScriptOutput(output.last);
+          response = processScriptOutputResponse(response, output.last);
           output.removeLast();
         }
       } else {
@@ -576,13 +578,17 @@ class Request {
         }
       }
 
-      return output;
+      return SendResult(response: response, output: output, responseTime: responseTime);
     } catch (e) {
-      return ['Failed to execute post-response script: $e'];
+      return SendResult(
+        response: response,
+        output: ['Failed to execute post-response script: $e'],
+        responseTime: responseTime,
+      );
     }
   }
 
-  void processScriptOutput(String output) {
+  void processScriptOutputRequest(String output) {
     final json = jsonDecode(output);
     if (json['url'] != null) {
       url = json['url'];
@@ -610,6 +616,25 @@ class Request {
         }
       }
     }
+  }
+
+  http.Response processScriptOutputResponse(http.Response response, String output) {
+    final json = jsonDecode(output);
+
+    if (json['body'] != null) {
+      // Create a new response with the modified body
+      return http.Response(
+        json['body'],
+        response.statusCode,
+        headers: response.headers,
+        reasonPhrase: response.reasonPhrase,
+        request: response.request,
+        isRedirect: response.isRedirect,
+        persistentConnection: response.persistentConnection,
+      );
+    }
+
+    return response;
   }
 
   String _getInterpolatedString(String value) {
@@ -711,10 +736,10 @@ class Request {
     final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    final output2 = await _executePostResponseScript(response, responseTime);
-    output.addAll(output2);
+    final result2 = await _executePostResponseScript(response, responseTime);
+    output.addAll(result2.output);
 
-    return SendResult(response: response, output: output, responseTime: responseTime);
+    return SendResult(response: result2.response, output: output, responseTime: responseTime);
   }
 
   Future<SendResult> _sendFile() async {
@@ -744,10 +769,10 @@ class Request {
     final responseTime = endTime.difference(startTime).inMilliseconds;
     client.close();
 
-    final output2 = await _executePostResponseScript(response, responseTime);
-    output.addAll(output2);
+    final result2 = await _executePostResponseScript(response, responseTime);
+    output.addAll(result2.output);
 
-    return SendResult(response: response, output: output, responseTime: responseTime);
+    return SendResult(response: result2.response, output: output, responseTime: responseTime);
   }
 
   Body? getBody() {

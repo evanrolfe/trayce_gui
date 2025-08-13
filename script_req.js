@@ -258,6 +258,10 @@ class Response {
     return contentType.includes('json');
   }
 
+  setBody(data) {
+    this.body = data;
+  }
+
   toMap() {
     return {
       status: this.status,
@@ -285,6 +289,11 @@ if (args.length < 2 || args.length > 3) {
   console.error('Example: node script_req.js myfile.js \'{"method":"GET","url":"http://localhost:46725{{A_var}}?hello=world"}\'');
   console.error('Example with response: node script_req.js myfile.js \'{"method":"GET","url":"http://localhost:46725"}\' \'{"status":200,"body":"Hello World"}\'');
   process.exit(1);
+}
+
+let scriptType = 'req';
+if (args.length === 3) {
+  scriptType = 'res';
 }
 
 const [filePath, requestJson, responseJson] = args;
@@ -361,7 +370,11 @@ try {
     `);
 
   scriptFunction(scriptContext);
-  console.log(JSON.stringify(req.toMap(), null, 0));
+  if (scriptType === 'req') {
+    console.log(JSON.stringify(req.toMap(), null, 0));
+  } else {
+    console.log(JSON.stringify(res.toMap(), null, 0));
+  }
 
 } catch (error) {
   console.error('Error executing target script:', error.message);

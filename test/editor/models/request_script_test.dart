@@ -341,4 +341,47 @@ void main() {
     expect(result.output[7], '263');
     expect(result.output[8], isNotEmpty);
   });
+
+  test('sending a request with a post-response script calling res.setBody()', () async {
+    mockServer.newHandler('POST', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
+
+    final jsScript = '''res.setBody('{"new": "value-from-script"}');''';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.json,
+      bodyJson: JsonBody(content: '{"hello":"world"}'),
+      authType: AuthType.apikey,
+      authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
+      params: [],
+      headers: [
+        Header(name: 'X-Trayce-Token', value: 'abcd1234', enabled: true),
+        Header(name: 'content-type', value: 'application/json', enabled: true),
+      ],
+      script: Script(res: jsScript),
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final result = await request.send();
+    final response = result.response;
+
+    expect(response.statusCode, 200);
+    mockServer.reset();
+
+    print(result.output);
+    expect(result.output.length, 0);
+    expect(result.response.body, '{"new": "value-from-script"}');
+  });
 }
