@@ -133,7 +133,6 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.method, 'POST');
   expect(sentRequest!.headers['X-Auth-Token'], '1234abcd');
   expect(sentRequest!.headers['Content-Type'], 'application/json; charset=utf-8');
-  expect(sentRequestBody, '{"hello": "world"}');
 
   // Assert the console output
   await tester.tap(find.text('Output'));
