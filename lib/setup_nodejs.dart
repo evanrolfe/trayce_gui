@@ -22,8 +22,9 @@ void setupNodeJs() async {
 
     // Copy the nodejs folder from assets
     await _copyAssetFolder('nodejs', nodejsDir.path);
-    // Run npm install to install dependencies
-    await _runNpmInstall(nodejsDir.path);
+
+    // We commit node_modules cause its easier than running npm install each time
+    // await _runNpmInstall(nodejsDir.path);
     print("Copied nodejs files to: ${nodejsDir.path}");
   } catch (e) {
     print("Error setting up NodeJS: $e");

@@ -10,7 +10,6 @@
 .history
 .svn/
 .swiftpm/
-dist/
 migrate_working_dir/
 
 # IntelliJ related
@@ -45,4 +44,3 @@ app.*.symbols
 app.*.map.json
 
 coverage/
-nodejs/node_modules/
