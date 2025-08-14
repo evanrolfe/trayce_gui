@@ -4,10 +4,10 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dialog.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/common/file_picker.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
@@ -89,7 +89,7 @@ class _FileExplorerState extends State<FileExplorer> {
       return KeyEventResult.ignored;
     };
 
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
     if (!config.isTest) {
       // context.read<ExplorerService>().openCollection('/home/evan/Code/trayce/gui/test/support/collection1');
     }
@@ -230,7 +230,7 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   Future<String?> _getCollectionPath() async {
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
     final filePicker = context.read<FilePickerI>();
 
     late String? path;

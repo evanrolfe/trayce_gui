@@ -8,10 +8,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/app_storage.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
@@ -36,7 +36,7 @@ class WidgetDependencies {
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
   late ExplorerService explorerService;
-  late Config config;
+  late ConfigRepo configRepo;
 
   WidgetDependencies({
     required this.db,
@@ -50,7 +50,7 @@ class WidgetDependencies {
     required this.folderRepo,
     required this.requestRepo,
     required this.explorerService,
-    required this.config,
+    required this.configRepo,
   });
 
   // Creates a widget with all required providers
@@ -66,7 +66,7 @@ class WidgetDependencies {
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<ExplorerService>(create: (context) => explorerService),
-        RepositoryProvider<Config>(create: (context) => config),
+        RepositoryProvider<ConfigRepo>(create: (context) => configRepo),
       ],
       child: MaterialApp(home: Scaffold(body: child)),
     );
@@ -86,6 +86,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final appStorage = await FakeAppStorage.getInstance();
   final filePicker = MockFilePicker();
 
+  final configRepo = ConfigRepo(appStorage, [], Directory.current);
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
@@ -99,7 +100,6 @@ Future<WidgetDependencies> setupTestDependencies() async {
     folderRepo: folderRepo,
     requestRepo: requestRepo,
   );
-  final config = Config.fromArgs([], Directory.current);
 
   final deps = WidgetDependencies(
     db: db,
@@ -113,7 +113,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     folderRepo: folderRepo,
     requestRepo: requestRepo,
     explorerService: explorerService,
-    config: config,
+    configRepo: configRepo,
   );
 
   return deps;

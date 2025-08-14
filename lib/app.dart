@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trayce/app_scaffold.dart';
 import 'package:trayce/common/app_storage.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/database.dart';
 import 'package:trayce/common/error_widget.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/menu_bar.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/setup_nodejs.dart';
@@ -99,7 +99,7 @@ class _AppState extends State<App> with WindowListener {
   // _setupErrorHandling catches errors and shows a custom error modal. it is disabled during tests
   // so that it doesn't swallow errors and prevent of from seeing whats failing
   void _setupErrorHandling() {
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
     if (config.isTest) return;
 
     FlutterError.onError = (FlutterErrorDetails details) {
@@ -186,7 +186,7 @@ class _AppState extends State<App> with WindowListener {
       theme: appTheme,
       builder: (context, child) {
         // Only set custom error widget builder when not in test mode
-        if (context.read<Config>().isTest) return child!;
+        if (context.read<ConfigRepo>().get().isTest) return child!;
 
         ErrorWidget.builder = (FlutterErrorDetails details) {
           return CustomErrorWidget(errorMessage: details.exception.toString(), onClose: _clearError);

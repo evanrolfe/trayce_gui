@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 
 Future<void> showNewCollectionModal(BuildContext context) {
@@ -43,7 +43,7 @@ class _NewCollectionModalState extends State<NewCollectionModal> {
   }
 
   Future<String?> _getCollectionPath() async {
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
     final filePicker = context.read<FilePickerI>();
 
     late String? path;

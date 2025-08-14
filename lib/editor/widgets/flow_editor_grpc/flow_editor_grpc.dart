@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/form_table_input.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
@@ -75,13 +75,13 @@ class _FlowEditorGrpcState extends State<FlowEditorGrpc> with TickerProviderStat
     _topTabController = TabController(length: 2, vsync: this);
     _bottomTabController = TabController(length: 3, vsync: this);
     GrpcEditorState.initialize();
-
+    final config = context.read<ConfigRepo>().get();
     _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
 
     _headersController = FormHeadersController(
       onStateChanged: () => setState(() {}),
       initialRows: [],
-      config: context.read<Config>(),
+      config: config,
       focusManager: _focusManager,
       eventBus: context.read<EventBus>(),
       filePicker: context.read<FilePickerI>(),

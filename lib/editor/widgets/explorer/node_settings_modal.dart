@@ -2,7 +2,6 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
@@ -12,6 +11,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
@@ -58,7 +58,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       setState(() {}); // This will trigger a rebuild when the tab changes
     });
 
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
     final eventBus = context.read<EventBus>();
     final filePicker = context.read<FilePickerI>();
     _focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
