@@ -14,6 +14,9 @@ abstract class AppStorageI {
   Future<void> saveSecretVars(String collectionPath, String envName, Map<String, String> vars);
   Future<Map<String, String>> getSecretVars(String collectionPath, String envName);
   Future<void> deleteSecretVars(String collectionPath, String envName);
+
+  Future<String> getConfigValue(String key);
+  Future<void> saveConfigValue(String key, String value);
 }
 
 class AppStorage implements AppStorageI {
@@ -65,5 +68,17 @@ class AppStorage implements AppStorageI {
   Future<void> deleteSecretVars(String collectionPath, String envName) async {
     final key = 'secret_vars:$collectionPath:$envName';
     await _prefs.remove(key);
+  }
+
+  @override
+  Future<String> getConfigValue(String key) async {
+    key = 'config:$key';
+    return _prefs.getString(key) ?? '';
+  }
+
+  @override
+  Future<void> saveConfigValue(String key, String value) async {
+    key = 'config:$key';
+    await _prefs.setString(key, value);
   }
 }

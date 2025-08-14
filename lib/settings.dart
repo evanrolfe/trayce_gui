@@ -27,7 +27,8 @@ class SettingsModal extends StatefulWidget {
 
 class _SettingsModalState extends State<SettingsModal> {
   late final TextEditingController _licenseController;
-  late final TextEditingController _nodejsCommandController;
+  late final TextEditingController _npmCommandController;
+  late final ConfigRepo _configRepo;
 
   bool _isVerifying = false;
   bool? _isVerified;
@@ -43,8 +44,13 @@ class _SettingsModalState extends State<SettingsModal> {
   void initState() {
     super.initState();
 
+    _configRepo = context.read<ConfigRepo>();
+    _configRepo.loadSettings();
+
     _licenseController = TextEditingController();
-    _nodejsCommandController = TextEditingController();
+    _npmCommandController = TextEditingController();
+
+    _npmCommandController.text = _configRepo.get().npmCommand;
 
     // Subscribe to verification events
     _verificationSubscription = context.read<EventBus>().on<EventAgentVerified>().listen((event) {
@@ -114,6 +120,10 @@ class _SettingsModalState extends State<SettingsModal> {
   }
 
   void _onSave() {
+    final config = _configRepo.get();
+    config.npmCommand = _npmCommandController.text;
+    _configRepo.save();
+
     Navigator.of(context).pop();
   }
 
@@ -243,12 +253,12 @@ class _SettingsModalState extends State<SettingsModal> {
                         Row(
                           children: [
                             const Text(
-                              'NodeJS Command:',
+                              'NodeJS npm command:',
                               style: TextStyle(color: Color(0xFF666666), fontSize: 14, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 4),
                             Tooltip(
-                              message: 'Enter the command to run NodeJS (only necessary if you want to run scripts)',
+                              message: 'Enter the command to run npm (only necessary if you want to run scripts)',
                               child: const Icon(Icons.help_outline, color: Color(0xFF666666), size: 16),
                             ),
                           ],
@@ -263,7 +273,7 @@ class _SettingsModalState extends State<SettingsModal> {
                       height: 30,
                       child: TextField(
                         key: const Key('editor_nodejs_command_input'),
-                        controller: _nodejsCommandController,
+                        controller: _npmCommandController,
                         style: textFieldStyle,
                         decoration: textFieldDecor.copyWith(hintText: 'node'),
                       ),

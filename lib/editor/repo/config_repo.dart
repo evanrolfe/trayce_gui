@@ -17,6 +17,16 @@ class ConfigRepo {
     config = Config(isTest: isTest, trayceApiUrl: trayceApiUrl, appSupportDir: appSupportDir.path);
   }
 
+  void loadSettings() async {
+    final npmCommand = await _appStorage.getConfigValue('npmCommand');
+
+    if (npmCommand.isNotEmpty) config.npmCommand = npmCommand;
+  }
+
+  void save() async {
+    await _appStorage.saveConfigValue('npmCommand', config.npmCommand);
+  }
+
   Config get() {
     return config;
   }
