@@ -14,6 +14,7 @@ import 'package:trayce/common/events.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/menu_bar.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
+import 'package:trayce/setup_nodejs.dart';
 import 'package:trayce/status_bar.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -46,8 +47,10 @@ class _AppState extends State<App> with WindowListener {
   @override
   void initState() {
     super.initState();
+
     _initializeWindow();
     _setupErrorHandling();
+    setupNodeJs();
 
     // Subscribe to verification events
     _displaySub = context.read<EventBus>().on<EventDisplayAlert>().listen((event) {

@@ -2,6 +2,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trayce/common/app_storage.dart';
+import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
@@ -21,6 +22,7 @@ void main() {
   late CollectionRepo collectionRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
+  late Config config;
   final emptySecretVars = Map<String, String>.from({});
 
   setUpAll(() async {
@@ -30,6 +32,11 @@ void main() {
     collectionRepo = CollectionRepo(mockAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
+    config = Config(
+      isTest: true,
+      trayceApiUrl: 'http://localhost:8080',
+      appSupportDir: '/home/evan/Code/trayce/gui/nodejs',
+    );
   });
 
   group('SendRequest()', () {
@@ -58,7 +65,8 @@ void main() {
       expect(hierarchy[1].name, 'myfolder');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq = SendRequest(request: reqThree.request!, nodeHierarchy: hierarchy).getFinalRequest();
+      final finalReq =
+          SendRequest(request: reqThree.request!, nodeHierarchy: hierarchy, config: config).getFinalRequest();
 
       // Verify the URL
       expect(finalReq.url, 'www.synack.com/three/users/show/123');
@@ -125,7 +133,8 @@ void main() {
       expect(hierarchy[1].name, 'myfolder');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq = SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy).getFinalRequest();
+      final finalReq =
+          SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy, config: config).getFinalRequest();
 
       // Verify auth
       expect(finalReq.authType, AuthType.basic);
@@ -159,7 +168,8 @@ void main() {
       expect(hierarchy[1].name, 'hello');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq = SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy).getFinalRequest();
+      final finalReq =
+          SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy, config: config).getFinalRequest();
 
       // Verify auth
       expect(finalReq.authType, AuthType.basic);

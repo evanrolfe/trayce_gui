@@ -5,10 +5,18 @@ import '../explorer/explorer_style.dart';
 class InlineTabBar extends StatelessWidget {
   final TabController controller;
   final List<String> tabTitles;
+  final List<String?>? tabTooltips;
   final FocusNode? focusNode;
   final VoidCallback? onTabChanged;
 
-  const InlineTabBar({super.key, required this.controller, required this.tabTitles, this.focusNode, this.onTabChanged});
+  const InlineTabBar({
+    super.key,
+    required this.controller,
+    required this.tabTitles,
+    this.tabTooltips,
+    this.focusNode,
+    this.onTabChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +36,9 @@ class InlineTabBar extends StatelessWidget {
           tabTitles.asMap().entries.map((entry) {
             final index = entry.key;
             final title = entry.value;
-            return GestureDetector(
+            final tooltip = tabTooltips != null && index < tabTooltips!.length ? tabTooltips![index] : null;
+
+            Widget tabWidget = GestureDetector(
               onTapDown: (_) {
                 controller.animateTo(index);
                 focusNode?.requestFocus();
@@ -39,6 +49,12 @@ class InlineTabBar extends StatelessWidget {
                 child: SizedBox(width: 100, child: Tab(text: title)),
               ),
             );
+
+            if (tooltip != null) {
+              tabWidget = Tooltip(message: tooltip, child: tabWidget);
+            }
+
+            return tabWidget;
           }).toList(),
       overlayColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
         if (states.contains(WidgetState.hovered)) {

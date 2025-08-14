@@ -93,11 +93,13 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   // Static form options
   static const List<String> _formatOptions = ['Unformatted', 'JSON', 'HTML'];
   static const List<String> _httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
-  static const List<String> _topTabTitles = ['Params', 'Body', 'Headers', 'Auth', 'Variables'];
+  static const List<String> _topTabTitles = ['Params', 'Body', 'Headers', 'Auth', 'Variables', 'Script'];
+  static const List<String> _bottomTabTitles = ['Response', 'Headers', 'Output'];
 
   // State variables
   bool isDividerHovered = false;
   bool _isSending = false;
+  int _scriptTypeIndex = 0;
 
   // Controllers
   late TabController _bottomTabController;
@@ -112,6 +114,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   String _selectedFormat = 'Unformatted';
   late final Request _formRequest; // the request as it appears in the form
   http.Response? _response;
+  List<String> _consoleOutput = [];
 
   @override
   void initState() {
@@ -119,7 +122,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     HttpEditorState.initialize();
 
     // Init the tab controllers
-    _bottomTabController = TabController(length: 2, vsync: this);
+    _bottomTabController = TabController(length: _bottomTabTitles.length, vsync: this);
     _topTabController = TabController(length: _topTabTitles.length, vsync: this);
     _topTabController.addListener(() {
       setState(() {}); // This will trigger a rebuild when the tab changes
@@ -183,7 +186,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       List<ExplorerNode> nodeHierarchy = [];
       if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
 
-      _response = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy).send();
+      final config = context.read<Config>();
+      final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy, config: config).send();
+      _response = sendResult.response;
+      _consoleOutput = sendResult.output;
 
       // Set the selected format
       final contentType = _response!.headers['content-type']?.toLowerCase() ?? '';
@@ -197,6 +203,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
       // Display the response
       displayResponse();
+      displayConsoleOutput();
     } catch (e) {
       _response = null;
       setState(() {
@@ -236,6 +243,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       } else {
         _formController.respBodyController.text = _response!.body;
       }
+    });
+  }
+
+  void displayConsoleOutput() {
+    setState(() {
+      _formController.respOutputController.text = _consoleOutput.join('\n');
     });
   }
 
@@ -551,6 +564,56 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ),
                                                   const SizedBox(width: 20),
                                                 ],
+                                                // -----------------------------------------------------------
+                                                // Script Type Dropdown
+                                                // -----------------------------------------------------------
+                                                if (_topTabController.index == 5) ...[
+                                                  const SizedBox(width: 12),
+                                                  Container(
+                                                    width: 130,
+                                                    height: 20,
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(color: const Color(0xFF474747), width: 0),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: DropdownButton2<String>(
+                                                      key: const Key('flow_editor_script_type_dropdown'),
+                                                      focusNode: _focusManager.authTypeFocusNode,
+                                                      value: _scriptTypeIndex == 0 ? 'Pre-Request' : 'Post-Response',
+                                                      underline: Container(),
+                                                      dropdownStyleData: DropdownStyleData(
+                                                        decoration: dropdownDecoration,
+                                                        width: 150,
+                                                        openInterval: Interval(0.0, 0.0),
+                                                      ),
+                                                      buttonStyleData: ButtonStyleData(
+                                                        padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                                      ),
+                                                      menuItemStyleData: menuItemStyleData,
+                                                      iconStyleData: iconStyleData,
+                                                      style: textFieldStyle,
+                                                      isExpanded: true,
+                                                      items:
+                                                          ['Pre-Request', 'Post-Response'].map((String format) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: format,
+                                                              child: Padding(
+                                                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                                                child: Text(format),
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                      onChanged: (String? newValue) {
+                                                        if (newValue != null) {
+                                                          setState(() {
+                                                            _scriptTypeIndex = newValue == 'Pre-Request' ? 0 : 1;
+                                                          });
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                ],
                                               ],
                                             ),
                                           ),
@@ -746,6 +809,26 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                   ],
                                                 ),
                                               ),
+                                              // -----------------------------------------------------------
+                                              // Script Tab
+                                              // -----------------------------------------------------------
+                                              IndexedStack(
+                                                index: _scriptTypeIndex,
+                                                children: [
+                                                  // Pre-Request Script
+                                                  MultiLineCodeEditor(
+                                                    focusNode: _focusManager.preRequestFocusNode,
+                                                    border: tabContentBorder,
+                                                    controller: _formController.preRequestController,
+                                                  ),
+                                                  // Post Response Scrip
+                                                  MultiLineCodeEditor(
+                                                    focusNode: _focusManager.postResponseFocusNode,
+                                                    border: tabContentBorder,
+                                                    controller: _formController.postResponseController,
+                                                  ),
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -767,7 +850,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                             Expanded(
                                               child: InlineTabBar(
                                                 controller: _bottomTabController,
-                                                tabTitles: const ['Response', 'Headers'],
+                                                tabTitles: _bottomTabTitles,
+                                                tabTooltips: [
+                                                  'Response Body',
+                                                  'Response Headers',
+                                                  'The console output from scripts',
+                                                ],
                                                 focusNode: _focusManager.topTabFocusNode,
                                               ),
                                             ),
@@ -851,6 +939,12 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                                 padding: const EdgeInsets.all(20.0),
                                                 child: HeadersTableReadOnly(headers: _respHeaders),
                                               ),
+                                            ),
+                                            MultiLineCodeEditor(
+                                              focusNode: _focusManager.respOutputFocusNode,
+                                              border: tabContentBorder,
+                                              controller: _formController.respOutputController,
+                                              readOnly: true,
                                             ),
                                           ],
                                         ),

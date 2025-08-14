@@ -49,6 +49,9 @@ class RequestFormController {
   final CodeLineEditingController urlController = CodeLineEditingController();
   final CodeLineEditingController reqBodyController = CodeLineEditingController();
   final CodeLineEditingController respBodyController = CodeLineEditingController();
+  final CodeLineEditingController respOutputController = CodeLineEditingController();
+  final CodeLineEditingController preRequestController = CodeLineEditingController();
+  final CodeLineEditingController postResponseController = CodeLineEditingController();
 
   late final FormHeadersController headersController;
   late final QueryParamsController queryParamsController;
@@ -234,6 +237,17 @@ class RequestFormController {
 
     // Auth Bearer
     authBearerController = AuthBearerController(_formRequest, _flowModified);
+
+    // Script pre-Request
+    final script = _formRequest.script;
+    if (script != null && script.req != null) {
+      preRequestController.text = script.req!;
+    }
+    if (script != null && script.res != null) {
+      postResponseController.text = script.res!;
+    }
+    preRequestController.addListener(_preRequestModified);
+    postResponseController.addListener(_postResponseModified);
   }
 
   void _urlModified() {
@@ -285,6 +299,20 @@ class RequestFormController {
     final bodyContent = reqBodyController.text;
     if (bodyContent == _formRequest.getBody()?.toString()) return;
     _formRequest.setBodyContent(bodyContent);
+    _flowModified();
+  }
+
+  void _preRequestModified() {
+    final preRequest = preRequestController.text;
+    if (preRequest == _formRequest.script?.req) return;
+    _formRequest.setPreRequest(preRequest);
+    _flowModified();
+  }
+
+  void _postResponseModified() {
+    final postResponse = postResponseController.text;
+    if (postResponse == _formRequest.script?.res) return;
+    _formRequest.setPostResponse(postResponse);
     _flowModified();
   }
 
@@ -388,6 +416,7 @@ class RequestFormController {
     urlController.dispose();
     reqBodyController.dispose();
     respBodyController.dispose();
+    respOutputController.dispose();
     headersController.dispose();
     formUrlEncodedController.dispose();
     multipartFormController.dispose();

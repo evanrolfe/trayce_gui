@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:trayce/editor/models/multipart_file.dart';
 import 'package:trayce/editor/models/parse/parse_url.dart';
+import 'package:trayce/editor/models/send_result.dart';
 
 import 'assertion.dart';
 import 'auth.dart';
@@ -87,6 +88,10 @@ class Request {
   Auth? authDigest;
   Auth? authOauth2;
   Auth? authWsse;
+
+  Duration _timeout = Duration(seconds: 10);
+  String _executionMode = 'standalone';
+  String _executionPlatform = 'app';
 
   Request({
     this.file,
@@ -328,11 +333,6 @@ class Request {
       }
     }
 
-    // if (requestVars.length != other.requestVars.length) return false;
-    // for (var i = 0; i < requestVars.length; i++) {
-    //   if (!requestVars[i].equals(other.requestVars[i])) return false;
-    // }
-
     // Compare response variables
     // if (responseVars.length != other.responseVars.length) return false;
     // for (var i = 0; i < responseVars.length; i++) {
@@ -346,9 +346,14 @@ class Request {
     // }
 
     // Compare script
-    // if ((script == null) != (other.script == null)) return false;
-    // if (script != null && !script!.equals(other.script!)) return false;
+    final scriptEmpty = script == null || script!.isEmpty();
+    final otherScriptEmpty = other.script == null || other.script!.isEmpty();
+    if (scriptEmpty && !otherScriptEmpty) return false;
+    if (!scriptEmpty && otherScriptEmpty) return false;
 
+    if (!scriptEmpty && !otherScriptEmpty) {
+      if (!script!.equals(other.script!)) return false;
+    }
     return true;
   }
 
@@ -406,7 +411,7 @@ class Request {
     return parseUrlPathParams(url);
   }
 
-  Future<http.Response> send() async {
+  Future<SendResult> send() async {
     if (bodyType == BodyType.multipartForm) {
       return _sendMultipart();
     }
@@ -446,10 +451,15 @@ class Request {
       request.body = _getInterpolatedString(body.toString());
     }
 
-    final streamedResponse = await request.send();
+    final client = http.Client();
+    final startTime = DateTime.now();
+    final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
+    client.close();
 
-    return response;
+    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
   String _getInterpolatedString(String value) {
@@ -524,7 +534,7 @@ class Request {
     request.headers['Authorization'] = 'Bearer $token';
   }
 
-  Future<http.Response> _sendMultipart() async {
+  Future<SendResult> _sendMultipart() async {
     final request = http.MultipartRequest(method, Uri.parse(_getInterpolatedString(url)));
     _addHeaders(request);
     _addBasicAuth(request);
@@ -542,13 +552,18 @@ class Request {
       }
     }
 
-    final streamedResponse = await request.send();
+    final client = http.Client();
+    final startTime = DateTime.now();
+    final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
+    client.close();
 
-    return response;
+    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
-  Future<http.Response> _sendFile() async {
+  Future<SendResult> _sendFile() async {
     final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
 
     _addHeaders(request);
@@ -566,10 +581,15 @@ class Request {
       }
     }
 
-    final streamedResponse = await request.send();
+    final client = http.Client();
+    final startTime = DateTime.now();
+    final streamedResponse = await client.send(request).timeout(_timeout);
     final response = await http.Response.fromStream(streamedResponse);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
+    client.close();
 
-    return response;
+    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
   Body? getBody() {
@@ -725,7 +745,9 @@ class Request {
     assertions = List.from(request.assertions);
 
     // Copy script if it exists
-    script = request.script;
+    if (request.script != null) {
+      script = request.script!.deepCopy();
+    }
   }
 
   void setUrl(String url) {
@@ -750,6 +772,22 @@ class Request {
 
   void setBodyType(BodyType bodyType) {
     this.bodyType = bodyType;
+  }
+
+  void setPreRequest(String preRequest) {
+    if (script == null) {
+      script = Script(req: preRequest);
+    } else {
+      script!.req = preRequest;
+    }
+  }
+
+  void setPostResponse(String postResponse) {
+    if (script == null) {
+      script = Script(res: postResponse);
+    } else {
+      script!.res = postResponse;
+    }
   }
 
   void setBodyContent(String content) {
@@ -804,6 +842,36 @@ class Request {
   void setBodyFilesContent(List<FileBodyItem> files) {
     bodyFile ??= FileBody(files: []);
     (bodyFile as FileBody).setFiles(files);
+  }
+
+  String toJson() {
+    final headersMap = Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value)));
+    final Map<String, dynamic> json = {
+      'name': name,
+      'method': method.toUpperCase(),
+      'url': url,
+      'headers': headersMap,
+      'authMode': authTypeEnumToBru[authType]!,
+      'mode': bodyType == BodyType.none ? 'none' : bodyTypeEnumToBru[bodyType]!,
+      'vars': requestVars.map((v) => jsonDecode(v.toJson())).toList(),
+      'timeout': _timeout.inMilliseconds,
+      'executionMode': _executionMode,
+      'executionPlatform': _executionPlatform,
+    };
+
+    // Add auth if present
+    final auth = getAuth();
+    if (auth != null && !auth.isEmpty()) {
+      json['auth'] = jsonDecode(auth.toJson());
+    }
+
+    // Add body if present
+    final body = getBody();
+    if (body != null && !body.isEmpty()) {
+      json['body'] = body.toString();
+    }
+
+    return jsonEncode(json);
   }
 }
 

@@ -87,6 +87,7 @@ flutter:
     - fonts/logo.svg
     - fonts/docker.svg
     - fonts/docker-mark-blue.svg
+    - nodejs/
   fonts:
    - family:  MyFlutterApp
      fonts:

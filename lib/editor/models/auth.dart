@@ -3,6 +3,7 @@ import 'utils.dart';
 abstract class Auth {
   String get type;
   String toBru();
+  String toJson();
   bool equals(Auth other);
   Auth deepCopy();
   bool isEmpty();
@@ -44,6 +45,11 @@ ${indentString('placement: $placementStr')}
   @override
   bool isEmpty() {
     return key.isEmpty && value.isEmpty;
+  }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "key": "$key", "value": "$value", "placement": "${placement == ApiKeyPlacement.header ? "header" : "queryparams"}"}';
   }
 }
 
@@ -110,6 +116,11 @@ ${indentString('profileName: $profileName')}
         region.isEmpty &&
         profileName.isEmpty;
   }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "accessKeyId": "$accessKeyId", "secretAccessKey": "$secretAccessKey", "sessionToken": "$sessionToken", "service": "$service", "region": "$region", "profileName": "$profileName"}';
+  }
 }
 
 class BasicAuth extends Auth {
@@ -143,6 +154,11 @@ ${indentString('password: $password')}
   bool isEmpty() {
     return username.isEmpty && password.isEmpty;
   }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "username": "$username", "password": "$password"}';
+  }
 }
 
 class BearerAuth extends Auth {
@@ -173,6 +189,11 @@ ${indentString('token: $token')}
   @override
   bool isEmpty() {
     return token.isEmpty;
+  }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "token": "$token"}';
   }
 }
 
@@ -206,6 +227,11 @@ ${indentString('password: $password')}
   @override
   bool isEmpty() {
     return username.isEmpty && password.isEmpty;
+  }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "username": "$username", "password": "$password"}';
   }
 }
 
@@ -396,6 +422,11 @@ ${indentString('auto_refresh_token: $autoRefreshToken')}}''';
         tokenPlacement.isEmpty &&
         tokenQueryKey.isEmpty;
   }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "accessTokenUrl": "$accessTokenUrl", "authorizationUrl": "$authorizationUrl", "autoFetchToken": $autoFetchToken, "autoRefreshToken": $autoRefreshToken, "callbackUrl": "$callbackUrl", "clientId": "$clientId", "clientSecret": "$clientSecret", "credentialsId": "$credentialsId", "credentialsPlacement": "$credentialsPlacement", "grantType": "$grantType", "pkce": $pkce, "refreshTokenUrl": "$refreshTokenUrl", "scope": "$scope", "state": "$state", "tokenHeaderPrefix": "$tokenHeaderPrefix", "tokenPlacement": "$tokenPlacement", "tokenQueryKey": "$tokenQueryKey"}';
+  }
 }
 
 class WsseAuth extends Auth {
@@ -428,5 +459,10 @@ ${indentString('password: $password')}
   @override
   bool isEmpty() {
     return username.isEmpty && password.isEmpty;
+  }
+
+  @override
+  String toJson() {
+    return '{"type": "$type", "username": "$username", "password": "$password"}';
   }
 }

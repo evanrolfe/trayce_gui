@@ -15,6 +15,9 @@ class EditorFocusManager {
   late final FocusNode checkboxFocusNode;
   late final FocusNode reqBodyFocusNode;
   late final FocusNode respBodyFocusNode;
+  late final FocusNode respOutputFocusNode;
+  late final FocusNode preRequestFocusNode;
+  late final FocusNode postResponseFocusNode;
   late final List<Map<String, FocusNode>> _rowFocusNodes;
   late final List<Map<String, FocusNode>> _pathParamsRowFocusNodes;
 
@@ -39,6 +42,9 @@ class EditorFocusManager {
     checkboxFocusNode = FocusNode();
     reqBodyFocusNode = FocusNode();
     respBodyFocusNode = FocusNode();
+    respOutputFocusNode = FocusNode();
+    preRequestFocusNode = FocusNode();
+    postResponseFocusNode = FocusNode();
     _rowFocusNodes = [];
     _pathParamsRowFocusNodes = [];
 
@@ -59,6 +65,9 @@ class EditorFocusManager {
     checkboxFocusNode.onKeyEvent = _onKeyUp;
     reqBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
     respBodyFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    preRequestFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    respOutputFocusNode.onKeyEvent = _onKeyUpMultiLine;
+    postResponseFocusNode.onKeyEvent = _onKeyUpMultiLine;
     authApiKeyKeyFocusNode.onKeyEvent = _onKeyUpAuthApiKeyKey;
     authApiKeyValueFocusNode.onKeyEvent = _onKeyUpAuthApiKeyValue;
     authApiKeyPlacementFocusNode.onKeyEvent = _onKeyUp;
@@ -262,6 +271,9 @@ class EditorFocusManager {
     checkboxFocusNode.dispose();
     reqBodyFocusNode.dispose();
     respBodyFocusNode.dispose();
+    respOutputFocusNode.dispose();
+    preRequestFocusNode.dispose();
+    postResponseFocusNode.dispose();
     authApiKeyKeyFocusNode.dispose();
     authApiKeyValueFocusNode.dispose();
     authApiKeyPlacementFocusNode.dispose();

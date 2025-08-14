@@ -1,0 +1,19 @@
+{
+    "name": "trayce-nodejs-scripts",
+    "version": "1.0.0",
+    "description": "Node.js scripts for Trayce application",
+    "main": "script_req.js",
+    "scripts": {
+        "script": "node script_req.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@usebruno/query": "^0.1.0"
+    },
+    "devDependencies": {},
+    "engines": {
+        "node": ">=14.0.0"
+    }
+}

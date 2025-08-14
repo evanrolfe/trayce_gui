@@ -21,13 +21,15 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y sqlite3 libsqlite3-dev ninja-build libgtk-3-dev libglu1-mesa xvfb
+          sudo apt install -y sqlite3 libsqlite3-dev ninja-build libgtk-3-dev libglu1-mesa xvfb nodejs
 
       - name: Build
         run: make build-linux
 
       - name: Unit Test
         run: make test
+      # - name: Start tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Integration Test
         run: xvfb-run flutter test ./integration_test/main.dart -r github
@@ -58,9 +60,6 @@ jobs:
           echo "$APPLE_DEV_ID_CERTIFICATE_BASE64" | base64 --decode > /tmp/certificate.cer
           echo "$APPLE_DEV_ID_PRIVATE_BASE64" | base64 --decode > /tmp/private.p12
           echo "$APPLE_APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/app_store_private.p12
-
-      # - name: Start tmate session
-      #   uses: mxschmitt/action-tmate@v3
 
       - name: Import Certificates
         env:

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -98,7 +99,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     folderRepo: folderRepo,
     requestRepo: requestRepo,
   );
-  final config = Config.fromArgs([]);
+  final config = Config.fromArgs([], Directory.current);
 
   final deps = WidgetDependencies(
     db: db,
