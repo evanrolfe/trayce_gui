@@ -49,4 +49,14 @@ class FakeAppStorage extends AppStorageI {
     final key = 'secret_vars:$collectionPath:$envName';
     _storage.remove(key);
   }
+
+  @override
+  Future<String> getConfigValue(String key) async {
+    return _storage['config:$key'] ?? '';
+  }
+
+  @override
+  Future<void> saveConfigValue(String key, String value) async {
+    _storage['config:$key'] = value;
+  }
 }

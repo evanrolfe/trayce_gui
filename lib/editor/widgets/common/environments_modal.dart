@@ -1,7 +1,6 @@
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/common/widgets/hoverable_icon_button.dart';
@@ -9,6 +8,7 @@ import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/environment.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
@@ -41,7 +41,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
   void initState() {
     super.initState();
 
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
     final eventBus = context.read<EventBus>();
     final filePicker = context.read<FilePickerI>();
     final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));

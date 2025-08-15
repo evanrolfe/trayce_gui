@@ -6,10 +6,20 @@ class Config {
   final bool isTest;
   final String trayceApiUrl;
   final String appSupportDir;
+  String npmCommand;
+  int agentPort;
 
   static const defaultTrayceApiUrl = 'https://get.trayce.dev'; // no trailing slash
+  static const defaultNpmCommand = 'npm';
+  static const defaultAgentPort = 50051;
 
-  Config({required this.isTest, required this.trayceApiUrl, required this.appSupportDir});
+  Config({
+    required this.isTest,
+    required this.trayceApiUrl,
+    required this.appSupportDir,
+    this.npmCommand = defaultNpmCommand,
+    this.agentPort = defaultAgentPort,
+  });
 
   static Config fromArgs(List<String> args, Directory appSupportDir) {
     final isTest = (args.contains('--test'));

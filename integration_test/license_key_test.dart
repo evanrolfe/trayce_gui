@@ -33,9 +33,9 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   expect(find.textContaining('valid'), findsOne);
 
-  // Click the Close button
-  final closeButton = find.text('Close');
-  await tester.tap(closeButton);
+  // Click the Save button
+  final saveButton = find.text('Save');
+  await tester.tap(saveButton);
   await tester.pumpAndSettle();
 
   expect(find.textContaining('Licensed'), findsOne);
@@ -65,8 +65,8 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   expect(find.textContaining('invalid'), findsOne);
 
-  // Click the Close button
-  await tester.tap(closeButton);
+  // Click the Save button
+  await tester.tap(saveButton);
   await tester.pumpAndSettle();
 
   expect(find.textContaining('Unlicensed'), findsOne);

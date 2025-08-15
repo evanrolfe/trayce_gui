@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trayce/common/config.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
@@ -140,7 +140,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       }
     }
 
-    final config = context.read<Config>();
+    final config = context.read<ConfigRepo>().get();
 
     // Init the focus manager
     _focusManager = EditorFocusManager(context.read<EventBus>(), widget.tabKey);
@@ -186,7 +186,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       List<ExplorerNode> nodeHierarchy = [];
       if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
 
-      final config = context.read<Config>();
+      final config = context.read<ConfigRepo>().get();
       final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy, config: config).send();
       _response = sendResult.response;
       _consoleOutput = sendResult.output;

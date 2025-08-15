@@ -130,7 +130,7 @@ class SendRequest {
       scriptFile.writeAsStringSync(preReqScript);
 
       // Run the CLI command
-      final result = await Process.run('npm', [
+      final result = await Process.run(config.npmCommand, [
         'run',
         'script',
         '--silent',
@@ -212,7 +212,7 @@ class SendRequest {
       scriptFile.writeAsStringSync(postRespScript);
 
       // Run the CLI command
-      final result = await Process.run('npm', [
+      final result = await Process.run(config.npmCommand, [
         'run',
         'script',
         '--silent',

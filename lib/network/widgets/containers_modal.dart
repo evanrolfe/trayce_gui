@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trayce/agent/gen/api.pb.dart' as agent;
+import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 
 import '../../common/style.dart';
@@ -93,9 +94,10 @@ class _ContainersModalState extends State<ContainersModal> {
   }
 
   Widget _buildChild() {
+    final config = context.read<ConfigRepo>().get();
     if (!_agentRunning) {
       _commandController.text =
-          'docker run --pid=host --privileged -v /var/run/docker.sock:/var/run/docker.sock -t traycer/trayce_agent:latest -s $_machineIp:50051';
+          'docker run --pid=host --privileged -v /var/run/docker.sock:/var/run/docker.sock -t traycer/trayce_agent:latest -s $_machineIp:${config.agentPort}';
       _commandController.selection = TextSelection(baseOffset: 0, extentOffset: _commandController.text.length);
 
       return _buildAgentNotRunning();
