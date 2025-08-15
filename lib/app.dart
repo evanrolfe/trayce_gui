@@ -5,6 +5,8 @@ import 'package:accessing_security_scoped_resource/accessing_security_scoped_res
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grpc/grpc.dart';
+import 'package:trayce/agent/server.dart';
 import 'package:trayce/app_scaffold.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/database.dart';
@@ -62,6 +64,26 @@ class _AppState extends State<App> with WindowListener {
 
     // Register window listener
     windowManager.addListener(this);
+
+    _startAgentServer();
+  }
+
+  void _startAgentServer() async {
+    final agentPort = context.read<ConfigRepo>().get().agentPort;
+    final grpcService = context.read<TrayceAgentService>();
+
+    try {
+      final server = Server.create(services: [grpcService]);
+      await server.serve(address: InternetAddress.anyIPv4, port: agentPort, shared: true);
+
+      print('gRPC Server listening on port $agentPort');
+    } catch (e) {
+      setState(() {
+        _showingError = true;
+        _errorMessage =
+            'Failed to start the agent server on port $agentPort. Try configuring a different port in the settings and then restarting Trayce.\n\nIf you do not want to use network monitoring, then you can ignore this error.';
+      });
+    }
   }
 
   void _onIndexChanged(int index) {
@@ -103,7 +125,6 @@ class _AppState extends State<App> with WindowListener {
     if (config.isTest) return;
 
     FlutterError.onError = (FlutterErrorDetails details) {
-      // originalErrorHandler?.call(details);
       FlutterError.presentError(details);
 
       if (!_showingError) {

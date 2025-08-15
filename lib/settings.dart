@@ -28,6 +28,7 @@ class SettingsModal extends StatefulWidget {
 class _SettingsModalState extends State<SettingsModal> {
   late final TextEditingController _licenseController;
   late final TextEditingController _npmCommandController;
+  late final TextEditingController _agentPortController;
   late final ConfigRepo _configRepo;
 
   bool _isVerifying = false;
@@ -45,12 +46,9 @@ class _SettingsModalState extends State<SettingsModal> {
     super.initState();
 
     _configRepo = context.read<ConfigRepo>();
-    _configRepo.loadSettings();
-
     _licenseController = TextEditingController();
     _npmCommandController = TextEditingController();
-
-    _npmCommandController.text = _configRepo.get().npmCommand;
+    _agentPortController = TextEditingController();
 
     // Subscribe to verification events
     _verificationSubscription = context.read<EventBus>().on<EventAgentVerified>().listen((event) {
@@ -61,6 +59,13 @@ class _SettingsModalState extends State<SettingsModal> {
     });
 
     _loadLicenseKey();
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    final config = _configRepo.get();
+    _npmCommandController.text = config.npmCommand;
+    _agentPortController.text = config.agentPort.toString();
   }
 
   Future<void> _loadLicenseKey() async {
@@ -122,6 +127,7 @@ class _SettingsModalState extends State<SettingsModal> {
   void _onSave() {
     final config = _configRepo.get();
     config.npmCommand = _npmCommandController.text;
+    config.agentPort = int.parse(_agentPortController.text);
     _configRepo.save();
 
     Navigator.of(context).pop();
@@ -275,7 +281,7 @@ class _SettingsModalState extends State<SettingsModal> {
                         key: const Key('editor_nodejs_command_input'),
                         controller: _npmCommandController,
                         style: textFieldStyle,
-                        decoration: textFieldDecor.copyWith(hintText: 'node'),
+                        decoration: textFieldDecor,
                       ),
                     ),
                   ),
@@ -300,10 +306,51 @@ class _SettingsModalState extends State<SettingsModal> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Network settings will be available here.',
-            style: TextStyle(color: lightTextColor, fontSize: 14),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Text(
+                              'Agent port:',
+                              style: TextStyle(color: Color(0xFF666666), fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: 'The port on which Trayce GUI will communicate with the Trayce Docker agent',
+                              child: const Icon(Icons.help_outline, color: Color(0xFF666666), size: 16),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 300,
+                    child: SizedBox(
+                      height: 30,
+                      child: TextField(
+                        key: const Key('network_agent_port_input'),
+                        controller: _agentPortController,
+                        style: textFieldStyle,
+                        decoration: textFieldDecor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],

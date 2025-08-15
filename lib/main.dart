@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:grpc/grpc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:trayce/app.dart';
 import 'package:trayce/common/app_storage.dart';
@@ -45,6 +44,8 @@ void main(List<String> args) async {
 
   // Repos
   final configRepo = ConfigRepo(appStorage, args, appSupportDir);
+  await configRepo.loadSettings();
+
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
@@ -73,13 +74,9 @@ void main(List<String> args) async {
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<ExplorerService>(create: (context) => explorerService),
+        RepositoryProvider<TrayceAgentService>(create: (context) => grpcService),
       ],
       child: const App(appVersion: appVersion),
     ),
   );
-
-  // Start the gRPC server
-  final server = Server.create(services: [grpcService]);
-  await server.serve(address: InternetAddress.anyIPv4, port: 50051, shared: true);
-  print('Server listening on port 50051');
 }

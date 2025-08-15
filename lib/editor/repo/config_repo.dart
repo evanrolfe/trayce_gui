@@ -17,14 +17,17 @@ class ConfigRepo {
     config = Config(isTest: isTest, trayceApiUrl: trayceApiUrl, appSupportDir: appSupportDir.path);
   }
 
-  void loadSettings() async {
+  Future<void> loadSettings() async {
     final npmCommand = await _appStorage.getConfigValue('npmCommand');
+    final agentPort = await _appStorage.getConfigValue('agentPort');
 
     if (npmCommand.isNotEmpty) config.npmCommand = npmCommand;
+    if (agentPort.isNotEmpty) config.agentPort = int.parse(agentPort);
   }
 
   void save() async {
     await _appStorage.saveConfigValue('npmCommand', config.npmCommand);
+    await _appStorage.saveConfigValue('agentPort', config.agentPort.toString());
   }
 
   Config get() {
