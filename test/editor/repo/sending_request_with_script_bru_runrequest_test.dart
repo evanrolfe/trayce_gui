@@ -100,6 +100,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: event.nodes[0],
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -150,6 +151,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: event.nodes[0],
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),

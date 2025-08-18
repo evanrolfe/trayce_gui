@@ -8,6 +8,7 @@ import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
@@ -96,6 +97,19 @@ void main() {
   late RequestRepo requestRepo;
   late ExplorerService explorerService;
 
+  final collection = Collection(
+    file: File('test.collection'),
+    dir: Directory('test.collection'),
+    type: 'http',
+    environments: [],
+    headers: [],
+    query: [],
+    authType: AuthType.none,
+    requestVars: [],
+    responseVars: [],
+  );
+  final collectionNode = ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection);
+
   setUpAll(() async {
     mockEventBus = MockEventBus();
     fakeAppStorage = await FakeAppStorage.getInstance();
@@ -180,6 +194,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: node,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -250,6 +265,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -305,6 +321,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -355,6 +372,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -417,6 +435,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -480,6 +499,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),
@@ -532,6 +552,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           config: config,
           httpClient: HttpClient(),

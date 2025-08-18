@@ -33,7 +33,8 @@ abstract interface class HttpClientI {
 class SendRequest {
   final Config config;
   final Request request;
-  final ExplorerNode node;
+  final ExplorerNode? node;
+  final ExplorerNode collectionNode;
   final ExplorerService explorerService;
   final HttpClientI httpClient;
 
@@ -42,6 +43,7 @@ class SendRequest {
     required this.config,
     required this.explorerService,
     required this.node,
+    required this.collectionNode,
     required this.httpClient,
   });
 
@@ -71,9 +73,6 @@ class SendRequest {
   }
 
   Future<RequestMap> generateRequestMap() async {
-    final collectionNode = explorerService.findRootNodeOf(node);
-    if (collectionNode == null) return {};
-
     RequestMap requestMap = {};
     final nodeMap = explorerService.getNodeMap(collectionNode);
     for (final entry in nodeMap.entries) {
@@ -88,8 +87,13 @@ class SendRequest {
     return requestMap;
   }
 
-  Request getFinalRequest(ExplorerNode reqNode) {
-    List<ExplorerNode> nodeHierarchy = explorerService.getNodeHierarchy(reqNode);
+  Request getFinalRequest(ExplorerNode? reqNode) {
+    List<ExplorerNode> nodeHierarchy;
+    if (reqNode == null) {
+      nodeHierarchy = [collectionNode];
+    } else {
+      nodeHierarchy = explorerService.getNodeHierarchy(reqNode);
+    }
 
     final finalReq = Request.blank();
     finalReq.copyValuesFrom(request);

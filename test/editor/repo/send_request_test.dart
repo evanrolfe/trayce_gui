@@ -64,6 +64,7 @@ void main() {
       final finalReq = SendRequest(
         request: reqThree.request!,
         node: reqThree,
+        collectionNode: event.nodes[0],
         explorerService: explorerService,
         config: config,
         httpClient: HttpClient(),
@@ -137,6 +138,7 @@ void main() {
       final finalReq = SendRequest(
         request: reqFour.request!,
         node: reqFour,
+        collectionNode: event.nodes[0],
         explorerService: explorerService,
         config: config,
         httpClient: HttpClient(),
@@ -177,6 +179,7 @@ void main() {
       final finalReq = SendRequest(
         request: reqFour.request!,
         node: reqFour,
+        collectionNode: event.nodes[0],
         explorerService: explorerService,
         config: config,
         httpClient: HttpClient(),

@@ -197,7 +197,8 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
           await SendRequest(
             httpClient: httpClient,
             request: _formRequest,
-            node: widget.node ?? widget.collectionNode,
+            node: widget.node,
+            collectionNode: widget.collectionNode,
             explorerService: explorerService,
             config: config,
           ).send();
