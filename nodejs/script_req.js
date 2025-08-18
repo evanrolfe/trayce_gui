@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { get } = require('@usebruno/query');
+const axios = require('axios');
 
 // Log function that only outputs if LOG_LEVEL=debug
 function log(...args) {
@@ -291,51 +292,124 @@ class Response {
   }
 }
 
+class Bru {
+  constructor(requestMap) {
+    this.requestMap = requestMap;
+  }
+
+  runRequest(requestPath) {
+    const request = this.requestMap[requestPath];
+    if (!request) {
+      throw new Error(`Request not found: ${requestPath}`);
+    }
+    console.log('===> request: ', request);
+  }
+
+  async sendRequest(config, callback) {
+    try {
+      // Create axios request config
+      const axiosConfig = {
+        method: config.method || 'GET',
+        url: config.url,
+        headers: config.headers || {},
+        timeout: config.timeout || 30000,
+      };
+
+      // Handle different body formats
+      if (config.data) {
+        // For JSON data
+        axiosConfig.data = config.data;
+      } else if (config.body) {
+        // For raw body
+        axiosConfig.data = config.body;
+      }
+
+      // Handle query parameters
+      if (config.params) {
+        axiosConfig.params = config.params;
+      }
+
+      // Make the request
+      const response = await axios(axiosConfig);
+
+      // If callback is provided, use callback pattern
+      if (typeof callback === 'function') {
+        callback(null, response);
+        return;
+      }
+
+      // Otherwise return the response for promise-based usage
+      return res;
+
+    } catch (error) {
+      // Handle axios errors
+      const errorResponse = {
+        status: error.response?.status || 0,
+        statusText: error.response?.statusText || 'Network Error',
+        body: error.response?.data || error.message,
+        headers: error.response?.headers || {},
+        url: error.config?.url || config.url,
+        size: 0,
+        responseTime: null,
+      };
+
+      const res = new Response(errorResponse);
+
+      // If callback is provided, use callback pattern
+      if (typeof callback === 'function') {
+        callback(error, res);
+        return;
+      }
+
+      // Otherwise throw the error for promise-based usage
+      throw error;
+    }
+  }
+}
+
 // Parse command line arguments
 const args = process.argv.slice(2);
-if (args.length < 2 || args.length > 3) {
-  console.error('Usage: node script_req.js <file_path> <request_json> [response_json]');
-  console.error('Example: node script_req.js myfile.js \'{"method":"GET","url":"http://localhost:46725{{A_var}}?hello=world"}\'');
-  console.error('Example with response: node script_req.js myfile.js \'{"method":"GET","url":"http://localhost:46725"}\' \'{"status":200,"body":"Hello World"}\'');
+if (args.length !== 2) {
+  console.error('Usage: node script_req.js <file_path> <config_json>');
+  console.error('Example: node script_req.js myfile.js \'{"request":{"method":"GET","url":"http://localhost:46725"},"requestMap":{},"response":{"status":200,"body":"Hello World"}}\'');
   process.exit(1);
 }
 
-let scriptType = 'req';
-if (args.length === 3) {
-  scriptType = 'res';
-}
+const [filePath, configJson] = args;
 
-const [filePath, requestJson, responseJson] = args;
-
-// Parse the request JSON
-let reqData;
+// Parse the config JSON
+let config;
 try {
-  reqData = JSON.parse(requestJson);
+  config = JSON.parse(configJson);
 } catch (error) {
-  console.error('Error parsing request JSON:', error.message);
+  console.error('Error parsing config JSON:', error.message);
   process.exit(1);
 }
 
 // Validate required fields
-if (!reqData.method || !reqData.url) {
-  console.error('Request must contain method and url fields');
+if (!config.request || !config.request.method || !config.request.url) {
+  console.error('Config must contain request object with method and url fields');
+  process.exit(1);
+}
+
+if (!config.requestMap) {
+  console.error('Config must contain requestMap field');
   process.exit(1);
 }
 
 // Create Request instance
-const req = new Request(reqData);
+const req = new Request(config.request);
 
-// Parse and create Response instance if responseJson is provided
+// Create Response instance if response is provided
 let res = null;
-if (responseJson) {
-  try {
-    const resData = JSON.parse(responseJson);
-    res = new Response(resData);
-  } catch (error) {
-    console.error('Error parsing response JSON:', error.message);
-    process.exit(1);
-  }
+let scriptType = 'req';
+if (config.response) {
+  res = new Response(config.response);
+  scriptType = 'res';
 }
+
+// Create the Bru instance
+const bru = new Bru(config.requestMap);
 
 // Check if the file exists
 if (!fs.existsSync(filePath)) {
@@ -353,39 +427,45 @@ const scriptContext = {
   path: path,
   console: console,
   process: process,
+  bru: bru,
 };
 
 // Read and evaluate the target script
-try {
-  const scriptContent = fs.readFileSync(filePath, 'utf8');
+(async () => {
+  try {
+    const scriptContent = fs.readFileSync(filePath, 'utf8');
 
-  // Create a function wrapper to provide the context
-  const scriptFunction = new Function('ctx', `
-        // Make all context properties available in scope
-        const {
-            req,
-            res,
-            vars,
-            getVar,
-            fs,
-            path,
-            console,
-            process,
-            log
-        } = ctx;
+    // Create an async function wrapper to provide the context
+    const scriptFunction = new Function('ctx', `
+          // Make all context properties available in scope
+          const {
+              req,
+              res,
+              vars,
+              getVar,
+              fs,
+              path,
+              console,
+              process,
+              log,
+              bru
+          } = ctx;
 
-        // Execute the script content
-        ${scriptContent}
-    `);
+          // Execute the script content as an async function
+          return (async () => {
+              ${scriptContent}
+          })();
+      `);
 
-  scriptFunction(scriptContext);
-  if (scriptType === 'req') {
-    console.log(JSON.stringify(req.toMap(), null, 0));
-  } else {
-    console.log(JSON.stringify(res.toMap(), null, 0));
+    await scriptFunction(scriptContext);
+    if (scriptType === 'req') {
+      console.log(JSON.stringify(req.toMap(), null, 0));
+    } else {
+      console.log(JSON.stringify(res.toMap(), null, 0));
+    }
+
+  } catch (error) {
+    console.error('Error executing target script:', error.message);
+    process.exit(1);
   }
-
-} catch (error) {
-  console.error('Error executing target script:', error.message);
-  process.exit(1);
-}
+})();

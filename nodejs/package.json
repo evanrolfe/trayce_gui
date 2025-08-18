@@ -10,9 +10,9 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@usebruno/query": "^0.1.0"
+        "@usebruno/query": "^0.1.0",
+        "axios": "^1.11.0"
     },
-    "devDependencies": {},
     "engines": {
         "node": ">=14.0.0"
     }

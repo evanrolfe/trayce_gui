@@ -18,6 +18,7 @@ void ignoreOverflowErrors(FlutterErrorDetails details, {bool forceReport = false
   if (ifIsOverflowError || isUnableToLoadAsset) {
     debugPrint('Ignored OverflowError');
   } else {
+    print("\n\n\n===============> FlutterError: $details");
     FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
   }
 }

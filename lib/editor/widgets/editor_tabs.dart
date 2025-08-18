@@ -52,6 +52,7 @@ class _EditorTabsState extends State<EditorTabs> {
   int? _hoveredTabIndex;
   String _selectedTabUuid = '';
   Collection? _currentCollection;
+  ExplorerNode? _currentCollectionNode;
 
   final Map<Collection, List<TabItem>> _tabsMap = {};
   final List<FlowEditor> _tabEditors = [];
@@ -101,6 +102,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub0 = context.read<EventBus>().on<EventCollectionOpened>().listen((event) {
       setState(() {
         _currentCollection = event.collection;
+        _currentCollectionNode = event.node;
       });
     });
 
@@ -128,7 +130,8 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _onEventOpenExplorerNode(EventOpenExplorerNode event) {
     setState(() {
-      _currentCollection = event.collection;
+      _currentCollection = event.collectionNode.collection;
+      _currentCollectionNode = event.collectionNode;
 
       final path = event.node.getFile()?.path;
       if (path == null) return;
@@ -155,6 +158,7 @@ class _EditorTabsState extends State<EditorTabs> {
         tabKey: tabKey,
         flowType: 'http',
         node: event.node,
+        collectionNode: _currentCollectionNode!,
         request: event.node.request!,
       );
       _tabEditors.add(editor);
@@ -205,6 +209,7 @@ class _EditorTabsState extends State<EditorTabs> {
           key: ValueKey('editor_$uuid'),
           tabKey: tabKey,
           flowType: 'http',
+          collectionNode: _currentCollectionNode!,
           node: null,
           request: Request.blank(),
         );

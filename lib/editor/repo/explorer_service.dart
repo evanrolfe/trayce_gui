@@ -19,9 +19,9 @@ class EventDisplayExplorerItems {
 
 class EventOpenExplorerNode {
   final ExplorerNode node;
-  final Collection collection;
+  final ExplorerNode collectionNode;
 
-  EventOpenExplorerNode(this.node, this.collection);
+  EventOpenExplorerNode(this.node, this.collectionNode);
 }
 
 class EventExplorerNodeRenamed {
@@ -114,6 +114,34 @@ class ExplorerService {
 
   List<Collection> getOpenCollections() {
     return _nodes.where((node) => node.type == NodeType.collection).map((node) => node.collection!).toList();
+  }
+
+  // getNodeMap returns a map of paths to request nodes for a given collection, its used by
+  // the bru.runRequest() script function to allow scripts to run any request from the collection
+  Map<String, ExplorerNode> getNodeMap(ExplorerNode collectionNode) {
+    final requestMap = <String, ExplorerNode>{};
+
+    // Recursively collect all request nodes from the collection
+    void collectRequests(ExplorerNode node) {
+      if (node.type == NodeType.request) {
+        // Use the relative path from the collection node as the key
+        final requestFile = node.getFile();
+        if (requestFile != null) {
+          final collectionPath = collectionNode.getDir()?.path ?? '';
+          final requestPath = requestFile.path;
+          final relativePath = path.relative(requestPath, from: collectionPath);
+          requestMap[relativePath] = node;
+        }
+      } else {
+        // Recursively process children
+        for (final child in node.children) {
+          collectRequests(child);
+        }
+      }
+    }
+
+    collectRequests(collectionNode);
+    return requestMap;
   }
 
   void closeCollection(ExplorerNode node) {
@@ -362,10 +390,10 @@ class ExplorerService {
   }
 
   void openNode(ExplorerNode node) {
-    final collectionNode = _findRootNodeOf(node);
+    final collectionNode = findRootNodeOf(node);
     if (collectionNode == null) return;
 
-    _eventBus.fire(EventOpenExplorerNode(node, collectionNode.collection!));
+    _eventBus.fire(EventOpenExplorerNode(node, collectionNode));
   }
 
   ExplorerNode? findNodeByPath(String path) {
@@ -619,7 +647,7 @@ class ExplorerService {
   }
 
   // _findRootNodeOf finds the root collection node of a given node by traversing up its ancestors
-  ExplorerNode? _findRootNodeOf(ExplorerNode node) {
+  ExplorerNode? findRootNodeOf(ExplorerNode node) {
     ExplorerNode? currentNode = node;
     while (currentNode != null) {
       if (currentNode.type == NodeType.collection) {

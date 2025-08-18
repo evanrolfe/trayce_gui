@@ -13,6 +13,7 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/utils/grpc_parser_lib.dart';
 import 'package:window_manager/window_manager.dart';
@@ -34,6 +35,7 @@ void main(List<String> args) async {
   await windowManager.ensureInitialized();
   await GrpcParserLib.ensureExists();
   final appSupportDir = await getApplicationSupportDirectory();
+  final appDocsDir = await getApplicationDocumentsDirectory();
 
   // Core dependencies
   final eventBus = EventBus();
@@ -41,9 +43,10 @@ void main(List<String> args) async {
   final grpcService = TrayceAgentService(eventBus: eventBus);
   final appStorage = await AppStorage.getInstance();
   final filePicker = FilePicker();
+  final httpClient = HttpClient();
 
   // Repos
-  final configRepo = ConfigRepo(appStorage, args, appSupportDir);
+  final configRepo = ConfigRepo(appStorage, args, appSupportDir, appDocsDir);
   await configRepo.loadSettings();
 
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
@@ -66,6 +69,7 @@ void main(List<String> args) async {
       providers: [
         RepositoryProvider<ConfigRepo>(create: (context) => configRepo),
         RepositoryProvider<FilePickerI>(create: (context) => filePicker),
+        RepositoryProvider<HttpClientI>(create: (context) => httpClient),
         RepositoryProvider<FlowRepo>(create: (context) => flowRepo),
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),

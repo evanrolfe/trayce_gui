@@ -7,14 +7,19 @@ class ConfigRepo {
   final AppStorageI _appStorage;
   late final Config config;
 
-  ConfigRepo(this._appStorage, List<String> commandLineArgs, Directory appSupportDir) {
+  ConfigRepo(this._appStorage, List<String> commandLineArgs, Directory appSupportDir, Directory appDocsDir) {
     final isTest = (commandLineArgs.contains('--test'));
     final trayceApiUrl =
         (commandLineArgs.contains('--trayce-api-url'))
             ? commandLineArgs[commandLineArgs.indexOf('--trayce-api-url') + 1]
             : Config.defaultTrayceApiUrl;
 
-    config = Config(isTest: isTest, trayceApiUrl: trayceApiUrl, appSupportDir: appSupportDir.path);
+    config = Config(
+      isTest: isTest,
+      trayceApiUrl: trayceApiUrl,
+      appSupportDir: appSupportDir.path,
+      appDocsDir: appDocsDir.path,
+    );
   }
 
   Future<void> loadSettings() async {

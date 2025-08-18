@@ -89,9 +89,9 @@ class Request {
   Auth? authOauth2;
   Auth? authWsse;
 
-  Duration _timeout = Duration(seconds: 10);
-  String _executionMode = 'standalone';
-  String _executionPlatform = 'app';
+  Duration timeout = Duration(seconds: 10);
+  final String _executionMode = 'standalone';
+  final String _executionPlatform = 'app';
 
   Request({
     this.file,
@@ -412,48 +412,11 @@ class Request {
   }
 
   Future<SendResult> send() async {
-    if (bodyType == BodyType.multipartForm) {
-      return _sendMultipart();
-    }
-
-    if (bodyType == BodyType.file) {
-      return _sendFile();
-    }
-
-    String urlStr = _getInterpolatedString(url);
-    urlStr = _addApiKeyAuthToUrl(urlStr);
-    final request = http.Request(method, Uri.parse(urlStr));
-
-    _addHeaders(request);
-    _addApiKeyAuth(request);
-    _addBasicAuth(request);
-    _addBearerAuth(request);
-
-    // Set the request body
-    Body? body = getBody();
-    if (body != null) {
-      // Interpolate FormUrlEncodedBody params
-      if (body is FormUrlEncodedBody) {
-        body = body.deepCopy();
-        (body as FormUrlEncodedBody).setParams(
-          body.params
-              .map(
-                (p) => Param(
-                  name: _getInterpolatedString(p.name),
-                  value: _getInterpolatedString(p.value),
-                  type: p.type,
-                  enabled: p.enabled,
-                ),
-              )
-              .toList(),
-        );
-      }
-      request.body = _getInterpolatedString(body.toString());
-    }
+    final httpRequest = await toHttpRequest();
 
     final client = http.Client();
     final startTime = DateTime.now();
-    final streamedResponse = await client.send(request).timeout(_timeout);
+    final streamedResponse = await client.send(httpRequest).timeout(timeout);
     final response = await http.Response.fromStream(streamedResponse);
     final endTime = DateTime.now();
     final responseTime = endTime.difference(startTime).inMilliseconds;
@@ -534,14 +497,45 @@ class Request {
     request.headers['Authorization'] = 'Bearer $token';
   }
 
-  Future<SendResult> _sendMultipart() async {
-    final request = http.MultipartRequest(method, Uri.parse(_getInterpolatedString(url)));
+  Future<http.BaseRequest> toHttpRequest() async {
+    String urlStr = _getInterpolatedString(url);
+    urlStr = _addApiKeyAuthToUrl(urlStr);
+
+    http.BaseRequest request;
+    if (bodyType == BodyType.multipartForm) {
+      request = http.MultipartRequest(method, Uri.parse(urlStr));
+    } else {
+      request = http.Request(method, Uri.parse(urlStr));
+    }
+
     _addHeaders(request);
+    _addApiKeyAuth(request);
     _addBasicAuth(request);
     _addBearerAuth(request);
 
-    final multipartBody = bodyMultipartForm as MultipartFormBody;
-    for (var file in multipartBody.files) {
+    // Set the request body
+    Body? body = getBody();
+    if (body != null) {
+      if (bodyType == BodyType.multipartForm && request is http.MultipartRequest) {
+        // Multipart form body
+        await _setRequestBodyMultipartForm(request, body as MultipartFormBody);
+      } else if (bodyType == BodyType.file && request is http.Request) {
+        // File body
+        await _setRequestBodyFile(request, body as FileBody);
+      } else if (bodyType == BodyType.formUrlEncoded && request is http.Request) {
+        // Form url encoded body
+        _setRequestBodyFormUrlEncoded(request, body);
+      } else if (request is http.Request) {
+        // Normal body
+        _setRequestBody(request, body);
+      }
+    }
+
+    return request;
+  }
+
+  Future<void> _setRequestBodyMultipartForm(http.MultipartRequest request, MultipartFormBody body) async {
+    for (var file in body.files) {
       if (file.enabled) {
         MediaType? contentType;
         if (file.contentType != null) contentType = MediaType.parse(_getInterpolatedString(file.contentType!));
@@ -551,26 +545,9 @@ class Request {
         );
       }
     }
-
-    final client = http.Client();
-    final startTime = DateTime.now();
-    final streamedResponse = await client.send(request).timeout(_timeout);
-    final response = await http.Response.fromStream(streamedResponse);
-    final endTime = DateTime.now();
-    final responseTime = endTime.difference(startTime).inMilliseconds;
-    client.close();
-
-    return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
-  Future<SendResult> _sendFile() async {
-    final request = http.Request(method, Uri.parse(_getInterpolatedString(url)));
-
-    _addHeaders(request);
-    _addBasicAuth(request);
-    _addBearerAuth(request);
-
-    final body = bodyFile as FileBody;
+  Future<void> _setRequestBodyFile(http.Request request, FileBody body) async {
     final selectedFile = body.selectedFile();
     if (selectedFile != null) {
       final data = await File(selectedFile.filePath).readAsBytes();
@@ -580,16 +557,27 @@ class Request {
         request.headers['content-type'] = _getInterpolatedString(selectedFile.contentType!);
       }
     }
+  }
 
-    final client = http.Client();
-    final startTime = DateTime.now();
-    final streamedResponse = await client.send(request).timeout(_timeout);
-    final response = await http.Response.fromStream(streamedResponse);
-    final endTime = DateTime.now();
-    final responseTime = endTime.difference(startTime).inMilliseconds;
-    client.close();
+  _setRequestBodyFormUrlEncoded(http.Request request, Body body) {
+    body = body.deepCopy();
+    (body as FormUrlEncodedBody).setParams(
+      body.params
+          .map(
+            (p) => Param(
+              name: _getInterpolatedString(p.name),
+              value: _getInterpolatedString(p.value),
+              type: p.type,
+              enabled: p.enabled,
+            ),
+          )
+          .toList(),
+    );
+    request.body = _getInterpolatedString(body.toString());
+  }
 
-    return SendResult(response: response, output: [], responseTime: responseTime);
+  _setRequestBody(http.Request request, Body body) {
+    request.body = _getInterpolatedString(body.toString());
   }
 
   Body? getBody() {
@@ -845,8 +833,12 @@ class Request {
   }
 
   String toJson() {
+    return jsonEncode(toMap());
+  }
+
+  Map<String, dynamic> toMap() {
     final headersMap = Map.fromEntries(headers.where((h) => h.enabled).map((h) => MapEntry(h.name, h.value)));
-    final Map<String, dynamic> json = {
+    final Map<String, dynamic> map = {
       'name': name,
       'method': method.toUpperCase(),
       'url': url,
@@ -854,7 +846,7 @@ class Request {
       'authMode': authTypeEnumToBru[authType]!,
       'mode': bodyType == BodyType.none ? 'none' : bodyTypeEnumToBru[bodyType]!,
       'vars': requestVars.map((v) => jsonDecode(v.toJson())).toList(),
-      'timeout': _timeout.inMilliseconds,
+      'timeout': timeout.inMilliseconds,
       'executionMode': _executionMode,
       'executionPlatform': _executionPlatform,
     };
@@ -862,16 +854,16 @@ class Request {
     // Add auth if present
     final auth = getAuth();
     if (auth != null && !auth.isEmpty()) {
-      json['auth'] = jsonDecode(auth.toJson());
+      map['auth'] = jsonDecode(auth.toJson());
     }
 
     // Add body if present
     final body = getBody();
     if (body != null && !body.isEmpty()) {
-      json['body'] = body.toString();
+      map['body'] = body.toString();
     }
 
-    return jsonEncode(json);
+    return map;
   }
 }
 

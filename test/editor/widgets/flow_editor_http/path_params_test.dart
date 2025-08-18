@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trayce/editor/models/collection.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/param.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/widgets/code_editor/url_input.dart';
@@ -10,6 +14,17 @@ import '../../../support/widget_helpers.dart';
 
 void main() {
   late WidgetDependencies deps;
+  final collection = Collection(
+    file: File('test.collection'),
+    dir: Directory('test.collection'),
+    type: 'http',
+    environments: [],
+    headers: [],
+    query: [],
+    authType: AuthType.none,
+    requestVars: [],
+    responseVars: [],
+  );
 
   setUpAll(() async {
     deps = await setupTestDependencies();
@@ -30,7 +45,13 @@ void main() {
       ];
 
       final tabKey = const ValueKey('test_tab');
-      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      final widget = deps.wrapWidget(
+        FlowEditorHttp(
+          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          request: request,
+          tabKey: tabKey,
+        ),
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
@@ -64,7 +85,13 @@ void main() {
       final request = Request.blank();
 
       final tabKey = const ValueKey('test_tab');
-      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      final widget = deps.wrapWidget(
+        FlowEditorHttp(
+          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          request: request,
+          tabKey: tabKey,
+        ),
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
@@ -125,7 +152,13 @@ void main() {
       final request = Request.blank();
 
       final tabKey = const ValueKey('test_tab');
-      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      final widget = deps.wrapWidget(
+        FlowEditorHttp(
+          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          request: request,
+          tabKey: tabKey,
+        ),
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
@@ -182,7 +215,13 @@ void main() {
         final request = Request.blank();
 
         final tabKey = const ValueKey('test_tab');
-        final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+        final widget = deps.wrapWidget(
+          FlowEditorHttp(
+            collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+            request: request,
+            tabKey: tabKey,
+          ),
+        );
         await tester.pumpWidget(widget);
         await tester.pumpAndSettle();
 
@@ -247,7 +286,13 @@ void main() {
       ];
 
       final tabKey = const ValueKey('test_tab');
-      final widget = deps.wrapWidget(FlowEditorHttp(request: request, tabKey: tabKey));
+      final widget = deps.wrapWidget(
+        FlowEditorHttp(
+          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          request: request,
+          tabKey: tabKey,
+        ),
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Params'));

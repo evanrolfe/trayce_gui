@@ -32,11 +32,7 @@ void main() {
     collectionRepo = CollectionRepo(mockAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
-    config = Config(
-      isTest: true,
-      trayceApiUrl: 'http://localhost:8080',
-      appSupportDir: '/home/evan/Code/trayce/gui/nodejs',
-    );
+    config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: './nodejs', appDocsDir: '.');
   });
 
   group('SendRequest()', () {
@@ -65,8 +61,13 @@ void main() {
       expect(hierarchy[1].name, 'myfolder');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq =
-          SendRequest(request: reqThree.request!, nodeHierarchy: hierarchy, config: config).getFinalRequest();
+      final finalReq = SendRequest(
+        request: reqThree.request!,
+        node: reqThree,
+        explorerService: explorerService,
+        config: config,
+        httpClient: HttpClient(),
+      ).getFinalRequest(reqThree);
 
       // Verify the URL
       expect(finalReq.url, 'www.synack.com/three/users/show/123');
@@ -133,8 +134,13 @@ void main() {
       expect(hierarchy[1].name, 'myfolder');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq =
-          SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy, config: config).getFinalRequest();
+      final finalReq = SendRequest(
+        request: reqFour.request!,
+        node: reqFour,
+        explorerService: explorerService,
+        config: config,
+        httpClient: HttpClient(),
+      ).getFinalRequest(reqFour);
 
       // Verify auth
       expect(finalReq.authType, AuthType.basic);
@@ -168,8 +174,13 @@ void main() {
       expect(hierarchy[1].name, 'hello');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq =
-          SendRequest(request: reqFour.request!, nodeHierarchy: hierarchy, config: config).getFinalRequest();
+      final finalReq = SendRequest(
+        request: reqFour.request!,
+        node: reqFour,
+        explorerService: explorerService,
+        config: config,
+        httpClient: HttpClient(),
+      ).getFinalRequest(reqFour);
 
       // Verify auth
       expect(finalReq.authType, AuthType.basic);

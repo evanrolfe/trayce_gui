@@ -9,20 +9,45 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/send_result.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:uuid/uuid.dart';
+
+class HttpClient implements HttpClientI {
+  final http.Client client = http.Client();
+
+  HttpClient();
+
+  @override
+  Future<http.Response> send(http.BaseRequest request, Duration timeout) async {
+    final streamedResponse = await client.send(request).timeout(timeout);
+    return http.Response.fromStream(streamedResponse);
+  }
+}
+
+abstract interface class HttpClientI {
+  Future<http.Response> send(http.BaseRequest request, Duration timeout);
+}
 
 class SendRequest {
   final Config config;
   final Request request;
-  List<ExplorerNode> nodeHierarchy;
+  final ExplorerNode node;
+  final ExplorerService explorerService;
+  final HttpClientI httpClient;
 
-  SendRequest({required this.request, required this.nodeHierarchy, required this.config});
+  SendRequest({
+    required this.request,
+    required this.config,
+    required this.explorerService,
+    required this.node,
+    required this.httpClient,
+  });
 
   Future<SendResult> send() async {
-    final finalReq = getFinalRequest();
+    final finalReq = getFinalRequest(node);
+
     final outputPre = await _executePreRequestScript(finalReq);
-    final result = await finalReq.send();
-    print('outputPre: $outputPre');
+    final result = await _sendRequest(finalReq);
     final resultPost = await _executePostResponseScript(finalReq, result.response, result.responseTime ?? 0);
 
     return SendResult(
@@ -32,7 +57,40 @@ class SendRequest {
     );
   }
 
-  Request getFinalRequest() {
+  Future<SendResult> _sendRequest(Request request) async {
+    final httpRequest = await request.toHttpRequest();
+
+    final startTime = DateTime.now();
+    final response = await httpClient.send(httpRequest, request.timeout);
+    final endTime = DateTime.now();
+    final responseTime = endTime.difference(startTime).inMilliseconds;
+
+    return SendResult(response: response, output: [], responseTime: responseTime);
+  }
+
+  String generateRequestMap() {
+    return '{}';
+    // final collectionNode = explorerService.findRootNodeOf(node);
+    // if (collectionNode == null) return '{}';
+
+    // Map<String, Map<String, dynamic>> requestMap = {};
+    // final nodeMap = explorerService.getNodeMap(collectionNode);
+    // for (final entry in nodeMap.entries) {
+    //   final key = entry.key;
+    //   final node = entry.value;
+    //   if (node.request == null) continue;
+
+    //   final httpRequest = getFinalRequest(node).toHttpRequest();
+    //   requestMap[key] = _httpRequestToAxios(httpRequest);
+    // }
+    // final requestMapJson = jsonEncode(requestMap);
+
+    // return requestMapJson;
+  }
+
+  Request getFinalRequest(ExplorerNode reqNode) {
+    List<ExplorerNode> nodeHierarchy = explorerService.getNodeHierarchy(reqNode);
+
     final finalReq = Request.blank();
     finalReq.copyValuesFrom(request);
     finalReq.interpolatePathParams();
@@ -129,14 +187,17 @@ class SendRequest {
       // Write the script content to the file
       scriptFile.writeAsStringSync(preReqScript);
 
+      final cliArgs = {'request': request.toMap(), 'requestMap': {}};
+
       // Run the CLI command
+      print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       final result = await Process.run(config.npmCommand, [
         'run',
         'script',
         '--silent',
         '--',
         scriptFile.path,
-        request.toJson(),
+        jsonEncode(cliArgs),
       ], workingDirectory: config.nodeJsDir());
       final output = <String>[];
 
@@ -173,8 +234,7 @@ class SendRequest {
       request.method = json['method'].toString().toLowerCase();
     }
     if (json['timeout'] != null) {
-      // TODO:
-      // request._timeout = Duration(milliseconds: json['timeout']);
+      request.timeout = Duration(milliseconds: json['timeout']);
     }
     if (json['headers'] != null) {
       final headersMap = json['headers'] as Map<String, dynamic>;
@@ -211,6 +271,12 @@ class SendRequest {
       // Write the script content to the file
       scriptFile.writeAsStringSync(postRespScript);
 
+      final cliArgs = {
+        'request': request.toMap(),
+        'response': _httpResponseToMap(response, responseTime),
+        'requestMap': {},
+      };
+      print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       // Run the CLI command
       final result = await Process.run(config.npmCommand, [
         'run',
@@ -218,8 +284,7 @@ class SendRequest {
         '--silent',
         '--',
         scriptFile.path,
-        request.toJson(),
-        _httpResponseToJson(response, responseTime),
+        jsonEncode(cliArgs),
       ], workingDirectory: config.nodeJsDir());
 
       final output = <String>[];
@@ -271,7 +336,7 @@ class SendRequest {
     return response;
   }
 
-  String _httpResponseToJson(http.Response response, int responseTime) {
+  Map<String, dynamic> _httpResponseToMap(http.Response response, int responseTime) {
     // Calculate header bytes by encoding each header key-value pair
     int headerBytes = 0;
     response.headers.forEach((key, value) {
@@ -281,7 +346,7 @@ class SendRequest {
     // Calculate body bytes
     int bodyBytes = utf8.encode(response.body).length;
 
-    return jsonEncode({
+    return {
       'url': response.request?.url.toString(),
       'status': response.statusCode,
       'statusText': response.reasonPhrase,
@@ -289,6 +354,27 @@ class SendRequest {
       'body': response.body,
       'size': {'body': bodyBytes, 'headers': headerBytes, 'total': bodyBytes + headerBytes},
       'responseTime': responseTime,
-    });
+    };
+  }
+
+  Map<String, dynamic> _httpRequestToAxios(http.Request request) {
+    final Map<String, dynamic> axiosConfig = {
+      'method': request.method.toLowerCase(),
+      'url': request.url.toString(),
+      'headers': request.headers,
+    };
+
+    // Add request body data if present
+    if (request.body.isNotEmpty) {
+      axiosConfig['data'] = request.body;
+    }
+
+    // Add query parameters if present in URL
+    final uri = request.url;
+    if (uri.queryParameters.isNotEmpty) {
+      axiosConfig['params'] = uri.queryParameters;
+    }
+
+    return axiosConfig;
   }
 }

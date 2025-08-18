@@ -1,6 +1,7 @@
 .PHONY: test integration_test generate coverage build
 
 test:
+	cd nodejs && npm install
 	rm -f coverage/lcov.info
 	flutter test ./test -r github --coverage --concurrency=1
 

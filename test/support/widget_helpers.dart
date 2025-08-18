@@ -5,6 +5,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:trayce/common/app_storage.dart';
@@ -15,6 +16,7 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
@@ -23,12 +25,18 @@ import 'fake_app_storage.dart';
 
 class MockFilePicker extends Mock implements FilePickerI {}
 
+class MockHttpClient extends Mock implements HttpClientI {}
+
+class MockRequest extends Mock implements http.BaseRequest {}
+
+class MockDuration extends Mock implements Duration {}
+
 class WidgetDependencies {
   late Database db;
   late EventBus eventBus;
   late AppStorageI appStorage;
   late MockFilePicker filePicker;
-
+  late MockHttpClient httpClient;
   late FlowRepo flowRepo;
   late ProtoDefRepo protoDefRepo;
   late ContainersRepo containersRepo;
@@ -43,6 +51,7 @@ class WidgetDependencies {
     required this.eventBus,
     required this.appStorage,
     required this.filePicker,
+    required this.httpClient,
     required this.flowRepo,
     required this.protoDefRepo,
     required this.containersRepo,
@@ -61,6 +70,7 @@ class WidgetDependencies {
         RepositoryProvider<ProtoDefRepo>(create: (context) => protoDefRepo),
         RepositoryProvider<EventBus>(create: (context) => eventBus),
         RepositoryProvider<FilePickerI>(create: (context) => filePicker),
+        RepositoryProvider<HttpClientI>(create: (context) => httpClient),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
@@ -85,14 +95,17 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final eventBus = EventBus();
   final appStorage = await FakeAppStorage.getInstance();
   final filePicker = MockFilePicker();
-
-  final configRepo = ConfigRepo(appStorage, [], Directory.current);
+  final httpClient = MockHttpClient();
+  final configRepo = ConfigRepo(appStorage, [], Directory.current, Directory.current);
   final flowRepo = FlowRepo(db: db, eventBus: eventBus);
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
   final collectionRepo = CollectionRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
+
+  registerFallbackValue(MockRequest());
+  registerFallbackValue(MockDuration());
 
   final explorerService = ExplorerService(
     eventBus: eventBus,
@@ -106,6 +119,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     eventBus: eventBus,
     appStorage: appStorage,
     filePicker: filePicker,
+    httpClient: httpClient,
     flowRepo: flowRepo,
     protoDefRepo: protoDefRepo,
     containersRepo: containersRepo,

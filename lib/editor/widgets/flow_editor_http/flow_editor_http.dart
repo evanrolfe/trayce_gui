@@ -79,11 +79,18 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
-  final ExplorerNode? node;
+  final ExplorerNode collectionNode;
+  final ExplorerNode? node; // the node will be null if the request is not saved yet
   final Request request;
   final ValueKey tabKey;
 
-  const FlowEditorHttp({super.key, this.node, required this.request, required this.tabKey});
+  const FlowEditorHttp({
+    super.key,
+    required this.collectionNode,
+    this.node,
+    required this.request,
+    required this.tabKey,
+  });
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
@@ -183,11 +190,18 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     try {
       final explorerService = context.read<ExplorerService>();
-      List<ExplorerNode> nodeHierarchy = [];
-      if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
-
       final config = context.read<ConfigRepo>().get();
-      final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy, config: config).send();
+      final httpClient = context.read<HttpClientI>();
+      print("===============> FlowEditorHttp sendRequest ${_formRequest.url}");
+      final sendResult =
+          await SendRequest(
+            httpClient: httpClient,
+            request: _formRequest,
+            node: widget.node ?? widget.collectionNode,
+            explorerService: explorerService,
+            config: config,
+          ).send();
+
       _response = sendResult.response;
       _consoleOutput = sendResult.output;
 
@@ -206,12 +220,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       displayConsoleOutput();
     } catch (e) {
       _response = null;
+      print("sendRequest error $e");
       setState(() {
         _respStatusMsg = 'Error';
         _respStatusColor = statusErrorColor;
         _formController.respBodyController.text = 'Error: $e';
         _respHeaders = [];
       });
+      rethrow;
     } finally {
       setState(() {
         _isSending = false;
@@ -220,9 +236,10 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   }
 
   void displayResponse() {
+    print("===============> displayResponse");
     if (_response == null) return;
     final statusCode = _response!.statusCode;
-
+    print("===============> ${_response!.statusCode} ${_response!.body}");
     setState(() {
       _respHeaders = _response!.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
       _respStatusMsg = '$statusCode ${_response!.reasonPhrase}';

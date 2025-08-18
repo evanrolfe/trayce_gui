@@ -1,19 +1,32 @@
 import 'dart:io';
 
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/setup_nodejs.dart';
 
+import '../../support/fake_app_storage.dart';
+
 const jsonResponse = '{"message":"Hello, World!","status":200}';
+
+class MockEventBus extends Mock implements EventBus {}
+
+const collection1Path = 'test/support/collection1';
 
 class HttpTestServer {
   late ShelfTestServer server;
@@ -76,16 +89,47 @@ class HttpTestServer {
 late HttpTestServer mockServer;
 
 void main() {
+  late MockEventBus mockEventBus;
+  late FakeAppStorage fakeAppStorage;
+  late CollectionRepo collectionRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
+  late ExplorerService explorerService;
+
   setUpAll(() async {
+    mockEventBus = MockEventBus();
+    fakeAppStorage = await FakeAppStorage.getInstance();
+    collectionRepo = CollectionRepo(fakeAppStorage);
+    folderRepo = FolderRepo();
+    requestRepo = RequestRepo();
+
+    explorerService = ExplorerService(
+      eventBus: mockEventBus,
+      collectionRepo: collectionRepo,
+      folderRepo: folderRepo,
+      requestRepo: requestRepo,
+    );
+
     mockServer = await HttpTestServer.create();
-    setupNodeJs();
+    final config = Config(
+      isTest: false,
+      trayceApiUrl: '',
+      appSupportDir: Directory.current.path,
+      appDocsDir: Directory.current.path,
+    );
+    setupNodeJs(config);
   });
 
   tearDownAll(() async {
     await mockServer.close();
   });
 
-  final config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: Directory.current.path);
+  final config = Config(
+    isTest: true,
+    trayceApiUrl: 'http://localhost:8080',
+    appSupportDir: Directory.current.path,
+    appDocsDir: Directory.current.path,
+  );
 
   test('sending a request with a pre-request script using the request object getters', () async {
     mockServer.newHandler('POST', '/test_endpoint');
@@ -130,7 +174,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -191,7 +244,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -237,7 +299,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -278,7 +349,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -331,7 +411,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -385,7 +474,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -428,7 +526,16 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          explorerService: explorerService,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
