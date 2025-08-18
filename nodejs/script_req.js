@@ -297,12 +297,49 @@ class Bru {
     this.requestMap = requestMap;
   }
 
-  runRequest(requestPath) {
+  async runRequest(requestPath) {
     const request = this.requestMap[requestPath];
     if (!request) {
       throw new Error(`Request not found: ${requestPath}`);
     }
-    console.log('===> request: ', request);
+
+    // Create axios request config from the request object
+    const axiosConfig = {
+      method: request.method || 'GET',
+      url: request.url,
+      headers: request.headers || {},
+      timeout: request.timeout || 30000,
+    };
+
+    // Handle different body formats
+    if (request.data) {
+      // For JSON data
+      axiosConfig.data = request.data;
+    } else if (request.body) {
+      // For raw body
+      axiosConfig.data = request.body;
+    }
+
+    // Handle query parameters
+    if (request.params) {
+      axiosConfig.params = request.params;
+    }
+
+    // Make the request
+    const response = await axios(axiosConfig);
+
+    // Create Response object from axios response
+    const responseData = {
+      status: response.status,
+      statusText: response.statusText,
+      body: response.data,
+      headers: response.headers,
+      url: response.config.url,
+      size: JSON.stringify(response.data).length,
+      responseTime: response.headers['x-response-time'] || null,
+    };
+
+    return new Response(responseData);
   }
 
   async sendRequest(config, callback) {
@@ -458,11 +495,14 @@ const scriptContext = {
       `);
 
     await scriptFunction(scriptContext);
-    if (scriptType === 'req') {
-      console.log(JSON.stringify(req.toMap(), null, 0));
-    } else {
-      console.log(JSON.stringify(res.toMap(), null, 0));
+
+    const output = { 'req': req.toMap() };
+
+    if (res) {
+      output['res'] = res.toMap();
     }
+
+    console.log(JSON.stringify(output, null, 0));
 
   } catch (error) {
     console.error('Error executing target script:', error.message);

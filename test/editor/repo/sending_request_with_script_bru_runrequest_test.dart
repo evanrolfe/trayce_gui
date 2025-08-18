@@ -24,7 +24,6 @@ const collection1Path = 'test/support/collection1';
 late HttpTestServer mockServer;
 
 void main() {
-  return;
   late MockEventBus mockEventBus;
   late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
@@ -118,6 +117,7 @@ void main() {
 
   test('sending a request with a pre-request that calls bru.runRequest()', () async {
     mockServer.newHandler('GET', '/test_endpoint');
+    mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
     final explorerService = ExplorerService(
@@ -140,7 +140,7 @@ void main() {
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
-    final jsScript = '''bru.runRequest('hello/hello.bru');''';
+    final jsScript = '''let resp = await bru.runRequest('hello/hello.bru'); console.log("Response:", resp.status);''';
     final request = node.request!;
     request.url = url;
     request.script = Script(req: jsScript);

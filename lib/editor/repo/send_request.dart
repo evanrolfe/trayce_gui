@@ -12,6 +12,8 @@ import 'package:trayce/editor/models/send_result.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:uuid/uuid.dart';
 
+typedef RequestMap = Map<String, Map<String, dynamic>>;
+
 class HttpClient implements HttpClientI {
   final http.Client client = http.Client();
 
@@ -68,24 +70,22 @@ class SendRequest {
     return SendResult(response: response, output: [], responseTime: responseTime);
   }
 
-  String generateRequestMap() {
-    return '{}';
-    // final collectionNode = explorerService.findRootNodeOf(node);
-    // if (collectionNode == null) return '{}';
+  Future<RequestMap> generateRequestMap() async {
+    final collectionNode = explorerService.findRootNodeOf(node);
+    if (collectionNode == null) return {};
 
-    // Map<String, Map<String, dynamic>> requestMap = {};
-    // final nodeMap = explorerService.getNodeMap(collectionNode);
-    // for (final entry in nodeMap.entries) {
-    //   final key = entry.key;
-    //   final node = entry.value;
-    //   if (node.request == null) continue;
+    RequestMap requestMap = {};
+    final nodeMap = explorerService.getNodeMap(collectionNode);
+    for (final entry in nodeMap.entries) {
+      final key = entry.key;
+      final node = entry.value;
+      if (node.request == null) continue;
 
-    //   final httpRequest = getFinalRequest(node).toHttpRequest();
-    //   requestMap[key] = _httpRequestToAxios(httpRequest);
-    // }
-    // final requestMapJson = jsonEncode(requestMap);
+      final httpRequest = await getFinalRequest(node).toHttpRequest();
+      requestMap[key] = _httpRequestToAxios(httpRequest);
+    }
 
-    // return requestMapJson;
+    return requestMap;
   }
 
   Request getFinalRequest(ExplorerNode reqNode) {
@@ -184,10 +184,10 @@ class SendRequest {
     final scriptFile = File(path.join(config.nodeJsDir(), 'trayce_pre_req-$uuid.js'));
 
     try {
-      // Write the script content to the file
       scriptFile.writeAsStringSync(preReqScript);
 
-      final cliArgs = {'request': request.toMap(), 'requestMap': {}};
+      final requestMap = await generateRequestMap();
+      final cliArgs = {'request': request.toMap(), 'requestMap': requestMap};
 
       // Run the CLI command
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
@@ -227,29 +227,33 @@ class SendRequest {
 
   void processScriptOutputRequest(Request request, String output) {
     final json = jsonDecode(output);
-    if (json['url'] != null) {
-      request.url = json['url'];
+
+    if (json['req'] == null) throw Exception('req not set on pre request script  output');
+
+    final req = json['req'] as Map<String, dynamic>;
+    if (req['url'] != null) {
+      request.url = req['url'];
     }
-    if (json['method'] != null) {
-      request.method = json['method'].toString().toLowerCase();
+    if (req['method'] != null) {
+      request.method = req['method'].toString().toLowerCase();
     }
-    if (json['timeout'] != null) {
-      request.timeout = Duration(milliseconds: json['timeout']);
+    if (req['timeout'] != null) {
+      request.timeout = Duration(milliseconds: req['timeout']);
     }
-    if (json['headers'] != null) {
-      final headersMap = json['headers'] as Map<String, dynamic>;
+    if (req['headers'] != null) {
+      final headersMap = req['headers'] as Map<String, dynamic>;
       request.headers =
           headersMap.entries
               .map((entry) => Header(name: entry.key, value: entry.value.toString(), enabled: true))
               .toList();
     }
-    if (json['body'] != null) {
+    if (req['body'] != null) {
       final body = request.getBody();
       if (body != null) {
         if (body is JsonBody) {
-          body.setContent(jsonEncode(json['body']));
+          body.setContent(jsonEncode(req['body']));
         } else {
-          body.setContent(json['body']);
+          body.setContent(req['body']);
         }
       }
     }
@@ -320,10 +324,14 @@ class SendRequest {
   http.Response processScriptOutputResponse(http.Response response, String output) {
     final json = jsonDecode(output);
 
-    if (json['body'] != null) {
+    if (json['res'] == null) throw Exception('res not set on post response script  output');
+
+    final res = json['res'] as Map<String, dynamic>;
+
+    if (res['body'] != null) {
       // Create a new response with the modified body
       return http.Response(
-        json['body'],
+        res['body'],
         response.statusCode,
         headers: response.headers,
         reasonPhrase: response.reasonPhrase,
@@ -357,7 +365,7 @@ class SendRequest {
     };
   }
 
-  Map<String, dynamic> _httpRequestToAxios(http.Request request) {
+  Map<String, dynamic> _httpRequestToAxios(http.BaseRequest request) {
     final Map<String, dynamic> axiosConfig = {
       'method': request.method.toLowerCase(),
       'url': request.url.toString(),
@@ -365,8 +373,10 @@ class SendRequest {
     };
 
     // Add request body data if present
-    if (request.body.isNotEmpty) {
+    if (request is http.Request && request.body.isNotEmpty) {
       axiosConfig['data'] = request.body;
+    } else if (request is http.MultipartRequest) {
+      // todo
     }
 
     // Add query parameters if present in URL
