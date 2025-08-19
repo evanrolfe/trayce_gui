@@ -9,6 +9,7 @@ import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 
 class MockEventBus extends Mock implements EventBus {}
@@ -66,6 +67,7 @@ void main() {
         node: reqThree,
         collectionNode: event.nodes[0],
         explorerService: explorerService,
+        runtimeVarsRepo: RuntimeVarsRepo(),
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqThree);
@@ -140,6 +142,7 @@ void main() {
         node: reqFour,
         collectionNode: event.nodes[0],
         explorerService: explorerService,
+        runtimeVarsRepo: RuntimeVarsRepo(),
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqFour);
@@ -181,6 +184,7 @@ void main() {
         node: reqFour,
         collectionNode: event.nodes[0],
         explorerService: explorerService,
+        runtimeVarsRepo: RuntimeVarsRepo(),
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqFour);

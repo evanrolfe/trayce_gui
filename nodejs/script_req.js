@@ -293,8 +293,9 @@ class Response {
 }
 
 class Bru {
-  constructor(requestMap) {
+  constructor(requestMap, runtimeVars) {
     this.requestMap = requestMap;
+    this.runtimeVars = runtimeVars;
   }
 
   async runRequest(requestPath) {
@@ -402,6 +403,27 @@ class Bru {
       throw error;
     }
   }
+
+  setVar(name, value) {
+    const varr = this.runtimeVars.find(varr => varr.name === name);
+    if (varr) {
+      varr.value = value;
+    } else {
+      this.runtimeVars.push({ name, value });
+    }
+  }
+
+  getVar(name) {
+    return this.runtimeVars.find(varr => varr.name === name)?.value;
+  }
+
+  deleteVar(name) {
+    this.runtimeVars = this.runtimeVars.filter(varr => varr.name !== name);
+  }
+
+  toMap() {
+    return { runtimeVars: this.runtimeVars };
+  }
 }
 
 // Parse command line arguments
@@ -446,7 +468,7 @@ if (config.response) {
 }
 
 // Create the Bru instance
-const bru = new Bru(config.requestMap);
+const bru = new Bru(config.requestMap, config.runtimeVars);
 
 // Check if the file exists
 if (!fs.existsSync(filePath)) {
@@ -496,7 +518,8 @@ const scriptContext = {
 
     await scriptFunction(scriptContext);
 
-    const output = { 'req': req.toMap() };
+    const bruMap = bru.toMap();
+    const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars };
 
     if (res) {
       output['res'] = res.toMap();

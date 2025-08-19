@@ -13,6 +13,7 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/network/repo/proto_def_repo.dart';
 import 'package:trayce/utils/grpc_parser_lib.dart';
@@ -55,6 +56,7 @@ void main(List<String> args) async {
   final collectionRepo = CollectionRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
+  final runtimeVarsRepo = RuntimeVarsRepo();
 
   // Services
   final explorerService = ExplorerService(
@@ -77,6 +79,7 @@ void main(List<String> args) async {
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
+        RepositoryProvider<RuntimeVarsRepo>(create: (context) => runtimeVarsRepo),
         RepositoryProvider<ExplorerService>(create: (context) => explorerService),
         RepositoryProvider<TrayceAgentService>(create: (context) => grpcService),
       ],

@@ -10,6 +10,7 @@ import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/send_result.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:uuid/uuid.dart';
 
 typedef RequestMap = Map<String, Map<String, dynamic>>;
@@ -36,6 +37,7 @@ class SendRequest {
   final ExplorerNode? node;
   final ExplorerNode collectionNode;
   final ExplorerService explorerService;
+  final RuntimeVarsRepo runtimeVarsRepo;
   final HttpClientI httpClient;
 
   SendRequest({
@@ -45,6 +47,7 @@ class SendRequest {
     required this.node,
     required this.collectionNode,
     required this.httpClient,
+    required this.runtimeVarsRepo,
   });
 
   Future<SendResult> send() async {
@@ -86,6 +89,16 @@ class SendRequest {
 
     return requestMap;
   }
+
+  // void _setEnvVar(String name, String value) {
+  //   final currentEnv = collectionNode.collection!.getCurrentEnvironment();
+  //   if (currentEnv != null) {
+  //     for (final reqvar in currentEnv.vars) {
+  //       request.requestVars.removeWhere((v) => v.name == reqvar.name);
+  //       request.requestVars.add(reqvar);
+  //     }
+  //   }
+  // }
 
   Request getFinalRequest(ExplorerNode? reqNode) {
     List<ExplorerNode> nodeHierarchy;
@@ -170,6 +183,12 @@ class SendRequest {
       }
     }
 
+    // Add runtime vars
+    for (final varr in runtimeVarsRepo.vars) {
+      finalReq.requestVars.removeWhere((v) => v.name == varr.name);
+      finalReq.requestVars.add(varr);
+    }
+
     // for (final header in finalReq.headers) {
     //   print('   ${header.name}: ${header.value}');
     // }
@@ -191,7 +210,11 @@ class SendRequest {
       scriptFile.writeAsStringSync(preReqScript);
 
       final requestMap = await generateRequestMap();
-      final cliArgs = {'request': request.toMap(), 'requestMap': requestMap};
+      final cliArgs = {
+        'request': request.toMap(),
+        'requestMap': requestMap,
+        'runtimeVars': runtimeVarsRepo.toMapList(),
+      };
 
       // Run the CLI command
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
@@ -261,6 +284,14 @@ class SendRequest {
         }
       }
     }
+    if (json['runtimeVars'] != null) {
+      final runtimeVars = json['runtimeVars'] as List<dynamic>;
+      runtimeVarsRepo.clearVars();
+      for (final varr in runtimeVars) {
+        final varMap = varr as Map<String, dynamic>;
+        runtimeVarsRepo.setVar(varMap['name'], varMap['value']);
+      }
+    }
   }
 
   Future<SendResult> _executePostResponseScript(Request request, http.Response response, int responseTime) async {
@@ -279,10 +310,12 @@ class SendRequest {
       // Write the script content to the file
       scriptFile.writeAsStringSync(postRespScript);
 
+      final requestMap = await generateRequestMap();
       final cliArgs = {
         'request': request.toMap(),
         'response': _httpResponseToMap(response, responseTime),
-        'requestMap': {},
+        'requestMap': requestMap,
+        'runtimeVars': runtimeVarsRepo.toMapList(),
       };
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       // Run the CLI command
@@ -331,6 +364,15 @@ class SendRequest {
     if (json['res'] == null) throw Exception('res not set on post response script  output');
 
     final res = json['res'] as Map<String, dynamic>;
+
+    if (json['runtimeVars'] != null) {
+      final runtimeVars = json['runtimeVars'] as List<dynamic>;
+      runtimeVarsRepo.clearVars();
+      for (final varr in runtimeVars) {
+        final varMap = varr as Map<String, dynamic>;
+        runtimeVarsRepo.setVar(varMap['name'], varMap['value']);
+      }
+    }
 
     if (res['body'] != null) {
       // Create a new response with the modified body
