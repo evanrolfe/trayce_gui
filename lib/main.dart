@@ -10,6 +10,7 @@ import 'package:trayce/common/database.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
@@ -54,6 +55,7 @@ void main(List<String> args) async {
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
   final collectionRepo = CollectionRepo(appStorage);
+  final environmentRepo = EnvironmentRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
   final runtimeVarsRepo = RuntimeVarsRepo();
@@ -77,6 +79,7 @@ void main(List<String> args) async {
         RepositoryProvider<EventBus>(create: (context) => eventBus),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
+        RepositoryProvider<EnvironmentRepo>(create: (context) => environmentRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<RuntimeVarsRepo>(create: (context) => runtimeVarsRepo),

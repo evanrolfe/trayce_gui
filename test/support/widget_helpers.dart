@@ -13,6 +13,7 @@ import 'package:trayce/common/database.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
@@ -41,6 +42,7 @@ class WidgetDependencies {
   late ProtoDefRepo protoDefRepo;
   late ContainersRepo containersRepo;
   late CollectionRepo collectionRepo;
+  late EnvironmentRepo environmentRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
   late ExplorerService explorerService;
@@ -56,6 +58,7 @@ class WidgetDependencies {
     required this.protoDefRepo,
     required this.containersRepo,
     required this.collectionRepo,
+    required this.environmentRepo,
     required this.folderRepo,
     required this.requestRepo,
     required this.explorerService,
@@ -73,6 +76,7 @@ class WidgetDependencies {
         RepositoryProvider<HttpClientI>(create: (context) => httpClient),
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
+        RepositoryProvider<EnvironmentRepo>(create: (context) => environmentRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<ExplorerService>(create: (context) => explorerService),
@@ -101,6 +105,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final protoDefRepo = ProtoDefRepo(db: db);
   final containersRepo = ContainersRepo(eventBus: eventBus);
   final collectionRepo = CollectionRepo(appStorage);
+  final environmentRepo = EnvironmentRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
 
@@ -124,6 +129,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     protoDefRepo: protoDefRepo,
     containersRepo: containersRepo,
     collectionRepo: collectionRepo,
+    environmentRepo: environmentRepo,
     folderRepo: folderRepo,
     requestRepo: requestRepo,
     explorerService: explorerService,

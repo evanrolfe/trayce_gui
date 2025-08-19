@@ -6,6 +6,7 @@ import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
@@ -21,6 +22,7 @@ void main() {
   late MockEventBus mockEventBus;
   late MockAppStorage mockAppStorage;
   late CollectionRepo collectionRepo;
+  late EnvironmentRepo environmentRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
   late Config config;
@@ -31,6 +33,7 @@ void main() {
     mockEventBus = MockEventBus();
     mockAppStorage = MockAppStorage();
     collectionRepo = CollectionRepo(mockAppStorage);
+    environmentRepo = EnvironmentRepo(mockAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
     config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: './nodejs', appDocsDir: '.');
@@ -68,6 +71,7 @@ void main() {
         collectionNode: event.nodes[0],
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(),
+        environmentRepo: environmentRepo,
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqThree);
@@ -143,6 +147,7 @@ void main() {
         collectionNode: event.nodes[0],
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(),
+        environmentRepo: environmentRepo,
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqFour);
@@ -185,6 +190,7 @@ void main() {
         collectionNode: event.nodes[0],
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(),
+        environmentRepo: environmentRepo,
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqFour);

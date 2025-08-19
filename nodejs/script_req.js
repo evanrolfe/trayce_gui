@@ -293,9 +293,13 @@ class Response {
 }
 
 class Bru {
-  constructor(requestMap, runtimeVars) {
+  constructor(requestMap, vars) {
     this.requestMap = requestMap;
-    this.runtimeVars = runtimeVars;
+    this.runtimeVars = vars.runtimeVars;
+    this.requestVars = vars.requestVars;
+    this.folderVars = vars.folderVars;
+    this.collectionVars = vars.collectionVars;
+    this.envVars = vars.envVars;
   }
 
   async runRequest(requestPath) {
@@ -413,8 +417,33 @@ class Bru {
     }
   }
 
+  setEnvVar(name, value) {
+    const varr = this.envVars.find(varr => varr.name === name);
+    if (varr) {
+      varr.value = value;
+    } else {
+      this.envVars.push({ name, value });
+    }
+  }
+
   getVar(name) {
     return this.runtimeVars.find(varr => varr.name === name)?.value;
+  }
+
+  getRequestVar(name) {
+    return this.requestVars.find(varr => varr.name === name)?.value;
+  }
+
+  getFolderVar(name) {
+    return this.folderVars.find(varr => varr.name === name)?.value;
+  }
+
+  getCollectionVar(name) {
+    return this.collectionVars.find(varr => varr.name === name)?.value;
+  }
+
+  getEnvVar(name) {
+    return this.envVars.find(varr => varr.name === name)?.value;
   }
 
   deleteVar(name) {
@@ -422,7 +451,7 @@ class Bru {
   }
 
   toMap() {
-    return { runtimeVars: this.runtimeVars };
+    return { runtimeVars: this.runtimeVars, envVars: this.envVars };
   }
 }
 
@@ -468,7 +497,7 @@ if (config.response) {
 }
 
 // Create the Bru instance
-const bru = new Bru(config.requestMap, config.runtimeVars);
+const bru = new Bru(config.requestMap, config.vars);
 
 // Check if the file exists
 if (!fs.existsSync(filePath)) {
@@ -519,7 +548,7 @@ const scriptContext = {
     await scriptFunction(scriptContext);
 
     const bruMap = bru.toMap();
-    const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars };
+    const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars, 'envVars': bruMap.envVars };
 
     if (res) {
       output['res'] = res.toMap();

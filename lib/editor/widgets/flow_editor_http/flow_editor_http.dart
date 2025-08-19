@@ -9,6 +9,7 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
@@ -194,7 +195,6 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       final runtimeVarsRepo = context.read<RuntimeVarsRepo>();
       final config = context.read<ConfigRepo>().get();
       final httpClient = context.read<HttpClientI>();
-      print("===============> FlowEditorHttp sendRequest ${_formRequest.url}");
       final sendResult =
           await SendRequest(
             httpClient: httpClient,
@@ -203,6 +203,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
             collectionNode: widget.collectionNode,
             explorerService: explorerService,
             runtimeVarsRepo: runtimeVarsRepo,
+            environmentRepo: context.read<EnvironmentRepo>(),
             config: config,
           ).send();
 

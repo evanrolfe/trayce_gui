@@ -15,6 +15,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
@@ -94,6 +95,7 @@ void main() {
   late MockEventBus mockEventBus;
   late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
+  late EnvironmentRepo environmentRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
   late ExplorerService explorerService;
@@ -115,6 +117,7 @@ void main() {
     mockEventBus = MockEventBus();
     fakeAppStorage = await FakeAppStorage.getInstance();
     collectionRepo = CollectionRepo(fakeAppStorage);
+    environmentRepo = EnvironmentRepo(fakeAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
 
@@ -195,9 +198,10 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: node,
+          collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -270,6 +274,7 @@ void main() {
           collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -327,6 +332,7 @@ void main() {
           collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -379,6 +385,7 @@ void main() {
           collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -443,6 +450,7 @@ void main() {
           collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -508,6 +516,7 @@ void main() {
           collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -562,6 +571,7 @@ void main() {
           collectionNode: collectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(),
+          environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();

@@ -9,11 +9,14 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/send_result.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:uuid/uuid.dart';
 
 typedef RequestMap = Map<String, Map<String, dynamic>>;
+
+typedef VarForJson = Map<String, dynamic>;
 
 class HttpClient implements HttpClientI {
   final http.Client client = http.Client();
@@ -36,8 +39,10 @@ class SendRequest {
   final Request request;
   final ExplorerNode? node;
   final ExplorerNode collectionNode;
+
   final ExplorerService explorerService;
   final RuntimeVarsRepo runtimeVarsRepo;
+  final EnvironmentRepo environmentRepo;
   final HttpClientI httpClient;
 
   SendRequest({
@@ -48,6 +53,7 @@ class SendRequest {
     required this.collectionNode,
     required this.httpClient,
     required this.runtimeVarsRepo,
+    required this.environmentRepo,
   });
 
   Future<SendResult> send() async {
@@ -88,6 +94,59 @@ class SendRequest {
     }
 
     return requestMap;
+  }
+
+  Map<String, List<VarForJson>> _getVarsMap(ExplorerNode? reqNode) {
+    List<ExplorerNode> nodeHierarchy;
+    if (reqNode == null) {
+      nodeHierarchy = [collectionNode];
+    } else {
+      nodeHierarchy = explorerService.getNodeHierarchy(reqNode);
+    }
+
+    final varsMap = <String, List<VarForJson>>{
+      'runtimeVars': runtimeVarsRepo.toMapList(),
+      'requestVars': [],
+      'folderVars': [],
+      'collectionVars': [],
+      'envVars': [],
+    };
+
+    // Work out the variables by looping through nodeHierarchy in reverse order
+    for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
+      final node = nodeHierarchy[i];
+
+      // Add vars from collection & environment
+      if (node.type == NodeType.collection && node.collection != null) {
+        // Add vars from environment
+        final currentEnv = node.collection!.getCurrentEnvironment();
+        if (currentEnv != null) {
+          for (final reqvar in currentEnv.vars) {
+            varsMap['envVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+          }
+        }
+
+        for (final reqvar in node.collection!.requestVars) {
+          varsMap['collectionVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+        }
+      }
+
+      // Add vars from folder
+      if (node.type == NodeType.folder && node.folder != null) {
+        for (final reqvar in node.folder!.requestVars) {
+          varsMap['folderVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+        }
+      }
+
+      // Add vars from request
+      if (node.type == NodeType.request && node.request != null) {
+        for (final reqvar in node.request!.requestVars) {
+          varsMap['requestVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+        }
+      }
+    }
+
+    return varsMap;
   }
 
   // void _setEnvVar(String name, String value) {
@@ -210,11 +269,7 @@ class SendRequest {
       scriptFile.writeAsStringSync(preReqScript);
 
       final requestMap = await generateRequestMap();
-      final cliArgs = {
-        'request': request.toMap(),
-        'requestMap': requestMap,
-        'runtimeVars': runtimeVarsRepo.toMapList(),
-      };
+      final cliArgs = {'request': request.toMap(), 'requestMap': requestMap, 'vars': _getVarsMap(node)};
 
       // Run the CLI command
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
@@ -292,6 +347,19 @@ class SendRequest {
         runtimeVarsRepo.setVar(varMap['name'], varMap['value']);
       }
     }
+
+    final currentEnv = collectionNode.collection!.getCurrentEnvironment();
+    if (currentEnv != null && json['envVars'] != null) {
+      final envVars = json['envVars'] as List<dynamic>;
+      for (final varr in envVars) {
+        final varMap = varr as Map<String, dynamic>;
+        if (varMap['value'] == null) continue;
+
+        currentEnv.setVar(varMap['name'], varMap['value']);
+      }
+
+      environmentRepo.save(collectionNode.collection!, currentEnv);
+    }
   }
 
   Future<SendResult> _executePostResponseScript(Request request, http.Response response, int responseTime) async {
@@ -315,7 +383,7 @@ class SendRequest {
         'request': request.toMap(),
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
-        'runtimeVars': runtimeVarsRepo.toMapList(),
+        'vars': _getVarsMap(node),
       };
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       // Run the CLI command
@@ -360,7 +428,6 @@ class SendRequest {
 
   http.Response processScriptOutputResponse(http.Response response, String output) {
     final json = jsonDecode(output);
-
     if (json['res'] == null) throw Exception('res not set on post response script  output');
 
     final res = json['res'] as Map<String, dynamic>;
@@ -372,6 +439,19 @@ class SendRequest {
         final varMap = varr as Map<String, dynamic>;
         runtimeVarsRepo.setVar(varMap['name'], varMap['value']);
       }
+    }
+
+    final currentEnv = collectionNode.collection!.getCurrentEnvironment();
+    if (currentEnv != null && json['envVars'] != null) {
+      final envVars = json['envVars'] as List<dynamic>;
+      for (final varr in envVars) {
+        final varMap = varr as Map<String, dynamic>;
+        if (varMap['value'] == null) continue;
+
+        currentEnv.setVar(varMap['name'], varMap['value']);
+      }
+
+      environmentRepo.save(collectionNode.collection!, currentEnv);
     }
 
     if (res['body'] != null) {
