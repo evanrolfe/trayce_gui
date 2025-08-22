@@ -463,6 +463,11 @@ class _EditorTabsState extends State<EditorTabs> {
     }
     environments.add('Configure');
 
+    final selectedEnvBorderColor =
+        getSelectedEnvironment() == 'No Environment' ? Color(0xFF474747) : fadedHighlightBorderColor;
+    final selectedEnvTextColor =
+        getSelectedEnvironment() == 'No Environment' ? Color(0xFF474747) : highlightBorderColor;
+
     // Global environments for dropdown
     final globalEnvironments = ['No Environment'];
     globalEnvironments.addAll(context.read<GlobalEnvironmentRepo>().getAll().map((e) => e.name));
@@ -471,6 +476,8 @@ class _EditorTabsState extends State<EditorTabs> {
     final selectedGlobalEnv = context.read<GlobalEnvironmentRepo>().getSelectedEnv();
     final globalEnvTooltip =
         selectedGlobalEnv == null ? 'Select Global Environment' : 'Global Environment: ${selectedGlobalEnv.name}';
+
+    final globalEnvIconColor = selectedGlobalEnv == null ? lightTextColor : highlightBorderColor;
 
     // Tab bar content
     Widget mainContent;
@@ -588,7 +595,7 @@ class _EditorTabsState extends State<EditorTabs> {
                               // Unforunately we can't use an ElevatedButton here because the onPressed callback prevents
                               // the dropdown menu from opening.
                               customButton: _HoverableContainer(
-                                child: const Icon(Icons.language, size: 16, color: lightTextColor),
+                                child: Icon(Icons.language, size: 16, color: globalEnvIconColor),
                               ),
                               dropdownStyleData: DropdownStyleData(
                                 decoration: dropdownDecoration,
@@ -631,7 +638,7 @@ class _EditorTabsState extends State<EditorTabs> {
                         height: 20,
                         margin: const EdgeInsets.only(left: 2, right: 8),
                         decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFF474747), width: 1),
+                          border: Border.all(color: selectedEnvBorderColor, width: 1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: DropdownButton2<String>(
