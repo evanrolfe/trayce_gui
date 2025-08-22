@@ -73,7 +73,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -138,7 +138,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -194,7 +194,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -250,7 +250,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -309,7 +309,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -367,7 +367,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -425,7 +425,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -483,7 +483,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());
@@ -559,7 +559,7 @@ void main() {
     explorerService.openCollection(collection1Path);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
-    final event = captured[0] as EventDisplayExplorerItems;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment(collection.environments[0].fileName());

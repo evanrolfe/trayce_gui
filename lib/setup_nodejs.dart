@@ -4,13 +4,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:trayce/common/config.dart';
 
 // todo: this could use package.json version to only copy the js files if the version is out-of-date
-void setupNodeJs(Config config) async {
+void setupNodeJs(Config config, {bool force = false}) async {
   try {
     final nodejsDir = Directory(config.nodeJsDir());
 
     if (await nodejsDir.exists()) {
       print("NodeJS directory: ${nodejsDir.path}");
-      nodejsDir.delete(recursive: true);
+      if (force) nodejsDir.delete(recursive: true);
     }
 
     await nodejsDir.create(recursive: true);
