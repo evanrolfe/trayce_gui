@@ -22,8 +22,10 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
+import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 import 'package:trayce/editor/widgets/runtime_vars_modal.dart';
 import 'package:uuid/uuid.dart';
@@ -51,6 +53,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub5;
   late final StreamSubscription _tabsSub6;
   late final StreamSubscription _tabsSub7;
+  late final StreamSubscription _tabsSub8;
   late final FocusNode _focusNode;
   late final FocusNode _focusNodeBtn;
   int? _hoveredTabIndex;
@@ -103,6 +106,9 @@ class _EditorTabsState extends State<EditorTabs> {
 
     // Called when the selected environment is changed
     _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen(_onEventEnvironmentsChanged);
+
+    // Called when the runtime vars are changed
+    _tabsSub8 = context.read<EventBus>().on<EventRuntimeVarsChanged>().listen(_onEventRuntimeVarsChanged);
   }
 
   void _onEventOpenExplorerNode(EventOpenExplorerNode event) {
@@ -278,6 +284,10 @@ class _EditorTabsState extends State<EditorTabs> {
     _closeCurrentTab();
   }
 
+  void _onEventRuntimeVarsChanged(EventRuntimeVarsChanged event) {
+    setState(() {});
+  }
+
   List<TabItem> currentTabs() {
     return _tabsMap[_currentCollection] ?? [];
   }
@@ -385,6 +395,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub5.cancel();
     _tabsSub6.cancel();
     _tabsSub7.cancel();
+    _tabsSub8.cancel();
     _focusNode.dispose();
     _tabScrollController.dispose();
     super.dispose();
@@ -466,9 +477,6 @@ class _EditorTabsState extends State<EditorTabs> {
 
     final selectedEnvBorderColor =
         getSelectedEnvironment() == 'No Environment' ? Color(0xFF474747) : fadedHighlightBorderColor;
-    final selectedEnvTextColor =
-        getSelectedEnvironment() == 'No Environment' ? Color(0xFF474747) : highlightBorderColor;
-
     // Global environments for dropdown
     final globalEnvironments = ['No Environment'];
     globalEnvironments.addAll(context.read<GlobalEnvironmentRepo>().getAll().map((e) => e.name));
@@ -479,6 +487,14 @@ class _EditorTabsState extends State<EditorTabs> {
         selectedGlobalEnv == null ? 'Select Global Environment' : 'Global Environment: ${selectedGlobalEnv.name}';
 
     final globalEnvIconColor = selectedGlobalEnv == null ? lightTextColor : highlightBorderColor;
+
+    // Runtime variables icon
+    final runtimeVars = context.read<RuntimeVarsRepo>().vars;
+    final runtimeVarsIconColor = runtimeVars.isEmpty ? lightTextColor : highlightBorderColor;
+    String runtimeVarsTooltip = 'Runtime Variables';
+    if (runtimeVars.isNotEmpty) {
+      runtimeVarsTooltip = 'Runtime Variables (${runtimeVars.length})';
+    }
 
     // Tab bar content
     Widget mainContent;
@@ -561,26 +577,33 @@ class _EditorTabsState extends State<EditorTabs> {
                       Container(
                         width: 25,
                         margin: const EdgeInsets.only(right: 8),
-                        child: ElevatedButton(
-                          key: const Key('editor_tabs_runtime_vars_button'),
-                          onPressed: () {
-                            showRuntimeVarsModal(context);
-                          },
-                          style: iconButtonStyle,
-                          child: const Icon(Icons.visibility, size: 16),
+                        child: Tooltip(
+                          message: runtimeVarsTooltip,
+                          child: ElevatedButton(
+                            key: const Key('editor_tabs_runtime_vars_button'),
+                            onPressed: () {
+                              showRuntimeVarsModal(context);
+                            },
+                            style: iconButtonStyle,
+                            child: Icon(Icons.visibility, size: 16, color: runtimeVarsIconColor),
+                          ),
                         ),
                       ),
                       // Settings button to open collection settings
                       Container(
                         width: 25,
                         margin: const EdgeInsets.only(right: 8),
-                        child: ElevatedButton(
-                          key: const Key('editor_tabs_collection_settings_button'),
-                          onPressed: () {
-                            // TODO: Handle eye button press
-                          },
-                          style: iconButtonStyle,
-                          child: const Icon(Icons.settings, size: 16),
+                        child: Tooltip(
+                          message: 'Collection Settings',
+                          child: ElevatedButton(
+                            key: const Key('editor_tabs_collection_settings_button'),
+                            onPressed: () {
+                              if (_currentCollectionNode == null) return;
+                              showNodeSettingsModal(context, _currentCollectionNode!);
+                            },
+                            style: iconButtonStyle,
+                            child: const Icon(Icons.settings, size: 16),
+                          ),
                         ),
                       ),
                       // Globe button to open the global environments modal

@@ -108,7 +108,7 @@ void main() {
           node: node,
           collectionNode: event.nodes[0],
           explorerService: explorerService,
-          runtimeVarsRepo: RuntimeVarsRepo(),
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
@@ -161,7 +161,7 @@ void main() {
           node: node,
           collectionNode: event.nodes[0],
           explorerService: explorerService,
-          runtimeVarsRepo: RuntimeVarsRepo(),
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
           config: config,
           httpClient: HttpClient(),
@@ -181,7 +181,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,
@@ -234,7 +237,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,
@@ -290,7 +296,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,
@@ -345,7 +354,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,
@@ -400,7 +412,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,
@@ -455,7 +470,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,
@@ -528,7 +546,10 @@ void main() {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
-    final runtimeVarsRepo = RuntimeVarsRepo(vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)]);
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
     final explorerService = ExplorerService(
       eventBus: mockEventBus,
       collectionRepo: collectionRepo,

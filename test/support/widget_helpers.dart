@@ -117,7 +117,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final globalEnvironmentRepo = GlobalEnvironmentRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
-  final runtimeVarsRepo = RuntimeVarsRepo();
+  final runtimeVarsRepo = RuntimeVarsRepo(eventBus: eventBus);
   registerFallbackValue(MockRequest());
   registerFallbackValue(MockDuration());
 

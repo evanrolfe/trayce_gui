@@ -60,7 +60,7 @@ void main(List<String> args) async {
   final globalEnvironmentRepo = GlobalEnvironmentRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
-  final runtimeVarsRepo = RuntimeVarsRepo();
+  final runtimeVarsRepo = RuntimeVarsRepo(eventBus: eventBus);
 
   // Services
   final explorerService = ExplorerService(
