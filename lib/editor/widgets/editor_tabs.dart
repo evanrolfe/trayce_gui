@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trayce/common/dialog.dart';
 import 'package:trayce/common/dropdown_style.dart';
+import 'package:trayce/common/environments_global_modal.dart';
 import 'package:trayce/common/events.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/widgets/hoverable_icon_button.dart';
@@ -56,6 +58,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
   final Map<Collection, List<TabItem>> _tabsMap = {};
   final List<FlowEditor> _tabEditors = [];
+  late final ScrollController _tabScrollController;
 
   // Environment dropdown state
   final Map<Collection, String> _selectedEnvironment = {};
@@ -95,6 +98,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
     _focusNode = FocusNode();
     _focusNodeBtn = FocusNode();
+    _tabScrollController = ScrollController();
     _focusNode.onKeyEvent = _onKeyEventTabBar;
     _focusNodeBtn.onKeyEvent = _onKeyEventTabBar;
 
@@ -125,7 +129,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub6 = context.read<EventBus>().on<EventCloseCurrentNode>().listen(_onEventCloseCurrentNode);
 
     // Called when the selected environment is changed
-    _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen((event) {});
+    _tabsSub7 = context.read<EventBus>().on<EventEnvironmentsChanged>().listen(_onEventEnvironmentsChanged);
   }
 
   void _onEventOpenExplorerNode(EventOpenExplorerNode event) {
@@ -293,6 +297,10 @@ class _EditorTabsState extends State<EditorTabs> {
     });
   }
 
+  void _onEventEnvironmentsChanged(EventEnvironmentsChanged event) {
+    setState(() {});
+  }
+
   void _onEventCloseCurrentNode(EventCloseCurrentNode event) {
     _closeCurrentTab();
   }
@@ -363,6 +371,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub6.cancel();
     _tabsSub7.cancel();
     _focusNode.dispose();
+    _tabScrollController.dispose();
     super.dispose();
   }
 
@@ -468,39 +477,122 @@ class _EditorTabsState extends State<EditorTabs> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: ReorderableListView(
-                          scrollDirection: Axis.horizontal,
-                          onReorder: _onReorder,
-                          buildDefaultDragHandles: false,
-                          children: [
-                            ...currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)),
-                            if (_currentCollection != null) _buildPlusTab(),
-                          ],
+                        // Listener is used to convert mouse wheel scrolls (vertical) to tabbar scrolls (horizontal)
+                        child: Listener(
+                          onPointerSignal: (pointerSignal) {
+                            if (pointerSignal is PointerScrollEvent) {
+                              // Convert vertical scroll to horizontal scroll
+                              final scrollController = _tabScrollController;
+                              if (scrollController.hasClients) {
+                                final newOffset = (scrollController.offset + pointerSignal.scrollDelta.dy * 4).clamp(
+                                  0.0,
+                                  scrollController.position.maxScrollExtent,
+                                );
+                                scrollController.jumpTo(newOffset);
+                              }
+                            }
+                          },
+                          // GestureDetector is used to convert two finger touchpad scroll (vertical) to tabbar scrolls (horizontal)
+                          child: GestureDetector(
+                            onVerticalDragUpdate: (DragUpdateDetails details) {
+                              // Convert vertical drag to horizontal scroll
+                              final scrollController = _tabScrollController;
+                              if (scrollController.hasClients) {
+                                final newOffset = (scrollController.offset - details.delta.dy * 4).clamp(
+                                  0.0,
+                                  scrollController.position.maxScrollExtent,
+                                );
+                                scrollController.jumpTo(newOffset);
+                              }
+                            },
+                            child: SizedBox(
+                              height: tabHeight,
+                              child: ReorderableListView(
+                                shrinkWrap: true,
+                                physics: const ClampingScrollPhysics(),
+                                scrollController: _tabScrollController,
+                                scrollDirection: Axis.horizontal,
+                                onReorder: _onReorder,
+                                buildDefaultDragHandles: false,
+                                children: [
+                                  ...currentTabs().asMap().entries.map((entry) => _buildTab(entry.value, entry.key)),
+                                  if (_currentCollection != null) _buildPlusTab(),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
+
                       // Eye button to open the runtime vars modal
-                      //
-                      // Container(
-                      //   width: 30,
-                      //   height: 20,
-                      //   margin: const EdgeInsets.only(right: 8),
-                      //   child: IconButton(
-                      //     key: const Key('editor_tabs_eye_button'),
-                      //     onPressed: () {
-                      //       // TODO: Handle eye button press
-                      //     },
-                      //     icon: const Icon(Icons.visibility, size: 16, color: lightTextColor),
-                      //     padding: EdgeInsets.zero,
-                      //     constraints: const BoxConstraints(),
-                      //     style: IconButton.styleFrom(
-                      //       backgroundColor: Colors.transparent,
-                      //       shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(4),
-                      //         side: const BorderSide(color: Color(0xFF474747), width: 1),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
+                      Container(
+                        width: 25,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: ElevatedButton(
+                          key: const Key('editor_tabs_runtime_vars_button'),
+                          onPressed: () {
+                            // TODO: Handle eye button press
+                          },
+                          style: iconButtonStyle,
+                          child: const Icon(Icons.visibility, size: 16),
+                        ),
+                      ),
+                      // Settings button to open collection settings
+                      Container(
+                        width: 25,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: ElevatedButton(
+                          key: const Key('editor_tabs_collection_settings_button'),
+                          onPressed: () {
+                            // TODO: Handle eye button press
+                          },
+                          style: iconButtonStyle,
+                          child: const Icon(Icons.settings, size: 16),
+                        ),
+                      ),
+                      // Globe button to open the global environments modal
+                      Container(
+                        width: 25,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton2<String>(
+                            key: const Key('editor_tabs_global_envs_button'),
+                            // Unforunately we can't use an ElevatedButton here because the onPressed callback prevents
+                            // the dropdown menu from opening.
+                            customButton: _HoverableContainer(
+                              child: const Icon(Icons.language, size: 16, color: lightTextColor),
+                            ),
+                            dropdownStyleData: DropdownStyleData(
+                              decoration: dropdownDecoration,
+                              width: 150,
+                              openInterval: Interval(0.0, 0.0),
+                            ),
+                            buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
+                            menuItemStyleData: menuItemStyleData,
+                            iconStyleData: iconStyleData,
+                            style: textFieldStyle,
+                            items:
+                                environments.map((String envFileName) {
+                                  return DropdownMenuItem<String>(
+                                    value: envFileName,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: Text(envFileName),
+                                    ),
+                                  );
+                                }).toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue == null) return;
+
+                              if (newValue == 'Configure') {
+                                showGlobalEnvironmentsModal(context);
+                              } else {
+                                // TODO: Switch to selected global environment
+                              }
+                            },
+                          ),
+                        ),
+                      ),
                       Container(
                         width: 150,
                         height: 20,
@@ -633,6 +725,36 @@ class _EditorTabsState extends State<EditorTabs> {
           decoration: getTabPlusDecoration(isSelected: false, isHovered: isHovered, showTopBorder: true),
           child: const Center(child: Icon(Icons.add, size: 16, color: lightTextColor)),
         ),
+      ),
+    );
+  }
+}
+
+class _HoverableContainer extends StatefulWidget {
+  final Widget child;
+
+  const _HoverableContainer({required this.child});
+
+  @override
+  State<_HoverableContainer> createState() => _HoverableContainerState();
+}
+
+class _HoverableContainerState extends State<_HoverableContainer> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        width: 20,
+        height: 18,
+        decoration: BoxDecoration(
+          color: _isHovered ? const Color(0xFF3A3A3A) : Colors.transparent,
+          borderRadius: BorderRadius.circular(2),
+        ),
+        child: widget.child,
       ),
     );
   }

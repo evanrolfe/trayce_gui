@@ -4,34 +4,30 @@ import 'package:provider/provider.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/common/widgets/hoverable_icon_button.dart';
-import 'package:trayce/editor/models/collection.dart';
-import 'package:trayce/editor/models/environment.dart';
+import 'package:trayce/editor/models/global_environment.dart';
 import 'package:trayce/editor/models/variable.dart';
-import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
+import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/focus_manager.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/form_vars_controller.dart';
 
-class EventEnvironmentsChanged {}
-
-Future<void> showEnvironmentsModal(BuildContext context, Collection collection) {
-  return showDialog(context: context, builder: (dialogContext) => EnvironmentsModal(collection: collection));
+Future<void> showGlobalEnvironmentsModal(BuildContext context) {
+  return showDialog(context: context, builder: (dialogContext) => GlobalEnvironmentsModal());
 }
 
-class EnvironmentsModal extends StatefulWidget {
-  final Collection collection;
-
-  const EnvironmentsModal({super.key, required this.collection});
+class GlobalEnvironmentsModal extends StatefulWidget {
+  const GlobalEnvironmentsModal({super.key});
 
   @override
-  State<EnvironmentsModal> createState() => _EnvironmentsModalState();
+  State<GlobalEnvironmentsModal> createState() => _GlobalEnvironmentsModalState();
 }
 
-class _EnvironmentsModalState extends State<EnvironmentsModal> {
+class _GlobalEnvironmentsModalState extends State<GlobalEnvironmentsModal> {
   late FormVarsController _varsController;
   late String _title;
-  late List<Environment> _environments;
+  late List<GlobalEnvironment> _environments;
   late int _selectedEnvironmentIndex;
   int? _hoveredEnvironmentIndex;
   bool _isEditingFilename = false;
@@ -44,14 +40,14 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     final config = context.read<ConfigRepo>().get();
     final eventBus = context.read<EventBus>();
     final filePicker = context.read<FilePickerI>();
-    final focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
+    final focusManager = EditorFocusManager(eventBus, const ValueKey('global_envs_modal'));
 
-    _title = 'Environments';
-    _environments = widget.collection.environments;
+    _title = 'Global Environments';
+    _environments = [];
     _selectedEnvironmentIndex = 0;
 
     _filenameController = TextEditingController(
-      text: _environments.isEmpty ? '' : _environments[_selectedEnvironmentIndex].fileName(),
+      text: _environments.isEmpty ? '' : _environments[_selectedEnvironmentIndex].name,
     );
 
     // Vars
@@ -68,45 +64,57 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
       eventBus: eventBus,
       filePicker: filePicker,
     );
+
+    _loadEnvironments();
+  }
+
+  void _loadEnvironments() {
+    final envs = context.read<GlobalEnvironmentRepo>().getAll();
+    if (envs.isEmpty) return;
+
+    setState(() {
+      _environments = envs;
+      _selectEnv(0);
+    });
   }
 
   void _selectEnv(int index) {
     _selectedEnvironmentIndex = index;
-    _filenameController.text = _environments[index].fileName();
+    _filenameController.text = _environments[index].name;
     _isEditingFilename = false;
 
     _varsController.setVars(_environments[_selectedEnvironmentIndex].vars);
   }
 
-  void _createNewEnvironment() {
-    final collectionPath = widget.collection.dir.path;
-    final newEnvironment = Environment.blank(collectionPath);
-    widget.collection.environments.add(newEnvironment);
-
-    context.read<CollectionRepo>().save(widget.collection);
+  void _createNewEnvironment() async {
+    final newEnvironment = GlobalEnvironment(name: 'Untitled', vars: []);
 
     // Update the local environments list
     setState(() {
-      _environments = widget.collection.environments;
+      _environments.add(newEnvironment);
       _selectedEnvironmentIndex = _environments.length - 1;
-      _filenameController.text = newEnvironment.fileName();
+      _filenameController.text = newEnvironment.name;
       _isEditingFilename = false;
     });
 
-    context.read<EventBus>().fire(EventEnvironmentsChanged());
+    // context.read<EventBus>().fire(EventEnvironmentsChanged());
 
-    // Update the vars controller
+    // // Update the vars controller
     _varsController.setVars(newEnvironment.vars);
   }
 
-  void _onRenamed(String newName) {
+  Future<void> _onRenamed(String newName) async {
     final environment = _environments[_selectedEnvironmentIndex];
+    final oldName = environment.name;
 
     setState(() {
       _isEditingFilename = false;
-      environment.setFileName(newName);
-      _filenameController.text = environment.fileName();
+      environment.name = newName;
+      _filenameController.text = environment.name;
     });
+
+    print('renaming env: $oldName -> $newName');
+    await context.read<GlobalEnvironmentRepo>().rename(oldName, newName);
   }
 
   Future<void> _onSave() async {
@@ -114,7 +122,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     final environment = _environments[_selectedEnvironmentIndex];
     environment.vars = vars;
 
-    context.read<CollectionRepo>().save(widget.collection);
+    await context.read<GlobalEnvironmentRepo>().save(_environments);
     context.read<EventBus>().fire(EventEnvironmentsChanged());
 
     Navigator.of(context).pop();
@@ -159,7 +167,10 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('No environments found.', style: const TextStyle(color: lightTextColor, fontSize: 16)),
+                            Text(
+                              'No global environments found.',
+                              style: const TextStyle(color: lightTextColor, fontSize: 16),
+                            ),
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () {
@@ -223,7 +234,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                                           ),
                                         ),
                                         child: Text(
-                                          environment.fileName(),
+                                          environment.name,
                                           style: TextStyle(
                                             color: isSelected ? Colors.white : lightTextColor,
                                             fontSize: 14,
@@ -248,7 +259,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                                     });
                                   },
                                   child: GestureDetector(
-                                    key: const Key('environments_modal_new_btn'),
+                                    key: const Key('global_envs_modal_name_input'),
                                     onTap: _createNewEnvironment,
                                     child: Container(
                                       width: double.infinity,
@@ -297,7 +308,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                                         else
                                           Expanded(
                                             child: Text(
-                                              _environments[_selectedEnvironmentIndex].fileName(),
+                                              _environments[_selectedEnvironmentIndex].name,
                                               style: const TextStyle(
                                                 color: lightTextColor,
                                                 fontSize: 16,
@@ -311,11 +322,11 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
                                               if (_isEditingFilename) {
                                                 _isEditingFilename = false;
                                                 _filenameController.text =
-                                                    _environments[_selectedEnvironmentIndex].fileName();
+                                                    _environments[_selectedEnvironmentIndex].name;
                                               } else {
                                                 _isEditingFilename = true;
                                                 _filenameController.text =
-                                                    _environments[_selectedEnvironmentIndex].fileName();
+                                                    _environments[_selectedEnvironmentIndex].name;
                                               }
                                             });
                                           },

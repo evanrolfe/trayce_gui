@@ -30,6 +30,48 @@ class FakeAppStorage extends AppStorageI {
   }
 
   @override
+  Map<String, Map<String, dynamic>> getGlobalEnvMaps() {
+    final keys = _storage.keys;
+    final envs = <String, Map<String, dynamic>>{};
+
+    for (final key in keys) {
+      if (key.startsWith('global_env_vars:')) {
+        final envName = key.split(':')[1];
+        final envVars = _storage[key];
+        if (envVars == null) continue;
+        envs[envName] = jsonDecode(envVars);
+      }
+    }
+    return envs;
+  }
+
+  @override
+  Future<void> saveGlobalEnvVars(String envName, Map<String, String> vars) async {
+    final key = 'global_env_vars:$envName';
+    _storage[key] = jsonEncode(vars);
+  }
+
+  @override
+  Future<void> deleteGlobalEnvVars() async {
+    final keys = _storage.keys;
+    for (final key in keys) {
+      if (key.startsWith('global_env_vars:')) {
+        _storage.remove(key);
+      }
+    }
+  }
+
+  @override
+  Future<void> renameGlobalEnv(String oldName, String newName) async {
+    final oldKey = 'global_env_vars:$oldName';
+    final newKey = 'global_env_vars:$newName';
+    final value = _storage[oldKey];
+    if (value == null) return;
+    _storage[newKey] = value;
+    _storage.remove(oldKey);
+  }
+
+  @override
   Future<void> saveSecretVars(String collectionPath, String envName, Map<String, String> vars) async {
     final key = 'secret_vars:$collectionPath:$envName';
     _storage[key] = jsonEncode(vars);

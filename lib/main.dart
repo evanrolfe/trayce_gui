@@ -13,6 +13,7 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
@@ -56,6 +57,7 @@ void main(List<String> args) async {
   final containersRepo = ContainersRepo(eventBus: eventBus);
   final collectionRepo = CollectionRepo(appStorage);
   final environmentRepo = EnvironmentRepo(appStorage);
+  final globalEnvironmentRepo = GlobalEnvironmentRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
   final runtimeVarsRepo = RuntimeVarsRepo();
@@ -80,6 +82,7 @@ void main(List<String> args) async {
         RepositoryProvider<ContainersRepo>(create: (context) => containersRepo),
         RepositoryProvider<CollectionRepo>(create: (context) => collectionRepo),
         RepositoryProvider<EnvironmentRepo>(create: (context) => environmentRepo),
+        RepositoryProvider<GlobalEnvironmentRepo>(create: (context) => globalEnvironmentRepo),
         RepositoryProvider<FolderRepo>(create: (context) => folderRepo),
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<RuntimeVarsRepo>(create: (context) => runtimeVarsRepo),
