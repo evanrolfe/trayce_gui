@@ -63,7 +63,7 @@ class AppStorage implements AppStorageI {
         final envName = key.split(':')[1];
         final envVars = _prefs.getString(key);
         if (envVars == null) continue;
-        print('loading env: $envName: $envVars');
+
         envs[envName] = jsonDecode(envVars);
       }
     }
@@ -85,7 +85,6 @@ class AppStorage implements AppStorageI {
   @override
   Future<void> saveGlobalEnvVars(String envName, Map<String, String> vars) async {
     final key = 'global_env_vars:$envName';
-    print('appstorage: saving env: $key ${jsonEncode(vars)}');
     await _prefs.setString(key, jsonEncode(vars));
   }
 
@@ -94,7 +93,6 @@ class AppStorage implements AppStorageI {
     final keys = _prefs.getKeys();
     for (final key in keys) {
       if (key.startsWith('global_env_vars:')) {
-        print('appstorage: deleting env $key');
         await _prefs.remove(key);
       }
     }

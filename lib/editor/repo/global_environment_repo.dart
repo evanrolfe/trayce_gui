@@ -3,6 +3,7 @@ import 'package:trayce/editor/models/global_environment.dart';
 
 class GlobalEnvironmentRepo {
   final AppStorageI _appStorage;
+  String? _selectedEnvName;
 
   GlobalEnvironmentRepo(this._appStorage);
 
@@ -26,8 +27,18 @@ class GlobalEnvironmentRepo {
 
     // Save the environment's secret vars to app storage
     for (final environment in environments) {
-      print('saving global environment: ${environment.name}: ${environment.toMap()}');
       _appStorage.saveGlobalEnvVars(environment.name, environment.toMap());
     }
+  }
+
+  void setSelectedEnvName(String? envName) {
+    _selectedEnvName = envName;
+  }
+
+  GlobalEnvironment? getSelectedEnv() {
+    if (_selectedEnvName == null) return null;
+
+    final envs = getAll();
+    return envs.firstWhere((e) => e.name == _selectedEnvName);
   }
 }

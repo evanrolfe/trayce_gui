@@ -97,8 +97,6 @@ class _GlobalEnvironmentsModalState extends State<GlobalEnvironmentsModal> {
       _isEditingFilename = false;
     });
 
-    // context.read<EventBus>().fire(EventEnvironmentsChanged());
-
     // // Update the vars controller
     _varsController.setVars(newEnvironment.vars);
   }

@@ -20,6 +20,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/tab_item.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
@@ -62,35 +63,6 @@ class _EditorTabsState extends State<EditorTabs> {
 
   // Environment dropdown state
   final Map<Collection, String> _selectedEnvironment = {};
-
-  List<TabItem> currentTabs() {
-    return _tabsMap[_currentCollection] ?? [];
-  }
-
-  void addTab(TabItem tab) {
-    if (_currentCollection == null) return;
-
-    final tabs = _tabsMap[_currentCollection];
-
-    if (tabs == null) {
-      _tabsMap[_currentCollection!] = [tab];
-    } else {
-      tabs.add(tab);
-    }
-  }
-
-  String getSelectedEnvironment() {
-    if (_currentCollection == null) return 'No Environment';
-
-    return _selectedEnvironment[_currentCollection!] ?? 'No Environment';
-  }
-
-  void selectEnvironment(String environmentFilename) {
-    if (_currentCollection == null) return;
-
-    _currentCollection!.setCurrentEnvironment(environmentFilename);
-    _selectedEnvironment[_currentCollection!] = environmentFilename;
-  }
 
   @override
   void initState() {
@@ -305,6 +277,48 @@ class _EditorTabsState extends State<EditorTabs> {
     _closeCurrentTab();
   }
 
+  List<TabItem> currentTabs() {
+    return _tabsMap[_currentCollection] ?? [];
+  }
+
+  void addTab(TabItem tab) {
+    if (_currentCollection == null) return;
+
+    final tabs = _tabsMap[_currentCollection];
+
+    if (tabs == null) {
+      _tabsMap[_currentCollection!] = [tab];
+    } else {
+      tabs.add(tab);
+    }
+  }
+
+  String getSelectedEnvironment() {
+    if (_currentCollection == null) return 'No Environment';
+
+    return _selectedEnvironment[_currentCollection!] ?? 'No Environment';
+  }
+
+  void selectEnvironment(String environmentFilename) {
+    if (_currentCollection == null) return;
+
+    _currentCollection!.setCurrentEnvironment(environmentFilename);
+    _selectedEnvironment[_currentCollection!] = environmentFilename;
+  }
+
+  String getSelectedGlobalEnvironment() {
+    final env = context.read<GlobalEnvironmentRepo>().getSelectedEnv();
+    if (env == null) return 'No Environment';
+
+    return env.name;
+  }
+
+  void selectGlobalEnvironment(String? envName) {
+    if (envName == 'No Environment') envName = null;
+
+    context.read<GlobalEnvironmentRepo>().setSelectedEnvName(envName);
+  }
+
   KeyEventResult Function(FocusNode, KeyEvent) _createOnKeyEventTabItem(ValueKey tabKey) {
     return (FocusNode node, KeyEvent event) {
       final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
@@ -442,12 +456,23 @@ class _EditorTabsState extends State<EditorTabs> {
 
   @override
   Widget build(BuildContext context) {
+    // Environments for dropdown
     final environments = ['No Environment'];
     if (_currentCollection != null) {
       environments.addAll(_currentCollection!.environments.map((e) => e.fileName()));
     }
     environments.add('Configure');
 
+    // Global environments for dropdown
+    final globalEnvironments = ['No Environment'];
+    globalEnvironments.addAll(context.read<GlobalEnvironmentRepo>().getAll().map((e) => e.name));
+    globalEnvironments.add('Configure');
+
+    final selectedGlobalEnv = context.read<GlobalEnvironmentRepo>().getSelectedEnv();
+    final globalEnvTooltip =
+        selectedGlobalEnv == null ? 'Select Global Environment' : 'Global Environment: ${selectedGlobalEnv.name}';
+
+    // Tab bar content
     Widget mainContent;
     if (_currentCollection == null) {
       mainContent = SplashPage(focusNode: _focusNode);
@@ -554,42 +579,50 @@ class _EditorTabsState extends State<EditorTabs> {
                       Container(
                         width: 25,
                         margin: const EdgeInsets.only(right: 8),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton2<String>(
-                            key: const Key('editor_tabs_global_envs_button'),
-                            // Unforunately we can't use an ElevatedButton here because the onPressed callback prevents
-                            // the dropdown menu from opening.
-                            customButton: _HoverableContainer(
-                              child: const Icon(Icons.language, size: 16, color: lightTextColor),
-                            ),
-                            dropdownStyleData: DropdownStyleData(
-                              decoration: dropdownDecoration,
-                              width: 150,
-                              openInterval: Interval(0.0, 0.0),
-                            ),
-                            buttonStyleData: ButtonStyleData(padding: const EdgeInsets.only(left: 4, top: 2, right: 4)),
-                            menuItemStyleData: menuItemStyleData,
-                            iconStyleData: iconStyleData,
-                            style: textFieldStyle,
-                            items:
-                                environments.map((String envFileName) {
-                                  return DropdownMenuItem<String>(
-                                    value: envFileName,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      child: Text(envFileName),
-                                    ),
-                                  );
-                                }).toList(),
-                            onChanged: (String? newValue) {
-                              if (newValue == null) return;
+                        child: Tooltip(
+                          message: globalEnvTooltip,
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton2<String>(
+                              key: const Key('editor_tabs_global_envs_button'),
+                              value: getSelectedGlobalEnvironment(),
+                              // Unforunately we can't use an ElevatedButton here because the onPressed callback prevents
+                              // the dropdown menu from opening.
+                              customButton: _HoverableContainer(
+                                child: const Icon(Icons.language, size: 16, color: lightTextColor),
+                              ),
+                              dropdownStyleData: DropdownStyleData(
+                                decoration: dropdownDecoration,
+                                width: 150,
+                                openInterval: Interval(0.0, 0.0),
+                              ),
+                              buttonStyleData: ButtonStyleData(
+                                padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                              ),
+                              menuItemStyleData: menuItemStyleData,
+                              iconStyleData: iconStyleData,
+                              style: textFieldStyle,
+                              items:
+                                  globalEnvironments.map((String envFileName) {
+                                    return DropdownMenuItem<String>(
+                                      value: envFileName,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        child: Text(envFileName),
+                                      ),
+                                    );
+                                  }).toList(),
+                              onChanged: (String? newValue) {
+                                if (newValue == null) return;
 
-                              if (newValue == 'Configure') {
-                                showGlobalEnvironmentsModal(context);
-                              } else {
-                                // TODO: Switch to selected global environment
-                              }
-                            },
+                                if (newValue == 'Configure') {
+                                  showGlobalEnvironmentsModal(context);
+                                } else {
+                                  setState(() {
+                                    selectGlobalEnvironment(newValue);
+                                  });
+                                }
+                              },
+                            ),
                           ),
                         ),
                       ),
