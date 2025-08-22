@@ -108,12 +108,21 @@ class SendRequest {
     }
 
     final varsMap = <String, List<VarForJson>>{
-      'runtimeVars': runtimeVarsRepo.toMapList(),
-      'requestVars': [],
-      'folderVars': [],
+      'globalEnvVars': [],
       'collectionVars': [],
       'envVars': [],
+      'folderVars': [],
+      'requestVars': [],
+      'runtimeVars': runtimeVarsRepo.toMapList(),
     };
+
+    // Add global environment vars
+    final globalEnv = globalEnvironmentRepo.getSelectedEnv();
+    if (globalEnv != null) {
+      for (final reqvar in globalEnv.vars) {
+        varsMap['globalEnvVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+      }
+    }
 
     // Work out the variables by looping through nodeHierarchy in reverse order
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
@@ -121,16 +130,17 @@ class SendRequest {
 
       // Add vars from collection & environment
       if (node.type == NodeType.collection && node.collection != null) {
+        // Add vars from collection
+        for (final reqvar in node.collection!.requestVars) {
+          varsMap['collectionVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+        }
+
         // Add vars from environment
         final currentEnv = node.collection!.getCurrentEnvironment();
         if (currentEnv != null) {
           for (final reqvar in currentEnv.vars) {
             varsMap['envVars']!.add({'name': reqvar.name, 'value': reqvar.value});
           }
-        }
-
-        for (final reqvar in node.collection!.requestVars) {
-          varsMap['collectionVars']!.add({'name': reqvar.name, 'value': reqvar.value});
         }
       }
 
@@ -174,21 +184,21 @@ class SendRequest {
     finalReq.copyValuesFrom(request);
     finalReq.interpolatePathParams();
 
+    // Add global environment vars
+    final globalEnv = globalEnvironmentRepo.getSelectedEnv();
+    if (globalEnv != null) {
+      for (final reqvar in globalEnv.vars) {
+        finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+        finalReq.requestVars.add(reqvar);
+      }
+    }
+
     // Work out the headers by looping through nodeHierarchy in reverse order
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
       final node = nodeHierarchy[i];
 
-      // Add headers, vars, auth from collection & environment
       if (node.type == NodeType.collection && node.collection != null) {
-        // Add vars from environment
-        final currentEnv = node.collection!.getCurrentEnvironment();
-        if (currentEnv != null) {
-          for (final reqvar in currentEnv.vars) {
-            finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
-            finalReq.requestVars.add(reqvar);
-          }
-        }
-
+        // Add headers, vars, auth from collection
         for (final header in node.collection!.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
@@ -203,6 +213,15 @@ class SendRequest {
         if (node.collection!.authType != AuthType.none && collectionAuth != null) {
           finalReq.authType = node.collection!.authType;
           finalReq.setAuth(collectionAuth);
+        }
+
+        // Add vars from environment
+        final currentEnv = node.collection!.getCurrentEnvironment();
+        if (currentEnv != null) {
+          for (final reqvar in currentEnv.vars) {
+            finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
+            finalReq.requestVars.add(reqvar);
+          }
         }
       }
 
@@ -250,10 +269,6 @@ class SendRequest {
       finalReq.requestVars.removeWhere((v) => v.name == varr.name);
       finalReq.requestVars.add(varr);
     }
-
-    // for (final header in finalReq.headers) {
-    //   print('   ${header.name}: ${header.value}');
-    // }
 
     return finalReq;
   }
