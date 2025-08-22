@@ -92,17 +92,30 @@ class _RuntimeVarsModalState extends State<RuntimeVarsModal> {
                 ],
               ),
             ),
+            Container(height: 1, color: borderColor),
             Expanded(
               child: Container(
                 color: backgroundColor,
                 child: SingleChildScrollView(
-                  child: FormTable(
-                    controller: _varsController,
-                    columns: [
-                      FormTableColumn.enabled,
-                      FormTableColumn.key,
-                      FormTableColumn.value,
-                      FormTableColumn.delete,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: SelectableText(
+                          'Runtime variables can be set here or by calling bru.setVar() in scripts.',
+                          style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 14),
+                        ),
+                      ),
+                      FormTable(
+                        controller: _varsController,
+                        columns: [
+                          FormTableColumn.enabled,
+                          FormTableColumn.key,
+                          FormTableColumn.value,
+                          FormTableColumn.delete,
+                        ],
+                      ),
                     ],
                   ),
                 ),

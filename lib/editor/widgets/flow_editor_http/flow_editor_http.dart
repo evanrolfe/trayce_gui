@@ -11,6 +11,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
@@ -193,6 +194,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
     try {
       final explorerService = context.read<ExplorerService>();
       final runtimeVarsRepo = context.read<RuntimeVarsRepo>();
+      final globalEnvironmentRepo = context.read<GlobalEnvironmentRepo>();
       final config = context.read<ConfigRepo>().get();
       final httpClient = context.read<HttpClientI>();
       final sendResult =
@@ -204,6 +206,7 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
             explorerService: explorerService,
             runtimeVarsRepo: runtimeVarsRepo,
             environmentRepo: context.read<EnvironmentRepo>(),
+            globalEnvironmentRepo: globalEnvironmentRepo,
             config: config,
           ).send();
 

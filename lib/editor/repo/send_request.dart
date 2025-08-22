@@ -11,6 +11,7 @@ import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/send_result.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:uuid/uuid.dart';
 
@@ -43,6 +44,7 @@ class SendRequest {
   final ExplorerService explorerService;
   final RuntimeVarsRepo runtimeVarsRepo;
   final EnvironmentRepo environmentRepo;
+  final GlobalEnvironmentRepo globalEnvironmentRepo;
   final HttpClientI httpClient;
 
   SendRequest({
@@ -54,6 +56,7 @@ class SendRequest {
     required this.httpClient,
     required this.runtimeVarsRepo,
     required this.environmentRepo,
+    required this.globalEnvironmentRepo,
   });
 
   Future<SendResult> send() async {

@@ -18,12 +18,14 @@ import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/setup_nodejs.dart';
 
 import '../../support/fake_app_storage.dart';
+import 'send_request_test.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
 
@@ -92,6 +94,7 @@ class HttpTestServer {
 late HttpTestServer mockServer;
 
 void main() {
+  late MockAppStorage mockAppStorage;
   late MockEventBus mockEventBus;
   late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
@@ -115,6 +118,7 @@ void main() {
 
   setUpAll(() async {
     mockEventBus = MockEventBus();
+    mockAppStorage = MockAppStorage();
     fakeAppStorage = await FakeAppStorage.getInstance();
     collectionRepo = CollectionRepo(fakeAppStorage);
     environmentRepo = EnvironmentRepo(fakeAppStorage);
@@ -202,6 +206,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -275,6 +280,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -333,6 +339,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -386,6 +393,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -451,6 +459,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -517,6 +526,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -572,6 +582,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
           config: config,
           httpClient: HttpClient(),
         ).send();

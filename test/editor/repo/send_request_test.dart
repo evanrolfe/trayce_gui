@@ -9,6 +9,7 @@ import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
@@ -72,6 +73,7 @@ void main() {
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
         environmentRepo: environmentRepo,
+        globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqThree);
@@ -116,6 +118,90 @@ void main() {
       // expect(auth.token, 'helloworld');
     });
 
+    test('sends a request using the node hierarchy headers with runtime var and global env var', () async {
+      when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
+
+      final runtimeVarsRepo = RuntimeVarsRepo(eventBus: mockEventBus);
+      runtimeVarsRepo.setVar('my_key2', 'RUNTIME');
+
+      final globalEnvRepo = GlobalEnvironmentRepo(mockAppStorage);
+
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[1] as EventDisplayExplorerItems;
+
+      final collection = explorerService.getOpenCollections()[0];
+      collection.setCurrentEnvironment(collection.environments[0].fileName());
+
+      final reqThree = event.nodes[0].children[1].children[2];
+      expect(reqThree.name, 'three.bru');
+
+      final hierarchy = explorerService.getNodeHierarchy(reqThree);
+      expect(hierarchy.length, 3);
+      expect(hierarchy[0].name, 'three.bru');
+      expect(hierarchy[1].name, 'myfolder');
+      expect(hierarchy[2].name, 'collection1');
+
+      final finalReq = SendRequest(
+        request: reqThree.request!,
+        node: reqThree,
+        collectionNode: event.nodes[0],
+        explorerService: explorerService,
+        runtimeVarsRepo: runtimeVarsRepo,
+        environmentRepo: environmentRepo,
+        globalEnvironmentRepo: globalEnvRepo,
+        config: config,
+        httpClient: HttpClient(),
+      ).getFinalRequest(reqThree);
+
+      // Verify the URL
+      expect(finalReq.url, 'www.synack.com/three/users/show/123');
+
+      // Verify headers
+      expect(finalReq.headers.length, 5);
+      expect(finalReq.headers[0].name, 'D');
+      expect(finalReq.headers[0].value, "set from collection");
+      expect(finalReq.headers[1].name, 'changed-by-test');
+      expect(finalReq.headers[1].value, "changed-by-test");
+      expect(finalReq.headers[2].name, 'C');
+      expect(finalReq.headers[2].value, 'set from folder');
+      expect(finalReq.headers[3].name, 'A');
+      expect(finalReq.headers[3].value, 'set from request');
+
+      // print('finalReq.requestVars:');
+      // for (final reqvar in finalReq.requestVars) {
+      //   print('  ${reqvar.name}: ${reqvar.value}');
+      // }
+
+      // Verify variables
+      expect(finalReq.requestVars.length, 7);
+      expect(finalReq.requestVars[0].name, 'my_key');
+      expect(finalReq.requestVars[0].value, '1234abcd');
+      expect(finalReq.requestVars[1].name, 'my_password');
+      expect(finalReq.requestVars[1].value, isNull);
+      expect(finalReq.requestVars[2].name, 'C_var');
+      expect(finalReq.requestVars[2].value, 'set from collection');
+      expect(finalReq.requestVars[3].name, 'process.env.key');
+      expect(finalReq.requestVars[3].value, 'password1');
+      expect(finalReq.requestVars[4].name, 'B_var');
+      expect(finalReq.requestVars[4].value, 'set from folder');
+      expect(finalReq.requestVars[5].name, 'A_var');
+      expect(finalReq.requestVars[5].value, 'set from request');
+      expect(finalReq.requestVars[6].name, 'my_key2');
+      expect(finalReq.requestVars[6].value, 'RUNTIME');
+
+      // Verify auth
+      expect(finalReq.authType, AuthType.bearer);
+      // final auth = finalReq.getAuth() as BearerAuth;
+      // expect(auth.token, 'helloworld');
+    });
+
     test('sends a request using the request auth', () async {
       when(() => mockAppStorage.getSecretVars(any(), any())).thenAnswer((_) async => emptySecretVars);
 
@@ -148,6 +234,7 @@ void main() {
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
         environmentRepo: environmentRepo,
+        globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqFour);
@@ -191,6 +278,7 @@ void main() {
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
         environmentRepo: environmentRepo,
+        globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
         config: config,
         httpClient: HttpClient(),
       ).getFinalRequest(reqFour);

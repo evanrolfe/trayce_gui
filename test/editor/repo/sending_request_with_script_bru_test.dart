@@ -10,6 +10,7 @@ import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
@@ -17,6 +18,7 @@ import 'package:trayce/setup_nodejs.dart';
 
 import '../../support/fake_app_storage.dart';
 import '../../support/helpers.dart';
+import 'send_request_test.dart';
 import 'send_request_with_script_test.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
@@ -29,11 +31,13 @@ late HttpTestServer mockServer;
 
 void main() {
   late MockEventBus mockEventBus;
+  late MockAppStorage mockAppStorage;
   late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
   late EnvironmentRepo environmentRepo;
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
+  late GlobalEnvironmentRepo globalEnvironmentRepo;
 
   final config = Config(
     isTest: false,
@@ -45,11 +49,13 @@ void main() {
   setUpAll(() async {
     // TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
+    mockAppStorage = MockAppStorage();
     fakeAppStorage = await FakeAppStorage.getInstance();
     collectionRepo = CollectionRepo(fakeAppStorage);
     environmentRepo = EnvironmentRepo(fakeAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
+    globalEnvironmentRepo = GlobalEnvironmentRepo(mockAppStorage);
 
     mockServer = await HttpTestServer.create();
 
@@ -110,6 +116,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -163,6 +170,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -219,6 +227,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -276,6 +285,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -334,6 +344,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -392,6 +403,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -450,6 +462,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -508,6 +521,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
@@ -584,6 +598,7 @@ void main() {
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
           config: config,
           httpClient: HttpClient(),
         ).send();
