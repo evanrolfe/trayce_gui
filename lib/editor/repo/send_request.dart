@@ -310,7 +310,7 @@ class SendRequest {
   void processScriptOutputRequest(Request request, String output) {
     final json = jsonDecode(output);
 
-    if (json['req'] == null) throw Exception('req not set on pre request script  output');
+    if (json['req'] == null) throw Exception('req not set on pre request script output');
 
     final req = json['req'] as Map<String, dynamic>;
     if (req['url'] != null) {
@@ -428,7 +428,7 @@ class SendRequest {
 
   http.Response processScriptOutputResponse(http.Response response, String output) {
     final json = jsonDecode(output);
-    if (json['res'] == null) throw Exception('res not set on post response script  output');
+    if (json['res'] == null) throw Exception('res not set on post response script output');
 
     final res = json['res'] as Map<String, dynamic>;
 

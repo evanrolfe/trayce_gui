@@ -18,6 +18,7 @@ import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
 import 'package:trayce/editor/repo/global_environment_repo.dart';
 import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
@@ -49,6 +50,7 @@ class WidgetDependencies {
   late RequestRepo requestRepo;
   late ExplorerService explorerService;
   late ConfigRepo configRepo;
+  late RuntimeVarsRepo runtimeVarsRepo;
 
   WidgetDependencies({
     required this.db,
@@ -66,6 +68,7 @@ class WidgetDependencies {
     required this.requestRepo,
     required this.explorerService,
     required this.configRepo,
+    required this.runtimeVarsRepo,
   });
 
   // Creates a widget with all required providers
@@ -85,6 +88,7 @@ class WidgetDependencies {
         RepositoryProvider<RequestRepo>(create: (context) => requestRepo),
         RepositoryProvider<ExplorerService>(create: (context) => explorerService),
         RepositoryProvider<ConfigRepo>(create: (context) => configRepo),
+        RepositoryProvider<RuntimeVarsRepo>(create: (context) => runtimeVarsRepo),
       ],
       child: MaterialApp(home: Scaffold(body: child)),
     );
@@ -113,7 +117,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
   final globalEnvironmentRepo = GlobalEnvironmentRepo(appStorage);
   final folderRepo = FolderRepo();
   final requestRepo = RequestRepo();
-
+  final runtimeVarsRepo = RuntimeVarsRepo();
   registerFallbackValue(MockRequest());
   registerFallbackValue(MockDuration());
 
@@ -140,6 +144,7 @@ Future<WidgetDependencies> setupTestDependencies() async {
     requestRepo: requestRepo,
     explorerService: explorerService,
     configRepo: configRepo,
+    runtimeVarsRepo: runtimeVarsRepo,
   );
 
   return deps;

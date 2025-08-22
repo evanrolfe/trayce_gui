@@ -4,10 +4,10 @@ import 'package:trayce/editor/models/variable.dart';
 class RuntimeVarsRepo {
   List<Variable> vars;
 
-  RuntimeVarsRepo({this.vars = const []});
+  RuntimeVarsRepo({List<Variable>? vars}) : vars = vars ?? [];
 
   void clearVars() {
-    vars = [];
+    vars = <Variable>[];
   }
 
   void setVar(String name, String value) {

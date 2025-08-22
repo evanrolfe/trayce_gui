@@ -25,6 +25,7 @@ import 'package:trayce/editor/repo/request_repo.dart';
 import 'package:trayce/editor/widgets/common/environments_modal.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
+import 'package:trayce/editor/widgets/runtime_vars_modal.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../common/style.dart';
@@ -563,7 +564,7 @@ class _EditorTabsState extends State<EditorTabs> {
                         child: ElevatedButton(
                           key: const Key('editor_tabs_runtime_vars_button'),
                           onPressed: () {
-                            // TODO: Handle eye button press
+                            showRuntimeVarsModal(context);
                           },
                           style: iconButtonStyle,
                           child: const Icon(Icons.visibility, size: 16),
