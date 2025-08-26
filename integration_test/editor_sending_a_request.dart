@@ -188,7 +188,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Set a variable
   await tester.tap(find.text('Variables').first);
   await tester.pumpAndSettle();
-  final varsManager = tester.widget<FormTable>(find.byType(FormTable)).controller;
+  final varsManager = tester.widget<FormTable>(find.byType(FormTable).first).controller;
 
   varsManager.rows()[0].keyController.text = 'A_var';
   varsManager.rows()[0].valueController.text = 'added-on-form';

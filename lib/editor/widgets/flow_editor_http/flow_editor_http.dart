@@ -244,10 +244,9 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
   }
 
   void displayResponse() {
-    print("===============> displayResponse");
     if (_response == null) return;
     final statusCode = _response!.statusCode;
-    print("===============> ${_response!.statusCode} ${_response!.body}");
+
     setState(() {
       _respHeaders = _response!.headers.entries.map((e) => Header(name: e.key, value: e.value, enabled: true)).toList();
       _respStatusMsg = '$statusCode ${_response!.reasonPhrase}';
