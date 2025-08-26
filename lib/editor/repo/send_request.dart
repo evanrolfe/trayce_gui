@@ -65,10 +65,11 @@ class SendRequest {
     final outputPre = await _executePreRequestScript(finalReq);
     final result = await _sendRequest(finalReq);
     final resultPost = await _executePostResponseScript(finalReq, result.response, result.responseTime ?? 0);
+    final resultPostVars = await _executePostResponseVarsScript(finalReq, result.response, result.responseTime ?? 0);
 
     return SendResult(
       response: resultPost.response,
-      output: outputPre + resultPost.output,
+      output: outputPre + resultPost.output + resultPostVars.output,
       responseTime: resultPost.responseTime,
     );
   }
@@ -113,6 +114,7 @@ class SendRequest {
       'envVars': [],
       'folderVars': [],
       'requestVars': [],
+      'responseVars': [],
       'runtimeVars': runtimeVarsRepo.toMapList(),
     };
 
@@ -153,8 +155,13 @@ class SendRequest {
 
       // Add vars from request
       if (node.type == NodeType.request && node.request != null) {
+        // pre-request
         for (final reqvar in node.request!.requestVars) {
           varsMap['requestVars']!.add({'name': reqvar.name, 'value': reqvar.value});
+        }
+        // post-response
+        for (final reqvar in node.request!.responseVars) {
+          varsMap['responseVars']!.add({'name': reqvar.name, 'value': reqvar.value});
         }
       }
     }
@@ -441,6 +448,52 @@ class SendRequest {
       if (scriptFile.existsSync()) {
         scriptFile.deleteSync();
       }
+    }
+  }
+
+  Future<SendResult> _executePostResponseVarsScript(Request request, http.Response response, int responseTime) async {
+    try {
+      final requestMap = await generateRequestMap();
+      final cliArgs = {
+        'request': request.toMap(),
+        'response': _httpResponseToMap(response, responseTime),
+        'requestMap': requestMap,
+        'vars': _getVarsMap(node),
+      };
+
+      print("npm run script-vars --silent -- '${jsonEncode(cliArgs)}'");
+      // Run the CLI command
+      final result = await Process.run(config.npmCommand, [
+        'run',
+        'script-vars',
+        '--silent',
+        '--',
+        jsonEncode(cliArgs),
+      ], workingDirectory: config.nodeJsDir());
+
+      final output = <String>[];
+
+      if (result.exitCode == 0) {
+        if (result.stdout.isNotEmpty) {
+          output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
+
+          response = processScriptOutputResponse(response, output.last);
+          output.removeLast();
+        }
+      } else {
+        if (result.stderr.isNotEmpty) {
+          output.addAll(result.stderr.toString().split('\n').where((line) => line.isNotEmpty));
+        }
+      }
+
+      return SendResult(response: response, output: output, responseTime: responseTime);
+    } catch (e) {
+      print("ERROR > $e");
+      return SendResult(
+        response: response,
+        output: ['Failed to execute post-response script: $e'],
+        responseTime: responseTime,
+      );
     }
   }
 

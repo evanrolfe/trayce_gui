@@ -545,7 +545,7 @@ void main() {
 
     final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
 
-    final jsScript = '''res.setBody('{"new": "value-from-script"}');''';
+    final jsScript = '''res.setBody({"new": "value-from-script"});''';
 
     final request = Request(
       name: 'Test Request',
@@ -593,6 +593,6 @@ void main() {
 
     print(result.output);
     expect(result.output.length, 0);
-    expect(result.response.body, '{"new": "value-from-script"}');
+    expect(result.response.body, '{"new":"value-from-script"}');
   });
 }

@@ -8,13 +8,12 @@ const Bru = require('./bru.js');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-if (args.length !== 2) {
-  console.error('Usage: node script_req.js <file_path> <config_json>');
-  console.error('Example: node script_req.js myfile.js \'{"request":{"method":"GET","url":"http://localhost:46725"},"requestMap":{},"response":{"status":200,"body":"Hello World"}}\'');
+if (args.length !== 1) {
+  console.log("incorrect args");
   process.exit(1);
 }
 
-const [filePath, configJson] = args;
+const [configJson] = args;
 
 // Parse the config JSON
 let config;
@@ -39,20 +38,11 @@ if (!config.requestMap) {
 // Create Request instance
 const req = new Request(config.request);
 
-// Create Response instance if response is provided
-let res = null;
-if (config.response) {
-  res = new Response(config.response);
-}
+// Create Response instance
+let res = new Response(config.response);
 
 // Create the Bru instance
 const bru = new Bru(config.requestMap, config.vars);
-
-// Check if the file exists
-if (!fs.existsSync(filePath)) {
-  console.error(`File not found: ${filePath}`);
-  process.exit(1);
-}
 
 // Create a context object with all the variables and request data
 const scriptContext = {
@@ -70,31 +60,34 @@ const scriptContext = {
 // Read and evaluate the target script
 (async () => {
   try {
-    const scriptContent = fs.readFileSync(filePath, 'utf8');
+    for (const responseVar of config.vars.responseVars) {
+      // Create an async function wrapper to provide the context
+      const scriptFunction = new Function('ctx', `
+            // Make all context properties available in scope
+            const {
+                req,
+                res,
+                vars,
+                getVar,
+                fs,
+                path,
+                console,
+                process,
+                log,
+                bru
+            } = ctx;
 
-    // Create an async function wrapper to provide the context
-    const scriptFunction = new Function('ctx', `
-          // Make all context properties available in scope
-          const {
-              req,
-              res,
-              vars,
-              getVar,
-              fs,
-              path,
-              console,
-              process,
-              log,
-              bru
-          } = ctx;
+            // Execute the script content as an async function
+            return (async () => {
+                return ${responseVar.value};
+            })();
+        `);
 
-          // Execute the script content as an async function
-          return (async () => {
-              ${scriptContent}
-          })();
-      `);
-
-    await scriptFunction(scriptContext);
+      const result = await scriptFunction(scriptContext);
+      if (result !== undefined) {
+        bru.setVar(responseVar.name, result.toString());
+      }
+    }
 
     const bruMap = bru.toMap();
     const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars, 'envVars': bruMap.envVars };
