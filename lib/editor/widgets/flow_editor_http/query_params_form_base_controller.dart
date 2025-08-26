@@ -112,7 +112,7 @@ class QueryParamsFormBaseController {
 
     final index = _rows.length - 1;
     setupListenersForRow(row, index);
-    _focusManager.createRowFocusNodes();
+    _focusManager.createRowFocusNodes(TableForm.queryParams);
     onStateChanged();
   }
 

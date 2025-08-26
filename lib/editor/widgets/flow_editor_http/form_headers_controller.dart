@@ -34,6 +34,7 @@ class FormHeadersController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: focusManager,
+      tableFormType: TableForm.headers,
     );
 
     // Setup listeners for existing rows
@@ -51,7 +52,7 @@ class FormHeadersController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(TableForm.headers, index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
@@ -69,6 +70,7 @@ class FormHeadersController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: _focusManager,
+      tableFormType: TableForm.headers,
     );
 
     // Setup listeners for existing rows
@@ -98,7 +100,7 @@ class FormHeadersController implements FormTableControllerI {
         checkboxState: header.enabled,
         newRow: false,
       );
-      _focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodes(TableForm.headers);
 
       return row;
     }).toList();

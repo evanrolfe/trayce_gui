@@ -824,13 +824,64 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               // Variables Tab
                                               // -----------------------------------------------------------
                                               SingleChildScrollView(
-                                                child: FormTable(
-                                                  controller: _formController.varsController,
-                                                  columns: [
-                                                    FormTableColumn.enabled,
-                                                    FormTableColumn.key,
-                                                    FormTableColumn.value,
-                                                    FormTableColumn.delete,
+                                                child: Column(
+                                                  children: [
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.only(left: 20, top: 10),
+                                                      child: SelectableText(
+                                                        'Pre Request',
+                                                        style: TextStyle(
+                                                          color: Color(0xFF666666),
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    FormTable(
+                                                      controller: _formController.preVarsController,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
+                                                    ),
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.only(left: 20, top: 10),
+                                                      child: Row(
+                                                        children: [
+                                                          SelectableText(
+                                                            'Post Response',
+                                                            style: TextStyle(
+                                                              color: Color(0xFF666666),
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Tooltip(
+                                                            message:
+                                                                'Post Response vars can contain any valid JS expression and have access to the res object and res() query function',
+                                                            child: const Icon(
+                                                              Icons.help_outline,
+                                                              size: 16,
+                                                              color: Color(0xFF666666),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    FormTable(
+                                                      controller: _formController.postVarsController,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
+                                                    ),
                                                   ],
                                                 ),
                                               ),

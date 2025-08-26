@@ -56,7 +56,8 @@ class RequestFormController {
   late final FormHeadersController headersController;
   late final QueryParamsController queryParamsController;
   late final PathParamsController pathParamsController;
-  late final FormVarsController varsController;
+  late final FormVarsController preVarsController;
+  late final FormVarsController postVarsController;
   late final FormParamsController formUrlEncodedController;
   late final FormMultipartController multipartFormController;
   late final FormFilesController fileController;
@@ -172,7 +173,7 @@ class RequestFormController {
     );
 
     // Vars
-    varsController = FormVarsController(
+    preVarsController = FormVarsController(
       onStateChanged: setState,
       onModified: _varsModified,
       initialRows: _formRequest.requestVars,
@@ -180,6 +181,17 @@ class RequestFormController {
       focusManager: _focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.requestVars,
+    );
+    postVarsController = FormVarsController(
+      onStateChanged: setState,
+      onModified: _varsModified,
+      initialRows: _formRequest.responseVars,
+      config: config,
+      focusManager: _focusManager,
+      eventBus: eventBus,
+      filePicker: filePicker,
+      tableFormType: TableForm.responseVars,
     );
 
     // Form URL Encoded
@@ -381,7 +393,8 @@ class RequestFormController {
   }
 
   void _varsModified() {
-    _formRequest.setRequestVars(varsController.getVars());
+    _formRequest.setRequestVars(preVarsController.getVars());
+    _formRequest.setResponseVars(postVarsController.getVars());
     _flowModified();
   }
 

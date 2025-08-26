@@ -34,6 +34,7 @@ class FormParamsController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: focusManager,
+      tableFormType: TableForm.queryParams,
     );
 
     // Setup listeners for existing rows
@@ -51,7 +52,7 @@ class FormParamsController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(TableForm.queryParams, index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
@@ -74,6 +75,7 @@ class FormParamsController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: _focusManager,
+      tableFormType: TableForm.queryParams,
     );
 
     // Setup listeners for existing rows
@@ -147,7 +149,7 @@ class FormParamsController implements FormTableControllerI {
         checkboxState: param.enabled,
         newRow: false,
       );
-      _focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodes(TableForm.queryParams);
 
       return row;
     }).toList();

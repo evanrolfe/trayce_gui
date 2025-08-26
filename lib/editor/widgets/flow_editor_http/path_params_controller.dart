@@ -45,7 +45,7 @@ class PathParamsController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getPathParamsRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(TableForm.pathParams, index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
@@ -69,7 +69,7 @@ class PathParamsController implements FormTableControllerI {
         checkboxState: param.enabled,
         newRow: false,
       );
-      _focusManager.createRowFocusNodesForPathParams();
+      _focusManager.createRowFocusNodes(TableForm.pathParams);
 
       return row;
     }).toList();
@@ -126,7 +126,7 @@ class PathParamsController implements FormTableControllerI {
       );
 
       _baseController.rows.add(row);
-      _focusManager.createRowFocusNodesForPathParams();
+      _focusManager.createRowFocusNodes(TableForm.pathParams);
       _baseController.setupListenersForRow(row, i);
     }
 

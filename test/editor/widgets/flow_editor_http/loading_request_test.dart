@@ -285,7 +285,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify variables
-      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final formTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final tableManager = formTable.controller;
 
       expect(tableManager.rows().length, 3);

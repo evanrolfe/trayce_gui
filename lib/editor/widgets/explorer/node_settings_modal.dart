@@ -97,6 +97,7 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       focusManager: _focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.requestVars,
     );
 
     // Auth Type

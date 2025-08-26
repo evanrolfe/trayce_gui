@@ -99,7 +99,7 @@ class PathParamsFormBaseController {
     setupControllerListener(row.keyController, index, true);
     setupControllerListener(row.valueController, index, false);
     setupControllerListener(row.contentTypeController, index, false);
-    _focusManager.createRowFocusNodesForPathParams();
+    _focusManager.createRowFocusNodes(TableForm.pathParams);
     onStateChanged();
   }
 

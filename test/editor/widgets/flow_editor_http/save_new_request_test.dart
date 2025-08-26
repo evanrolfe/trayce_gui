@@ -68,7 +68,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify request body
-      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final formTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final tableManager = formTable.controller;
       expect(tableManager.rows().length, 1);
 
@@ -133,7 +133,7 @@ void main() {
       await tester.tap(find.text('Variables'));
       await tester.pumpAndSettle();
 
-      final formTable = tester.widget<FormTable>(find.byType(FormTable));
+      final formTable = tester.widget<FormTable>(find.byType(FormTable).first);
       final tableManager = formTable.controller;
       expect(tableManager.rows().length, 1);
 

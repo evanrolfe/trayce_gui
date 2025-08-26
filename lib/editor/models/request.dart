@@ -754,6 +754,10 @@ class Request {
     requestVars = vars;
   }
 
+  void setResponseVars(List<Variable> vars) {
+    responseVars = vars;
+  }
+
   void setAuthType(AuthType authType) {
     this.authType = authType;
   }

@@ -63,6 +63,7 @@ class _GlobalEnvironmentsModalState extends State<GlobalEnvironmentsModal> {
       focusManager: focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.requestVars,
     );
 
     _loadEnvironments();

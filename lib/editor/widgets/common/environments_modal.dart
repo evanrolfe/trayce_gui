@@ -67,6 +67,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
       focusManager: focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.requestVars,
     );
   }
 

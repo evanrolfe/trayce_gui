@@ -48,6 +48,7 @@ class _RuntimeVarsModalState extends State<RuntimeVarsModal> {
       focusManager: _focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.runtimeVars,
     );
   }
 
