@@ -12,7 +12,7 @@ class Config {
 
   static const defaultTrayceApiUrl = 'https://get.trayce.dev'; // no trailing slash
   static const defaultNpmCommand = 'npm';
-  static const defaultAgentPort = 50051;
+  static const defaultAgentPort = 50052;
 
   Config({
     required this.isTest,
