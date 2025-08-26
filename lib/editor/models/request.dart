@@ -324,7 +324,7 @@ class Request {
       }
     }
 
-    // Compare request variables
+    // Compare pre-request variables
     if (requestVars.length != other.requestVars.length) return false;
 
     for (var i = 0; i < requestVars.length; i++) {
@@ -333,11 +333,14 @@ class Request {
       }
     }
 
-    // Compare response variables
-    // if (responseVars.length != other.responseVars.length) return false;
-    // for (var i = 0; i < responseVars.length; i++) {
-    //   if (!responseVars[i].equals(other.responseVars[i])) return false;
-    // }
+    // Compare post-response variables
+    if (responseVars.length != other.responseVars.length) return false;
+
+    for (var i = 0; i < responseVars.length; i++) {
+      if (!responseVars[i].equals(other.responseVars[i])) {
+        return false;
+      }
+    }
 
     // Compare assertions
     // if (assertions.length != other.assertions.length) return false;
