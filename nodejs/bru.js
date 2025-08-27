@@ -169,6 +169,10 @@ class Bru {
     return this.globalEnvVars.find(varr => varr.name === name)?.value;
   }
 
+  getProcessEnv(name) {
+    return this.collectionVars.find(varr => varr.name === `process.env.${name}`)?.value;
+  }
+
   deleteVar(name) {
     this.runtimeVars = this.runtimeVars.filter(varr => varr.name !== name);
   }

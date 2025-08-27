@@ -814,4 +814,62 @@ void main() {
       expect(env?.vars.first.value, 'set-from-script');
     },
   );
+
+  test('sending a request with a post-response script that calls bru.getProcessEnv()', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    // Open the collection and load the request
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
+
+    final explorerService = ExplorerService(
+      eventBus: mockEventBus,
+      collectionRepo: collectionRepo,
+      folderRepo: folderRepo,
+      requestRepo: requestRepo,
+    );
+    explorerService.openCollection(collection1Path);
+
+    final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
+
+    final collection = explorerService.getOpenCollections()[0];
+    collection.setCurrentEnvironment(collection.environments[0].fileName());
+
+    final node = event.nodes[0].children[2];
+    expect(node.name, 'my-request.bru');
+
+    // Set the URL and script on the request
+    final url = '${mockServer.url().toString()}/test_endpoint';
+
+    final jsScript = '''console.log(bru.getProcessEnv('key'));''';
+    final request = node.request!;
+    request.url = url;
+    request.script = Script(res: jsScript);
+
+    // Send the request with the node hierarchy
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: event.nodes[0],
+          explorerService: explorerService,
+          runtimeVarsRepo: runtimeVarsRepo,
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
+    final response = result.response;
+
+    // Verify the response
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    mockServer.reset();
+
+    expect(result.output.length, 1);
+    expect(result.output[0], 'password1');
+  });
 }

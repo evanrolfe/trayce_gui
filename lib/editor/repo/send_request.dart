@@ -169,16 +169,6 @@ class SendRequest {
     return varsMap;
   }
 
-  // void _setEnvVar(String name, String value) {
-  //   final currentEnv = collectionNode.collection!.getCurrentEnvironment();
-  //   if (currentEnv != null) {
-  //     for (final reqvar in currentEnv.vars) {
-  //       request.requestVars.removeWhere((v) => v.name == reqvar.name);
-  //       request.requestVars.add(reqvar);
-  //     }
-  //   }
-  // }
-
   Request getFinalRequest(ExplorerNode? reqNode) {
     List<ExplorerNode> nodeHierarchy;
     if (reqNode == null) {
@@ -498,7 +488,6 @@ class SendRequest {
 
       return SendResult(response: response, output: output, responseTime: responseTime);
     } catch (e) {
-      print("ERROR > $e");
       return SendResult(
         response: response,
         output: ['Failed to execute post-response script: $e'],
