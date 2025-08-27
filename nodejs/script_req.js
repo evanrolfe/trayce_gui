@@ -58,13 +58,11 @@ if (!fs.existsSync(filePath)) {
 const scriptContext = {
   req: req,
   res: res,
-  vars: req.vars,
-  getVar: (name) => req.getVar(name),
+  bru: bru,
   fs: fs,
   path: path,
   console: console,
   process: process,
-  bru: bru,
 };
 
 // Read and evaluate the target script
@@ -78,14 +76,11 @@ const scriptContext = {
           const {
               req,
               res,
-              vars,
-              getVar,
+              bru,
               fs,
               path,
               console,
-              process,
-              log,
-              bru
+              process
           } = ctx;
 
           // Execute the script content as an async function

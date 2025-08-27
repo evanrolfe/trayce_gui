@@ -1,4 +1,5 @@
 const axios = require('axios');
+const mockDataFunctions = require('./random');
 
 class Bru {
   constructor(requestMap, vars) {
@@ -6,8 +7,8 @@ class Bru {
     this.runtimeVars = vars.runtimeVars;
     this.requestVars = vars.requestVars;
     this.folderVars = vars.folderVars;
-    this.collectionVars = vars.collectionVars;
     this.envVars = vars.envVars;
+    this.collectionVars = vars.collectionVars;
   }
 
   async runRequest(requestPath) {
@@ -160,6 +161,37 @@ class Bru {
 
   toMap() {
     return { runtimeVars: this.runtimeVars, envVars: this.envVars };
+  }
+
+  interpolate(str) {
+    if (typeof str !== 'string') {
+      return str;
+    }
+
+    return str.replace(/\{\{([^}]+)\}\}/g, (match, varName) => {
+      if (varName.startsWith('$')) {
+        return mockDataFunctions[varName.slice(1)]();
+      }
+
+      // Check variables in order of precedence
+      let value = this.getVar(varName);
+      if (value !== undefined) return value;
+
+      value = this.getRequestVar(varName);
+      if (value !== undefined) return value;
+
+      value = this.getFolderVar(varName);
+      if (value !== undefined) return value;
+
+      value = this.getEnvVar(varName);
+      if (value !== undefined) return value;
+
+      value = this.getCollectionVar(varName);
+      if (value !== undefined) return value;
+
+      // If variable not found, return the original placeholder
+      return match;
+    });
   }
 }
 

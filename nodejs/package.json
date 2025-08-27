@@ -12,7 +12,8 @@
     "license": "ISC",
     "dependencies": {
         "@usebruno/query": "^0.1.0",
-        "axios": "^1.11.0"
+        "axios": "^1.11.0",
+        "faker": "^5.5.3"
     },
     "engines": {
         "node": ">=14.0.0"
