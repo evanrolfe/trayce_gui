@@ -42,7 +42,7 @@ const req = new Request(config.request);
 let res = new Response(config.response);
 
 // Create the Bru instance
-const bru = new Bru(config.requestMap, config.vars);
+const bru = new Bru(config.requestMap, config.collectionName, config.vars);
 
 // Create a context object with all the variables and request data
 const scriptContext = {

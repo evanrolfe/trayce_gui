@@ -46,7 +46,7 @@ if (config.response) {
 }
 
 // Create the Bru instance
-const bru = new Bru(config.requestMap, config.vars);
+const bru = new Bru(config.requestMap, config.collectionName, config.vars);
 
 // Check if the file exists
 if (!fs.existsSync(filePath)) {

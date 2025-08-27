@@ -284,7 +284,12 @@ class SendRequest {
       scriptFile.writeAsStringSync(preReqScript);
 
       final requestMap = await generateRequestMap();
-      final cliArgs = {'request': request.toMap(), 'requestMap': requestMap, 'vars': _getVarsMap(node)};
+      final cliArgs = {
+        'request': request.toMap(),
+        'requestMap': requestMap,
+        'collectionName': collectionNode.collection!.dir.path,
+        'vars': _getVarsMap(node),
+      };
 
       // Run the CLI command
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
@@ -408,6 +413,7 @@ class SendRequest {
         'request': request.toMap(),
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
+        'collectionName': collectionNode.collection!.dir.path,
         'vars': _getVarsMap(node),
       };
       print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
@@ -458,6 +464,7 @@ class SendRequest {
         'request': request.toMap(),
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
+        'collectionName': collectionNode.collection!.dir.path,
         'vars': _getVarsMap(node),
       };
 

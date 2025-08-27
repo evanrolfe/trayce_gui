@@ -2,8 +2,9 @@ const axios = require('axios');
 const mockDataFunctions = require('./random');
 
 class Bru {
-  constructor(requestMap, vars) {
+  constructor(requestMap, collectionName, vars) {
     this.requestMap = requestMap;
+    this.collectionName = collectionName;
     this.runtimeVars = vars.runtimeVars;
     this.requestVars = vars.requestVars;
     this.folderVars = vars.folderVars;
@@ -173,6 +174,10 @@ class Bru {
     return this.collectionVars.find(varr => varr.name === `process.env.${name}`)?.value;
   }
 
+  getCollectionName() {
+    return this.collectionName;
+  }
+
   deleteVar(name) {
     this.runtimeVars = this.runtimeVars.filter(varr => varr.name !== name);
   }
@@ -210,6 +215,14 @@ class Bru {
       // If variable not found, return the original placeholder
       return match;
     });
+  }
+
+  disableParsingResponseJson() {
+    console.log("Warning: disableParsingResponseJson() is not available in Trayce")
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
