@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/editor/models/global_environment.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
@@ -18,7 +19,6 @@ import 'package:trayce/setup_nodejs.dart';
 
 import '../../support/fake_app_storage.dart';
 import '../../support/helpers.dart';
-import 'send_request_test.dart';
 import 'send_request_with_script_test.dart';
 
 const jsonResponse = '{"message":"Hello, World!","status":200}';
@@ -31,7 +31,6 @@ late HttpTestServer mockServer;
 
 void main() {
   late MockEventBus mockEventBus;
-  late MockAppStorage mockAppStorage;
   late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
   late EnvironmentRepo environmentRepo;
@@ -49,13 +48,12 @@ void main() {
   setUpAll(() async {
     // TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
-    mockAppStorage = MockAppStorage();
     fakeAppStorage = await FakeAppStorage.getInstance();
     collectionRepo = CollectionRepo(fakeAppStorage);
     environmentRepo = EnvironmentRepo(fakeAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
-    globalEnvironmentRepo = GlobalEnvironmentRepo(mockAppStorage);
+    globalEnvironmentRepo = GlobalEnvironmentRepo(fakeAppStorage);
 
     mockServer = await HttpTestServer.create();
 
@@ -744,4 +742,76 @@ void main() {
 
     saveFile('test/support/collection1/environments/dev.bru', originalEnv);
   });
+
+  test(
+    'sending a request with a post-response script that calls bru.getGlobalEnvVar() and bru.setGlobalEnvVar()',
+    () async {
+      mockServer.newHandler('GET', '/test_endpoint');
+
+      // Open the collection and load the request
+      final runtimeVarsRepo = RuntimeVarsRepo(
+        vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+        eventBus: mockEventBus,
+      );
+
+      await globalEnvironmentRepo.save([
+        GlobalEnvironment(name: 'dev', vars: [Variable(name: 'my_key', value: 'global-value', enabled: true)]),
+      ]);
+      globalEnvironmentRepo.setSelectedEnvName('dev');
+
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+      explorerService.openCollection(collection1Path);
+
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured.whereType<EventDisplayExplorerItems>().first;
+
+      final collection = explorerService.getOpenCollections()[0];
+      collection.setCurrentEnvironment(collection.environments[0].fileName());
+
+      final node = event.nodes[0].children[2];
+      expect(node.name, 'my-request.bru');
+
+      // Set the URL and script on the request
+      final url = '${mockServer.url().toString()}/test_endpoint';
+
+      final jsScript =
+          '''console.log(bru.getGlobalEnvVar('my_key')); bru.setGlobalEnvVar('my_key', 'set-from-script');''';
+      final request = node.request!;
+      request.url = url;
+      request.script = Script(res: jsScript);
+
+      // Send the request with the node hierarchy
+      final result =
+          await SendRequest(
+            request: request,
+            node: node,
+            collectionNode: event.nodes[0],
+            explorerService: explorerService,
+            runtimeVarsRepo: runtimeVarsRepo,
+            environmentRepo: environmentRepo,
+            globalEnvironmentRepo: globalEnvironmentRepo,
+            config: config,
+            httpClient: HttpClient(),
+          ).send();
+      final response = result.response;
+
+      // Verify the response
+      expect(response.statusCode, 200);
+      expect(response.body, jsonResponse);
+      mockServer.reset();
+
+      expect(result.output.length, 1);
+      expect(result.output[0], 'global-value');
+
+      final env = globalEnvironmentRepo.getSelectedEnv();
+      expect(env?.vars.length, 1);
+      expect(env?.vars.first.name, 'my_key');
+      expect(env?.vars.first.value, 'set-from-script');
+    },
+  );
 }

@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'variable.dart';
 
 class GlobalEnvironment {
@@ -13,6 +15,15 @@ class GlobalEnvironment {
       output[varr.name] = varr.value ?? '';
     }
     return output;
+  }
+
+  void setVar(String name, String value) {
+    final varr = vars.firstWhereOrNull((v) => v.name == name);
+    if (varr != null) {
+      varr.value = value;
+    } else {
+      vars.add(Variable(name: name, value: value, enabled: true));
+    }
   }
 
   static GlobalEnvironment fromMap(String name, Map<String, dynamic> map) {

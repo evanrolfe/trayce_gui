@@ -9,6 +9,7 @@ class Bru {
     this.folderVars = vars.folderVars;
     this.envVars = vars.envVars;
     this.collectionVars = vars.collectionVars;
+    this.globalEnvVars = vars.globalEnvVars;
   }
 
   async runRequest(requestPath) {
@@ -135,6 +136,15 @@ class Bru {
     }
   }
 
+  setGlobalEnvVar(name, value) {
+    const varr = this.globalEnvVars.find(varr => varr.name === name);
+    if (varr) {
+      varr.value = value;
+    } else {
+      this.globalEnvVars.push({ name, value });
+    }
+  }
+
   getVar(name) {
     return this.runtimeVars.find(varr => varr.name === name)?.value;
   }
@@ -155,12 +165,16 @@ class Bru {
     return this.envVars.find(varr => varr.name === name)?.value;
   }
 
+  getGlobalEnvVar(name) {
+    return this.globalEnvVars.find(varr => varr.name === name)?.value;
+  }
+
   deleteVar(name) {
     this.runtimeVars = this.runtimeVars.filter(varr => varr.name !== name);
   }
 
   toMap() {
-    return { runtimeVars: this.runtimeVars, envVars: this.envVars };
+    return { runtimeVars: this.runtimeVars, envVars: this.envVars, globalEnvVars: this.globalEnvVars };
   }
 
   interpolate(str) {

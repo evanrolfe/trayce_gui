@@ -379,11 +379,21 @@ class SendRequest {
       for (final varr in envVars) {
         final varMap = varr as Map<String, dynamic>;
         if (varMap['value'] == null) continue;
-
         currentEnv.setVar(varMap['name'], varMap['value']);
       }
 
       environmentRepo.save(collectionNode.collection!, currentEnv);
+    }
+
+    final currentGlobalEnv = globalEnvironmentRepo.getSelectedEnv();
+    if (currentGlobalEnv != null && json['globalEnvVars'] != null) {
+      final globalEnvVars = json['globalEnvVars'] as List<dynamic>;
+      for (final varr in globalEnvVars) {
+        final varMap = varr as Map<String, dynamic>;
+        currentGlobalEnv.setVar(varMap['name'], varMap['value']);
+      }
+
+      globalEnvironmentRepo.saveOne(currentGlobalEnv);
     }
   }
 
@@ -427,7 +437,7 @@ class SendRequest {
         if (result.stdout.isNotEmpty) {
           output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
 
-          response = processScriptOutputResponse(response, output.last);
+          response = await processScriptOutputResponse(response, output.last);
           output.removeLast();
         }
       } else {
@@ -477,7 +487,7 @@ class SendRequest {
         if (result.stdout.isNotEmpty) {
           output.addAll(result.stdout.toString().split('\n').where((line) => line.isNotEmpty));
 
-          response = processScriptOutputResponse(response, output.last);
+          response = await processScriptOutputResponse(response, output.last);
           output.removeLast();
         }
       } else {
@@ -497,7 +507,7 @@ class SendRequest {
     }
   }
 
-  http.Response processScriptOutputResponse(http.Response response, String output) {
+  Future<http.Response> processScriptOutputResponse(http.Response response, String output) async {
     final json = jsonDecode(output);
     if (json['res'] == null) throw Exception('res not set on post response script output');
 
@@ -524,6 +534,18 @@ class SendRequest {
 
       environmentRepo.save(collectionNode.collection!, currentEnv);
     }
+
+    final currentGlobalEnv = globalEnvironmentRepo.getSelectedEnv();
+    if (currentGlobalEnv != null && json['globalEnvVars'] != null) {
+      final globalEnvVars = json['globalEnvVars'] as List<dynamic>;
+      for (final varr in globalEnvVars) {
+        final varMap = varr as Map<String, dynamic>;
+        currentGlobalEnv.setVar(varMap['name'], varMap['value']);
+      }
+
+      await globalEnvironmentRepo.saveOne(currentGlobalEnv);
+    }
+    print("DONE post resp");
 
     if (res['body'] != null) {
       // Create a new response with the modified body

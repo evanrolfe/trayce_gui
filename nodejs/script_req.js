@@ -92,7 +92,7 @@ const scriptContext = {
     await scriptFunction(scriptContext);
 
     const bruMap = bru.toMap();
-    const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars, 'envVars': bruMap.envVars };
+    const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars, 'envVars': bruMap.envVars, 'globalEnvVars': bruMap.globalEnvVars };
 
     if (res) {
       output['res'] = res.toMap();

@@ -31,6 +31,11 @@ class GlobalEnvironmentRepo {
     }
   }
 
+  Future<void> saveOne(GlobalEnvironment env) async {
+    await _appStorage.deleteGlobalEnv(env.name);
+    _appStorage.saveGlobalEnvVars(env.name, env.toMap());
+  }
+
   void setSelectedEnvName(String? envName) {
     _selectedEnvName = envName;
   }

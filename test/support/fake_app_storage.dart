@@ -62,6 +62,12 @@ class FakeAppStorage extends AppStorageI {
   }
 
   @override
+  Future<void> deleteGlobalEnv(String envName) async {
+    final key = 'global_env_vars:$envName';
+    _storage.remove(key);
+  }
+
+  @override
   Future<void> renameGlobalEnv(String oldName, String newName) async {
     final oldKey = 'global_env_vars:$oldName';
     final newKey = 'global_env_vars:$newName';

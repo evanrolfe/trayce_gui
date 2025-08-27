@@ -14,6 +14,7 @@ abstract class AppStorageI {
   Map<String, Map<String, dynamic>> getGlobalEnvMaps();
   Future<void> saveGlobalEnvVars(String envName, Map<String, String> vars);
   Future<void> deleteGlobalEnvVars();
+  Future<void> deleteGlobalEnv(String envName);
   Future<void> renameGlobalEnv(String oldName, String newName);
   Future<void> saveSecretVars(String collectionPath, String envName, Map<String, String> vars);
   Future<Map<String, String>> getSecretVars(String collectionPath, String envName);
@@ -96,6 +97,12 @@ class AppStorage implements AppStorageI {
         await _prefs.remove(key);
       }
     }
+  }
+
+  @override
+  Future<void> deleteGlobalEnv(String envName) async {
+    final key = 'global_env_vars:$envName';
+    await _prefs.remove(key);
   }
 
   @override
