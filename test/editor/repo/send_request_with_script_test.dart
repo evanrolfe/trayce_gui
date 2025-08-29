@@ -602,9 +602,11 @@ void main() {
     const { v4: uuidv4 } = require('uuid');
     const f = require('faker');
     const utils = require('./utils.js');
+    const { test } = require('../collection1/test_script.js');
     console.log('result:', utils.whatsMyName());
     console.log('faker:', f.name.firstName());
     console.log('uuid:', uuidv4());
+    console.log('test:', test());
     ''';
 
     final request = Request(
@@ -652,6 +654,7 @@ void main() {
     mockServer.reset();
 
     print(result.output);
-    expect(result.output.length, 3);
+    expect(result.output.length, 4);
+    expect(result.output[3], 'test: i am from collection1/test_script.js');
   });
 }
