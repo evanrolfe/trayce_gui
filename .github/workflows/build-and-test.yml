@@ -26,13 +26,14 @@ jobs:
       - name: Build
         run: make build-linux
 
+      - name: Integration Test
+        run: xvfb-run flutter test ./integration_test/main.dart -r github
+
       - name: Unit Test
         run: make test
       # - name: Start tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - name: Integration Test
-        run: xvfb-run flutter test ./integration_test/main.dart -r github
 
       - name: Package .deb
         run: make pkg-deb

@@ -64,7 +64,7 @@ void main() {
       {'func': editor_new_request_in_folder.test},
       {'func': editor_modifying_requests.test},
       {'func': editor_saving_request.test},
-      {'func': editor_sending_a_request.test},
+      {'f': 1, 'func': editor_sending_a_request.test},
       {'func': editor_sending_a_request_with_script.test},
       {'func': editor_create_collection.test},
       {'func': license_key_test.test},

@@ -287,13 +287,19 @@ Future<void> test(WidgetTester tester, Database db) async {
 
   final envTable = tester.widget<FormTable>(find.byType(FormTable).last);
   final envController = envTable.controller;
+  for (final row in envController.rows()) {
+    print('Env Vars row: ${row.keyController.text}: ${row.valueController.text}');
+  }
+  expect(envController.rows().length, 3);
 
   envController.rows()[2].keyController.text = 'G_var';
   envController.rows()[2].valueController.text = 'added-on-env';
+  await tester.pumpAndSettle();
 
   envController.rows()[3].keyController.text = 'H_var';
   envController.rows()[3].valueController.text = 'added-on-env-secret!';
   envController.rows()[3].checkboxStateSecret = true;
+  await tester.pumpAndSettle();
 
   await tester.tap(find.byKey(Key('save_btn')));
   await tester.pumpAndSettle();

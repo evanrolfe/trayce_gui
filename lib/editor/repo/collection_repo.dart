@@ -33,6 +33,9 @@ class CollectionRepo {
       }
     }
 
+    // Sort environments by fileName
+    environments.sort((a, b) => a.fileName().compareTo(b.fileName()));
+
     // Load the collection
     final collectionStr = collectionFile.readAsStringSync();
     final collection = parseCollection(collectionStr, collectionFile, dir, environments);
