@@ -25,7 +25,7 @@ const jsonResponse = '{"message":"Hello, World!","status":200}';
 
 class MockEventBus extends Mock implements EventBus {}
 
-const collection1Path = 'test/support/collection1';
+const collection1Path = 'test/support/collection-scripts';
 
 late HttpTestServer mockServer;
 
@@ -82,7 +82,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -148,7 +148,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -205,7 +205,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -262,7 +262,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -322,7 +322,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -379,7 +379,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -436,7 +436,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -495,7 +495,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -554,7 +554,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -590,7 +590,7 @@ void main() {
   });
 
   test('sending a request with a pre-request script that calls bru.setEnvVar()', () async {
-    final originalEnv = loadFile('test/support/collection1/environments/dev.bru');
+    final originalEnv = loadFile('test/support/collection-scripts/environments/dev.bru');
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
@@ -612,7 +612,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -646,7 +646,7 @@ void main() {
     print(result.output);
     expect(result.output.length, 0);
 
-    final envContents = loadFile('test/support/collection1/environments/dev.bru');
+    final envContents = loadFile('test/support/collection-scripts/environments/dev.bru');
     expect(
       envContents,
       contains('''vars {
@@ -662,11 +662,11 @@ void main() {
 ]'''),
     );
 
-    saveFile('test/support/collection1/environments/dev.bru', originalEnv);
+    saveFile('test/support/collection-scripts/environments/dev.bru', originalEnv);
   });
 
   test('sending a request with a post-response script that calls bru.setEnvVar()', () async {
-    final originalEnv = loadFile('test/support/collection1/environments/dev.bru');
+    final originalEnv = loadFile('test/support/collection-scripts/environments/dev.bru');
 
     mockServer.newHandler('GET', '/test_endpoint');
 
@@ -689,7 +689,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request
@@ -723,7 +723,7 @@ void main() {
     print(result.output);
     expect(result.output.length, 0);
 
-    final envContents = loadFile('test/support/collection1/environments/dev.bru');
+    final envContents = loadFile('test/support/collection-scripts/environments/dev.bru');
     expect(
       envContents,
       contains('''vars {
@@ -739,7 +739,7 @@ void main() {
 ]'''),
     );
 
-    saveFile('test/support/collection1/environments/dev.bru', originalEnv);
+    saveFile('test/support/collection-scripts/environments/dev.bru', originalEnv);
   });
 
   test(
@@ -772,7 +772,7 @@ void main() {
       final collection = explorerService.getOpenCollections()[0];
       collection.setCurrentEnvironment('dev');
 
-      final node = event.nodes[0].children[2];
+      final node = event.nodes[0].children[3];
       expect(node.name, 'my-request.bru');
 
       // Set the URL and script on the request
@@ -837,7 +837,7 @@ void main() {
     final collection = explorerService.getOpenCollections()[0];
     collection.setCurrentEnvironment('dev');
 
-    final node = event.nodes[0].children[2];
+    final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
 
     // Set the URL and script on the request

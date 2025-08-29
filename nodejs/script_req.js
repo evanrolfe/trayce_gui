@@ -55,77 +55,17 @@ if (!fs.existsSync(filePath)) {
   process.exit(1);
 }
 
-// Load and evaluate the target script using a VM context with a custom require function
+// Read and evaluate the target script
 (async () => {
   try {
     const scriptContent = fs.readFileSync(filePath, 'utf8');
+    // Make all context properties available in curt scope for eval()
+    // const { req, res, bru, fs, path, console, process } = scriptContext;
 
+    // Execute the script content using vm.runInNewContext with async wrapper
     const asyncScript = `(async () => { ${scriptContent} })()`;
 
-    // customRequire is needed to include relative requires from the collection folder
-    // and to ensure that those required modules also require from the same collection folder + node path
-    const customRequire = (id) => {
-      if (id.startsWith("./") || id.startsWith("../")) {
-        const newPath = path.resolve(config.collectionPath, id);
-
-        const moduleContent = fs.readFileSync(newPath, 'utf8');
-
-        // Create a module wrapper similar to Node.js CommonJS
-        const moduleWrapper = `
-          (function(exports, require, module, __filename, __dirname) {
-            ${moduleContent}
-          })
-        `;
-        const moduleObj = { exports: {} };
-        const moduleDir = path.dirname(newPath);
-
-        // Create a require function for this module that also uses customRequire
-        const moduleRequire = (moduleId) => {
-          if (moduleId.startsWith("./") || moduleId.startsWith("../")) {
-            const modulePath = path.resolve(moduleDir, moduleId);
-            const subModuleContent = fs.readFileSync(modulePath, 'utf8');
-
-            const subModuleWrapper = `
-              (function(exports, require, module, __filename, __dirname) {
-                ${subModuleContent}
-              })
-            `;
-
-            const subModuleObj = { exports: {} };
-            const subModuleDir = path.dirname(modulePath);
-
-            const subModuleContext = {
-              ...context,
-              exports: subModuleObj.exports,
-              require: moduleRequire, // Recursive require
-              module: subModuleObj,
-              __filename: modulePath,
-              __dirname: subModuleDir
-            };
-
-            vm.runInNewContext(subModuleWrapper, subModuleContext);
-            return subModuleObj.exports;
-          }
-          return require(moduleId);
-        };
-
-        const moduleContext = {
-          ...context,
-          exports: moduleObj.exports,
-          require: moduleRequire,
-          module: moduleObj,
-          __filename: newPath,
-          __dirname: moduleDir
-        };
-
-        // Run the module in VM context
-        vm.runInNewContext(moduleWrapper, moduleContext);
-        return moduleObj.exports;
-      }
-      return require(id);
-    };
-
-    // Create the context with the custom require function
+    // Create the context first
     const context = {
       req: req,
       res: res,
@@ -133,9 +73,49 @@ if (!fs.existsSync(filePath)) {
       fs: fs,
       path: path,
       console: console,
-      process: process,
-      require: customRequire
+      process: process
     };
+
+    // Create a custom require function that handles relative paths
+    const customRequire = (id) => {
+      if (id.startsWith("./") || id.startsWith("../")) {
+        const newPath = path.resolve("/home/evan/Code/trayce/gui/test/support/collection1", id);
+
+        // Check if the file exists
+        if (!fs.existsSync(newPath)) {
+          throw new Error(`Cannot find module '${id}' at '${newPath}'`);
+        }
+
+        // Read the module content
+        const moduleContent = fs.readFileSync(newPath, 'utf8');
+
+        // Create module object
+        const moduleObj = { exports: {} };
+        const moduleDir = path.dirname(newPath);
+
+        // Create context for this module
+        const moduleContext = {
+          ...context,
+          exports: moduleObj.exports,
+          require: customRequire,
+          module: moduleObj,
+          __filename: newPath,
+          __dirname: moduleDir
+        };
+
+        // Run the module in VM context
+        vm.runInNewContext(moduleContent, moduleContext, {
+          timeout: 30000,
+          displayErrors: true
+        });
+
+        return moduleObj.exports;
+      }
+      return require(id);
+    };
+
+    // Add the custom require to the context
+    context.require = customRequire;
 
     await vm.runInNewContext(asyncScript, context, {
       timeout: 30000,

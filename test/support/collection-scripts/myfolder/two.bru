@@ -1,0 +1,19 @@
+meta {
+  name: a-req
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://www.github.com/two
+  body: text
+}
+
+headers {
+  hello: world
+  X-Auth-Token: abcd1234
+}
+
+body:text {
+  {"hello": "world"}
+}

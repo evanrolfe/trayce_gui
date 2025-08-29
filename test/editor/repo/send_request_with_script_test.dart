@@ -599,10 +599,11 @@ void main() {
     final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
 
     final jsScript = '''
+    // const { v4: uuidv4 } = require('uuid');
     const f = require('faker');
-    const { whatsMyName } = require('./utils.js');
-    console.log('hello');
-    console.log(f.name.firstName());
+    const utils = require('./utils.js');
+    console.log('result:', utils.whatsMyName());
+    console.log('faker:', f.name.firstName());
     ''';
 
     final request = Request(

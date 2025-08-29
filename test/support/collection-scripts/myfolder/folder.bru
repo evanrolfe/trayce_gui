@@ -1,0 +1,22 @@
+meta {
+  type: folder
+}
+
+headers {
+  changed-by-test: changed-by-test
+  B: set from folder
+  C: set from folder
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: helloworld
+}
+
+vars:pre-request {
+  A_var: set from folder
+  B_var: set from folder
+}

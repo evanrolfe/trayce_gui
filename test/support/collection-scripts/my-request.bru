@@ -1,0 +1,32 @@
+meta {
+  name: my-request
+  type: http
+  seq: 0
+}
+
+get {
+  url: https://trayce.dev
+  body: text
+}
+
+headers {
+  hello: world
+  key: {{my_key}}
+  password: {{my_password}}
+}
+
+body:text {
+  {
+    "asdfsa": "asdfasf",
+    "hello": true
+  }
+}
+
+body:multipart-form {
+  asdf: @file(/home/evan/Code/trayce/gui/analysis_options.yaml)
+  bbbbb: @file(/home/evan/Code/trayce/gui/BUILD.md)
+}
+
+vars:pre-request {
+  A: set-in-request
+}

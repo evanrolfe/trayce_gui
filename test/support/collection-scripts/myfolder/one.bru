@@ -1,0 +1,21 @@
+meta {
+  name: one
+  type: http
+  seq: 0
+}
+
+post {
+  url: http://www.github.com/one
+  body: text
+}
+
+headers {
+  X-Auth-Token: abcd1234
+  G: {{G_var}}
+  H: {{H_var}}
+  I: {{process.env.key}}
+}
+
+body:text {
+  {"hello": "world"}
+}
