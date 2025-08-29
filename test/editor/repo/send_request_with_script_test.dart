@@ -105,7 +105,7 @@ void main() {
 
   final collection = Collection(
     file: File('test.collection'),
-    dir: Directory('test.collection'),
+    dir: Directory('test/support/collection1'),
     type: 'http',
     environments: [],
     headers: [],
@@ -468,7 +468,6 @@ void main() {
     expect(response.statusCode, 200);
     mockServer.reset();
 
-    print(result.output);
     expect(result.output.length, 10);
     expect(result.output[0], '200');
     expect(result.output[1], 'OK');
@@ -535,7 +534,6 @@ void main() {
     expect(response.statusCode, 200);
     mockServer.reset();
 
-    print(result.output);
     expect(result.output.length, 1);
     expect(result.output[0], 'Hello, World!');
   });
@@ -591,8 +589,67 @@ void main() {
     expect(response.statusCode, 200);
     mockServer.reset();
 
-    print(result.output);
     expect(result.output.length, 0);
     expect(result.response.body, '{"new":"value-from-script"}');
+  });
+
+  test('sending a request with a post-response script including a common js file', () async {
+    mockServer.newHandler('POST', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
+
+    final jsScript = '''
+    const f = require('faker');
+    const { whatsMyName } = require('./utils.js');
+    console.log('hello');
+    console.log(f.name.firstName());
+    ''';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.json,
+      bodyJson: JsonBody(content: '{"hello":"world"}'),
+      authType: AuthType.apikey,
+      authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
+      params: [],
+      headers: [
+        Header(name: 'X-Trayce-Token', value: 'abcd1234', enabled: true),
+        Header(name: 'content-type', value: 'application/json', enabled: true),
+      ],
+      script: Script(res: jsScript),
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final node = ExplorerNode.newRequest('test-req', request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
+    final response = result.response;
+
+    expect(response.statusCode, 200);
+    mockServer.reset();
+
+    print(result.output);
+    expect(result.output.length, 2);
   });
 }

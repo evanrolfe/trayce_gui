@@ -288,11 +288,12 @@ class SendRequest {
         'request': request.toMap(),
         'requestMap': requestMap,
         'collectionName': collectionNode.collection!.dir.path,
+        'collectionPath': collectionNode.collection!.absolutePath(),
         'vars': _getVarsMap(node),
       };
 
       // Run the CLI command
-      print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
+      // print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       final result = await Process.run(config.npmCommand, [
         'run',
         'script',
@@ -414,9 +415,10 @@ class SendRequest {
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
         'collectionName': collectionNode.collection!.dir.path,
+        'collectionPath': collectionNode.collection!.absolutePath(),
         'vars': _getVarsMap(node),
       };
-      print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
+      // print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       // Run the CLI command
       final result = await Process.run(config.npmCommand, [
         'run',
@@ -465,10 +467,11 @@ class SendRequest {
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
         'collectionName': collectionNode.collection!.dir.path,
+        'collectionPath': collectionNode.collection!.absolutePath(),
         'vars': _getVarsMap(node),
       };
 
-      print("npm run script-vars --silent -- '${jsonEncode(cliArgs)}'");
+      // print("npm run script-vars --silent -- '${jsonEncode(cliArgs)}'");
       // Run the CLI command
       final result = await Process.run(config.npmCommand, [
         'run',
@@ -541,7 +544,6 @@ class SendRequest {
 
       await globalEnvironmentRepo.saveOne(currentGlobalEnv);
     }
-    print("DONE post resp");
 
     if (res['body'] != null) {
       // Create a new response with the modified body

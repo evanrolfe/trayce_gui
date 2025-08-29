@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const Request = require('./request.js');
 const Response = require('./response.js');
 const Bru = require('./bru.js');
@@ -54,42 +55,92 @@ if (!fs.existsSync(filePath)) {
   process.exit(1);
 }
 
-// Create a context object with all the variables and request data
-const scriptContext = {
-  req: req,
-  res: res,
-  bru: bru,
-  fs: fs,
-  path: path,
-  console: console,
-  process: process,
-};
-
-// Read and evaluate the target script
+// Load and evaluate the target script using a VM context with a custom require function
 (async () => {
   try {
     const scriptContent = fs.readFileSync(filePath, 'utf8');
 
-    // Create an async function wrapper to provide the context
-    const scriptFunction = new Function('ctx', `
-          // Make all context properties available in scope
-          const {
-              req,
-              res,
-              bru,
-              fs,
-              path,
-              console,
-              process
-          } = ctx;
+    const asyncScript = `(async () => { ${scriptContent} })()`;
 
-          // Execute the script content as an async function
-          return (async () => {
-              ${scriptContent}
-          })();
-      `);
+    // customRequire is needed to include relative requires from the collection folder
+    // and to ensure that those required modules also require from the same collection folder + node path
+    const customRequire = (id) => {
+      if (id.startsWith("./") || id.startsWith("../")) {
+        const newPath = path.resolve(config.collectionPath, id);
 
-    await scriptFunction(scriptContext);
+        const moduleContent = fs.readFileSync(newPath, 'utf8');
+
+        // Create a module wrapper similar to Node.js CommonJS
+        const moduleWrapper = `
+          (function(exports, require, module, __filename, __dirname) {
+            ${moduleContent}
+          })
+        `;
+        const moduleObj = { exports: {} };
+        const moduleDir = path.dirname(newPath);
+
+        // Create a require function for this module that also uses customRequire
+        const moduleRequire = (moduleId) => {
+          if (moduleId.startsWith("./") || moduleId.startsWith("../")) {
+            const modulePath = path.resolve(moduleDir, moduleId);
+            const subModuleContent = fs.readFileSync(modulePath, 'utf8');
+
+            const subModuleWrapper = `
+              (function(exports, require, module, __filename, __dirname) {
+                ${subModuleContent}
+              })
+            `;
+
+            const subModuleObj = { exports: {} };
+            const subModuleDir = path.dirname(modulePath);
+
+            const subModuleContext = {
+              ...context,
+              exports: subModuleObj.exports,
+              require: moduleRequire, // Recursive require
+              module: subModuleObj,
+              __filename: modulePath,
+              __dirname: subModuleDir
+            };
+
+            vm.runInNewContext(subModuleWrapper, subModuleContext);
+            return subModuleObj.exports;
+          }
+          return require(moduleId);
+        };
+
+        const moduleContext = {
+          ...context,
+          exports: moduleObj.exports,
+          require: moduleRequire,
+          module: moduleObj,
+          __filename: newPath,
+          __dirname: moduleDir
+        };
+
+        // Run the module in VM context
+        vm.runInNewContext(moduleWrapper, moduleContext);
+        return moduleObj.exports;
+      }
+      return require(id);
+    };
+
+    // Create the context with the custom require function
+    const context = {
+      req: req,
+      res: res,
+      bru: bru,
+      fs: fs,
+      path: path,
+      console: console,
+      process: process,
+      require: customRequire
+    };
+
+    await vm.runInNewContext(asyncScript, context, {
+      timeout: 30000,
+      displayErrors: true
+    });
 
     const bruMap = bru.toMap();
     const output = { 'req': req.toMap(), 'runtimeVars': bruMap.runtimeVars, 'envVars': bruMap.envVars, 'globalEnvVars': bruMap.globalEnvVars };
