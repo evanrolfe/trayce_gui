@@ -76,30 +76,31 @@ if (!fs.existsSync(filePath)) {
       process: process
     };
 
-    // Create a custom require function that handles relative paths
-    const customRequire = (id) => {
+    // Create a custom require function that handles relative paths and node_modules
+    const customRequire = (id, callerPath = null) => {
+      if (id === 'faker') {
+        return require(id);
+      }
+
+      // Check if it's a relative path
       if (id.startsWith("./") || id.startsWith("../")) {
-        const newPath = path.resolve("/home/evan/Code/trayce/gui/test/support/collection1", id);
+        // Handle relative paths from the collection-scripts directory
+        const modulePath = path.join(config.collectionPath, id);
 
-        // Check if the file exists
-        if (!fs.existsSync(newPath)) {
-          throw new Error(`Cannot find module '${id}' at '${newPath}'`);
-        }
-
-        // Read the module content
-        const moduleContent = fs.readFileSync(newPath, 'utf8');
+        // Load the module content
+        const moduleContent = fs.readFileSync(modulePath, 'utf8');
 
         // Create module object
         const moduleObj = { exports: {} };
-        const moduleDir = path.dirname(newPath);
+        const moduleDir = path.dirname(modulePath);
 
-        // Create context for this module
+        // Create context for this module with access to customRequire
         const moduleContext = {
           ...context,
           exports: moduleObj.exports,
-          require: customRequire,
+          require: customRequire, // Pass the same customRequire function
           module: moduleObj,
-          __filename: newPath,
+          __filename: modulePath,
           __dirname: moduleDir
         };
 
@@ -110,8 +111,10 @@ if (!fs.existsSync(filePath)) {
         });
 
         return moduleObj.exports;
+      } else {
+        // Handle package imports from node_modules
+        return require(path.join(config.collectionPath, "node_modules", id));
       }
-      return require(id);
     };
 
     // Add the custom require to the context

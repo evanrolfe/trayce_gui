@@ -31,7 +31,7 @@ const jsonResponse = '{"message":"Hello, World!","status":200}';
 
 class MockEventBus extends Mock implements EventBus {}
 
-const collection1Path = 'test/support/collection1';
+const collection1Path = 'test/support/collection-scripts';
 
 class HttpTestServer {
   late ShelfTestServer server;
@@ -105,7 +105,7 @@ void main() {
 
   final collection = Collection(
     file: File('test.collection'),
-    dir: Directory('test/support/collection1'),
+    dir: Directory('test/support/collection-scripts'),
     type: 'http',
     environments: [],
     headers: [],
@@ -599,11 +599,12 @@ void main() {
     final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
 
     final jsScript = '''
-    // const { v4: uuidv4 } = require('uuid');
+    const { v4: uuidv4 } = require('uuid');
     const f = require('faker');
     const utils = require('./utils.js');
     console.log('result:', utils.whatsMyName());
     console.log('faker:', f.name.firstName());
+    console.log('uuid:', uuidv4());
     ''';
 
     final request = Request(
@@ -651,6 +652,6 @@ void main() {
     mockServer.reset();
 
     print(result.output);
-    expect(result.output.length, 2);
+    expect(result.output.length, 3);
   });
 }
