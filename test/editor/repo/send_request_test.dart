@@ -66,7 +66,7 @@ void main() {
       final event = captured.whereType<EventDisplayExplorerItems>().first;
 
       final collection = explorerService.getOpenCollections()[0];
-      collection.setCurrentEnvironment(collection.environments[0].fileName());
+      collection.setCurrentEnvironment('dev');
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
@@ -146,7 +146,7 @@ void main() {
       final event = captured.whereType<EventDisplayExplorerItems>().first;
 
       final collection = explorerService.getOpenCollections()[0];
-      collection.setCurrentEnvironment(collection.environments[0].fileName());
+      collection.setCurrentEnvironment('dev');
 
       final reqFour = event.nodes[0].children[1].children[3];
       expect(reqFour.name, 'four.bru');
@@ -188,7 +188,7 @@ void main() {
       final event = captured.whereType<EventDisplayExplorerItems>().first;
 
       final collection = explorerService.getOpenCollections()[0];
-      collection.setCurrentEnvironment(collection.environments[0].fileName());
+      collection.setCurrentEnvironment('dev');
 
       final reqFour = event.nodes[0].children[0].children[0];
       expect(reqFour.name, 'hello.bru');

@@ -80,7 +80,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -146,7 +146,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -203,7 +203,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -260,7 +260,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -320,7 +320,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -377,7 +377,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -434,7 +434,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -493,7 +493,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -552,7 +552,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -591,7 +591,6 @@ void main() {
 
   test('sending a request with a pre-request script that calls bru.setEnvVar()', () async {
     final originalEnv = loadFile('test/support/collection1/environments/dev.bru');
-
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
@@ -611,7 +610,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -688,7 +687,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
@@ -771,7 +770,7 @@ void main() {
       final event = captured.whereType<EventDisplayExplorerItems>().first;
 
       final collection = explorerService.getOpenCollections()[0];
-      collection.setCurrentEnvironment(collection.environments[0].fileName());
+      collection.setCurrentEnvironment('dev');
 
       final node = event.nodes[0].children[2];
       expect(node.name, 'my-request.bru');
@@ -836,7 +835,7 @@ void main() {
     final event = captured.whereType<EventDisplayExplorerItems>().first;
 
     final collection = explorerService.getOpenCollections()[0];
-    collection.setCurrentEnvironment(collection.environments[0].fileName());
+    collection.setCurrentEnvironment('dev');
 
     final node = event.nodes[0].children[2];
     expect(node.name, 'my-request.bru');
