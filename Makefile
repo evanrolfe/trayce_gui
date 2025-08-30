@@ -2,8 +2,7 @@
 
 test:
 	cd nodejs && npm install
-	rm -f coverage/lcov.info
-	flutter test ./test -r github --coverage --concurrency=1
+	flutter test test/test_bundle
 
 integration_test:
 	flutter test ./integration_test/main.dart --coverage --coverage-path=coverage/integration_test_coverage.info

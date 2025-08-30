@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
 
 // See: https://itnext.io/widget-testing-dealing-with-renderflex-overflow-errors-9488f9cf9a29
 void ignoreOverflowErrors(FlutterErrorDetails details, {bool forceReport = false}) {
@@ -18,7 +19,7 @@ void ignoreOverflowErrors(FlutterErrorDetails details, {bool forceReport = false
   if (ifIsOverflowError || isUnableToLoadAsset) {
     debugPrint('Ignored OverflowError');
   } else {
-    print("\n\n\n===============> FlutterError: $details");
+    print("\n\n\nFlutterError: $details");
     FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
   }
 }
@@ -30,6 +31,15 @@ void saveFile(String path, String contents) {
   } catch (e) {
     throw Exception('Failed to save file at $path: $e');
   }
+}
+
+String cloneCollectionSync(String sourcePath) {
+  final uuid = Uuid().v4();
+  final targetPath = '$sourcePath-$uuid';
+
+  copyFolderSync(sourcePath, targetPath);
+
+  return targetPath;
 }
 
 void copyFolderSync(String sourcePath, String targetPath) {

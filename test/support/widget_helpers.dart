@@ -105,7 +105,7 @@ class WidgetDependencies {
 Future<WidgetDependencies> setupTestDependencies() async {
   final db = await connectMemoryDB();
   final eventBus = EventBus();
-  final appStorage = await FakeAppStorage.getInstance();
+  final appStorage = FakeAppStorage.getInstance();
   final filePicker = MockFilePicker();
   final httpClient = MockHttpClient();
   final configRepo = ConfigRepo(appStorage, [], Directory.current, Directory.current);

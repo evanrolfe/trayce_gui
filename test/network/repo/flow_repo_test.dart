@@ -1,5 +1,6 @@
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:trayce/network/models/http_request.dart';
 import 'package:trayce/network/models/http_response.dart';
 import 'package:trayce/network/repo/flow_repo.dart';
@@ -7,14 +8,15 @@ import 'package:trayce/network/repo/flow_repo.dart';
 import '../../support/database.dart';
 import '../../support/flow_factory.dart';
 
+class MockEventBus extends Mock implements EventBus {}
+
 void main() {
   late TestDatabase testDb;
   late FlowRepo flowRepo;
 
   setUpAll(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
     testDb = await TestDatabase.instance;
-    flowRepo = FlowRepo(db: testDb.db, eventBus: EventBus());
+    flowRepo = FlowRepo(db: testDb.db, eventBus: MockEventBus());
   });
 
   tearDownAll(() async {});
@@ -152,27 +154,29 @@ void main() {
       test('it returns flows matching the search term', () async {
         // Save test flows with different operations
         final flow1 = buildHttpReqFlow(
-            uuid: "test-1",
-            request: HttpRequest(
-              method: 'GET',
-              host: '172.17.0.3',
-              path: '/users',
-              httpVersion: 'HTTP/1.1',
-              headers: {},
-              body: '',
-            ));
+          uuid: "test-1",
+          request: HttpRequest(
+            method: 'GET',
+            host: '172.17.0.3',
+            path: '/users',
+            httpVersion: 'HTTP/1.1',
+            headers: {},
+            body: '',
+          ),
+        );
         await flowRepo.save(flow1);
 
         final flow2 = buildHttpReqFlow(
-            uuid: "test-2",
-            request: HttpRequest(
-              method: 'POST',
-              host: '172.17.0.3',
-              path: '/posts',
-              httpVersion: 'HTTP/1.1',
-              headers: {},
-              body: '',
-            ));
+          uuid: "test-2",
+          request: HttpRequest(
+            method: 'POST',
+            host: '172.17.0.3',
+            path: '/posts',
+            httpVersion: 'HTTP/1.1',
+            headers: {},
+            body: '',
+          ),
+        );
         await flowRepo.save(flow2);
 
         // Search for flows with 'users' in the operation

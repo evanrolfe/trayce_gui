@@ -31,18 +31,14 @@ void main() {
   late FolderRepo folderRepo;
   late RequestRepo requestRepo;
   late Config config;
-  final emptySecretVars = Map<String, String>.from({});
 
-  setUpAll(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    mockEventBus = MockEventBus();
-    mockAppStorage = await FakeAppStorage.getInstance();
-    collectionRepo = CollectionRepo(mockAppStorage);
-    environmentRepo = EnvironmentRepo(mockAppStorage);
-    folderRepo = FolderRepo();
-    requestRepo = RequestRepo();
-    config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: './nodejs', appDocsDir: '.');
-  });
+  mockEventBus = MockEventBus();
+  mockAppStorage = FakeAppStorage.getInstance();
+  collectionRepo = CollectionRepo(mockAppStorage);
+  environmentRepo = EnvironmentRepo(mockAppStorage);
+  folderRepo = FolderRepo();
+  requestRepo = RequestRepo();
+  config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: './nodejs', appDocsDir: '.');
 
   group('SendRequest()', () {
     test('sends a request using the node hierarchy headers', () async {

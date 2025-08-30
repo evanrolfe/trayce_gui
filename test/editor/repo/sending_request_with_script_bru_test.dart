@@ -46,9 +46,8 @@ void main() {
   );
 
   setUpAll(() async {
-    // TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
-    fakeAppStorage = await FakeAppStorage.getInstance();
+    fakeAppStorage = FakeAppStorage.getInstance();
     collectionRepo = CollectionRepo(fakeAppStorage);
     environmentRepo = EnvironmentRepo(fakeAppStorage);
     folderRepo = FolderRepo();

@@ -180,10 +180,7 @@ void main() {
 
     testWidgets('modal shows an environment with secret vars but nothing in AppStorage', (WidgetTester tester) async {
       final folderPath = 'test/support/collection1';
-      final newFolderPath = '$folderPath-test';
-
-      // NOTE: The async file operations seem to hang in widget tests for some reason
-      copyFolderSync(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(folderPath);
 
       final collection = deps3.collectionRepo.load(Directory(newFolderPath));
       // final environment = collection.environments.first;
@@ -239,10 +236,7 @@ void main() {
 
     testWidgets('modal shows an environment with secret vars', (WidgetTester tester) async {
       final folderPath = 'test/support/collection1';
-      final newFolderPath = '$folderPath-test';
-
-      // NOTE: The async file operations seem to hang in widget tests for some reason
-      copyFolderSync(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(folderPath);
 
       deps4.appStorage.saveSecretVars(newFolderPath, 'dev', {'my_password': 'itsasecret'});
 
@@ -372,11 +366,8 @@ void main() {
     });
 
     // testWidgets('renaming an environment', (WidgetTester tester) async {
-    //   final folderPath = 'test/support/collection1';
-    //   final newFolderPath = '$folderPath-test';
-
-    //   // NOTE: The async file operations seem to hang in widget tests for some reason
-    //   copyFolderSync(folderPath, newFolderPath);
+    // final folderPath = 'test/support/collection1';
+    // final newFolderPath = cloneCollectionSync(folderPath);
 
     //   final collection = deps.collectionRepo.load(Directory(newFolderPath));
     //   final environment = collection.environments.first;
@@ -434,10 +425,7 @@ void main() {
 
     testWidgets('adding an environment when some already exist', (WidgetTester tester) async {
       final folderPath = 'test/support/collection1';
-      final newFolderPath = '$folderPath-test';
-
-      // NOTE: The async file operations seem to hang in widget tests for some reason
-      copyFolderSync(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(folderPath);
 
       final collection = deps6.collectionRepo.load(Directory(newFolderPath));
 
@@ -486,10 +474,7 @@ void main() {
 
     testWidgets('saving a secret var', (WidgetTester tester) async {
       final folderPath = 'test/support/collection1';
-      final newFolderPath = '$folderPath-test';
-
-      // NOTE: The async file operations seem to hang in widget tests for some reason
-      copyFolderSync(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(folderPath);
 
       final collection = deps7.collectionRepo.load(Directory(newFolderPath));
       final environment = collection.environments.first;

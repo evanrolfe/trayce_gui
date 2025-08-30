@@ -13,7 +13,7 @@ class FakeAppStorage extends AppStorageI {
 
   FakeAppStorage._();
 
-  static Future<FakeAppStorage> getInstance() async {
+  static FakeAppStorage getInstance() {
     return FakeAppStorage._();
   }
 
