@@ -119,7 +119,7 @@ void main() {
   setUpAll(() async {
     mockEventBus = MockEventBus();
     mockAppStorage = MockAppStorage();
-    fakeAppStorage = FakeAppStorage.getInstance();
+    fakeAppStorage = FakeAppStorage();
     collectionRepo = CollectionRepo(fakeAppStorage);
     environmentRepo = EnvironmentRepo(fakeAppStorage);
     folderRepo = FolderRepo();

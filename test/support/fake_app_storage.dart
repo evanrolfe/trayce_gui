@@ -11,11 +11,7 @@ class FakeAppStorage extends AppStorageI {
   static double? _cachedHeight;
   final Map<String, String> _storage = {};
 
-  FakeAppStorage._();
-
-  static FakeAppStorage getInstance() {
-    return FakeAppStorage._();
-  }
+  FakeAppStorage();
 
   static Future<void> preloadSize() async {
     // No-op for fake implementation

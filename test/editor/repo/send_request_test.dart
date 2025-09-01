@@ -33,7 +33,7 @@ void main() {
   late Config config;
 
   mockEventBus = MockEventBus();
-  mockAppStorage = FakeAppStorage.getInstance();
+  mockAppStorage = FakeAppStorage();
   collectionRepo = CollectionRepo(mockAppStorage);
   environmentRepo = EnvironmentRepo(mockAppStorage);
   folderRepo = FolderRepo();

@@ -1,11 +1,22 @@
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
+import 'package:trayce/editor/models/auth.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
+import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
+
+import '../../support/fake_app_storage.dart';
+import '../../support/helpers.dart';
 
 class MockEventBus extends Mock implements EventBus {}
 
 const collection1Path = 'test/support/collection1';
 void main() {
-  /*
   late MockEventBus mockEventBus;
   late FakeAppStorage fakeAppStorage;
   late CollectionRepo collectionRepo;
@@ -14,7 +25,7 @@ void main() {
 
   setUpAll(() async {
     mockEventBus = MockEventBus();
-    fakeAppStorage = FakeAppStorage.getInstance();
+    fakeAppStorage = FakeAppStorage();
     collectionRepo = CollectionRepo(fakeAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
@@ -654,5 +665,4 @@ void main() {
       await deleteFolder(newFolderPath);
     });
   });
-  */
 }
