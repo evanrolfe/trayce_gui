@@ -107,7 +107,7 @@ class _FileExplorerState extends State<FileExplorer> {
     _renameController.text = node.displayName();
     _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.displayName().length);
     setState(() {
-      node.setIsRenaming(true);
+      node.isRenaming = true;
       _renamingNode = node;
     });
   }
@@ -120,7 +120,7 @@ class _FileExplorerState extends State<FileExplorer> {
     }
 
     setState(() {
-      _renamingNode!.setIsRenaming(false);
+      _renamingNode!.isRenaming = false;
       _renamingNode = null;
     });
   }
@@ -198,7 +198,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
     if (!parentNode.isExpanded) {
       setState(() {
-        parentNode.setIsExpanded(true);
+        parentNode.isExpanded = true;
       });
     }
 
@@ -212,7 +212,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
     if (!parentNode.isExpanded) {
       setState(() {
-        parentNode.setIsExpanded(true);
+        parentNode.isExpanded = true;
       });
     }
 
@@ -325,7 +325,7 @@ class _FileExplorerState extends State<FileExplorer> {
                           setState(() {
                             _selectedNode = node;
                             if (node.isDirectory) {
-                              node.setIsExpanded(!node.isExpanded);
+                              node.isExpanded = !node.isExpanded;
                             }
                           });
                         }

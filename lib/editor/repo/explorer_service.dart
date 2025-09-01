@@ -180,7 +180,7 @@ class ExplorerService {
 
       node.setDir(Directory(targetPath));
       node.setFile(File(path.join(targetPath, 'folder.bru')));
-      node.setName(newName);
+      node.name = newName;
 
       _saveNode(node);
     }
@@ -193,7 +193,7 @@ class ExplorerService {
 
       node.setDir(Directory(targetPath));
       node.setFile(File(path.join(targetPath, 'collection.bru')));
-      node.setName(newName);
+      node.name = newName;
     }
 
     // Rename a request
@@ -208,7 +208,7 @@ class ExplorerService {
       final targetPath = path.join(targetDir.path, newName);
 
       node.setFile(File(targetPath));
-      node.setName(newName);
+      node.name = newName;
       node.request.seq = getNextSeq(targetDir.path);
       _saveNode(node);
       refresh();
@@ -228,7 +228,7 @@ class ExplorerService {
 
       // Update the movedNode's file
       node.setFile(File(targetPath));
-      node.setName(newName);
+      node.name = newName;
       _saveNode(node);
 
       _eventBus.fire(EventExplorerNodeRenamed(node));
@@ -690,7 +690,7 @@ class ExplorerService {
     if (node is RequestNode) {
       _requestRepo.save(node.request);
     }
-    node.setIsSaved(true);
+    node.isSaved = true;
   }
 }
 

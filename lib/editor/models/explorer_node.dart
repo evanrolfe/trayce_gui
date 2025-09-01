@@ -27,135 +27,80 @@ sealed class ExplorerNode {
   List<ExplorerNode> get children;
 
   // Setters
-  void setIsSaved(bool isSaved);
-  void setName(String name);
-  void setIsRenaming(bool isRenaming);
-  void setIsExpanded(bool isExpanded);
+  set isSaved(bool isSaved);
+  set name(String name);
+  set isExpanded(bool isExpanded);
+  set isRenaming(bool isRenaming);
 }
 
-// class ScriptNode implements ExplorerNode {
-//   String name;
-//   String uuid;
-//   final bool isDirectory;
-//   List<ExplorerNode> children = [];
-//   bool isExpanded;
-//   bool isRenaming;
-//   bool isSaved;
+// Mixin to provide common implementation for shared fields
+mixin ExplorerNodeBase {
+  String _name = '';
+  String _uuid = '';
+  bool _isExpanded = false;
+  bool _isRenaming = false;
+  bool _isSaved = true;
+  bool _isDirectory = false;
+  List<ExplorerNode> _children = [];
 
-//   late File file;
+  // Getters
+  String get uuid => _uuid;
+  String get name => _name;
+  bool get isExpanded => _isExpanded;
+  bool get isRenaming => _isRenaming;
+  bool get isSaved => _isSaved;
+  bool get isDirectory => _isDirectory;
+  List<ExplorerNode> get children => _children;
 
-//   ScriptNode({
-//     required this.name,
-//     required this.file,
-//     this.children = const [],
-//     this.isExpanded = false,
-//     this.isDirectory = false,
-//     this.isSaved = true,
-//     this.isRenaming = false,
-//     String? uuid,
-//   }) : uuid = uuid ?? Uuid().v4();
+  // Setters
+  set name(String value) => _name = value;
+  set isExpanded(bool value) => _isExpanded = value;
+  set isRenaming(bool value) => _isRenaming = value;
+  set isSaved(bool value) => _isSaved = value;
 
-//   // RequestNode.blank() creates a node with a blank unsaved request, used when
-//   // you click new request on a folder/collection in the explorer
-//   static blank(String parentPath) {
-//     final request = Request.blank();
-//     request.file = File(path.join(parentPath, '.bru'));
-//     request.name = '.bru';
+  // Helper method to initialize common fields
+  void initializeBase({
+    required String name,
+    String? uuid,
+    bool isExpanded = false,
+    bool isRenaming = false,
+    bool isSaved = true,
+    bool isDirectory = false,
+    List<ExplorerNode> children = const [],
+  }) {
+    _name = name;
+    _uuid = uuid ?? Uuid().v4();
+    _isExpanded = isExpanded;
+    _isRenaming = isRenaming;
+    _isSaved = isSaved;
+    _isDirectory = isDirectory;
+    _children = List.from(children);
+  }
+}
 
-//     return RequestNode(name: ".bru", request: request, isSaved: false);
-//   }
-
-//   @override
-//   File? getFile() {
-//     return request.file;
-//   }
-
-//   @override
-//   Directory? getDir() {
-//     return null;
-//   }
-
-//   @override
-//   void setFile(File file) {
-//     request.file = file;
-//   }
-
-//   @override
-//   void setDir(Directory dir) {}
-
-//   @override
-//   String? getPath() {
-//     return request.file?.path;
-//   }
-
-//   @override
-//   ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
-
-//   @override
-//   String displayName() {
-//     return name.replaceAll('.bru', '');
-//   }
-
-//   @override
-//   RequestNode copy() {
-//     final copiedRequest = Request.blank();
-//     copiedRequest.copyValuesFrom(request);
-
-//     final copiedNode = RequestNode(
-//       name: name,
-//       request: copiedRequest,
-//       isDirectory: isDirectory,
-//       children: children,
-//       isExpanded: isExpanded,
-//       isRenaming: isRenaming,
-//       isSaved: isSaved,
-//     );
-
-//     return copiedNode;
-//   }
-
-//   @override
-//   void setIsSaved(bool isSaved) {
-//     this.isSaved = isSaved;
-//   }
-
-//   @override
-//   void setName(String name) {
-//     this.name = name;
-//   }
-
-//   @override
-//   void setIsExpanded(bool isExpanded) {
-//     this.isExpanded = isExpanded;
-//   }
-
-//   @override
-//   void setIsRenaming(bool isRenaming) {
-//     this.isRenaming = isRenaming;
-//   }
-// }
-
-class RequestNode implements ExplorerNode {
-  String name;
-  String uuid;
-  final bool isDirectory;
-  List<ExplorerNode> children = [];
-  bool isExpanded;
-  bool isRenaming;
-  bool isSaved;
-
+class RequestNode with ExplorerNodeBase implements ExplorerNode {
   late Request request;
 
   RequestNode({
-    required this.name,
+    required String name,
     required this.request,
-    this.children = const [],
-    this.isExpanded = false,
-    this.isDirectory = false,
-    this.isSaved = true,
-    this.isRenaming = false,
+    List<ExplorerNode> children = const [],
+    bool isExpanded = false,
+    bool isDirectory = false,
+    bool isSaved = true,
+    bool isRenaming = false,
     String? uuid,
-  }) : uuid = uuid ?? Uuid().v4();
+  }) {
+    initializeBase(
+      name: name,
+      uuid: uuid,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+      isDirectory: isDirectory,
+      children: children,
+    );
+  }
 
   // RequestNode.blank() creates a node with a blank unsaved request, used when
   // you click new request on a folder/collection in the explorer
@@ -215,49 +160,31 @@ class RequestNode implements ExplorerNode {
 
     return copiedNode;
   }
-
-  @override
-  void setIsSaved(bool isSaved) {
-    this.isSaved = isSaved;
-  }
-
-  @override
-  void setName(String name) {
-    this.name = name;
-  }
-
-  @override
-  void setIsExpanded(bool isExpanded) {
-    this.isExpanded = isExpanded;
-  }
-
-  @override
-  void setIsRenaming(bool isRenaming) {
-    this.isRenaming = isRenaming;
-  }
 }
 
-class FolderNode implements ExplorerNode {
-  String name;
-  String uuid;
-  final bool isDirectory;
-  List<ExplorerNode> children = [];
-  bool isExpanded;
-  bool isRenaming;
-  bool isSaved;
-
+class FolderNode with ExplorerNodeBase implements ExplorerNode {
   late Folder folder;
 
   FolderNode({
-    required this.name,
+    required String name,
     required this.folder,
-    required this.children,
-    this.isExpanded = false,
-    this.isDirectory = true,
-    this.isSaved = true,
-    this.isRenaming = false,
+    required List<ExplorerNode> children,
+    bool isExpanded = false,
+    bool isDirectory = true,
+    bool isSaved = true,
+    bool isRenaming = false,
     String? uuid,
-  }) : uuid = uuid ?? Uuid().v4();
+  }) {
+    initializeBase(
+      name: name,
+      uuid: uuid,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+      isDirectory: isDirectory,
+      children: children,
+    );
+  }
 
   // RequestNode.blank() creates a node with a blank unsaved request, used when
   // you click new request on a folder/collection in the explorer
@@ -314,49 +241,31 @@ class FolderNode implements ExplorerNode {
 
     return copiedNode;
   }
-
-  @override
-  void setIsSaved(bool isSaved) {
-    this.isSaved = isSaved;
-  }
-
-  @override
-  void setName(String name) {
-    this.name = name;
-  }
-
-  @override
-  void setIsExpanded(bool isExpanded) {
-    this.isExpanded = isExpanded;
-  }
-
-  @override
-  void setIsRenaming(bool isRenaming) {
-    this.isRenaming = isRenaming;
-  }
 }
 
-class CollectionNode implements ExplorerNode {
-  String name;
-  String uuid;
-  final bool isDirectory;
-  List<ExplorerNode> children = [];
-  bool isExpanded;
-  bool isRenaming;
-  bool isSaved;
-
+class CollectionNode with ExplorerNodeBase implements ExplorerNode {
   late Collection collection;
 
   CollectionNode({
-    required this.name,
+    required String name,
     required this.collection,
-    required this.children,
-    this.isExpanded = true,
-    this.isDirectory = true,
-    this.isSaved = true,
-    this.isRenaming = false,
+    required List<ExplorerNode> children,
+    bool isExpanded = true,
+    bool isDirectory = true,
+    bool isSaved = true,
+    bool isRenaming = false,
     String? uuid,
-  }) : uuid = uuid ?? Uuid().v4();
+  }) {
+    initializeBase(
+      name: name,
+      uuid: uuid,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+      isDirectory: isDirectory,
+      children: children,
+    );
+  }
 
   @override
   File? getFile() {
@@ -404,25 +313,5 @@ class CollectionNode implements ExplorerNode {
     );
 
     return copiedNode;
-  }
-
-  @override
-  void setIsSaved(bool isSaved) {
-    this.isSaved = isSaved;
-  }
-
-  @override
-  void setName(String name) {
-    this.name = name;
-  }
-
-  @override
-  void setIsExpanded(bool isExpanded) {
-    this.isExpanded = isExpanded;
-  }
-
-  @override
-  void setIsRenaming(bool isRenaming) {
-    this.isRenaming = isRenaming;
   }
 }
