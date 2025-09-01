@@ -243,12 +243,12 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   bool _shouldShowDropLineBelow(ExplorerNode targetNode, List<ExplorerNode?> candidateData) {
-    if (targetNode.type != NodeType.request) return false;
+    if (targetNode is! RequestNode) return false;
 
     if (_dropPosition == null || candidateData.isEmpty) return false;
 
     final movedNode = candidateData.first;
-    if (movedNode?.type != NodeType.request && targetNode.type == NodeType.request) return false;
+    if (movedNode is! RequestNode) return false;
 
     return _dropPosition == _files.indexOf(targetNode);
   }
@@ -279,7 +279,7 @@ class _FileExplorerState extends State<FileExplorer> {
               final targetNode = node;
               final movedNode = details.data;
 
-              if (movedNode.type == NodeType.folder && targetNode.type == NodeType.request) return false;
+              if (movedNode is FolderNode && targetNode is RequestNode) return false;
 
               return true;
             },
@@ -316,7 +316,7 @@ class _FileExplorerState extends State<FileExplorer> {
                         final lastClick = _lastClickMillisecondsByNode[nodeUuid] ?? 0;
                         if ((currMills - lastClick) < 250) {
                           // Double tap
-                          if (node.type == NodeType.request) {
+                          if (node is RequestNode) {
                             context.read<ExplorerService>().openNode(node);
                           }
                         } else {

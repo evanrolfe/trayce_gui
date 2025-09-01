@@ -191,12 +191,12 @@ void main() {
       expect(event.nodes[0].children[1].name, 'myfolder');
       final movedNode = event.nodes[0].children[1].children[2];
       expect(movedNode.name, 'three.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[0];
       expect(targetNode.name, 'hello');
-      expect(targetNode.type, NodeType.folder);
+      expect(targetNode, isA<FolderNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -249,12 +249,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1].children[0];
       expect(movedNode.name, 'one.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1].children[3];
       expect(targetNode.name, 'four.bru');
-      expect(targetNode.type, NodeType.request);
+      expect(targetNode, isA<RequestNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -295,12 +295,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1].children[3];
       expect(movedNode.name, 'four.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1].children[0];
       expect(targetNode.name, 'one.bru');
-      expect(targetNode.type, NodeType.request);
+      expect(targetNode, isA<RequestNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -341,12 +341,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1].children[3];
       expect(movedNode.name, 'four.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1];
       expect(targetNode.name, 'myfolder');
-      expect(targetNode.type, NodeType.folder);
+      expect(targetNode, isA<FolderNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -387,12 +387,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[2];
       expect(movedNode.name, 'my-request.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1].children[1];
       expect(targetNode.name, 'two.bru');
-      expect(targetNode.type, NodeType.request);
+      expect(targetNode, isA<RequestNode>());
 
       explorerService.moveNode(movedNode, targetNode);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -432,12 +432,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1];
       expect(movedNode.name, 'myfolder');
-      expect(movedNode.type, NodeType.folder);
+      expect(movedNode, isA<FolderNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[0];
       expect(targetNode.name, 'hello');
-      expect(targetNode.type, NodeType.folder);
+      expect(targetNode, isA<FolderNode>());
 
       await explorerService.moveNode(movedNode, targetNode);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -472,7 +472,7 @@ void main() {
       // Node to rename:
       final node = event.nodes[0];
       expect(node.name, contains('collection1-'));
-      expect(node.type, NodeType.collection);
+      expect(node, isA<CollectionNode>());
       expect(event.nodes.length, 1);
 
       await explorerService.renameNode(node, 'collection1-new');
@@ -482,7 +482,7 @@ void main() {
       // Expect myfolder to be renamed to newname
       final node2 = event2.nodes[0];
       expect(node2.name, 'collection1-new');
-      expect(node2.type, NodeType.collection);
+      expect(node2, isA<CollectionNode>());
       expect(event2.nodes.length, 1);
 
       final renamedPath = path.join(path.dirname(newFolderPath), 'collection1-new');
@@ -505,7 +505,7 @@ void main() {
       // Node to rename:
       final node = event.nodes[0].children[1];
       expect(node.name, 'myfolder');
-      expect(node.type, NodeType.folder);
+      expect(node, isA<FolderNode>());
       expect(event.nodes[0].children.length, 4);
 
       await explorerService.renameNode(node, 'newname');
@@ -538,7 +538,7 @@ void main() {
       // Node to rename:
       final node = event.nodes[0].children[2];
       expect(node.name, 'my-request.bru');
-      expect(node.type, NodeType.request);
+      expect(node, isA<RequestNode>());
 
       await explorerService.renameNode(node, 'newname');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -547,7 +547,7 @@ void main() {
       // Expect myfolder to be renamed to newname
       final node2 = event2.nodes[0].children[2];
       expect(node2.name, 'newname.bru');
-      expect(node2.type, NodeType.request);
+      expect(node2, isA<RequestNode>());
 
       await deleteFolder(newFolderPath);
     });
@@ -594,7 +594,7 @@ void main() {
       // Node to delete:
       final node = event.nodes[0];
       expect(node.name, contains('collection1-'));
-      expect(node.type, NodeType.collection);
+      expect(node, isA<CollectionNode>());
 
       // Delete the node
       await explorerService.deleteNode(node);
@@ -621,7 +621,7 @@ void main() {
       final node = event.nodes[0].children[1];
       expect(event.nodes[0].children[1].children.length, 5);
       expect(node.name, 'myfolder');
-      expect(node.type, NodeType.folder);
+      expect(node, isA<FolderNode>());
 
       // Delete the node
       await explorerService.deleteNode(node);
@@ -650,7 +650,7 @@ void main() {
       final node = event.nodes[0].children[1].children[0];
       expect(event.nodes[0].children[1].children.length, 5);
       expect(node.name, 'one.bru');
-      expect(node.type, NodeType.request);
+      expect(node, isA<RequestNode>());
 
       // Delete the node
       await explorerService.deleteNode(node);
