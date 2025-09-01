@@ -19,7 +19,7 @@ class EventDisplayExplorerItems {
 
 class EventOpenExplorerNode {
   final ExplorerNode node;
-  final ExplorerNode collectionNode;
+  final CollectionNode collectionNode;
 
   EventOpenExplorerNode(this.node, this.collectionNode);
 }
@@ -31,7 +31,7 @@ class EventExplorerNodeRenamed {
 }
 
 class EventCollectionOpened {
-  final ExplorerNode node;
+  final CollectionNode node;
   final Collection collection;
 
   EventCollectionOpened(this.node, this.collection);
@@ -79,12 +79,12 @@ class ExplorerService {
     collectionFile.writeAsStringSync(Collection.getDefaultCollectionBru());
 
     // Add the new collection to the explorer
-    final collectionNode = _buildNode(collectionDir, 0);
+    final collectionNode = _buildCollection(collectionDir);
     _nodes.add(collectionNode);
 
     _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
-    _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection!));
+    _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection));
   }
 
   void openCollection(String path) {
@@ -104,16 +104,16 @@ class ExplorerService {
     }
 
     // Add the collection to the explorer
-    final collectionNode = _buildNode(collectionDir, 0);
+    final collectionNode = _buildCollection(collectionDir);
     _nodes.add(collectionNode);
 
     _sortNodes(_nodes);
     _eventBus.fire(EventDisplayExplorerItems(_nodes));
-    _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection!));
+    _eventBus.fire(EventCollectionOpened(collectionNode, collectionNode.collection));
   }
 
   List<Collection> getOpenCollections() {
-    return _nodes.where((node) => node.type == NodeType.collection).map((node) => node.collection!).toList();
+    return _nodes.whereType<CollectionNode>().map((node) => node.collection).toList();
   }
 
   // getNodeMap returns a map of paths to request nodes for a given collection, its used by
@@ -123,7 +123,7 @@ class ExplorerService {
 
     // Recursively collect all request nodes from the collection
     void collectRequests(ExplorerNode node) {
-      if (node.type == NodeType.request) {
+      if (node is RequestNode) {
         // Use the relative path from the collection node as the key
         final requestFile = node.getFile();
         if (requestFile != null) {
@@ -145,7 +145,7 @@ class ExplorerService {
   }
 
   void closeCollection(ExplorerNode node) {
-    if (node.type != NodeType.collection) return;
+    if (node is! CollectionNode) return;
     _nodes.remove(node);
 
     _sortNodes(_nodes);
@@ -174,18 +174,18 @@ class ExplorerService {
 
   Future<void> renameNode(ExplorerNode node, String newName) async {
     // Rename a collection/folder
-    if ((node.type == NodeType.collection || node.type == NodeType.folder) && !node.isSaved) {
+    if ((node is CollectionNode || node is FolderNode) && !node.isSaved) {
       final targetDir = node.getDir()!;
       final targetPath = path.join(path.dirname(targetDir.path), newName);
 
       node.setDir(Directory(targetPath));
       node.setFile(File(path.join(targetPath, 'folder.bru')));
-      node.name = newName;
+      node.setName(newName);
 
       _saveNode(node);
     }
 
-    if ((node.type == NodeType.collection || node.type == NodeType.folder) && node.isSaved) {
+    if ((node is CollectionNode || node is FolderNode) && node.isSaved) {
       final targetDir = node.getDir()!;
       final targetPath = path.join(path.dirname(targetDir.path), newName);
 
@@ -193,14 +193,14 @@ class ExplorerService {
 
       node.setDir(Directory(targetPath));
       node.setFile(File(path.join(targetPath, 'collection.bru')));
-      node.name = newName;
+      node.setName(newName);
     }
 
     // Rename a request
     newName = "$newName.bru";
     // This is called when you click new request on a folder/collection and enter the filename
     // directly in the explorer, then hit enter
-    if (node.type == NodeType.request && !node.isSaved) {
+    if (node is RequestNode && !node.isSaved) {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
@@ -208,13 +208,13 @@ class ExplorerService {
       final targetPath = path.join(targetDir.path, newName);
 
       node.setFile(File(targetPath));
-      node.name = newName;
-      node.request!.seq = getNextSeq(targetDir.path);
+      node.setName(newName);
+      node.request.seq = getNextSeq(targetDir.path);
       _saveNode(node);
       refresh();
       openNode(node);
     }
-    if (node.type == NodeType.request && node.isSaved) {
+    if (node is RequestNode && node.isSaved) {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
@@ -228,7 +228,7 @@ class ExplorerService {
 
       // Update the movedNode's file
       node.setFile(File(targetPath));
-      node.name = newName;
+      node.setName(newName);
       _saveNode(node);
 
       _eventBus.fire(EventExplorerNodeRenamed(node));
@@ -239,7 +239,7 @@ class ExplorerService {
 
   Future<void> deleteNode(ExplorerNode node) async {
     // Deleting a collection
-    if (node.type == NodeType.collection) {
+    if (node is CollectionNode) {
       if (node.getDir() == null) return;
 
       await deleteDir(node.getDir()!);
@@ -247,7 +247,7 @@ class ExplorerService {
     }
 
     // Deleting a folder
-    if (node.type == NodeType.folder) {
+    if (node is FolderNode) {
       final parentNode = _findParentNode(node);
       if (parentNode == null || node.getDir() == null) return;
 
@@ -257,7 +257,7 @@ class ExplorerService {
     }
 
     // Deleting a request
-    if (node.type == NodeType.request) {
+    if (node is RequestNode) {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
@@ -272,16 +272,16 @@ class ExplorerService {
   // moveNode moves a node's file to the target node path and refreshes the explorer
   Future<void> moveNode(ExplorerNode movedNode, ExplorerNode targetNode) async {
     // Moving a folder
-    if (movedNode.type == NodeType.folder) {
+    if (movedNode is FolderNode) {
       Directory targetDir = targetNode.getDir()!;
       final sourceDir = movedNode.getDir()!;
 
-      if (targetNode.type == NodeType.collection) {
+      if (targetNode is CollectionNode) {
         // Moving to a collection
         targetDir = Directory(path.join(targetDir.path, movedNode.name));
         if (sourceDir.path == targetDir.path) return;
         await moveDirectory(sourceDir, targetDir);
-      } else if (targetNode.type == NodeType.folder) {
+      } else if (targetNode is FolderNode) {
         // Moving to a folder
         if (sourceDir.path == targetDir.path) return;
         targetDir = Directory(path.join(targetDir.path, movedNode.name));
@@ -293,14 +293,14 @@ class ExplorerService {
     }
 
     // Moving a request
-    if (movedNode.type == NodeType.request) {
+    if (movedNode is RequestNode) {
       final parentNodeMoved = _findParentNode(movedNode);
       final parentNodeTarget = _findParentNode(targetNode);
       if (parentNodeMoved == null) return;
 
       final movedToDifferentFolder = parentNodeMoved.getDir()?.path != parentNodeTarget?.getDir()?.path;
 
-      if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
+      if (targetNode is FolderNode || targetNode is CollectionNode) {
         // Get the file paths
         final sourceFile = movedNode.getFile()!;
         final targetDir = targetNode.getDir()!;
@@ -314,7 +314,7 @@ class ExplorerService {
         }
 
         // Update the movedNode's request seq num
-        movedNode.request!.seq = getNextSeq(targetDir.path);
+        movedNode.request.seq = getNextSeq(targetDir.path);
         _saveNode(movedNode);
 
         // Move the file
@@ -325,7 +325,7 @@ class ExplorerService {
         _updateChildrenSeq(parentNodeMoved);
 
         refresh();
-      } else if (targetNode.type == NodeType.request && movedToDifferentFolder) {
+      } else if (targetNode is RequestNode && movedToDifferentFolder) {
         if (parentNodeTarget == null) return;
         // Get the file paths
         final sourceFile = movedNode.getFile()!;
@@ -349,7 +349,7 @@ class ExplorerService {
         _updateChildrenSeq(parentNodeTarget);
 
         refresh();
-      } else if (targetNode.type == NodeType.request && !movedToDifferentFolder) {
+      } else if (targetNode is RequestNode && !movedToDifferentFolder) {
         if (parentNodeTarget == null) return;
         // Find the index of targetNode in parentNode.children
         final movedIndex = parentNodeMoved.children.indexOf(movedNode);
@@ -393,7 +393,9 @@ class ExplorerService {
     final collectionNode = findRootNodeOf(node);
     if (collectionNode == null) return;
 
-    _eventBus.fire(EventOpenExplorerNode(node, collectionNode));
+    if (collectionNode is CollectionNode) {
+      _eventBus.fire(EventOpenExplorerNode(node, collectionNode));
+    }
   }
 
   ExplorerNode? findNodeByPath(String path) {
@@ -414,15 +416,15 @@ class ExplorerService {
   }
 
   void copyNode(ExplorerNode node) {
-    if (node.type != NodeType.request) return;
+    if (node is! RequestNode) return;
 
     _copiedNode = node;
   }
 
   bool canPaste(ExplorerNode toNode) {
-    if (toNode.type == NodeType.request) return false;
+    if (toNode is RequestNode) return false;
 
-    return (_copiedNode != null && _copiedNode!.type == NodeType.request);
+    return (_copiedNode != null && _copiedNode is RequestNode);
   }
 
   void pasteNode(ExplorerNode targetNode) {
@@ -430,18 +432,17 @@ class ExplorerService {
 
     final copiedNode = _copiedNode!.copy();
 
-    if (copiedNode.type == NodeType.request) {
-      if (targetNode.type == NodeType.folder || targetNode.type == NodeType.collection) {
+    if (copiedNode is RequestNode) {
+      if (targetNode is FolderNode || targetNode is CollectionNode) {
         // Get the file paths
-        final sourceFile = copiedNode.getFile()!;
         final targetDir = targetNode.getDir()!;
         final targetPath = path.join(targetDir.path, copiedNode.name);
 
         final seq = getNextSeq(targetDir.path);
 
-        copiedNode.request!.seq = seq;
+        copiedNode.request.seq = seq;
         copiedNode.setFile(File(targetPath));
-        _requestRepo.saveCopy(copiedNode.request!);
+        _requestRepo.saveCopy(copiedNode.request);
 
         refresh();
       }
@@ -456,7 +457,7 @@ class ExplorerService {
     final nodesToAdd = <ExplorerNode>[];
 
     for (var refreshedNode in refreshedNodes) {
-      if (refreshedNode.type == NodeType.folder) {
+      if (refreshedNode is FolderNode) {
         // Check if folder exists
         final existingNode = existingNodes.firstWhereOrNull(
           (node) => node.getDir()?.path == refreshedNode.getDir()?.path,
@@ -467,7 +468,7 @@ class ExplorerService {
           // Recursively sync children
           _refreshNodes(existingNode.children, refreshedNode.children);
         }
-      } else if (refreshedNode.type == NodeType.request) {
+      } else if (refreshedNode is RequestNode) {
         // Check if request exists
         final exists = existingNodes.any((node) => node.getFile()?.path == refreshedNode.getFile()?.path);
         if (!exists) {
@@ -480,18 +481,16 @@ class ExplorerService {
     // Collect nodes to remove
     final nodesToRemove = <ExplorerNode>[];
     for (var node in existingNodes) {
-      if (node.type == NodeType.folder) {
+      if (node is FolderNode) {
         final exists = refreshedNodes.any(
-          (refreshedNode) =>
-              refreshedNode.type == NodeType.folder && refreshedNode.getDir()?.path == node.getDir()?.path,
+          (refreshedNode) => refreshedNode is FolderNode && refreshedNode.getDir()?.path == node.getDir()?.path,
         );
         if (!exists) {
           nodesToRemove.add(node);
         }
-      } else if (node.type == NodeType.request) {
+      } else if (node is RequestNode) {
         final exists = refreshedNodes.any(
-          (refreshedNode) =>
-              refreshedNode.type == NodeType.request && refreshedNode.getFile()?.path == node.getFile()?.path,
+          (refreshedNode) => refreshedNode is RequestNode && refreshedNode.getFile()?.path == node.getFile()?.path,
         );
         if (!exists) {
           nodesToRemove.add(node);
@@ -499,6 +498,13 @@ class ExplorerService {
       }
     }
     existingNodes.removeWhere((node) => nodesToRemove.contains(node));
+  }
+
+  // _buildCollection builds a node tree from the collection dir
+  CollectionNode _buildCollection(Directory collectionDir) {
+    final collectionNode = _buildNode(collectionDir, 0);
+    if (collectionNode is! CollectionNode) throw Exception('Collection node not found');
+    return collectionNode;
   }
 
   // _buildNode builds a node tree recursively from file
@@ -518,14 +524,14 @@ class ExplorerService {
 
       if (depth == 0) {
         final collection = _collectionRepo.load(entity);
-        return ExplorerNode.newCollection(name, collection, children);
+        return CollectionNode(name: name, collection: collection, children: children);
       } else {
         final folder = _folderRepo.load(entity);
-        return ExplorerNode.newFolder(name, folder, children);
+        return FolderNode(name: name, folder: folder, children: children);
       }
     } else {
       final request = _requestRepo.load(entity as File);
-      return ExplorerNode.newRequest(name, request);
+      return RequestNode(name: name, request: request);
     }
   }
 
@@ -545,15 +551,15 @@ class ExplorerService {
   // _sortNodes recursively sorts the children of a node by seq value
   void _sortNodes(List<ExplorerNode> nodes) {
     for (var node in nodes) {
-      if (node.type == NodeType.folder || node.type == NodeType.collection) {
+      if (node is FolderNode || node is CollectionNode) {
         // Sort children by seq value if they are requests
         node.children.sort((a, b) {
-          if (a.type == NodeType.request && b.type == NodeType.request) {
-            return a.request!.seq.compareTo(b.request!.seq);
+          if (a is RequestNode && b is RequestNode) {
+            return a.request.seq.compareTo(b.request.seq);
           }
           // Keep folders at the top
-          if (a.type == NodeType.folder && b.type == NodeType.request) return -1;
-          if (a.type == NodeType.request && b.type == NodeType.folder) return 1;
+          if (a is FolderNode && b is RequestNode) return -1;
+          if (a is RequestNode && b is FolderNode) return 1;
           // If both are folders, sort by name
           return a.name.toLowerCase().compareTo(b.name.toLowerCase());
         });
@@ -570,11 +576,11 @@ class ExplorerService {
     final children = parentNode.children;
 
     for (int i = 0; i < children.length; i++) {
-      if (children[i].type != NodeType.request) continue;
-
-      final request = children[i].request!;
-      request.seq = i;
-      RequestRepo().save(request);
+      if (children[i] is RequestNode) {
+        final request = (children[i] as RequestNode).request;
+        request.seq = i;
+        RequestRepo().save(request);
+      }
     }
   }
 
@@ -603,8 +609,8 @@ class ExplorerService {
     // Find the highest seq number in this folder
     int highestSeq = 0;
     for (var node in folderNode.children) {
-      if (node.type == NodeType.request && node.request != null) {
-        highestSeq = math.max(highestSeq, node.request!.seq);
+      if (node is RequestNode) {
+        highestSeq = math.max(highestSeq, node.request.seq);
       }
     }
 
@@ -646,11 +652,11 @@ class ExplorerService {
     return null;
   }
 
-  // _findRootNodeOf finds the root collection node of a given node by traversing up its ancestors
+  // findRootNodeOf finds the root collection node of a given node by traversing up its ancestors
   ExplorerNode? findRootNodeOf(ExplorerNode node) {
     ExplorerNode? currentNode = node;
     while (currentNode != null) {
-      if (currentNode.type == NodeType.collection) {
+      if (currentNode is CollectionNode) {
         return currentNode;
       }
       currentNode = _findParentNode(currentNode);
@@ -673,18 +679,18 @@ class ExplorerService {
   }
 
   void _saveNode(ExplorerNode node) {
-    if (node.type == NodeType.collection) {
-      _collectionRepo.save(node.collection!);
+    if (node is CollectionNode) {
+      _collectionRepo.save(node.collection);
     }
 
-    if (node.type == NodeType.folder) {
-      _folderRepo.save(node.folder!);
+    if (node is FolderNode) {
+      _folderRepo.save(node.folder);
     }
 
-    if (node.type == NodeType.request) {
-      _requestRepo.save(node.request!);
+    if (node is RequestNode) {
+      _requestRepo.save(node.request);
     }
-    node.isSaved = true;
+    node.setIsSaved(true);
   }
 }
 

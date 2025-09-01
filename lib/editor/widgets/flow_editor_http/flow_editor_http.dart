@@ -82,7 +82,7 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
-  final ExplorerNode collectionNode;
+  final CollectionNode collectionNode;
   final ExplorerNode? node; // the node will be null if the request is not saved yet
   final Request request;
   final ValueKey tabKey;

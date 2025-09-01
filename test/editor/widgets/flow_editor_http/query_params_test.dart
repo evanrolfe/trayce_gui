@@ -41,7 +41,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -84,7 +84,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -155,7 +155,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -195,7 +195,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -245,7 +245,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -284,7 +284,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -324,7 +324,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -366,7 +366,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -405,7 +405,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -450,7 +450,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -496,7 +496,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),
@@ -542,7 +542,7 @@ void main() {
       final tabKey = const ValueKey('test_tab');
       final widget = deps.wrapWidget(
         FlowEditorHttp(
-          collectionNode: ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection),
+          collectionNode: CollectionNode(name: 'Test Collection', collection: collection, children: []),
           request: request,
           tabKey: tabKey,
         ),

@@ -114,7 +114,7 @@ void main() {
     requestVars: [],
     responseVars: [],
   );
-  final collectionNode = ExplorerNode(name: 'Test Collection', type: NodeType.collection, collection: collection);
+  final collectionNode = CollectionNode(name: 'Test Collection', collection: collection, children: []);
 
   setUpAll(() async {
     mockEventBus = MockEventBus();
@@ -196,7 +196,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -270,7 +270,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -329,7 +329,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -383,7 +383,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -449,7 +449,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -515,7 +515,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -570,7 +570,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(
@@ -634,7 +634,7 @@ void main() {
       assertions: [],
     );
 
-    final node = ExplorerNode.newRequest('test-req', request);
+    final node = RequestNode(name: 'test-req', request: request);
 
     final result =
         await SendRequest(

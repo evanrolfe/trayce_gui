@@ -59,7 +59,7 @@ class _EditorTabsState extends State<EditorTabs> {
   int? _hoveredTabIndex;
   String _selectedTabUuid = '';
   Collection? _currentCollection;
-  ExplorerNode? _currentCollectionNode;
+  CollectionNode? _currentCollectionNode;
 
   final Map<Collection, List<TabItem>> _tabsMap = {};
   final List<FlowEditor> _tabEditors = [];
@@ -118,6 +118,8 @@ class _EditorTabsState extends State<EditorTabs> {
 
       final path = event.node.getFile()?.path;
       if (path == null) return;
+      if (event.node is! RequestNode) return;
+      final request = (event.node as RequestNode).request;
 
       // Check if tab already exists
       final existingTab = currentTabs().firstWhereOrNull((entry) => entry.getPath() == path);
@@ -142,7 +144,7 @@ class _EditorTabsState extends State<EditorTabs> {
         flowType: 'http',
         node: event.node,
         collectionNode: _currentCollectionNode!,
-        request: event.node.request!,
+        request: request,
       );
       _tabEditors.add(editor);
 
@@ -155,8 +157,6 @@ class _EditorTabsState extends State<EditorTabs> {
         focusNode: focusNode,
         editor: editor,
       );
-
-      if (event.node.request == null) return;
 
       // Add new tab
       addTab(newTab);
@@ -219,6 +219,7 @@ class _EditorTabsState extends State<EditorTabs> {
     final tab = currentTabs().firstWhereOrNull((entry) => entry.key == event.tabKey);
     if (tab == null) return;
 
+    // if (tab.node is! RequestNode) return;
     final request = event.request;
 
     if (tab.node == null) {
@@ -239,7 +240,7 @@ class _EditorTabsState extends State<EditorTabs> {
 
       tab.isNew = false;
       // We only create a node so we can get its displayName:
-      tab.displayName = ExplorerNode(name: fileName, type: NodeType.request).displayName();
+      tab.displayName = RequestNode(name: fileName, request: request).displayName();
 
       RequestRepo().save(request);
 
@@ -256,10 +257,11 @@ class _EditorTabsState extends State<EditorTabs> {
           tab.node = node;
         }
       }
-    } else {
+    } else if (tab.node is RequestNode) {
       // Updating an existing request
-      tab.node!.request = request;
-      RequestRepo().save(tab.node!.request!);
+      final requestNode = tab.node as RequestNode;
+      requestNode.request = request;
+      RequestRepo().save(request);
     }
 
     setState(() {

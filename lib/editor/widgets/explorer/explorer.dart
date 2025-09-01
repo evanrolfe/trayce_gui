@@ -11,7 +11,6 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
@@ -108,7 +107,7 @@ class _FileExplorerState extends State<FileExplorer> {
     _renameController.text = node.displayName();
     _renameController.selection = TextSelection(baseOffset: 0, extentOffset: node.displayName().length);
     setState(() {
-      node.isRenaming = true;
+      node.setIsRenaming(true);
       _renamingNode = node;
     });
   }
@@ -121,7 +120,7 @@ class _FileExplorerState extends State<FileExplorer> {
     }
 
     setState(() {
-      _renamingNode!.isRenaming = false;
+      _renamingNode!.setIsRenaming(false);
       _renamingNode = null;
     });
   }
@@ -195,11 +194,11 @@ class _FileExplorerState extends State<FileExplorer> {
 
   Future<void> _handleNewRequestInFolder(ExplorerNode parentNode) async {
     final parentPath = parentNode.getDir()!.path;
-    final node = ExplorerNode.newBlankRequest(parentPath);
+    final node = RequestNode.blank(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
-        parentNode.isExpanded = true;
+        parentNode.setIsExpanded(true);
       });
     }
 
@@ -209,11 +208,11 @@ class _FileExplorerState extends State<FileExplorer> {
 
   Future<void> _handleNewFolder(ExplorerNode parentNode) async {
     final parentPath = parentNode.getDir()!.path;
-    final node = ExplorerNode.newBlankFolder(parentPath);
+    final node = FolderNode.blank(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
-        parentNode.isExpanded = true;
+        parentNode.setIsExpanded(true);
       });
     }
 
@@ -312,9 +311,7 @@ class _FileExplorerState extends State<FileExplorer> {
                     child: GestureDetector(
                       onTapDown: (_) {
                         _focusNode.requestFocus();
-                        // Assign a uuid to the node if not already present
-                        node.uuid ??= Uuid().v4();
-                        final nodeUuid = node.uuid!;
+                        final nodeUuid = node.uuid;
                         int currMills = DateTime.now().millisecondsSinceEpoch;
                         final lastClick = _lastClickMillisecondsByNode[nodeUuid] ?? 0;
                         if ((currMills - lastClick) < 250) {
@@ -328,7 +325,7 @@ class _FileExplorerState extends State<FileExplorer> {
                           setState(() {
                             _selectedNode = node;
                             if (node.isDirectory) {
-                              node.isExpanded = !node.isExpanded;
+                              node.setIsExpanded(!node.isExpanded);
                             }
                           });
                         }

@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trayce/common/config.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/global_environment.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
@@ -83,6 +84,7 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
+    expect(node, isA<RequestNode>());
 
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
@@ -100,7 +102,7 @@ void main() {
   }
   console.log('Response:', res.status);
 });''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -109,7 +111,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
@@ -149,12 +151,13 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
+    expect(node, isA<RequestNode>());
 
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''let resp = await bru.runRequest('hello/hello.bru'); console.log("Response:", resp.status);''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -163,7 +166,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
           environmentRepo: environmentRepo,
@@ -206,12 +209,13 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
+    expect(node, isA<RequestNode>());
 
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''console.log(bru.getVar('test_var'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -220,7 +224,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -263,13 +267,14 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
+    expect(node, isA<RequestNode>());
 
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript =
         '''console.log(bru.getRequestVar('A')); console.log(bru.getCollectionVar('A_var')); console.log(bru.getEnvVar('my_key'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -278,7 +283,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -323,12 +328,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''console.log(bru.interpolate('{{A}} {{A_var}} {{my_key}}'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -337,7 +342,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -380,12 +385,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''console.log(bru.interpolate('{{\$randomEmail}}'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -394,7 +399,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -437,12 +442,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''bru.setVar('test_var2', 'test_value2'); console.log(bru.getVar('test_var2'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -451,7 +456,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -496,12 +501,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''bru.setVar('test_var2', 'test_value2'); console.log(bru.getVar('test_var2'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(res: jsScript);
 
@@ -510,7 +515,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -555,12 +560,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''bru.deleteVar('test_var');''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(res: jsScript);
 
@@ -569,7 +574,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -613,12 +618,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''bru.setEnvVar('test_var3', 'test_value3');''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(req: jsScript);
 
@@ -627,7 +632,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -690,12 +695,12 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
-
+    expect(node, isA<RequestNode>());
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''bru.setEnvVar('test_var3', 'test_value3');''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
     request.url = url;
     request.script = Script(res: jsScript);
 
@@ -704,7 +709,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,
@@ -773,13 +778,13 @@ void main() {
 
       final node = event.nodes[0].children[3];
       expect(node.name, 'my-request.bru');
-
+      expect(node, isA<RequestNode>());
       // Set the URL and script on the request
       final url = '${mockServer.url().toString()}/test_endpoint';
 
       final jsScript =
           '''console.log(bru.getGlobalEnvVar('my_key')); bru.setGlobalEnvVar('my_key', 'set-from-script');''';
-      final request = node.request!;
+      final request = (node as RequestNode).request;
       request.url = url;
       request.script = Script(res: jsScript);
 
@@ -788,7 +793,7 @@ void main() {
           await SendRequest(
             request: request,
             node: node,
-            collectionNode: event.nodes[0],
+            collectionNode: event.nodes[0] as CollectionNode,
             explorerService: explorerService,
             runtimeVarsRepo: runtimeVarsRepo,
             environmentRepo: environmentRepo,
@@ -838,12 +843,14 @@ void main() {
 
     final node = event.nodes[0].children[3];
     expect(node.name, 'my-request.bru');
+    expect(node, isA<RequestNode>());
 
     // Set the URL and script on the request
     final url = '${mockServer.url().toString()}/test_endpoint';
 
     final jsScript = '''console.log(bru.getProcessEnv('key'));''';
-    final request = node.request!;
+    final request = (node as RequestNode).request;
+    expect(node, isA<RequestNode>());
     request.url = url;
     request.script = Script(res: jsScript);
 
@@ -852,7 +859,7 @@ void main() {
         await SendRequest(
           request: request,
           node: node,
-          collectionNode: event.nodes[0],
+          collectionNode: event.nodes[0] as CollectionNode,
           explorerService: explorerService,
           runtimeVarsRepo: runtimeVarsRepo,
           environmentRepo: environmentRepo,

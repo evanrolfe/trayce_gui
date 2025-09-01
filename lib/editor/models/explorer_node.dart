@@ -5,165 +5,334 @@ import 'package:path/path.dart' as path;
 import 'package:trayce/editor/models/collection.dart';
 import 'package:trayce/editor/models/folder.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:uuid/uuid.dart';
 
 enum NodeType { collection, folder, request }
 
-class ExplorerNode {
+sealed class ExplorerNode {
+  File? getFile();
+  Directory? getDir();
+  void setFile(File file);
+  void setDir(Directory dir);
+  String? getPath();
+  String displayName();
+  ExplorerNode copy();
+
+  // Getters
+  ValueKey? get key;
+  String get name;
+  String get uuid;
+  bool get isDirectory;
+  bool get isExpanded;
+  bool get isRenaming;
+  bool get isSaved;
+  NodeType get type;
+  List<ExplorerNode> get children;
+
+  // Setters
+  void setIsSaved(bool isSaved);
+  void setName(String name);
+  void setIsRenaming(bool isRenaming);
+  void setIsExpanded(bool isExpanded);
+}
+
+class RequestNode implements ExplorerNode {
   String name;
+  String uuid;
   final bool isDirectory;
-  final List<ExplorerNode> children = [];
+  List<ExplorerNode> children = [];
   final NodeType type;
   bool isExpanded;
   bool isRenaming;
   bool isSaved;
 
-  late Collection? collection;
-  late Folder? folder;
-  late Request? request;
-  String? uuid;
+  late Request request;
 
-  static newCollection(String name, Collection collection, List<ExplorerNode> children) {
-    return ExplorerNode(
-      name: name,
-      type: NodeType.collection,
-      isExpanded: true,
-      isDirectory: true,
-      initialChildren: children,
-      collection: collection,
-    );
-  }
+  RequestNode({
+    required this.name,
+    required this.request,
+    this.children = const [],
+    this.isExpanded = false,
+    this.isDirectory = false,
+    this.isSaved = true,
+    this.isRenaming = false,
+    this.type = NodeType.request,
+    String? uuid,
+  }) : uuid = uuid ?? Uuid().v4();
 
-  static newFolder(String name, Folder folder, List<ExplorerNode> children) {
-    return ExplorerNode(
-      name: name,
-      type: NodeType.folder,
-      isDirectory: true,
-      initialChildren: children,
-      folder: folder,
-    );
-  }
-
-  static newRequest(String name, Request request) {
-    return ExplorerNode(name: name, type: NodeType.request, isDirectory: false, request: request);
-  }
-
-  static newBlankRequest(String parentPath) {
+  // RequestNode.blank() creates a node with a blank unsaved request, used when
+  // you click new request on a folder/collection in the explorer
+  static blank(String parentPath) {
     final request = Request.blank();
     request.file = File(path.join(parentPath, '.bru'));
     request.name = '.bru';
 
-    return ExplorerNode(name: ".bru", type: NodeType.request, isDirectory: false, request: request, isSaved: false);
+    return RequestNode(name: ".bru", request: request, isSaved: false);
   }
 
-  static newBlankFolder(String parentPath) {
-    final folder = Folder.blank(parentPath);
-
-    return ExplorerNode(name: "new_folder", type: NodeType.folder, isDirectory: true, folder: folder, isSaved: false);
-  }
-
-  ExplorerNode({
-    required this.name,
-    this.isDirectory = false,
-    required this.type,
-    List<ExplorerNode>? initialChildren,
-    this.isExpanded = false,
-    this.isRenaming = false,
-    this.isSaved = true,
-    Collection? collection,
-    Request? request,
-    Folder? folder,
-    this.uuid,
-  }) {
-    if (type == NodeType.collection) {
-      this.collection = collection;
-    }
-
-    if (type == NodeType.folder) {
-      this.folder = folder;
-    }
-
-    if (type == NodeType.request) {
-      this.request = request;
-    }
-
-    if (initialChildren != null) {
-      children.addAll(initialChildren);
-    }
-  }
-
+  @override
   File? getFile() {
-    if (type == NodeType.request && request != null) {
-      return request!.file;
-    } else if (type == NodeType.folder && folder != null) {
-      return folder!.file;
-    } else if (type == NodeType.collection && collection != null) {
-      return collection!.file;
-    }
-    return null;
+    return request.file;
   }
 
+  @override
   Directory? getDir() {
-    if (type == NodeType.folder && folder != null) {
-      return folder!.dir;
-    } else if (type == NodeType.collection && collection != null) {
-      return collection!.dir;
-    }
     return null;
   }
 
+  @override
   void setFile(File file) {
-    if (type == NodeType.request) {
-      request!.file = file;
-    } else if (type == NodeType.folder) {
-      folder!.file = file;
-    } else if (type == NodeType.collection) {
-      collection!.file = file;
-    }
+    request.file = file;
   }
 
-  void setDir(Directory dir) {
-    if (type == NodeType.folder) {
-      folder!.dir = dir;
-    } else if (type == NodeType.collection) {
-      collection!.dir = dir;
-    }
-  }
+  @override
+  void setDir(Directory dir) {}
 
+  @override
   String? getPath() {
-    if (type == NodeType.request && request != null) {
-      return request!.file?.path;
-    } else if (type == NodeType.folder && folder != null) {
-      return folder!.file.path;
-    } else if (type == NodeType.collection && collection != null) {
-      return collection!.file.path;
-    }
-    return null;
+    return request.file?.path;
   }
 
+  @override
   ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
 
+  @override
   String displayName() {
     return name.replaceAll('.bru', '');
   }
 
-  ExplorerNode copy() {
-    // Create a new ExplorerNode with copied properties
-    final copiedNode = ExplorerNode(
+  @override
+  RequestNode copy() {
+    final copiedRequest = Request.blank();
+    copiedRequest.copyValuesFrom(request);
+
+    final copiedNode = RequestNode(
       name: name,
+      request: copiedRequest,
       isDirectory: isDirectory,
       type: type,
-      initialChildren: [],
+      children: children,
       isExpanded: isExpanded,
       isRenaming: isRenaming,
       isSaved: isSaved,
     );
 
-    if (type == NodeType.request && request != null) {
-      final copiedRequest = Request.blank();
-      copiedRequest.copyValuesFrom(request!);
-      copiedNode.request = copiedRequest;
-    }
+    return copiedNode;
+  }
+
+  @override
+  void setIsSaved(bool isSaved) {
+    this.isSaved = isSaved;
+  }
+
+  @override
+  void setName(String name) {
+    this.name = name;
+  }
+
+  @override
+  void setIsExpanded(bool isExpanded) {
+    this.isExpanded = isExpanded;
+  }
+
+  @override
+  void setIsRenaming(bool isRenaming) {
+    this.isRenaming = isRenaming;
+  }
+}
+
+class FolderNode implements ExplorerNode {
+  String name;
+  String uuid;
+  final bool isDirectory;
+  List<ExplorerNode> children = [];
+  final NodeType type;
+  bool isExpanded;
+  bool isRenaming;
+  bool isSaved;
+
+  late Folder folder;
+
+  FolderNode({
+    required this.name,
+    required this.folder,
+    required this.children,
+    this.isExpanded = false,
+    this.isDirectory = true,
+    this.isSaved = true,
+    this.isRenaming = false,
+    this.type = NodeType.folder,
+    String? uuid,
+  }) : uuid = uuid ?? Uuid().v4();
+
+  // RequestNode.blank() creates a node with a blank unsaved request, used when
+  // you click new request on a folder/collection in the explorer
+  static blank(String parentPath) {
+    final folder = Folder.blank(parentPath);
+
+    return FolderNode(name: "new_folder", folder: folder, children: [], isSaved: false);
+  }
+
+  @override
+  File? getFile() {
+    return folder.file;
+  }
+
+  @override
+  Directory? getDir() {
+    return folder.dir;
+  }
+
+  @override
+  void setFile(File file) {
+    folder.file = file;
+  }
+
+  @override
+  void setDir(Directory dir) {
+    folder.dir = dir;
+  }
+
+  @override
+  String? getPath() {
+    return folder.file.path;
+  }
+
+  @override
+  ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
+
+  @override
+  String displayName() {
+    return name;
+  }
+
+  @override
+  FolderNode copy() {
+    final copiedNode = FolderNode(
+      name: name,
+      folder: folder,
+      isDirectory: isDirectory,
+      type: type,
+      children: children,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+    );
 
     return copiedNode;
+  }
+
+  @override
+  void setIsSaved(bool isSaved) {
+    this.isSaved = isSaved;
+  }
+
+  @override
+  void setName(String name) {
+    this.name = name;
+  }
+
+  @override
+  void setIsExpanded(bool isExpanded) {
+    this.isExpanded = isExpanded;
+  }
+
+  @override
+  void setIsRenaming(bool isRenaming) {
+    this.isRenaming = isRenaming;
+  }
+}
+
+class CollectionNode implements ExplorerNode {
+  String name;
+  String uuid;
+  final bool isDirectory;
+  List<ExplorerNode> children = [];
+  final NodeType type;
+  bool isExpanded;
+  bool isRenaming;
+  bool isSaved;
+
+  late Collection collection;
+
+  CollectionNode({
+    required this.name,
+    required this.collection,
+    required this.children,
+    this.isExpanded = true,
+    this.isDirectory = true,
+    this.isSaved = true,
+    this.isRenaming = false,
+    this.type = NodeType.collection,
+    String? uuid,
+  }) : uuid = uuid ?? Uuid().v4();
+
+  @override
+  File? getFile() {
+    return collection.file;
+  }
+
+  @override
+  Directory? getDir() {
+    return collection.dir;
+  }
+
+  @override
+  void setFile(File file) {
+    collection.file = file;
+  }
+
+  @override
+  void setDir(Directory dir) {
+    collection.dir = dir;
+  }
+
+  @override
+  String? getPath() {
+    return collection.file.path;
+  }
+
+  @override
+  ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
+
+  @override
+  String displayName() {
+    return name;
+  }
+
+  @override
+  CollectionNode copy() {
+    final copiedNode = CollectionNode(
+      name: name,
+      collection: collection,
+      isDirectory: isDirectory,
+      type: type,
+      children: children,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+    );
+
+    return copiedNode;
+  }
+
+  @override
+  void setIsSaved(bool isSaved) {
+    this.isSaved = isSaved;
+  }
+
+  @override
+  void setName(String name) {
+    this.name = name;
+  }
+
+  @override
+  void setIsExpanded(bool isExpanded) {
+    this.isExpanded = isExpanded;
+  }
+
+  @override
+  void setIsRenaming(bool isRenaming) {
+    this.isRenaming = isRenaming;
   }
 }

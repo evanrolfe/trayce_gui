@@ -8,7 +8,7 @@ import 'flow_editor_http/flow_editor_http.dart';
 class FlowEditor extends StatefulWidget {
   final String uuid;
   final String flowType;
-  final ExplorerNode collectionNode;
+  final CollectionNode collectionNode;
   final ExplorerNode? node;
   final Request request;
   final ValueKey tabKey;

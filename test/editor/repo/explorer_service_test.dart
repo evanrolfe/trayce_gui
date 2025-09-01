@@ -46,62 +46,62 @@ void main() {
       final event = captured[0] as EventDisplayExplorerItems;
 
       expect(event.nodes[0].name, 'collection1');
-      expect(event.nodes[0].type, NodeType.collection);
-      final collection = event.nodes[0].collection;
-      expect(collection?.type, 'collection');
-      final collectionAuth = collection?.getAuth() as BasicAuth;
+      expect(event.nodes[0], isA<CollectionNode>());
+      final collection = (event.nodes[0] as CollectionNode).collection;
+      expect(collection.type, 'collection');
+      final collectionAuth = collection.getAuth() as BasicAuth;
       expect(collectionAuth.username, 'asdf');
       expect(collectionAuth.password, 'asdf');
-      expect(collection?.requestVars[0].name, 'A_var');
-      expect(collection?.requestVars[0].value, 'set from collection');
+      expect(collection.requestVars[0].name, 'A_var');
+      expect(collection.requestVars[0].value, 'set from collection');
 
-      expect(collection?.environments.length, 2);
+      expect(collection.environments.length, 2);
 
       // Environment 1 - dev.bru
-      final devEnv = collection?.environments.firstWhere((e) => e.fileName() == 'dev');
+      final devEnv = collection.environments.firstWhere((e) => e.fileName() == 'dev');
       expect(devEnv, isNotNull);
-      expect(devEnv?.vars.length, 2);
-      expect(devEnv?.vars[0].name, 'my_key');
-      expect(devEnv?.vars[0].value, '1234abcd');
-      expect(devEnv?.vars[0].secret, false);
-      expect(devEnv?.vars[1].name, 'my_password');
-      expect(devEnv?.vars[1].value, isNull);
-      expect(devEnv?.vars[1].secret, true);
+      expect(devEnv.vars.length, 2);
+      expect(devEnv.vars[0].name, 'my_key');
+      expect(devEnv.vars[0].value, '1234abcd');
+      expect(devEnv.vars[0].secret, false);
+      expect(devEnv.vars[1].name, 'my_password');
+      expect(devEnv.vars[1].value, isNull);
+      expect(devEnv.vars[1].secret, true);
 
       // Environment 2 - test.bru
-      final testEnv = collection?.environments.firstWhere((e) => e.fileName() == 'test');
+      final testEnv = collection.environments.firstWhere((e) => e.fileName() == 'test');
       expect(testEnv, isNotNull);
-      expect(testEnv?.vars.length, 1);
-      expect(testEnv?.vars[0].name, 'my_key');
-      expect(testEnv?.vars[0].value, 'testtest');
-      expect(testEnv?.vars[0].secret, false);
+      expect(testEnv.vars.length, 1);
+      expect(testEnv.vars[0].name, 'my_key');
+      expect(testEnv.vars[0].value, 'testtest');
+      expect(testEnv.vars[0].secret, false);
 
       expect(event.nodes[0].children[0].name, 'hello');
-      expect(event.nodes[0].children[0].type, NodeType.folder);
+      expect(event.nodes[0].children[0], isA<FolderNode>());
       expect(event.nodes[0].children[1].name, 'myfolder');
-      expect(event.nodes[0].children[1].type, NodeType.folder);
+      expect(event.nodes[0].children[1], isA<FolderNode>());
       expect(event.nodes[0].children[2].name, 'my-request.bru');
-      expect(event.nodes[0].children[2].type, NodeType.request);
-      Request? request = event.nodes[0].children[2].request;
-      expect(request?.method, 'get');
-      expect(request?.url, 'https://trayce.dev');
-      expect(request?.headers[0].name, 'hello');
-      expect(request?.headers[0].value, 'world');
+      expect(event.nodes[0].children[2], isA<RequestNode>());
+      Request? request = (event.nodes[0].children[2] as RequestNode).request;
+      expect(request.method, 'get');
+      expect(request.url, 'https://trayce.dev');
+      expect(request.headers[0].name, 'hello');
+      expect(request.headers[0].value, 'world');
 
       expect(event.nodes[0].children[1].children[0].name, 'one.bru');
-      expect(event.nodes[0].children[1].children[0].type, NodeType.request);
-      request = event.nodes[0].children[1].children[0].request;
-      expect(request?.method, 'post');
-      expect(request?.url, 'http://www.github.com/one');
+      expect(event.nodes[0].children[1].children[0], isA<RequestNode>());
+      request = (event.nodes[0].children[1].children[0] as RequestNode).request;
+      expect(request.method, 'post');
+      expect(request.url, 'http://www.github.com/one');
 
       expect(event.nodes[0].children[1].children[1].name, 'two.bru');
-      expect(event.nodes[0].children[1].children[1].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[1], isA<RequestNode>());
       expect(event.nodes[0].children[1].children[2].name, 'three.bru');
-      expect(event.nodes[0].children[1].children[2].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[2], isA<RequestNode>());
       expect(event.nodes[0].children[1].children[3].name, 'four.bru');
-      expect(event.nodes[0].children[1].children[3].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[3], isA<RequestNode>());
       expect(event.nodes[0].children[1].children[4].name, 'five.bru');
-      expect(event.nodes[0].children[1].children[4].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[4], isA<RequestNode>());
     });
   });
 
@@ -219,12 +219,14 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       // Expect three.bru to have seq 0
-      final threeReqNew = testMyFolder.children[0].request;
-      expect(threeReqNew?.seq, 0);
+      final threeReqNew = testMyFolder.children[0];
+      expect(threeReqNew, isA<RequestNode>());
+      expect((threeReqNew as RequestNode).request.seq, 0);
 
       await deleteFolder(newFolderPath);
       return;
@@ -269,7 +271,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -314,7 +317,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -359,7 +363,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -403,7 +408,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -480,7 +486,6 @@ void main() {
       expect(event2.nodes.length, 1);
 
       final renamedPath = path.join(path.dirname(newFolderPath), 'collection1-new');
-      print('renamedPath: $renamedPath');
       await deleteFolder(renamedPath);
     });
     test('renaming a folder', () async {
@@ -509,8 +514,8 @@ void main() {
 
       // Expect myfolder to be renamed to newname
       final node2 = event2.nodes[0].children[1];
+      expect(node2, isA<FolderNode>());
       expect(node2.name, 'newname');
-      expect(node.type, NodeType.folder);
       expect(event2.nodes[0].children.length, 4);
 
       await deleteFolder(newFolderPath);
@@ -659,7 +664,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = myFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);

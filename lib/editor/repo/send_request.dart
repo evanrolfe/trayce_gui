@@ -39,7 +39,7 @@ class SendRequest {
   final Config config;
   final Request request;
   final ExplorerNode? node;
-  final ExplorerNode collectionNode;
+  final CollectionNode collectionNode;
 
   final ExplorerService explorerService;
   final RuntimeVarsRepo runtimeVarsRepo;
@@ -91,7 +91,7 @@ class SendRequest {
     for (final entry in nodeMap.entries) {
       final key = entry.key;
       final node = entry.value;
-      if (node.request == null) continue;
+      if (node is! RequestNode) continue;
 
       final httpRequest = await getFinalRequest(node).toHttpRequest();
       requestMap[key] = _httpRequestToAxios(httpRequest);
@@ -131,14 +131,14 @@ class SendRequest {
       final node = nodeHierarchy[i];
 
       // Add vars from collection & environment
-      if (node.type == NodeType.collection && node.collection != null) {
+      if (node is CollectionNode) {
         // Add vars from collection
-        for (final reqvar in node.collection!.requestVars) {
+        for (final reqvar in node.collection.requestVars) {
           varsMap['collectionVars']!.add({'name': reqvar.name, 'value': reqvar.value});
         }
 
         // Add vars from environment
-        final currentEnv = node.collection!.getCurrentEnvironment();
+        final currentEnv = node.collection.getCurrentEnvironment();
         if (currentEnv != null) {
           for (final reqvar in currentEnv.vars) {
             varsMap['envVars']!.add({'name': reqvar.name, 'value': reqvar.value});
@@ -147,20 +147,20 @@ class SendRequest {
       }
 
       // Add vars from folder
-      if (node.type == NodeType.folder && node.folder != null) {
-        for (final reqvar in node.folder!.requestVars) {
+      if (node is FolderNode) {
+        for (final reqvar in node.folder.requestVars) {
           varsMap['folderVars']!.add({'name': reqvar.name, 'value': reqvar.value});
         }
       }
 
       // Add vars from request
-      if (node.type == NodeType.request && node.request != null) {
+      if (node is RequestNode) {
         // pre-request
-        for (final reqvar in node.request!.requestVars) {
+        for (final reqvar in node.request.requestVars) {
           varsMap['requestVars']!.add({'name': reqvar.name, 'value': reqvar.value});
         }
         // post-response
-        for (final reqvar in node.request!.responseVars) {
+        for (final reqvar in node.request.responseVars) {
           varsMap['responseVars']!.add({'name': reqvar.name, 'value': reqvar.value});
         }
       }
@@ -194,26 +194,26 @@ class SendRequest {
     for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
       final node = nodeHierarchy[i];
 
-      if (node.type == NodeType.collection && node.collection != null) {
+      if (node is CollectionNode) {
         // Add headers, vars, auth from collection
-        for (final header in node.collection!.headers) {
+        for (final header in node.collection.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
 
-        for (final reqvar in node.collection!.requestVars) {
+        for (final reqvar in node.collection.requestVars) {
           finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
           finalReq.requestVars.add(reqvar);
         }
 
-        final collectionAuth = node.collection!.getAuth();
-        if (node.collection!.authType != AuthType.none && collectionAuth != null) {
-          finalReq.authType = node.collection!.authType;
+        final collectionAuth = node.collection.getAuth();
+        if (node.collection.authType != AuthType.none && collectionAuth != null) {
+          finalReq.authType = node.collection.authType;
           finalReq.setAuth(collectionAuth);
         }
 
         // Add vars from environment
-        final currentEnv = node.collection!.getCurrentEnvironment();
+        final currentEnv = node.collection.getCurrentEnvironment();
         if (currentEnv != null) {
           for (final reqvar in currentEnv.vars) {
             finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
@@ -223,39 +223,39 @@ class SendRequest {
       }
 
       // Add headers, vars, auth from folder
-      if (node.type == NodeType.folder && node.folder != null) {
-        for (final header in node.folder!.headers) {
+      if (node is FolderNode) {
+        for (final header in node.folder.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
 
-        for (final reqvar in node.folder!.requestVars) {
+        for (final reqvar in node.folder.requestVars) {
           finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
           finalReq.requestVars.add(reqvar);
         }
 
-        final folderAuth = node.folder!.getAuth();
-        if (node.folder!.authType != AuthType.none && folderAuth != null) {
-          finalReq.authType = node.folder!.authType;
+        final folderAuth = node.folder.getAuth();
+        if (node.folder.authType != AuthType.none && folderAuth != null) {
+          finalReq.authType = node.folder.authType;
           finalReq.setAuth(folderAuth);
         }
       }
 
       // Add headers, vars from request
-      if (node.type == NodeType.request && node.request != null) {
-        for (final header in node.request!.headers) {
+      if (node is RequestNode) {
+        for (final header in node.request.headers) {
           finalReq.headers.removeWhere((h) => h.name == header.name);
           finalReq.headers.add(header);
         }
 
-        for (final reqvar in node.request!.requestVars) {
+        for (final reqvar in node.request.requestVars) {
           finalReq.requestVars.removeWhere((v) => v.name == reqvar.name);
           finalReq.requestVars.add(reqvar);
         }
 
-        final requestAuth = node.request!.getAuth();
-        if (node.request!.authType != AuthType.none && requestAuth != null) {
-          finalReq.authType = node.request!.authType;
+        final requestAuth = node.request.getAuth();
+        if (node.request.authType != AuthType.none && requestAuth != null) {
+          finalReq.authType = node.request.authType;
           finalReq.setAuth(requestAuth);
         }
       }
@@ -287,8 +287,8 @@ class SendRequest {
       final cliArgs = {
         'request': request.toMap(),
         'requestMap': requestMap,
-        'collectionName': collectionNode.collection!.dir.path,
-        'collectionPath': collectionNode.collection!.absolutePath(),
+        'collectionName': collectionNode.collection.dir.path,
+        'collectionPath': collectionNode.collection.absolutePath(),
         'vars': _getVarsMap(node),
       };
 
@@ -369,7 +369,7 @@ class SendRequest {
       }
     }
 
-    final currentEnv = collectionNode.collection!.getCurrentEnvironment();
+    final currentEnv = collectionNode.collection.getCurrentEnvironment();
     if (currentEnv != null && json['envVars'] != null) {
       final envVars = json['envVars'] as List<dynamic>;
       for (final varr in envVars) {
@@ -378,7 +378,7 @@ class SendRequest {
         currentEnv.setVar(varMap['name'], varMap['value']);
       }
 
-      environmentRepo.save(collectionNode.collection!, currentEnv);
+      environmentRepo.save(collectionNode.collection, currentEnv);
     }
 
     final currentGlobalEnv = globalEnvironmentRepo.getSelectedEnv();
@@ -414,8 +414,8 @@ class SendRequest {
         'request': request.toMap(),
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
-        'collectionName': collectionNode.collection!.dir.path,
-        'collectionPath': collectionNode.collection!.absolutePath(),
+        'collectionName': collectionNode.collection.dir.path,
+        'collectionPath': collectionNode.collection.absolutePath(),
         'vars': _getVarsMap(node),
       };
       // print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
@@ -466,8 +466,8 @@ class SendRequest {
         'request': request.toMap(),
         'response': _httpResponseToMap(response, responseTime),
         'requestMap': requestMap,
-        'collectionName': collectionNode.collection!.dir.path,
-        'collectionPath': collectionNode.collection!.absolutePath(),
+        'collectionName': collectionNode.collection.dir.path,
+        'collectionPath': collectionNode.collection.absolutePath(),
         'vars': _getVarsMap(node),
       };
 
@@ -521,7 +521,7 @@ class SendRequest {
       }
     }
 
-    final currentEnv = collectionNode.collection!.getCurrentEnvironment();
+    final currentEnv = collectionNode.collection.getCurrentEnvironment();
     if (currentEnv != null && json['envVars'] != null) {
       final envVars = json['envVars'] as List<dynamic>;
       for (final varr in envVars) {
@@ -531,7 +531,7 @@ class SendRequest {
         currentEnv.setVar(varMap['name'], varMap['value']);
       }
 
-      environmentRepo.save(collectionNode.collection!, currentEnv);
+      environmentRepo.save(collectionNode.collection, currentEnv);
     }
 
     final currentGlobalEnv = globalEnvironmentRepo.getSelectedEnv();

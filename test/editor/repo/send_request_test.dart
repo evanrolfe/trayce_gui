@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:trayce/common/app_storage.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/global_environment.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/variable.dart';
@@ -66,6 +67,7 @@ void main() {
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
+      expect(reqThree, isA<RequestNode>());
 
       final hierarchy = explorerService.getNodeHierarchy(reqThree);
       expect(hierarchy.length, 3);
@@ -74,9 +76,9 @@ void main() {
       expect(hierarchy[2].name, 'collection1');
 
       final finalReq = SendRequest(
-        request: reqThree.request!,
+        request: (reqThree as RequestNode).request,
         node: reqThree,
-        collectionNode: event.nodes[0],
+        collectionNode: event.nodes[0] as CollectionNode,
         explorerService: explorerService,
         runtimeVarsRepo: runtimeVarsRepo,
         environmentRepo: environmentRepo,
@@ -146,6 +148,7 @@ void main() {
 
       final reqFour = event.nodes[0].children[1].children[3];
       expect(reqFour.name, 'four.bru');
+      expect(reqFour, isA<RequestNode>());
 
       final hierarchy = explorerService.getNodeHierarchy(reqFour);
       expect(hierarchy.length, 3);
@@ -154,9 +157,9 @@ void main() {
       expect(hierarchy[2].name, 'collection1');
 
       final finalReq = SendRequest(
-        request: reqFour.request!,
+        request: (reqFour as RequestNode).request,
         node: reqFour,
-        collectionNode: event.nodes[0],
+        collectionNode: event.nodes[0] as CollectionNode,
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
         environmentRepo: environmentRepo,
@@ -188,6 +191,7 @@ void main() {
 
       final reqFour = event.nodes[0].children[0].children[0];
       expect(reqFour.name, 'hello.bru');
+      expect(reqFour, isA<RequestNode>());
 
       final hierarchy = explorerService.getNodeHierarchy(reqFour);
       expect(hierarchy.length, 3);
@@ -196,9 +200,9 @@ void main() {
       expect(hierarchy[2].name, 'collection1');
 
       final finalReq = SendRequest(
-        request: reqFour.request!,
+        request: (reqFour as RequestNode).request,
         node: reqFour,
-        collectionNode: event.nodes[0],
+        collectionNode: event.nodes[0] as CollectionNode,
         explorerService: explorerService,
         runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
         environmentRepo: environmentRepo,
