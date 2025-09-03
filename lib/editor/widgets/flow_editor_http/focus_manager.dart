@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:trayce/editor/widgets/explorer/explorer.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/flow_editor_http.dart';
 
+enum TableForm { queryParams, pathParams, requestVars, responseVars, runtimeVars, files, headers, multipart }
+
 class EditorFocusManager {
   late final FocusNode editorFocusNode;
   late final FocusNode methodFocusNode;
@@ -18,7 +20,7 @@ class EditorFocusManager {
   late final FocusNode respOutputFocusNode;
   late final FocusNode preRequestFocusNode;
   late final FocusNode postResponseFocusNode;
-  late final List<Map<String, FocusNode>> _rowFocusNodes;
+  late final Map<TableForm, List<Map<String, FocusNode>>> _rowFocusNodes;
   late final List<Map<String, FocusNode>> _pathParamsRowFocusNodes;
 
   late final FocusNode authApiKeyKeyFocusNode;
@@ -45,7 +47,16 @@ class EditorFocusManager {
     respOutputFocusNode = FocusNode();
     preRequestFocusNode = FocusNode();
     postResponseFocusNode = FocusNode();
-    _rowFocusNodes = [];
+    _rowFocusNodes = {
+      TableForm.queryParams: [],
+      TableForm.pathParams: [],
+      TableForm.requestVars: [],
+      TableForm.responseVars: [],
+      TableForm.runtimeVars: [],
+      TableForm.files: [],
+      TableForm.headers: [],
+      TableForm.multipart: [],
+    };
     _pathParamsRowFocusNodes = [];
 
     authApiKeyKeyFocusNode = FocusNode();
@@ -103,37 +114,27 @@ class EditorFocusManager {
     });
   }
 
-  Map<String, FocusNode> getRowFocusNodes(int index) {
-    return _rowFocusNodes[index];
+  Map<String, FocusNode> getRowFocusNodes(TableForm tableForm, int index) {
+    final nodes = _rowFocusNodes[tableForm];
+    if (nodes == null) return {};
+
+    return nodes[index];
   }
 
   Map<String, FocusNode> getPathParamsRowFocusNodes(int index) {
     return _pathParamsRowFocusNodes[index];
   }
 
-  Map<String, FocusNode> createRowFocusNodes() {
+  Map<String, FocusNode> createRowFocusNodes(TableForm tableForm) {
     final rowFocusNodes = {'key': FocusNode(), 'value': FocusNode(), 'contentType': FocusNode()};
 
-    final index = _rowFocusNodes.length;
+    final index = _rowFocusNodes[tableForm]!.length;
 
-    rowFocusNodes['key']!.onKeyEvent = (node, event) => _onKeyUpRow(event, index, 'key');
-    rowFocusNodes['value']!.onKeyEvent = (node, event) => _onKeyUpRow(event, index, 'value');
-    rowFocusNodes['contentType']!.onKeyEvent = (node, event) => _onKeyUpRow(event, index, 'contentType');
+    rowFocusNodes['key']!.onKeyEvent = (node, event) => _onKeyUpRow(event, tableForm, index, 'key');
+    rowFocusNodes['value']!.onKeyEvent = (node, event) => _onKeyUpRow(event, tableForm, index, 'value');
+    rowFocusNodes['contentType']!.onKeyEvent = (node, event) => _onKeyUpRow(event, tableForm, index, 'contentType');
 
-    _rowFocusNodes.add(rowFocusNodes);
-    return rowFocusNodes;
-  }
-
-  Map<String, FocusNode> createRowFocusNodesForPathParams() {
-    final rowFocusNodes = {'key': FocusNode(), 'value': FocusNode(), 'contentType': FocusNode()};
-
-    final index = _rowFocusNodes.length;
-
-    rowFocusNodes['key']!.onKeyEvent = (node, event) => _onKeyUpRowPathParams(event, index, 'key');
-    rowFocusNodes['value']!.onKeyEvent = (node, event) => _onKeyUpRowPathParams(event, index, 'value');
-    rowFocusNodes['contentType']!.onKeyEvent = (node, event) => _onKeyUpRowPathParams(event, index, 'contentType');
-
-    _pathParamsRowFocusNodes.add(rowFocusNodes);
+    _rowFocusNodes[tableForm]!.add(rowFocusNodes);
     return rowFocusNodes;
   }
 
@@ -208,7 +209,7 @@ class EditorFocusManager {
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _onKeyUpRow(KeyEvent event, int index, String nodeKey) {
+  KeyEventResult _onKeyUpRow(KeyEvent event, TableForm formType, int index, String nodeKey) {
     final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
 
     if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
@@ -216,7 +217,7 @@ class EditorFocusManager {
       return KeyEventResult.handled;
     }
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
-      handleTabPress(index, nodeKey);
+      handleTabPress(formType, index, nodeKey);
       return KeyEventResult.handled;
     }
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
@@ -225,39 +226,17 @@ class EditorFocusManager {
     return KeyEventResult.ignored;
   }
 
-  void handleTabPress(int index, String nodeKey) {
+  void handleTabPress(TableForm formType, int index, String nodeKey) {
+    final nodes = _rowFocusNodes[formType];
+    if (nodes == null) return;
+
     if (nodeKey == 'key') {
-      _rowFocusNodes[index]['value']!.requestFocus();
+      nodes[index]['value']!.requestFocus();
     } else if (nodeKey == 'value') {
-      _rowFocusNodes[index + 1]['key']!.requestFocus();
+      nodes[index + 1]['key']!.requestFocus();
     } else if (nodeKey == 'contentType') {
-      _rowFocusNodes[index + 1]['key']!.requestFocus();
+      nodes[index + 1]['key']!.requestFocus();
     }
-  }
-
-  KeyEventResult _onKeyUpRowPathParams(KeyEvent event, int index, String nodeKey) {
-    final isCmdPressed = (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed);
-
-    if (event.logicalKey == LogicalKeyboardKey.keyS && isCmdPressed) {
-      _eventBus.fire(EventSaveIntent(tabKey));
-      return KeyEventResult.handled;
-    }
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
-      handleTabPressPathParams(index, nodeKey);
-      return KeyEventResult.handled;
-    }
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
-  }
-
-  void handleTabPressPathParams(int index, String nodeKey) {
-    // TODO: Make this work
-    // print('handleTabPressPathParams length: ${_pathParamsRowFocusNodes.length}, currentIndex: $index');
-    // if (nodeKey == 'value') {
-    //   _pathParamsRowFocusNodes[index + 1]['value']!.requestFocus();
-    // }
   }
 
   void dispose() {

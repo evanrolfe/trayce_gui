@@ -24,9 +24,8 @@ void main() {
   late RequestRepo requestRepo;
 
   setUpAll(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
     mockEventBus = MockEventBus();
-    fakeAppStorage = await FakeAppStorage.getInstance();
+    fakeAppStorage = FakeAppStorage();
     collectionRepo = CollectionRepo(fakeAppStorage);
     folderRepo = FolderRepo();
     requestRepo = RequestRepo();
@@ -47,62 +46,62 @@ void main() {
       final event = captured[0] as EventDisplayExplorerItems;
 
       expect(event.nodes[0].name, 'collection1');
-      expect(event.nodes[0].type, NodeType.collection);
-      final collection = event.nodes[0].collection;
-      expect(collection?.type, 'collection');
-      final collectionAuth = collection?.getAuth() as BasicAuth;
+      expect(event.nodes[0], isA<CollectionNode>());
+      final collection = (event.nodes[0] as CollectionNode).collection;
+      expect(collection.type, 'collection');
+      final collectionAuth = collection.getAuth() as BasicAuth;
       expect(collectionAuth.username, 'asdf');
       expect(collectionAuth.password, 'asdf');
-      expect(collection?.requestVars[0].name, 'A_var');
-      expect(collection?.requestVars[0].value, 'set from collection');
+      expect(collection.requestVars[0].name, 'A_var');
+      expect(collection.requestVars[0].value, 'set from collection');
 
-      expect(collection?.environments.length, 2);
+      expect(collection.environments.length, 2);
 
       // Environment 1 - dev.bru
-      final devEnv = collection?.environments.firstWhere((e) => e.fileName() == 'dev');
+      final devEnv = collection.environments.firstWhere((e) => e.fileName() == 'dev');
       expect(devEnv, isNotNull);
-      expect(devEnv?.vars.length, 2);
-      expect(devEnv?.vars[0].name, 'my_key');
-      expect(devEnv?.vars[0].value, '1234abcd');
-      expect(devEnv?.vars[0].secret, false);
-      expect(devEnv?.vars[1].name, 'my_password');
-      expect(devEnv?.vars[1].value, isNull);
-      expect(devEnv?.vars[1].secret, true);
+      expect(devEnv.vars.length, 2);
+      expect(devEnv.vars[0].name, 'my_key');
+      expect(devEnv.vars[0].value, '1234abcd');
+      expect(devEnv.vars[0].secret, false);
+      expect(devEnv.vars[1].name, 'my_password');
+      expect(devEnv.vars[1].value, isNull);
+      expect(devEnv.vars[1].secret, true);
 
       // Environment 2 - test.bru
-      final testEnv = collection?.environments.firstWhere((e) => e.fileName() == 'test');
+      final testEnv = collection.environments.firstWhere((e) => e.fileName() == 'test');
       expect(testEnv, isNotNull);
-      expect(testEnv?.vars.length, 1);
-      expect(testEnv?.vars[0].name, 'my_key');
-      expect(testEnv?.vars[0].value, 'testtest');
-      expect(testEnv?.vars[0].secret, false);
+      expect(testEnv.vars.length, 1);
+      expect(testEnv.vars[0].name, 'my_key');
+      expect(testEnv.vars[0].value, 'testtest');
+      expect(testEnv.vars[0].secret, false);
 
       expect(event.nodes[0].children[0].name, 'hello');
-      expect(event.nodes[0].children[0].type, NodeType.folder);
+      expect(event.nodes[0].children[0], isA<FolderNode>());
       expect(event.nodes[0].children[1].name, 'myfolder');
-      expect(event.nodes[0].children[1].type, NodeType.folder);
+      expect(event.nodes[0].children[1], isA<FolderNode>());
       expect(event.nodes[0].children[2].name, 'my-request.bru');
-      expect(event.nodes[0].children[2].type, NodeType.request);
-      Request? request = event.nodes[0].children[2].request;
-      expect(request?.method, 'get');
-      expect(request?.url, 'https://trayce.dev');
-      expect(request?.headers[0].name, 'hello');
-      expect(request?.headers[0].value, 'world');
+      expect(event.nodes[0].children[2], isA<RequestNode>());
+      Request? request = (event.nodes[0].children[2] as RequestNode).request;
+      expect(request.method, 'get');
+      expect(request.url, 'https://trayce.dev');
+      expect(request.headers[0].name, 'hello');
+      expect(request.headers[0].value, 'world');
 
       expect(event.nodes[0].children[1].children[0].name, 'one.bru');
-      expect(event.nodes[0].children[1].children[0].type, NodeType.request);
-      request = event.nodes[0].children[1].children[0].request;
-      expect(request?.method, 'post');
-      expect(request?.url, 'http://www.github.com/one');
+      expect(event.nodes[0].children[1].children[0], isA<RequestNode>());
+      request = (event.nodes[0].children[1].children[0] as RequestNode).request;
+      expect(request.method, 'post');
+      expect(request.url, 'http://www.github.com/one');
 
       expect(event.nodes[0].children[1].children[1].name, 'two.bru');
-      expect(event.nodes[0].children[1].children[1].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[1], isA<RequestNode>());
       expect(event.nodes[0].children[1].children[2].name, 'three.bru');
-      expect(event.nodes[0].children[1].children[2].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[2], isA<RequestNode>());
       expect(event.nodes[0].children[1].children[3].name, 'four.bru');
-      expect(event.nodes[0].children[1].children[3].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[3], isA<RequestNode>());
       expect(event.nodes[0].children[1].children[4].name, 'five.bru');
-      expect(event.nodes[0].children[1].children[4].type, NodeType.request);
+      expect(event.nodes[0].children[1].children[4], isA<RequestNode>());
     });
   });
 
@@ -182,9 +181,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -194,12 +191,12 @@ void main() {
       expect(event.nodes[0].children[1].name, 'myfolder');
       final movedNode = event.nodes[0].children[1].children[2];
       expect(movedNode.name, 'three.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[0];
       expect(targetNode.name, 'hello');
-      expect(targetNode.type, NodeType.folder);
+      expect(targetNode, isA<FolderNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -222,12 +219,68 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       // Expect three.bru to have seq 0
-      final threeReqNew = testMyFolder.children[0].request;
-      expect(threeReqNew?.seq, 0);
+      final threeReqNew = testMyFolder.children[0];
+      expect(threeReqNew, isA<RequestNode>());
+      expect((threeReqNew as RequestNode).request.seq, 0);
+
+      await deleteFolder(newFolderPath);
+      return;
+    });
+
+    test('moving a script to another folder', () async {
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+
+      final newFolderPath = cloneCollectionSync(collection1Path);
+
+      explorerService.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      // Moved Node:
+      expect(event.nodes[0].children[1].name, 'myfolder');
+      final movedNode = event.nodes[0].children[4];
+      expect(movedNode.name, 'test_script.js');
+      expect(movedNode, isA<ScriptNode>());
+
+      // Target Node:
+      final targetNode = event.nodes[0].children[0];
+      expect(targetNode.name, 'hello');
+      expect(targetNode, isA<FolderNode>());
+
+      explorerService.moveNode(movedNode, targetNode);
+
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[0] as EventDisplayExplorerItems;
+
+      // Expect hello have 1 request
+      expect(event2.nodes[0].children[0].name, 'hello');
+      expect(event2.nodes[0].children[0].children.length, 2);
+      expect(event2.nodes[0].children[0].children[0].name, 'hello.bru');
+      expect(event2.nodes[0].children[0].children[1].name, 'test_script.js');
+
+      // Expect test-myfolder to have 4 requests
+      final rootFolder = event.nodes[0];
+      expect(rootFolder.children.length, 5);
+
+      // Expect test-myfolder to have requests with the correct seq number
+      final expectedFiles = ['hello', 'myfolder', 'my-request.bru', 'json.bru', 'utils.js'];
+      for (var i = 0; i < expectedFiles.length; i++) {
+        final node = rootFolder.children[i];
+        expect(node.name, expectedFiles[i]);
+        if (node is RequestNode) {
+          expect(node.request.seq, i);
+        }
+      }
 
       await deleteFolder(newFolderPath);
       return;
@@ -241,9 +294,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -252,12 +303,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1].children[0];
       expect(movedNode.name, 'one.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1].children[3];
       expect(targetNode.name, 'four.bru');
-      expect(targetNode.type, NodeType.request);
+      expect(targetNode, isA<RequestNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -274,7 +325,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -288,9 +340,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -299,12 +349,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1].children[3];
       expect(movedNode.name, 'four.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1].children[0];
       expect(targetNode.name, 'one.bru');
-      expect(targetNode.type, NodeType.request);
+      expect(targetNode, isA<RequestNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -321,7 +371,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -335,9 +386,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -346,12 +395,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1].children[3];
       expect(movedNode.name, 'four.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1];
       expect(targetNode.name, 'myfolder');
-      expect(targetNode.type, NodeType.folder);
+      expect(targetNode, isA<FolderNode>());
 
       explorerService.moveNode(movedNode, targetNode);
 
@@ -368,7 +417,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -382,9 +432,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -393,12 +441,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[2];
       expect(movedNode.name, 'my-request.bru');
-      expect(movedNode.type, NodeType.request);
+      expect(movedNode, isA<RequestNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[1].children[1];
       expect(targetNode.name, 'two.bru');
-      expect(targetNode.type, NodeType.request);
+      expect(targetNode, isA<RequestNode>());
 
       explorerService.moveNode(movedNode, targetNode);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -414,7 +462,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = testMyFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);
@@ -428,9 +477,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -439,12 +486,12 @@ void main() {
       // Moved Node:
       final movedNode = event.nodes[0].children[1];
       expect(movedNode.name, 'myfolder');
-      expect(movedNode.type, NodeType.folder);
+      expect(movedNode, isA<FolderNode>());
 
       // Target Node:
       final targetNode = event.nodes[0].children[0];
       expect(targetNode.name, 'hello');
-      expect(targetNode.type, NodeType.folder);
+      expect(targetNode, isA<FolderNode>());
 
       await explorerService.moveNode(movedNode, targetNode);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -470,9 +517,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -480,8 +525,8 @@ void main() {
 
       // Node to rename:
       final node = event.nodes[0];
-      expect(node.name, 'collection1-test');
-      expect(node.type, NodeType.collection);
+      expect(node.name, contains('collection1-'));
+      expect(node, isA<CollectionNode>());
       expect(event.nodes.length, 1);
 
       await explorerService.renameNode(node, 'collection1-new');
@@ -491,11 +536,10 @@ void main() {
       // Expect myfolder to be renamed to newname
       final node2 = event2.nodes[0];
       expect(node2.name, 'collection1-new');
-      expect(node2.type, NodeType.collection);
+      expect(node2, isA<CollectionNode>());
       expect(event2.nodes.length, 1);
 
       final renamedPath = path.join(path.dirname(newFolderPath), 'collection1-new');
-      print('renamedPath: $renamedPath');
       await deleteFolder(renamedPath);
     });
     test('renaming a folder', () async {
@@ -506,9 +550,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -517,8 +559,8 @@ void main() {
       // Node to rename:
       final node = event.nodes[0].children[1];
       expect(node.name, 'myfolder');
-      expect(node.type, NodeType.folder);
-      expect(event.nodes[0].children.length, 4);
+      expect(node, isA<FolderNode>());
+      expect(event.nodes[0].children.length, 6);
 
       await explorerService.renameNode(node, 'newname');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -526,9 +568,9 @@ void main() {
 
       // Expect myfolder to be renamed to newname
       final node2 = event2.nodes[0].children[1];
+      expect(node2, isA<FolderNode>());
       expect(node2.name, 'newname');
-      expect(node.type, NodeType.folder);
-      expect(event2.nodes[0].children.length, 4);
+      expect(event2.nodes[0].children.length, 6);
 
       await deleteFolder(newFolderPath);
     });
@@ -541,9 +583,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -552,7 +592,7 @@ void main() {
       // Node to rename:
       final node = event.nodes[0].children[2];
       expect(node.name, 'my-request.bru');
-      expect(node.type, NodeType.request);
+      expect(node, isA<RequestNode>());
 
       await explorerService.renameNode(node, 'newname');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -561,7 +601,38 @@ void main() {
       // Expect myfolder to be renamed to newname
       final node2 = event2.nodes[0].children[2];
       expect(node2.name, 'newname.bru');
-      expect(node2.type, NodeType.request);
+      expect(node2, isA<RequestNode>());
+
+      await deleteFolder(newFolderPath);
+    });
+
+    test('renaming a script', () async {
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+
+      final newFolderPath = cloneCollectionSync(collection1Path);
+
+      explorerService.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      // Node to rename:
+      final node = event.nodes[0].children[4];
+      expect(node.name, 'test_script.js');
+      expect(node, isA<ScriptNode>());
+
+      await explorerService.renameNode(node, 'newname.js');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[1] as EventDisplayExplorerItems;
+
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0].children[4];
+      expect(node2.name, 'newname.js');
+      expect(node2, isA<ScriptNode>());
 
       await deleteFolder(newFolderPath);
     });
@@ -599,9 +670,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -609,8 +678,8 @@ void main() {
 
       // Node to delete:
       final node = event.nodes[0];
-      expect(node.name, 'collection1-test');
-      expect(node.type, NodeType.collection);
+      expect(node.name, contains('collection1-'));
+      expect(node, isA<CollectionNode>());
 
       // Delete the node
       await explorerService.deleteNode(node);
@@ -627,9 +696,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -639,13 +706,13 @@ void main() {
       final node = event.nodes[0].children[1];
       expect(event.nodes[0].children[1].children.length, 5);
       expect(node.name, 'myfolder');
-      expect(node.type, NodeType.folder);
+      expect(node, isA<FolderNode>());
 
       // Delete the node
       await explorerService.deleteNode(node);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
-      expect(event2.nodes[0].children.length, 3);
+      expect(event2.nodes[0].children.length, 5);
 
       await deleteFolder(newFolderPath);
     });
@@ -658,9 +725,7 @@ void main() {
         requestRepo: requestRepo,
       );
 
-      final folderPath = collection1Path;
-      final newFolderPath = '$collection1Path-test';
-      await copyFolder(folderPath, newFolderPath);
+      final newFolderPath = cloneCollectionSync(collection1Path);
 
       explorerService.openCollection(newFolderPath);
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -670,7 +735,7 @@ void main() {
       final node = event.nodes[0].children[1].children[0];
       expect(event.nodes[0].children[1].children.length, 5);
       expect(node.name, 'one.bru');
-      expect(node.type, NodeType.request);
+      expect(node, isA<RequestNode>());
 
       // Delete the node
       await explorerService.deleteNode(node);
@@ -684,7 +749,8 @@ void main() {
       for (var i = 0; i < expectedFiles.length; i++) {
         final node = myFolder.children[i];
         expect(node.name, expectedFiles[i]);
-        expect(node.request?.seq, i);
+        expect(node, isA<RequestNode>());
+        expect((node as RequestNode).request.seq, i);
       }
 
       await deleteFolder(newFolderPath);

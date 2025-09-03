@@ -1,19 +1,37 @@
 import 'dart:io';
 
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_test_handler/shelf_test_handler.dart';
 import 'package:trayce/common/config.dart';
 import 'package:trayce/editor/models/auth.dart';
 import 'package:trayce/editor/models/body.dart';
+import 'package:trayce/editor/models/collection.dart';
+import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
+import 'package:trayce/editor/repo/collection_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
+import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
+import 'package:trayce/editor/repo/request_repo.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/setup_nodejs.dart';
 
+import '../../support/fake_app_storage.dart';
+import 'send_request_test.dart';
+
 const jsonResponse = '{"message":"Hello, World!","status":200}';
+
+class MockEventBus extends Mock implements EventBus {}
+
+const collection1Path = 'test/support/collection-scripts';
 
 class HttpTestServer {
   late ShelfTestServer server;
@@ -76,16 +94,64 @@ class HttpTestServer {
 late HttpTestServer mockServer;
 
 void main() {
+  late MockAppStorage mockAppStorage;
+  late MockEventBus mockEventBus;
+  late FakeAppStorage fakeAppStorage;
+  late CollectionRepo collectionRepo;
+  late EnvironmentRepo environmentRepo;
+  late FolderRepo folderRepo;
+  late RequestRepo requestRepo;
+  late ExplorerService explorerService;
+
+  final collection = Collection(
+    file: File('test.collection'),
+    dir: Directory('test/support/collection-scripts'),
+    type: 'http',
+    environments: [],
+    headers: [],
+    query: [],
+    authType: AuthType.none,
+    requestVars: [],
+    responseVars: [],
+  );
+  final collectionNode = CollectionNode(name: 'Test Collection', collection: collection, children: []);
+
   setUpAll(() async {
+    mockEventBus = MockEventBus();
+    mockAppStorage = MockAppStorage();
+    fakeAppStorage = FakeAppStorage();
+    collectionRepo = CollectionRepo(fakeAppStorage);
+    environmentRepo = EnvironmentRepo(fakeAppStorage);
+    folderRepo = FolderRepo();
+    requestRepo = RequestRepo();
+
+    explorerService = ExplorerService(
+      eventBus: mockEventBus,
+      collectionRepo: collectionRepo,
+      folderRepo: folderRepo,
+      requestRepo: requestRepo,
+    );
+
     mockServer = await HttpTestServer.create();
-    setupNodeJs();
+    final config = Config(
+      isTest: false,
+      trayceApiUrl: '',
+      appSupportDir: Directory.current.path,
+      appDocsDir: Directory.current.path,
+    );
+    setupNodeJs(config);
   });
 
   tearDownAll(() async {
     await mockServer.close();
   });
 
-  final config = Config(isTest: true, trayceApiUrl: 'http://localhost:8080', appSupportDir: Directory.current.path);
+  final config = Config(
+    isTest: true,
+    trayceApiUrl: 'http://localhost:8080',
+    appSupportDir: Directory.current.path,
+    appDocsDir: Directory.current.path,
+  );
 
   test('sending a request with a pre-request script using the request object getters', () async {
     mockServer.newHandler('POST', '/test_endpoint');
@@ -130,7 +196,20 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -191,7 +270,20 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -237,7 +329,20 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -278,7 +383,20 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
@@ -331,13 +449,25 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
     mockServer.reset();
 
-    print(result.output);
     expect(result.output.length, 10);
     expect(result.output[0], '200');
     expect(result.output[1], 'OK');
@@ -385,13 +515,25 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
     mockServer.reset();
 
-    print(result.output);
     expect(result.output.length, 1);
     expect(result.output[0], 'Hello, World!');
   });
@@ -401,7 +543,7 @@ void main() {
 
     final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
 
-    final jsScript = '''res.setBody('{"new": "value-from-script"}');''';
+    final jsScript = '''res.setBody({"new": "value-from-script"});''';
 
     final request = Request(
       name: 'Test Request',
@@ -428,14 +570,91 @@ void main() {
       assertions: [],
     );
 
-    final result = await SendRequest(request: request, nodeHierarchy: [], config: config).send();
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
+    final response = result.response;
+
+    expect(response.statusCode, 200);
+    mockServer.reset();
+
+    expect(result.output.length, 0);
+    expect(result.response.body, '{"new":"value-from-script"}');
+  });
+
+  test('sending a request with a post-response script including a common js file', () async {
+    mockServer.newHandler('POST', '/test_endpoint');
+
+    final url = '${mockServer.url().toString()}{{A_var}}?hello=world';
+
+    final jsScript = '''
+    const { v4: uuidv4 } = require('uuid');
+    const f = require('faker');
+    const utils = require('./utils.js');
+    const { test } = require('../collection1/test_script.js');
+    console.log('result:', utils.whatsMyName());
+    console.log('faker:', f.name.firstName());
+    console.log('uuid:', uuidv4());
+    console.log('test:', test());
+    ''';
+
+    final request = Request(
+      name: 'Test Request',
+      type: 'http',
+      seq: 1,
+      method: 'post',
+      url: url,
+      bodyType: BodyType.json,
+      bodyJson: JsonBody(content: '{"hello":"world"}'),
+      authType: AuthType.apikey,
+      authApiKey: ApiKeyAuth(key: '{{C_var}}', value: '{{B_var}}', placement: ApiKeyPlacement.queryparams),
+      params: [],
+      headers: [
+        Header(name: 'X-Trayce-Token', value: 'abcd1234', enabled: true),
+        Header(name: 'content-type', value: 'application/json', enabled: true),
+      ],
+      script: Script(res: jsScript),
+      requestVars: [
+        Variable(name: 'A_var', value: '/test_endpoint', enabled: true),
+        Variable(name: 'B_var', value: 'abcd1234', enabled: true),
+        Variable(name: 'C_var', value: 'x-trayce-token', enabled: true),
+      ],
+      responseVars: [],
+      assertions: [],
+    );
+
+    final node = RequestNode(name: 'test-req', request: request);
+
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: collectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
     final response = result.response;
 
     expect(response.statusCode, 200);
     mockServer.reset();
 
     print(result.output);
-    expect(result.output.length, 0);
-    expect(result.response.body, '{"new": "value-from-script"}');
+    expect(result.output.length, 4);
+    expect(result.output[3], 'test: i am from collection1/test_script.js');
   });
 }

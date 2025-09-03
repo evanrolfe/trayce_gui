@@ -50,9 +50,10 @@ class _AppState extends State<App> with WindowListener {
   void initState() {
     super.initState();
 
+    final config = context.read<ConfigRepo>().get();
     _initializeWindow();
     _setupErrorHandling();
-    setupNodeJs();
+    setupNodeJs(config, force: true);
 
     // Subscribe to verification events
     _displaySub = context.read<EventBus>().on<EventDisplayAlert>().listen((event) {

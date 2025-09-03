@@ -63,14 +63,17 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     final filePicker = context.read<FilePickerI>();
     _focusManager = EditorFocusManager(eventBus, const ValueKey('node_settings_modal'));
 
-    _title = widget.node.type == NodeType.folder ? 'Folder Settings' : 'Collection Settings';
-
+    if (widget.node is FolderNode) {
+      _title = 'Folder Settings';
+    } else if (widget.node is CollectionNode) {
+      _title = 'Collection Settings';
+    }
     // Headers
     List<Header> headers = [];
-    if (widget.node.type == NodeType.folder) {
-      headers = widget.node.folder?.headers ?? [];
-    } else if (widget.node.type == NodeType.collection) {
-      headers = widget.node.collection?.headers ?? [];
+    if (widget.node is FolderNode) {
+      headers = (widget.node as FolderNode).folder.headers;
+    } else if (widget.node is CollectionNode) {
+      headers = (widget.node as CollectionNode).collection.headers;
     }
 
     _headersController = FormHeadersController(
@@ -84,10 +87,10 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
 
     // Vars
     List<Variable> vars = [];
-    if (widget.node.type == NodeType.folder) {
-      vars = widget.node.folder?.requestVars ?? [];
-    } else if (widget.node.type == NodeType.collection) {
-      vars = widget.node.collection?.requestVars ?? [];
+    if (widget.node is FolderNode) {
+      vars = (widget.node as FolderNode).folder.requestVars;
+    } else if (widget.node is CollectionNode) {
+      vars = (widget.node as CollectionNode).collection.requestVars;
     }
 
     _varsController = FormVarsController(
@@ -97,14 +100,15 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       focusManager: _focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.requestVars,
     );
 
     // Auth Type
     AuthType authType = AuthType.none;
-    if (widget.node.type == NodeType.folder) {
-      authType = widget.node.folder!.authType;
-    } else if (widget.node.type == NodeType.collection) {
-      authType = widget.node.collection!.authType;
+    if (widget.node is FolderNode) {
+      authType = (widget.node as FolderNode).folder.authType;
+    } else if (widget.node is CollectionNode) {
+      authType = (widget.node as CollectionNode).collection.authType;
     }
 
     switch (authType) {
@@ -125,34 +129,34 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     }
 
     // Auth Basic
-    if (widget.node.type == NodeType.folder) {
-      _authBasicController = AuthBasicControllerFolder(widget.node.folder!);
-    } else if (widget.node.type == NodeType.collection) {
-      _authBasicController = AuthBasicControllerCollection(widget.node.collection!);
+    if (widget.node is FolderNode) {
+      _authBasicController = AuthBasicControllerFolder((widget.node as FolderNode).folder);
+    } else if (widget.node is CollectionNode) {
+      _authBasicController = AuthBasicControllerCollection((widget.node as CollectionNode).collection);
     }
 
     // Auth Bearer
-    if (widget.node.type == NodeType.folder) {
-      _authBearerController = AuthBearerControllerFolder(widget.node.folder!);
-    } else if (widget.node.type == NodeType.collection) {
-      _authBearerController = AuthBearerControllerCollection(widget.node.collection!);
+    if (widget.node is FolderNode) {
+      _authBearerController = AuthBearerControllerFolder((widget.node as FolderNode).folder);
+    } else if (widget.node is CollectionNode) {
+      _authBearerController = AuthBearerControllerCollection((widget.node as CollectionNode).collection);
     }
   }
 
   Future<void> _onSave() async {
     // Set the headers
-    if (widget.node.type == NodeType.folder) {
-      widget.node.folder!.authType = AuthType.basic;
-      widget.node.folder!.headers = _headersController.getHeaders();
-    } else if (widget.node.type == NodeType.collection) {
-      widget.node.collection!.headers = _headersController.getHeaders();
+    if (widget.node is FolderNode) {
+      (widget.node as FolderNode).folder.authType = AuthType.basic;
+      (widget.node as FolderNode).folder.headers = _headersController.getHeaders();
+    } else if (widget.node is CollectionNode) {
+      (widget.node as CollectionNode).collection.headers = _headersController.getHeaders();
     }
 
     // Set the variables
-    if (widget.node.type == NodeType.folder) {
-      widget.node.folder!.requestVars = _varsController.getVars();
-    } else if (widget.node.type == NodeType.collection) {
-      widget.node.collection!.requestVars = _varsController.getVars();
+    if (widget.node is FolderNode) {
+      (widget.node as FolderNode).folder.requestVars = _varsController.getVars();
+    } else if (widget.node is CollectionNode) {
+      (widget.node as CollectionNode).collection.requestVars = _varsController.getVars();
     }
 
     // Set the auth
@@ -166,22 +170,22 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       _ => AuthType.none,
     };
 
-    if (widget.node.type == NodeType.folder) {
-      widget.node.folder!.authType = authType;
-      widget.node.folder!.authBasic = _authBasicController.getAuth();
-      widget.node.folder!.authBearer = _authBearerController.getAuth();
-    } else if (widget.node.type == NodeType.collection) {
-      widget.node.collection!.authType = authType;
-      widget.node.collection!.authBasic = _authBasicController.getAuth();
-      widget.node.collection!.authBearer = _authBearerController.getAuth();
+    if (widget.node is FolderNode) {
+      (widget.node as FolderNode).folder.authType = authType;
+      (widget.node as FolderNode).folder.authBasic = _authBasicController.getAuth();
+      (widget.node as FolderNode).folder.authBearer = _authBearerController.getAuth();
+    } else if (widget.node is CollectionNode) {
+      (widget.node as CollectionNode).collection.authType = authType;
+      (widget.node as CollectionNode).collection.authBasic = _authBasicController.getAuth();
+      (widget.node as CollectionNode).collection.authBearer = _authBearerController.getAuth();
     }
 
     // Save
-    if (widget.node.type == NodeType.collection) {
-      context.read<CollectionRepo>().save(widget.node.collection!);
+    if (widget.node is CollectionNode) {
+      context.read<CollectionRepo>().save((widget.node as CollectionNode).collection);
     }
-    if (widget.node.type == NodeType.folder) {
-      context.read<FolderRepo>().save(widget.node.folder!);
+    if (widget.node is FolderNode) {
+      context.read<FolderRepo>().save((widget.node as FolderNode).folder);
     }
 
     Navigator.of(context).pop();

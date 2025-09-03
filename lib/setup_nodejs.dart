@@ -1,28 +1,21 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:trayce/common/config.dart';
 
-void setupNodeJs() async {
+// todo: this could use package.json version to only copy the js files if the version is out-of-date
+void setupNodeJs(Config config, {bool force = false}) async {
   try {
-    final appSupportDir = await getApplicationSupportDirectory();
+    final nodejsDir = Directory(config.nodeJsDir());
 
-    // Create the nodejs directory path in app support directory
-    final nodejsDir = Directory('${appSupportDir.path}/nodejs');
-
-    // Check if nodejs directory already exists
     if (await nodejsDir.exists()) {
       print("NodeJS directory: ${nodejsDir.path}");
-      return;
+      if (force) nodejsDir.delete(recursive: true);
     }
 
-    // Create the nodejs directory
     await nodejsDir.create(recursive: true);
-
-    // Copy the nodejs folder from assets
     await _copyAssetFolder('nodejs', nodejsDir.path);
-
-    // We commit node_modules cause its easier than running npm install each time
-    // await _runNpmInstall(nodejsDir.path);
+    await _runNpmInstall(config);
   } catch (e) {
     print("Error setting up NodeJS: $e");
   }
@@ -97,14 +90,14 @@ Future<void> _copyDirectoryRecursively(Directory source, Directory target) async
   }
 }
 
-/// Runs npm install in the specified directory
-// Future<void> _runNpmInstall(String directoryPath) async {
-//   try {
-//     final result = await Process.run('npm', ['install'], workingDirectory: directoryPath);
-//     if (result.exitCode != 0) {
-//       throw Exception('npm install failed with exit code ${result.exitCode}: ${result.stderr}');
-//     }
-//   } catch (e) {
-//     print("Error running npm install: $e");
-//   }
-// }
+// Runs npm install in the specified directory
+Future<void> _runNpmInstall(Config config) async {
+  try {
+    final result = await Process.run(config.npmCommand, ['install'], workingDirectory: config.nodeJsDir());
+    if (result.exitCode != 0) {
+      throw Exception('npm install failed with exit code ${result.exitCode}: ${result.stderr}');
+    }
+  } catch (e) {
+    print("Error running npm install: $e");
+  }
+}

@@ -10,12 +10,14 @@ class FormTableBaseController {
   final void Function() onStateChanged;
   final VoidCallback? onModified;
   final EditorFocusManager _focusManager;
+  final TableForm tableFormType;
 
   FormTableBaseController({
     required List<FormTableRow> rows,
     required this.onStateChanged,
     this.onModified,
     required EditorFocusManager focusManager,
+    required this.tableFormType,
   }) : _rows = rows,
        _focusManager = focusManager;
 
@@ -99,7 +101,7 @@ class FormTableBaseController {
     setupControllerListener(row.keyController, index, true);
     setupControllerListener(row.valueController, index, false);
     setupControllerListener(row.contentTypeController, index, false);
-    _focusManager.createRowFocusNodes();
+    _focusManager.createRowFocusNodes(tableFormType);
     onStateChanged();
   }
 

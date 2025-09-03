@@ -1,0 +1,21 @@
+auth {
+  mode: basic
+}
+
+auth:basic {
+  username: asdf
+  password: asdf
+}
+
+vars:pre-request {
+  A_var: set from collection
+  B_var: set from collection
+  C_var: set from collection
+}
+
+headers {
+    A: set from collection
+    B: set from collection
+    C: set from collection
+    D: set from collection
+}

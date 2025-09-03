@@ -67,6 +67,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
       focusManager: focusManager,
       eventBus: eventBus,
       filePicker: filePicker,
+      tableFormType: TableForm.requestVars,
     );
   }
 
@@ -99,7 +100,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     _varsController.setVars(newEnvironment.vars);
   }
 
-  Future<void> _onRenamed(String newName) async {
+  void _onRenamed(String newName) {
     final environment = _environments[_selectedEnvironmentIndex];
 
     setState(() {
@@ -115,6 +116,7 @@ class _EnvironmentsModalState extends State<EnvironmentsModal> {
     environment.vars = vars;
 
     context.read<CollectionRepo>().save(widget.collection);
+    context.read<EventBus>().fire(EventEnvironmentsChanged());
 
     Navigator.of(context).pop();
   }

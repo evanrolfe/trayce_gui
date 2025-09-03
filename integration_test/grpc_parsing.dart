@@ -26,7 +26,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   // Create the GRPC client
   final channel = ClientChannel(
     'localhost',
-    port: 50051,
+    port: 50052,
     options: const ChannelOptions(
       credentials: ChannelCredentials.insecure(), // Use this for non-TLS connections
     ),

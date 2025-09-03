@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,6 @@ import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
 import 'package:trayce/editor/widgets/explorer/new_collection_modal.dart';
 import 'package:trayce/editor/widgets/explorer/node_settings_modal.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../models/explorer_node.dart';
 import 'explorer_style.dart';
@@ -22,6 +22,10 @@ const double itemHeight = 22;
 
 class EventNewRequest {
   EventNewRequest();
+}
+
+class EventNewScript {
+  EventNewScript();
 }
 
 class EventFocusExplorer {
@@ -193,9 +197,27 @@ class _FileExplorerState extends State<FileExplorer> {
     context.read<EventBus>().fire(EventNewRequest());
   }
 
+  Future<void> _handleNewScript() async {
+    context.read<EventBus>().fire(EventNewScript());
+  }
+
   Future<void> _handleNewRequestInFolder(ExplorerNode parentNode) async {
     final parentPath = parentNode.getDir()!.path;
-    final node = ExplorerNode.newBlankRequest(parentPath);
+    final node = RequestNode.blank(parentPath);
+
+    if (!parentNode.isExpanded) {
+      setState(() {
+        parentNode.isExpanded = true;
+      });
+    }
+
+    context.read<ExplorerService>().addNodeToParent(parentNode, node);
+    _startRenaming(node);
+  }
+
+  Future<void> _handleNewScriptInFolder(ExplorerNode parentNode) async {
+    final parentPath = parentNode.getDir()!.path;
+    final node = ScriptNode.blank(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
@@ -209,7 +231,7 @@ class _FileExplorerState extends State<FileExplorer> {
 
   Future<void> _handleNewFolder(ExplorerNode parentNode) async {
     final parentPath = parentNode.getDir()!.path;
-    final node = ExplorerNode.newBlankFolder(parentPath);
+    final node = FolderNode.blank(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
@@ -229,6 +251,14 @@ class _FileExplorerState extends State<FileExplorer> {
     context.read<ExplorerService>().refresh();
   }
 
+  Future<void> _openScript(ScriptNode node) async {
+    final file = node.getFile();
+    if (file == null) return;
+
+    final config = context.read<ConfigRepo>().get();
+    Process.run(config.codeCommand, [file.path]);
+  }
+
   Future<String?> _getCollectionPath() async {
     final config = context.read<ConfigRepo>().get();
     final filePicker = context.read<FilePickerI>();
@@ -244,12 +274,12 @@ class _FileExplorerState extends State<FileExplorer> {
   }
 
   bool _shouldShowDropLineBelow(ExplorerNode targetNode, List<ExplorerNode?> candidateData) {
-    if (targetNode.type != NodeType.request) return false;
+    if (targetNode is! RequestNode) return false;
 
     if (_dropPosition == null || candidateData.isEmpty) return false;
 
     final movedNode = candidateData.first;
-    if (movedNode?.type != NodeType.request && targetNode.type == NodeType.request) return false;
+    if (movedNode is! RequestNode) return false;
 
     return _dropPosition == _files.indexOf(targetNode);
   }
@@ -280,7 +310,7 @@ class _FileExplorerState extends State<FileExplorer> {
               final targetNode = node;
               final movedNode = details.data;
 
-              if (movedNode.type == NodeType.folder && targetNode.type == NodeType.request) return false;
+              if (movedNode is FolderNode && targetNode is RequestNode) return false;
 
               return true;
             },
@@ -312,15 +342,15 @@ class _FileExplorerState extends State<FileExplorer> {
                     child: GestureDetector(
                       onTapDown: (_) {
                         _focusNode.requestFocus();
-                        // Assign a uuid to the node if not already present
-                        node.uuid ??= Uuid().v4();
-                        final nodeUuid = node.uuid!;
+                        final nodeUuid = node.uuid;
                         int currMills = DateTime.now().millisecondsSinceEpoch;
                         final lastClick = _lastClickMillisecondsByNode[nodeUuid] ?? 0;
                         if ((currMills - lastClick) < 250) {
                           // Double tap
-                          if (node.type == NodeType.request) {
+                          if (node is RequestNode) {
                             context.read<ExplorerService>().openNode(node);
+                          } else if (node is ScriptNode) {
+                            _openScript(node);
                           }
                         } else {
                           // Single tap
@@ -341,6 +371,7 @@ class _FileExplorerState extends State<FileExplorer> {
                           _startRenaming,
                           _deleteNode,
                           _handleNewRequestInFolder,
+                          _handleNewScriptInFolder,
                           _handleNewFolder,
                           _openNodeSettings,
                         );
@@ -448,6 +479,7 @@ class _FileExplorerState extends State<FileExplorer> {
                               _handleOpenCollection,
                               _handleNewCollection,
                               _handleNewRequest,
+                              _handleNewScript,
                               _handleRefresh,
                             ),
                       ),

@@ -18,6 +18,7 @@ class FormVarsController implements FormTableControllerI {
   final EditorFocusManager _focusManager;
   final EventBus eventBus;
   final FilePickerI filePicker;
+  final TableForm tableFormType;
 
   FormVarsController({
     required this.onStateChanged,
@@ -27,6 +28,7 @@ class FormVarsController implements FormTableControllerI {
     required EditorFocusManager focusManager,
     required this.eventBus,
     required this.filePicker,
+    required this.tableFormType,
   }) : _focusManager = focusManager {
     setVars(initialRows);
   }
@@ -38,7 +40,7 @@ class FormVarsController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(tableFormType, index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
@@ -50,6 +52,7 @@ class FormVarsController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: _focusManager,
+      tableFormType: tableFormType,
     );
 
     // Setup listeners for existing rows
@@ -92,7 +95,7 @@ class FormVarsController implements FormTableControllerI {
         checkboxStateSecret: varr.secret,
         newRow: false,
       );
-      _focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodes(tableFormType);
 
       return row;
     }).toList();

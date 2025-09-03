@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 import 'request.dart';
@@ -46,6 +47,15 @@ class Environment {
       return fileName;
     }
     return fileName.substring(0, dotIndex);
+  }
+
+  void setVar(String name, String value) {
+    final varr = vars.firstWhereOrNull((v) => v.name == name);
+    if (varr != null) {
+      varr.value = value;
+    } else {
+      vars.add(Variable(name: name, value: value, enabled: true, secret: false, local: false));
+    }
   }
 
   void setFileName(String newName) {

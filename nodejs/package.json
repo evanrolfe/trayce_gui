@@ -4,15 +4,17 @@
     "description": "Node.js scripts for Trayce application",
     "main": "script_req.js",
     "scripts": {
-        "script": "node script_req.js"
+        "script": "node script_req.js",
+        "script-vars": "node script_var.js"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@usebruno/query": "^0.1.0"
+        "@usebruno/query": "^0.1.0",
+        "axios": "^1.11.0",
+        "faker": "^5.5.3"
     },
-    "devDependencies": {},
     "engines": {
         "node": ">=14.0.0"
     }

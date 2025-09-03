@@ -9,7 +9,10 @@ import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
+import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
+import 'package:trayce/editor/repo/global_environment_repo.dart';
+import 'package:trayce/editor/repo/runtime_vars_repo.dart';
 import 'package:trayce/editor/repo/send_request.dart';
 import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/code_editor/url_input.dart';
@@ -79,11 +82,18 @@ class HttpEditorState {
 }
 
 class FlowEditorHttp extends StatefulWidget {
-  final ExplorerNode? node;
+  final CollectionNode collectionNode;
+  final ExplorerNode? node; // the node will be null if the request is not saved yet
   final Request request;
   final ValueKey tabKey;
 
-  const FlowEditorHttp({super.key, this.node, required this.request, required this.tabKey});
+  const FlowEditorHttp({
+    super.key,
+    required this.collectionNode,
+    this.node,
+    required this.request,
+    required this.tabKey,
+  });
 
   @override
   State<FlowEditorHttp> createState() => _FlowEditorHttpState();
@@ -183,11 +193,23 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
 
     try {
       final explorerService = context.read<ExplorerService>();
-      List<ExplorerNode> nodeHierarchy = [];
-      if (widget.node != null) nodeHierarchy = explorerService.getNodeHierarchy(widget.node!);
-
+      final runtimeVarsRepo = context.read<RuntimeVarsRepo>();
+      final globalEnvironmentRepo = context.read<GlobalEnvironmentRepo>();
       final config = context.read<ConfigRepo>().get();
-      final sendResult = await SendRequest(request: _formRequest, nodeHierarchy: nodeHierarchy, config: config).send();
+      final httpClient = context.read<HttpClientI>();
+      final sendResult =
+          await SendRequest(
+            httpClient: httpClient,
+            request: _formRequest,
+            node: widget.node,
+            collectionNode: widget.collectionNode,
+            explorerService: explorerService,
+            runtimeVarsRepo: runtimeVarsRepo,
+            environmentRepo: context.read<EnvironmentRepo>(),
+            globalEnvironmentRepo: globalEnvironmentRepo,
+            config: config,
+          ).send();
+
       _response = sendResult.response;
       _consoleOutput = sendResult.output;
 
@@ -206,12 +228,14 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
       displayConsoleOutput();
     } catch (e) {
       _response = null;
+      print("sendRequest error $e");
       setState(() {
         _respStatusMsg = 'Error';
         _respStatusColor = statusErrorColor;
         _formController.respBodyController.text = 'Error: $e';
         _respHeaders = [];
       });
+      rethrow;
     } finally {
       setState(() {
         _isSending = false;
@@ -799,13 +823,64 @@ class _FlowEditorHttpState extends State<FlowEditorHttp> with TickerProviderStat
                                               // Variables Tab
                                               // -----------------------------------------------------------
                                               SingleChildScrollView(
-                                                child: FormTable(
-                                                  controller: _formController.varsController,
-                                                  columns: [
-                                                    FormTableColumn.enabled,
-                                                    FormTableColumn.key,
-                                                    FormTableColumn.value,
-                                                    FormTableColumn.delete,
+                                                child: Column(
+                                                  children: [
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.only(left: 20, top: 10),
+                                                      child: SelectableText(
+                                                        'Pre Request',
+                                                        style: TextStyle(
+                                                          color: Color(0xFF666666),
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    FormTable(
+                                                      controller: _formController.preVarsController,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
+                                                    ),
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.only(left: 20, top: 10),
+                                                      child: Row(
+                                                        children: [
+                                                          SelectableText(
+                                                            'Post Response',
+                                                            style: TextStyle(
+                                                              color: Color(0xFF666666),
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Tooltip(
+                                                            message:
+                                                                'Post Response vars can contain any valid JS expression and have access to the res object and res() query function',
+                                                            child: const Icon(
+                                                              Icons.help_outline,
+                                                              size: 16,
+                                                              color: Color(0xFF666666),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    FormTable(
+                                                      controller: _formController.postVarsController,
+                                                      columns: [
+                                                        FormTableColumn.enabled,
+                                                        FormTableColumn.key,
+                                                        FormTableColumn.value,
+                                                        FormTableColumn.delete,
+                                                      ],
+                                                    ),
                                                   ],
                                                 ),
                                               ),

@@ -1,8 +1,8 @@
 .PHONY: test integration_test generate coverage build
 
 test:
-	rm -f coverage/lcov.info
-	flutter test ./test/editor/repo/send_request_test.dart -r github --coverage --concurrency=1
+	cd nodejs && npm install
+	flutter test test/test_bundle
 
 integration_test:
 	flutter test ./integration_test/main.dart --coverage --coverage-path=coverage/integration_test_coverage.info

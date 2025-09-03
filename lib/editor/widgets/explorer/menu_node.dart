@@ -12,6 +12,7 @@ void showNodeMenu(
   Function(ExplorerNode) onRename,
   Function(ExplorerNode) onDelete,
   Function(ExplorerNode) onNewRequestInFolder,
+  Function(ExplorerNode) onNewScriptInFolder,
   Function(ExplorerNode) onNewFolder,
   Function(ExplorerNode) onOpenNodeSettings,
 ) {
@@ -25,7 +26,7 @@ void showNodeMenu(
     color: contextMenuColor,
     shape: contextMenuShape,
     items: [
-      if (node.type == NodeType.collection || node.type == NodeType.folder)
+      if (node is CollectionNode || node is FolderNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
@@ -35,7 +36,17 @@ void showNodeMenu(
           ),
           onTap: () => onNewRequestInFolder(node),
         ),
-      if (node.type == NodeType.collection || node.type == NodeType.folder)
+      if (node is CollectionNode || node is FolderNode)
+        CustomPopupMenuItem(
+          height: 30,
+          shouldPop: true,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text('New JS Script', style: contextMenuTextStyle)],
+          ),
+          onTap: () => onNewScriptInFolder(node),
+        ),
+      if (node is CollectionNode || node is FolderNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
@@ -45,7 +56,7 @@ void showNodeMenu(
           ),
           onTap: () => onNewFolder(node),
         ),
-      if (node.type == NodeType.collection || node.type == NodeType.folder)
+      if (node is CollectionNode || node is FolderNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
@@ -55,14 +66,14 @@ void showNodeMenu(
           ),
           onTap: () => onOpenNodeSettings(node),
         ),
-      if (node.type == NodeType.request)
+      if (node is RequestNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
           child: Text('Open', style: contextMenuTextStyle),
           onTap: () => context.read<ExplorerService>().openNode(node),
         ),
-      if (node.type == NodeType.request)
+      if (node is RequestNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
@@ -72,7 +83,7 @@ void showNodeMenu(
           ),
           onTap: () => context.read<ExplorerService>().copyNode(node),
         ),
-      if (node.type == NodeType.folder)
+      if (node is FolderNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,
@@ -83,7 +94,7 @@ void showNodeMenu(
           ),
           onTap: () => context.read<ExplorerService>().pasteNode(node),
         ),
-      if (node.type == NodeType.collection)
+      if (node is CollectionNode)
         CustomPopupMenuItem(
           height: 30,
           shouldPop: true,

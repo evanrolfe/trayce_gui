@@ -34,6 +34,7 @@ class FormFilesController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: focusManager,
+      tableFormType: TableForm.files,
     );
 
     // Setup listeners for existing rows
@@ -53,7 +54,7 @@ class FormFilesController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(TableForm.files, index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
@@ -79,6 +80,7 @@ class FormFilesController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: _focusManager,
+      tableFormType: TableForm.files,
     );
 
     // Setup listeners for existing rows
@@ -106,7 +108,7 @@ class FormFilesController implements FormTableControllerI {
         valueFile: file.filePath,
         newRow: false,
       );
-      _focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodes(TableForm.files);
 
       return row;
     }).toList();

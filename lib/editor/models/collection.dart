@@ -76,6 +76,10 @@ class Collection {
     _currentEnvironmentFilename = environmentFilename;
   }
 
+  String absolutePath() {
+    return dir.absolute.path;
+  }
+
   Auth? getAuth() {
     switch (authType) {
       case AuthType.apikey:

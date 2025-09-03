@@ -34,6 +34,7 @@ class FormMultipartController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: focusManager,
+      tableFormType: TableForm.multipart,
     );
 
     // Setup listeners for existing rows
@@ -51,7 +52,7 @@ class FormMultipartController implements FormTableControllerI {
   EditorFocusManager focusManager() => _focusManager;
 
   @override
-  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(index);
+  Map<String, FocusNode> getRowFocusNodes(int index) => _focusManager.getRowFocusNodes(TableForm.multipart, index);
 
   @override
   int selectedRowIndex() => _selectedRowIndex ?? -1;
@@ -76,6 +77,7 @@ class FormMultipartController implements FormTableControllerI {
       onStateChanged: onStateChanged,
       onModified: onModified,
       focusManager: _focusManager,
+      tableFormType: TableForm.multipart,
     );
 
     // Setup listeners for existing rows
@@ -104,7 +106,7 @@ class FormMultipartController implements FormTableControllerI {
         checkboxState: file.enabled,
         newRow: false,
       );
-      _focusManager.createRowFocusNodes();
+      _focusManager.createRowFocusNodes(TableForm.multipart);
 
       return row;
     }).toList();

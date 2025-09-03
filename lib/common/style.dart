@@ -31,6 +31,16 @@ final commonButtonStyle = ElevatedButton.styleFrom(
   ),
 );
 
+final iconButtonStyle = ElevatedButton.styleFrom(
+  padding: EdgeInsets.zero,
+  minimumSize: const Size(30, 20),
+  backgroundColor: Colors.transparent,
+  foregroundColor: lightTextColor,
+  elevation: 0,
+  shadowColor: Colors.transparent,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+);
+
 final commonButtonStyleBright = ElevatedButton.styleFrom(
   backgroundColor: Color(0xFF4DB6AC),
   padding: EdgeInsets.symmetric(horizontal: 16),

@@ -8,6 +8,7 @@ import 'flow_editor_http/flow_editor_http.dart';
 class FlowEditor extends StatefulWidget {
   final String uuid;
   final String flowType;
+  final CollectionNode collectionNode;
   final ExplorerNode? node;
   final Request request;
   final ValueKey tabKey;
@@ -16,6 +17,7 @@ class FlowEditor extends StatefulWidget {
     super.key,
     required this.uuid,
     required this.flowType,
+    required this.collectionNode,
     this.node,
     required this.request,
     required this.tabKey,
@@ -34,7 +36,12 @@ class _FlowEditorState extends State<FlowEditor> {
   Widget _buildEditorContent() {
     switch (widget.flowType) {
       case 'http':
-        return FlowEditorHttp(node: widget.node, request: widget.request, tabKey: widget.tabKey);
+        return FlowEditorHttp(
+          collectionNode: widget.collectionNode,
+          node: widget.node,
+          request: widget.request,
+          tabKey: widget.tabKey,
+        );
       // case 'grpc':
       //   return FlowEditorGrpc();
       default:
