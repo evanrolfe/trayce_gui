@@ -18,8 +18,7 @@ class StatusBar extends StatefulWidget {
 class _StatusBarState extends State<StatusBar> {
   bool _agentRunning = false;
   bool _isHovering = false;
-  bool _isLicenseHovering = false;
-  bool _isLicensed = false;
+  bool _isDonateHovering = false;
   late final StreamSubscription _eventSub1;
   late final StreamSubscription _eventSub2;
   @override
@@ -30,23 +29,6 @@ class _StatusBarState extends State<StatusBar> {
         _agentRunning = event.running;
       });
     });
-
-    _eventSub2 = context.read<EventBus>().on<EventLicenseVerified>().listen((event) {
-      setState(() {
-        _isLicensed = event.isValid;
-      });
-    });
-
-    _checkLicenseKey();
-  }
-
-  Future<void> _checkLicenseKey() async {
-    final licenseKey = await context.read<ContainersRepo>().getLicenseKey();
-    if (licenseKey != null && licenseKey.isValid) {
-      setState(() {
-        _isLicensed = true;
-      });
-    }
   }
 
   @override
@@ -70,13 +52,13 @@ class _StatusBarState extends State<StatusBar> {
         children: [
           MouseRegion(
             cursor: SystemMouseCursors.click,
-            onEnter: (_) => setState(() => _isLicenseHovering = true),
-            onExit: (_) => setState(() => _isLicenseHovering = false),
+            onEnter: (_) => setState(() => _isDonateHovering = true),
+            onExit: (_) => setState(() => _isDonateHovering = false),
             child: GestureDetector(
               onTap: () => showSettingsModal(context),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(color: _isLicenseHovering ? statusBarHoverBackground : Colors.transparent),
+                decoration: BoxDecoration(color: _isDonateHovering ? statusBarHoverBackground : Colors.transparent),
                 child: DefaultTextStyle.merge(
                   style: const TextStyle(
                     fontSize: 12,
@@ -84,7 +66,7 @@ class _StatusBarState extends State<StatusBar> {
                     fontWeight: FontWeight.normal,
                     decoration: TextDecoration.none,
                   ),
-                  child: _buildLicenseStatus(),
+                  child: _buildDonateStatus(),
                 ),
               ),
             ),
@@ -115,27 +97,15 @@ class _StatusBarState extends State<StatusBar> {
     );
   }
 
-  Widget _buildLicenseStatus() {
-    if (_isLicensed) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.check, size: 18, color: Colors.green),
-          const SizedBox(width: 2),
-          const Text('Licensed', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-          const SizedBox(width: 8),
-        ],
-      );
-    } else {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.close, size: 18, color: Colors.red),
-          const SizedBox(width: 2),
-          const Text('Unlicensed', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-          const SizedBox(width: 8),
-        ],
-      );
-    }
+  Widget _buildDonateStatus() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.favorite, size: 18, color: Colors.red),
+        const SizedBox(width: 2),
+        const Text('Donate', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+        const SizedBox(width: 8),
+      ],
+    );
   }
 }
