@@ -54,7 +54,7 @@ void main() {
       final event = captured[0] as EventDisplayExplorerItems;
 
       final collection = explorerService.getOpenCollections()[0];
-      collection.setCurrentEnvironment(collection.environments[0].fileName());
+      collection.setCurrentEnvironment('dev');
 
       final reqThree = event.nodes[0].children[1].children[2];
       expect(reqThree.name, 'three.bru');
@@ -82,10 +82,10 @@ void main() {
       expect(finalReq.headers[3].name, 'A');
       expect(finalReq.headers[3].value, 'set from request');
 
-      // print('finalReq.requestVars:');
-      // for (final reqvar in finalReq.requestVars) {
-      //   print('  ${reqvar.name}: ${reqvar.value}');
-      // }
+      print('finalReq.requestVars:');
+      for (final reqvar in finalReq.requestVars) {
+        print('  ${reqvar.name}: ${reqvar.value}');
+      }
 
       // Verify variables
       expect(finalReq.requestVars.length, 6);
@@ -122,7 +122,7 @@ void main() {
       final event = captured[0] as EventDisplayExplorerItems;
 
       final collection = explorerService.getOpenCollections()[0];
-      collection.setCurrentEnvironment(collection.environments[0].fileName());
+      collection.setCurrentEnvironment('dev');
 
       final reqFour = event.nodes[0].children[1].children[3];
       expect(reqFour.name, 'four.bru');
