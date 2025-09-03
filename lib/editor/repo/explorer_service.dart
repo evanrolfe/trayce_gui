@@ -196,11 +196,15 @@ class ExplorerService {
       node.name = newName;
     }
 
-    // Rename a request
-    newName = "$newName.bru";
+    // Rename a request or script
+    if (node is ScriptNode && !newName.endsWith('.js')) {
+      newName = "$newName.js";
+    } else if (node is RequestNode && !newName.endsWith('.bru')) {
+      newName = "$newName.bru";
+    }
     // This is called when you click new request on a folder/collection and enter the filename
     // directly in the explorer, then hit enter
-    if (node is RequestNode && !node.isSaved) {
+    if ((node is RequestNode || node is ScriptNode) && !node.isSaved) {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
@@ -209,12 +213,15 @@ class ExplorerService {
 
       node.setFile(File(targetPath));
       node.name = newName;
-      node.request.seq = getNextSeq(targetDir.path);
+      if (node is RequestNode) {
+        // Only request nodes can be ordered within a folder
+        node.request.seq = getNextSeq(targetDir.path);
+      }
       _saveNode(node);
       refresh();
       openNode(node);
     }
-    if (node is RequestNode && node.isSaved) {
+    if ((node is RequestNode || node is ScriptNode) && node.isSaved) {
       final parentNode = _findParentNode(node);
       if (parentNode == null) return;
 
@@ -293,13 +300,12 @@ class ExplorerService {
     }
 
     // Moving a request
-    if (movedNode is RequestNode) {
+    if (movedNode is RequestNode || movedNode is ScriptNode) {
       final parentNodeMoved = _findParentNode(movedNode);
       final parentNodeTarget = _findParentNode(targetNode);
       if (parentNodeMoved == null) return;
 
       final movedToDifferentFolder = parentNodeMoved.getDir()?.path != parentNodeTarget?.getDir()?.path;
-
       if (targetNode is FolderNode || targetNode is CollectionNode) {
         // Get the file paths
         final sourceFile = movedNode.getFile()!;
@@ -313,9 +319,11 @@ class ExplorerService {
           return;
         }
 
-        // Update the movedNode's request seq num
-        movedNode.request.seq = getNextSeq(targetDir.path);
-        _saveNode(movedNode);
+        if (movedNode is RequestNode) {
+          // Update the movedNode's request seq num
+          movedNode.request.seq = getNextSeq(targetDir.path);
+          _saveNode(movedNode);
+        }
 
         // Move the file
         sourceFile.copySync(targetPath);
@@ -468,7 +476,7 @@ class ExplorerService {
           // Recursively sync children
           _refreshNodes(existingNode.children, refreshedNode.children);
         }
-      } else if (refreshedNode is RequestNode) {
+      } else if (refreshedNode is RequestNode || refreshedNode is ScriptNode) {
         // Check if request exists
         final exists = existingNodes.any((node) => node.getFile()?.path == refreshedNode.getFile()?.path);
         if (!exists) {
@@ -488,10 +496,8 @@ class ExplorerService {
         if (!exists) {
           nodesToRemove.add(node);
         }
-      } else if (node is RequestNode) {
-        final exists = refreshedNodes.any(
-          (refreshedNode) => refreshedNode is RequestNode && refreshedNode.getFile()?.path == node.getFile()?.path,
-        );
+      } else if (node is RequestNode || node is ScriptNode) {
+        final exists = refreshedNodes.any((refreshedNode) => refreshedNode.getFile()?.path == node.getFile()?.path);
         if (!exists) {
           nodesToRemove.add(node);
         }
@@ -513,6 +519,7 @@ class ExplorerService {
     final name = entity.path.split(Platform.pathSeparator).where((part) => part.isNotEmpty).last;
 
     if (entity is Directory) {
+      // Directory (CollectionNode orFolderNode)
       final children = entity.listSync().where(_shouldIncludeEntity).map((e) => _buildNode(e, depth + 1)).toList();
 
       // Sort: directories first, then by name alphabetically
@@ -529,9 +536,16 @@ class ExplorerService {
         final folder = _folderRepo.load(entity);
         return FolderNode(name: name, folder: folder, children: children);
       }
-    } else {
-      final request = _requestRepo.load(entity as File);
+    } else if (entity is File && entity.path.endsWith('.js')) {
+      // File (ScriptNode)
+      return ScriptNode(name: name, file: entity);
+    } else if (entity is File && entity.path.endsWith('.bru')) {
+      // File (RequestNode)
+      final request = _requestRepo.load(entity);
       return RequestNode(name: name, request: request);
+    } else {
+      // this should never happen because _shouldIncludeEntity filters out all other file types
+      throw Exception('Unhandled file type: ${entity.path}');
     }
   }
 
@@ -542,7 +556,7 @@ class ExplorerService {
     if (entity is Directory && name != 'environments') {
       return true;
     }
-    if (entity is File && name.endsWith('.bru') && !filesToIgnore.contains(name)) {
+    if (entity is File && (name.endsWith('.bru') || name.endsWith('.js')) && !filesToIgnore.contains(name)) {
       return true;
     }
     return false;
@@ -690,6 +704,11 @@ class ExplorerService {
     if (node is RequestNode) {
       _requestRepo.save(node.request);
     }
+
+    if (node is ScriptNode) {
+      node.file.writeAsStringSync('');
+    }
+
     node.isSaved = true;
   }
 }

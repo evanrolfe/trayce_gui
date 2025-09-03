@@ -78,6 +78,9 @@ mixin ExplorerNodeBase {
   }
 }
 
+// =============================================================================
+// RequestNode
+// =============================================================================
 class RequestNode with ExplorerNodeBase implements ExplorerNode {
   late Request request;
 
@@ -162,6 +165,90 @@ class RequestNode with ExplorerNodeBase implements ExplorerNode {
   }
 }
 
+// =============================================================================
+// ScriptNode
+// =============================================================================
+class ScriptNode with ExplorerNodeBase implements ExplorerNode {
+  late File file;
+
+  ScriptNode({
+    required String name,
+    required this.file,
+    List<ExplorerNode> children = const [],
+    bool isExpanded = false,
+    bool isDirectory = false,
+    bool isSaved = true,
+    bool isRenaming = false,
+    String? uuid,
+  }) {
+    initializeBase(
+      name: name,
+      uuid: uuid,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+      isDirectory: isDirectory,
+      children: children,
+    );
+  }
+
+  // ScriptNode.blank() creates a node with a blank unsaved script
+  static blank(String parentPath) {
+    final file = File(path.join(parentPath, 'untitled.js'));
+
+    return ScriptNode(name: "untitled.js", file: file, isSaved: false);
+  }
+
+  @override
+  File? getFile() {
+    return file;
+  }
+
+  @override
+  Directory? getDir() {
+    return null;
+  }
+
+  @override
+  void setFile(File file) {
+    this.file = file;
+  }
+
+  @override
+  void setDir(Directory dir) {}
+
+  @override
+  String? getPath() {
+    return file.path;
+  }
+
+  @override
+  ValueKey? get key => getPath() != null ? ValueKey(getPath()!) : null;
+
+  @override
+  String displayName() {
+    return name;
+  }
+
+  @override
+  ScriptNode copy() {
+    final copiedNode = ScriptNode(
+      name: name,
+      file: file,
+      isDirectory: isDirectory,
+      children: children,
+      isExpanded: isExpanded,
+      isRenaming: isRenaming,
+      isSaved: isSaved,
+    );
+
+    return copiedNode;
+  }
+}
+
+// =============================================================================
+// FolderNode
+// =============================================================================
 class FolderNode with ExplorerNodeBase implements ExplorerNode {
   late Folder folder;
 
@@ -243,6 +330,9 @@ class FolderNode with ExplorerNodeBase implements ExplorerNode {
   }
 }
 
+// =============================================================================
+// CollectionNode
+// =============================================================================
 class CollectionNode with ExplorerNodeBase implements ExplorerNode {
   late Collection collection;
 

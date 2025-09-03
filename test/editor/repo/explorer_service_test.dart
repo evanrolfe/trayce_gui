@@ -232,6 +232,60 @@ void main() {
       return;
     });
 
+    test('moving a script to another folder', () async {
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+
+      final newFolderPath = cloneCollectionSync(collection1Path);
+
+      explorerService.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      // Moved Node:
+      expect(event.nodes[0].children[1].name, 'myfolder');
+      final movedNode = event.nodes[0].children[4];
+      expect(movedNode.name, 'test_script.js');
+      expect(movedNode, isA<ScriptNode>());
+
+      // Target Node:
+      final targetNode = event.nodes[0].children[0];
+      expect(targetNode.name, 'hello');
+      expect(targetNode, isA<FolderNode>());
+
+      explorerService.moveNode(movedNode, targetNode);
+
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[0] as EventDisplayExplorerItems;
+
+      // Expect hello have 1 request
+      expect(event2.nodes[0].children[0].name, 'hello');
+      expect(event2.nodes[0].children[0].children.length, 2);
+      expect(event2.nodes[0].children[0].children[0].name, 'hello.bru');
+      expect(event2.nodes[0].children[0].children[1].name, 'test_script.js');
+
+      // Expect test-myfolder to have 4 requests
+      final rootFolder = event.nodes[0];
+      expect(rootFolder.children.length, 5);
+
+      // Expect test-myfolder to have requests with the correct seq number
+      final expectedFiles = ['hello', 'myfolder', 'my-request.bru', 'json.bru', 'utils.js'];
+      for (var i = 0; i < expectedFiles.length; i++) {
+        final node = rootFolder.children[i];
+        expect(node.name, expectedFiles[i]);
+        if (node is RequestNode) {
+          expect(node.request.seq, i);
+        }
+      }
+
+      await deleteFolder(newFolderPath);
+      return;
+    });
+
     test('re-ordering a request within the same folder ahead', () async {
       final explorerService = ExplorerService(
         eventBus: mockEventBus,
@@ -506,7 +560,7 @@ void main() {
       final node = event.nodes[0].children[1];
       expect(node.name, 'myfolder');
       expect(node, isA<FolderNode>());
-      expect(event.nodes[0].children.length, 4);
+      expect(event.nodes[0].children.length, 6);
 
       await explorerService.renameNode(node, 'newname');
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
@@ -516,7 +570,7 @@ void main() {
       final node2 = event2.nodes[0].children[1];
       expect(node2, isA<FolderNode>());
       expect(node2.name, 'newname');
-      expect(event2.nodes[0].children.length, 4);
+      expect(event2.nodes[0].children.length, 6);
 
       await deleteFolder(newFolderPath);
     });
@@ -548,6 +602,37 @@ void main() {
       final node2 = event2.nodes[0].children[2];
       expect(node2.name, 'newname.bru');
       expect(node2, isA<RequestNode>());
+
+      await deleteFolder(newFolderPath);
+    });
+
+    test('renaming a script', () async {
+      final explorerService = ExplorerService(
+        eventBus: mockEventBus,
+        collectionRepo: collectionRepo,
+        folderRepo: folderRepo,
+        requestRepo: requestRepo,
+      );
+
+      final newFolderPath = cloneCollectionSync(collection1Path);
+
+      explorerService.openCollection(newFolderPath);
+      final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event = captured[0] as EventDisplayExplorerItems;
+
+      // Node to rename:
+      final node = event.nodes[0].children[4];
+      expect(node.name, 'test_script.js');
+      expect(node, isA<ScriptNode>());
+
+      await explorerService.renameNode(node, 'newname.js');
+      final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
+      final event2 = captured2[1] as EventDisplayExplorerItems;
+
+      // Expect myfolder to be renamed to newname
+      final node2 = event2.nodes[0].children[4];
+      expect(node2.name, 'newname.js');
+      expect(node2, isA<ScriptNode>());
 
       await deleteFolder(newFolderPath);
     });
@@ -627,7 +712,7 @@ void main() {
       await explorerService.deleteNode(node);
       final captured2 = verify(() => mockEventBus.fire(captureAny())).captured;
       final event2 = captured2[0] as EventDisplayExplorerItems;
-      expect(event2.nodes[0].children.length, 3);
+      expect(event2.nodes[0].children.length, 5);
 
       await deleteFolder(newFolderPath);
     });

@@ -54,6 +54,7 @@ class _EditorTabsState extends State<EditorTabs> {
   late final StreamSubscription _tabsSub6;
   late final StreamSubscription _tabsSub7;
   late final StreamSubscription _tabsSub8;
+  late final StreamSubscription _tabsSub9;
   late final FocusNode _focusNode;
   late final FocusNode _focusNodeBtn;
   int? _hoveredTabIndex;
@@ -109,6 +110,9 @@ class _EditorTabsState extends State<EditorTabs> {
 
     // Called when the runtime vars are changed
     _tabsSub8 = context.read<EventBus>().on<EventRuntimeVarsChanged>().listen(_onEventRuntimeVarsChanged);
+
+    // Called when a new script is created
+    _tabsSub9 = context.read<EventBus>().on<EventNewScript>().listen(_onEventNewScript);
   }
 
   void _onEventOpenExplorerNode(EventOpenExplorerNode event) {
@@ -177,41 +181,39 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _onEventNewRequest(EventNewRequest event) {
     setState(() {
-      setState(() {
-        final newTabCount = currentTabs().where((tab) => tab.isNew).length;
+      final newTabCount = currentTabs().where((tab) => tab.isNew).length;
 
-        final uuid = const Uuid().v4();
-        final tabKey = ValueKey('tabItem_$uuid');
+      final uuid = const Uuid().v4();
+      final tabKey = ValueKey('tabItem_$uuid');
 
-        final focusNode = FocusNode();
-        focusNode.onKeyEvent = _createOnKeyEventTabItem(tabKey);
+      final focusNode = FocusNode();
+      focusNode.onKeyEvent = _createOnKeyEventTabItem(tabKey);
 
-        // Create the editor widget
-        final editor = FlowEditor(
-          uuid: uuid,
-          key: ValueKey('editor_$uuid'),
-          tabKey: tabKey,
-          flowType: 'http',
-          collectionNode: _currentCollectionNode!,
-          node: null,
-          request: Request.blank(),
-        );
-        _tabEditors.add(editor);
+      // Create the editor widget
+      final editor = FlowEditor(
+        uuid: uuid,
+        key: ValueKey('editor_$uuid'),
+        tabKey: tabKey,
+        flowType: 'http',
+        collectionNode: _currentCollectionNode!,
+        node: null,
+        request: Request.blank(),
+      );
+      _tabEditors.add(editor);
 
-        // Create the tab item
-        final newTab = TabItem(
-          uuid: uuid,
-          node: null,
-          key: tabKey,
-          displayName: 'Untitled-$newTabCount',
-          focusNode: focusNode,
-          isNew: true,
-          editor: editor,
-        );
+      // Create the tab item
+      final newTab = TabItem(
+        uuid: uuid,
+        node: null,
+        key: tabKey,
+        displayName: 'Untitled-$newTabCount',
+        focusNode: focusNode,
+        isNew: true,
+        editor: editor,
+      );
 
-        addTab(newTab);
-        _selectedTabUuid = newTab.uuid;
-      });
+      addTab(newTab);
+      _selectedTabUuid = newTab.uuid;
     });
   }
 
@@ -288,6 +290,45 @@ class _EditorTabsState extends State<EditorTabs> {
 
   void _onEventRuntimeVarsChanged(EventRuntimeVarsChanged event) {
     setState(() {});
+  }
+
+  void _onEventNewScript(EventNewScript event) {
+    setState(() {
+      final newTabCount = currentTabs().where((tab) => tab.isNew).length;
+
+      final uuid = const Uuid().v4();
+      final tabKey = ValueKey('tabItem_$uuid');
+
+      final focusNode = FocusNode();
+      focusNode.onKeyEvent = _createOnKeyEventTabItem(tabKey);
+
+      // Create the editor widget
+      // TODO: This should create a js editor, not a flow editor
+      final editor = FlowEditor(
+        uuid: uuid,
+        key: ValueKey('editor_$uuid'),
+        tabKey: tabKey,
+        flowType: 'http',
+        collectionNode: _currentCollectionNode!,
+        node: null,
+        request: Request.blank(),
+      );
+      _tabEditors.add(editor);
+
+      // Create the tab item
+      final newTab = TabItem(
+        uuid: uuid,
+        node: null,
+        key: tabKey,
+        displayName: 'Untitled-$newTabCount',
+        focusNode: focusNode,
+        isNew: true,
+        editor: editor,
+      );
+
+      addTab(newTab);
+      _selectedTabUuid = newTab.uuid;
+    });
   }
 
   List<TabItem> currentTabs() {
@@ -398,6 +439,7 @@ class _EditorTabsState extends State<EditorTabs> {
     _tabsSub6.cancel();
     _tabsSub7.cancel();
     _tabsSub8.cancel();
+    _tabsSub9.cancel();
     _focusNode.dispose();
     _tabScrollController.dispose();
     super.dispose();

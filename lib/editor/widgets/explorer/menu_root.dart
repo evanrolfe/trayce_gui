@@ -9,6 +9,7 @@ void showRootMenu(
   VoidCallback onOpenCollection,
   VoidCallback onNewCollection,
   VoidCallback onNewRequest,
+  VoidCallback onNewScript,
   VoidCallback onRefresh,
 ) {
   final anchors = TextSelectionToolbarAnchors(primaryAnchor: Offset(width + 40, itemHeight));
@@ -42,6 +43,12 @@ void showRootMenu(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [Text('New Request', style: contextMenuTextStyle), Text('Ctrl+N', style: contextMenuTextStyle)],
         ),
+      ),
+      CustomPopupMenuItem(
+        height: 30,
+        onTap: onNewScript,
+        shouldPop: true,
+        child: Text('New JS Script', style: contextMenuTextStyle),
       ),
       CustomPopupMenuItem(
         height: 30,

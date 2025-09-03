@@ -23,6 +23,10 @@ class EventNewRequest {
   EventNewRequest();
 }
 
+class EventNewScript {
+  EventNewScript();
+}
+
 class EventFocusExplorer {
   EventFocusExplorer();
 }
@@ -192,9 +196,27 @@ class _FileExplorerState extends State<FileExplorer> {
     context.read<EventBus>().fire(EventNewRequest());
   }
 
+  Future<void> _handleNewScript() async {
+    context.read<EventBus>().fire(EventNewScript());
+  }
+
   Future<void> _handleNewRequestInFolder(ExplorerNode parentNode) async {
     final parentPath = parentNode.getDir()!.path;
     final node = RequestNode.blank(parentPath);
+
+    if (!parentNode.isExpanded) {
+      setState(() {
+        parentNode.isExpanded = true;
+      });
+    }
+
+    context.read<ExplorerService>().addNodeToParent(parentNode, node);
+    _startRenaming(node);
+  }
+
+  Future<void> _handleNewScriptInFolder(ExplorerNode parentNode) async {
+    final parentPath = parentNode.getDir()!.path;
+    final node = ScriptNode.blank(parentPath);
 
     if (!parentNode.isExpanded) {
       setState(() {
@@ -338,6 +360,7 @@ class _FileExplorerState extends State<FileExplorer> {
                           _startRenaming,
                           _deleteNode,
                           _handleNewRequestInFolder,
+                          _handleNewScriptInFolder,
                           _handleNewFolder,
                           _openNodeSettings,
                         );
@@ -445,6 +468,7 @@ class _FileExplorerState extends State<FileExplorer> {
                               _handleOpenCollection,
                               _handleNewCollection,
                               _handleNewRequest,
+                              _handleNewScript,
                               _handleRefresh,
                             ),
                       ),
