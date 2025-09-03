@@ -20,7 +20,6 @@ class _StatusBarState extends State<StatusBar> {
   bool _isHovering = false;
   bool _isDonateHovering = false;
   late final StreamSubscription _eventSub1;
-  late final StreamSubscription _eventSub2;
   @override
   void initState() {
     super.initState();
@@ -34,7 +33,6 @@ class _StatusBarState extends State<StatusBar> {
   @override
   void dispose() {
     _eventSub1.cancel();
-    _eventSub2.cancel();
     super.dispose();
   }
 
