@@ -1,17 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:trayce/agent/server.dart';
 import 'package:trayce/common/style.dart';
 import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
-import 'package:trayce/network/models/license_key.dart';
-import 'package:trayce/network/repo/containers_repo.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<void> showSettingsModal(BuildContext context) {
@@ -26,40 +20,26 @@ class SettingsModal extends StatefulWidget {
 }
 
 class _SettingsModalState extends State<SettingsModal> {
-  late final TextEditingController _licenseController;
   late final TextEditingController _npmCommandController;
   late final TextEditingController _agentPortController;
   late final TextEditingController _codeCommandController;
   late final ConfigRepo _configRepo;
 
-  bool _isVerifying = false;
-  bool? _isVerified;
-  late final StreamSubscription _verificationSubscription;
   // Tab management
   int _selectedTabIndex = 0;
   int? _hoveredTabIndex;
 
   // Tab items
-  final List<String> _tabItems = ['License', 'Editor', 'Network'];
+  final List<String> _tabItems = ['Donate', 'Editor', 'Network'];
 
   @override
   void initState() {
     super.initState();
 
     _configRepo = context.read<ConfigRepo>();
-    _licenseController = TextEditingController();
     _npmCommandController = TextEditingController();
     _codeCommandController = TextEditingController();
     _agentPortController = TextEditingController();
-    // Subscribe to verification events
-    _verificationSubscription = context.read<EventBus>().on<EventAgentVerified>().listen((event) {
-      setState(() {
-        _isVerifying = false;
-        _isVerified = event.valid;
-      });
-    });
-
-    _loadLicenseKey();
     _loadSettings();
   }
 
@@ -70,54 +50,9 @@ class _SettingsModalState extends State<SettingsModal> {
     _agentPortController.text = config.agentPort.toString();
   }
 
-  Future<void> _loadLicenseKey() async {
-    final licenseKey = await context.read<ContainersRepo>().getLicenseKey();
-    if (licenseKey != null) {
-      _licenseController.text = licenseKey.key;
-    }
-  }
-
   @override
   void dispose() {
-    _licenseController.dispose();
-    _verificationSubscription.cancel();
     super.dispose();
-  }
-
-  void _verifyLicense() async {
-    final key = _licenseController.text.trim();
-    if (key.isEmpty) return;
-
-    setState(() => _isVerifying = true);
-
-    final isValid = await _isLicenseValid(key);
-
-    setState(() {
-      _isVerifying = false;
-      _isVerified = isValid;
-    });
-
-    if (!mounted) return;
-    context.read<ContainersRepo>().setLicenseKey(LicenseKey(key, isValid));
-  }
-
-  Future<bool> _isLicenseValid(String licenseKey) async {
-    final trayceApiUrl = context.read<ConfigRepo>().get().trayceApiUrl;
-    final encodedLicenseKey = Uri.encodeComponent(licenseKey);
-    final url = '$trayceApiUrl/verify/$encodedLicenseKey';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['status'] == 'active';
-      }
-      return false;
-    } catch (e) {
-      print("ERROR: $e");
-      return false;
-    }
   }
 
   void _selectTab(int index) {
@@ -138,25 +73,25 @@ class _SettingsModalState extends State<SettingsModal> {
 
   Widget _buildTabContent() {
     switch (_selectedTabIndex) {
-      case 0: // License
-        return _buildLicenseContent();
+      case 0: // Donate
+        return _buildDonateContent();
       case 1: // Editor
         return _buildEditorContent();
       case 2: // Network
         return _buildNetworkContent();
       default:
-        return _buildLicenseContent();
+        return _buildDonateContent();
     }
   }
 
-  Widget _buildLicenseContent() {
+  Widget _buildDonateContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 16, left: 16),
           child: Text(
-            'License',
+            'Donate',
             style: const TextStyle(color: lightTextColor, fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
@@ -167,17 +102,16 @@ class _SettingsModalState extends State<SettingsModal> {
             children: [
               SelectableText.rich(
                 TextSpan(
-                  text:
-                      'Trayce may be evaluated for free, however a license must be purchased for continued use. You can purchase one from the link below:\n',
+                  text: 'Help support Trayce by donating to me on Github Sponsors:\n',
                   style: TextStyle(color: lightTextColor, fontSize: 14),
                   children: [
                     TextSpan(
-                      text: 'https://get.trayce.dev/',
+                      text: 'https://github.com/sponsors/evanrolfe',
                       style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline, fontSize: 14),
                       recognizer:
                           TapGestureRecognizer()
                             ..onTap = () async {
-                              final url = Uri.parse('https://get.trayce.dev/');
+                              final url = Uri.parse('https://github.com/sponsors/evanrolfe');
                               if (await canLaunchUrl(url)) {
                                 await launchUrl(url);
                               }
@@ -186,47 +120,6 @@ class _SettingsModalState extends State<SettingsModal> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const SelectableText(
-                'License Key',
-                style: TextStyle(color: lightTextColor, fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const Key('license-key-input'),
-                      controller: _licenseController,
-                      style: textFieldStyle,
-                      decoration: textFieldDecor,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _verifyLicense,
-                    style: commonButtonStyle,
-                    child:
-                        _isVerifying
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                            : const Text('Verify'),
-                  ),
-                ],
-              ),
-              if (_isVerified != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _isVerified! ? 'License key is valid' : 'License key is invalid',
-                  style: TextStyle(color: _isVerified! ? Colors.green : Colors.red, fontSize: 12),
-                ),
-              ],
             ],
           ),
         ),

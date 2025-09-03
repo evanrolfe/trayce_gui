@@ -101,6 +101,11 @@ void main() {
       expect(finalReq.headers[3].name, 'A');
       expect(finalReq.headers[3].value, 'set from request');
 
+      print('finalReq.requestVars:');
+      for (final reqvar in finalReq.requestVars) {
+        print('  ${reqvar.name}: ${reqvar.value}');
+      }
+
       // Verify variables
       expect(finalReq.requestVars.length, 8);
       // Global environment vars:

@@ -17,7 +17,6 @@ import 'editor_sending_a_request.dart' as editor_sending_a_request;
 import 'editor_sending_a_request_with_script_test.dart' as editor_sending_a_request_with_script;
 import 'flow_table_test.dart' as flow_table_test;
 import 'grpc_parsing.dart' as grpc_parsing_test;
-import 'license_key_test.dart' as license_key_test;
 import 'proto_def_modal.dart' as proto_def_modal_test;
 // NOTE: This is how we have to run integration tests (as opposed to letting flutter test run multiple tests)
 // because of this open issue: https://github.com/flutter/flutter/issues/135673
@@ -67,7 +66,6 @@ void main() {
       {'f': 1, 'func': editor_sending_a_request.test},
       {'func': editor_sending_a_request_with_script.test},
       {'func': editor_create_collection.test},
-      {'func': license_key_test.test},
     ];
 
     bool isFocused = tests.any((test) => test.containsKey('f'));

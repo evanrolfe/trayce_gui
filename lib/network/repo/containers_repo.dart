@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trayce/agent/gen/api.pb.dart';
 import 'package:trayce/agent/server.dart';
-import 'package:trayce/network/models/license_key.dart';
 
 class EventDisplayContainers {
   static const minVersion = '1.0.5';
@@ -46,15 +44,6 @@ class EventSendCommand {
   EventSendCommand(this.command);
 }
 
-class EventLicenseVerified {
-  final bool isValid;
-  EventLicenseVerified(this.isValid);
-}
-
-class EventLicenseRequired {
-  EventLicenseRequired();
-}
-
 class ContainersRepo {
   final EventBus _eventBus;
   String? _agentVersion = '';
@@ -63,8 +52,6 @@ class ContainersRepo {
   DateTime? _lastHeartbeatAt;
   final Settings _settings = Settings();
   EventDisplayContainers? _lastDisplayEvent;
-
-  static const _licenseKeyPref = 'license_key';
 
   // Getters
   bool get isVerified => _isVerified;
@@ -97,33 +84,7 @@ class ContainersRepo {
     // Start heartbeat check timer
     Timer.periodic(const Duration(milliseconds: 100), (_) => _checkHeartbeat());
 
-    // Start license check timer
-    Timer.periodic(const Duration(minutes: 5), (_) => _checkLicense());
-
     _sendSettings();
-  }
-
-  Future<LicenseKey?> getLicenseKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    final licenseKeyJSON = prefs.getString(_licenseKeyPref);
-    if (licenseKeyJSON == null) return null;
-
-    return LicenseKey.fromJSON(licenseKeyJSON);
-  }
-
-  Future<void> setLicenseKey(LicenseKey licenseKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_licenseKeyPref, licenseKey.toJSON());
-
-    _eventBus.fire(EventLicenseVerified(licenseKey.isValid));
-  }
-
-  Future<void> _checkLicense() async {
-    print('Checking license');
-    final licenseKey = await getLicenseKey();
-    if (licenseKey == null || !licenseKey.isValid) {
-      _eventBus.fire(EventLicenseRequired());
-    }
   }
 
   void _checkHeartbeat() {

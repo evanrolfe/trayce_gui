@@ -68,6 +68,7 @@ Future<bool> showMessageDialog({
   ).then((value) => value ?? false);
 }
 
+// todo: change this to a donation dialog
 Future<bool> showLicenseDialog({required BuildContext context, String okText = 'Ok'}) {
   return showDialog<bool>(
     context: context,
