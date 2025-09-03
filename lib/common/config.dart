@@ -9,10 +9,12 @@ class Config {
   final String appDocsDir;
   String npmCommand;
   int agentPort;
+  String codeCommand;
 
   static const defaultTrayceApiUrl = 'https://get.trayce.dev'; // no trailing slash
   static const defaultNpmCommand = 'npm';
   static const defaultAgentPort = 50052;
+  static const defaultCodeCommand = 'code'; // the command to open a code editor (i.e. vscode, cursor, sublime, etc.)
 
   Config({
     required this.isTest,
@@ -21,6 +23,7 @@ class Config {
     required this.appDocsDir,
     this.npmCommand = defaultNpmCommand,
     this.agentPort = defaultAgentPort,
+    this.codeCommand = defaultCodeCommand,
   });
 
   static Config fromArgs(List<String> args, Directory appSupportDir, Directory appDocsDir) {

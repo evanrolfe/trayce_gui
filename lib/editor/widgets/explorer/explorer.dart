@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -250,6 +251,14 @@ class _FileExplorerState extends State<FileExplorer> {
     context.read<ExplorerService>().refresh();
   }
 
+  Future<void> _openScript(ScriptNode node) async {
+    final file = node.getFile();
+    if (file == null) return;
+
+    final config = context.read<ConfigRepo>().get();
+    Process.run(config.codeCommand, [file.path]);
+  }
+
   Future<String?> _getCollectionPath() async {
     final config = context.read<ConfigRepo>().get();
     final filePicker = context.read<FilePickerI>();
@@ -340,6 +349,8 @@ class _FileExplorerState extends State<FileExplorer> {
                           // Double tap
                           if (node is RequestNode) {
                             context.read<ExplorerService>().openNode(node);
+                          } else if (node is ScriptNode) {
+                            _openScript(node);
                           }
                         } else {
                           // Single tap

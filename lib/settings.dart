@@ -29,6 +29,7 @@ class _SettingsModalState extends State<SettingsModal> {
   late final TextEditingController _licenseController;
   late final TextEditingController _npmCommandController;
   late final TextEditingController _agentPortController;
+  late final TextEditingController _codeCommandController;
   late final ConfigRepo _configRepo;
 
   bool _isVerifying = false;
@@ -48,8 +49,8 @@ class _SettingsModalState extends State<SettingsModal> {
     _configRepo = context.read<ConfigRepo>();
     _licenseController = TextEditingController();
     _npmCommandController = TextEditingController();
+    _codeCommandController = TextEditingController();
     _agentPortController = TextEditingController();
-
     // Subscribe to verification events
     _verificationSubscription = context.read<EventBus>().on<EventAgentVerified>().listen((event) {
       setState(() {
@@ -65,6 +66,7 @@ class _SettingsModalState extends State<SettingsModal> {
   void _loadSettings() {
     final config = _configRepo.get();
     _npmCommandController.text = config.npmCommand;
+    _codeCommandController.text = config.codeCommand;
     _agentPortController.text = config.agentPort.toString();
   }
 
@@ -127,6 +129,7 @@ class _SettingsModalState extends State<SettingsModal> {
   void _onSave() {
     final config = _configRepo.get();
     config.npmCommand = _npmCommandController.text;
+    config.codeCommand = _codeCommandController.text;
     config.agentPort = int.parse(_agentPortController.text);
     _configRepo.save();
 
@@ -280,6 +283,48 @@ class _SettingsModalState extends State<SettingsModal> {
                       child: TextField(
                         key: const Key('editor_nodejs_command_input'),
                         controller: _npmCommandController,
+                        style: textFieldStyle,
+                        decoration: textFieldDecor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Text(
+                              'Code editor command:',
+                              style: TextStyle(color: Color(0xFF666666), fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message:
+                                  'Code editor command to use (i.e. vscode, cursor, sublime, etc.), for opening JS scripts',
+                              child: const Icon(Icons.help_outline, color: Color(0xFF666666), size: 16),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 300,
+                    child: SizedBox(
+                      height: 30,
+                      child: TextField(
+                        key: const Key('editor_code_command_input'),
+                        controller: _codeCommandController,
                         style: textFieldStyle,
                         decoration: textFieldDecor,
                       ),
