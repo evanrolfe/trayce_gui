@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:re_editor/re_editor.dart';
 import 'package:trayce/common/dropdown_style.dart';
 import 'package:trayce/common/file_picker.dart';
 import 'package:trayce/common/style.dart';
@@ -9,10 +10,12 @@ import 'package:trayce/common/widgets/hoverable_icon_button.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/variable.dart';
 import 'package:trayce/editor/repo/collection_repo.dart';
 import 'package:trayce/editor/repo/config_repo.dart';
 import 'package:trayce/editor/repo/folder_repo.dart';
+import 'package:trayce/editor/widgets/code_editor/code_editor_multi.dart';
 import 'package:trayce/editor/widgets/common/form_table.dart';
 import 'package:trayce/editor/widgets/common/inline_tab_bar.dart';
 import 'package:trayce/editor/widgets/flow_editor_http/auth_basic_controller.dart';
@@ -37,18 +40,25 @@ class NodeSettingsModal extends StatefulWidget {
 }
 
 class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProviderStateMixin {
+  // Static form options
+  static const List<String> _tabTitles = ['Headers', 'Auth', 'Variables', 'Script'];
+  static const List<String> _authTypeOptions = ['No Auth', 'Basic Auth', 'Bearer Token', 'Digest', 'OAuth2', 'WSSE'];
+  // static const List<String> _scriptTypeOptions = ['Pre-Request', 'Post-Response'];
+
+  // Controllers
   late TabController _tabController;
   late FormHeadersController _headersController;
   late FormVarsController _varsController;
   late AuthBasicControllerI _authBasicController;
   late AuthBearerControllerI _authBearerController;
+  late CodeLineEditingController _preRequestController;
+  late CodeLineEditingController _postResponseController;
   late EditorFocusManager _focusManager;
+
+  // State variables
   int _selectedAuthTypeIndex = 0;
-
+  int _scriptTypeIndex = 0;
   late String _title;
-
-  static const List<String> _tabTitles = ['Headers', 'Auth', 'Variables'];
-  static const List<String> _authTypeOptions = ['No Auth', 'Basic Auth', 'Bearer Token', 'Digest', 'OAuth2', 'WSSE'];
 
   @override
   void initState() {
@@ -141,6 +151,21 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     } else if (widget.node is CollectionNode) {
       _authBearerController = AuthBearerControllerCollection((widget.node as CollectionNode).collection);
     }
+
+    // Script
+    _preRequestController = CodeLineEditingController();
+    _postResponseController = CodeLineEditingController();
+    Script? script;
+    if (widget.node is FolderNode) {
+      script = (widget.node as FolderNode).folder.script;
+    } else if (widget.node is CollectionNode) {
+      script = (widget.node as CollectionNode).collection.script;
+    }
+
+    if (script != null) {
+      _preRequestController.text = script.req ?? '';
+      _postResponseController.text = script.res ?? '';
+    }
   }
 
   Future<void> _onSave() async {
@@ -180,6 +205,15 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
       (widget.node as CollectionNode).collection.authBearer = _authBearerController.getAuth();
     }
 
+    // Set script
+    if (widget.node is FolderNode) {
+      (widget.node as FolderNode).folder.setPreRequest(_preRequestController.text);
+      (widget.node as FolderNode).folder.setPostResponse(_postResponseController.text);
+    } else if (widget.node is CollectionNode) {
+      (widget.node as CollectionNode).collection.setPreRequest(_preRequestController.text);
+      (widget.node as CollectionNode).collection.setPostResponse(_postResponseController.text);
+    }
+
     // Save
     if (widget.node is CollectionNode) {
       context.read<CollectionRepo>().save((widget.node as CollectionNode).collection);
@@ -216,6 +250,13 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
     } else if (_authTypeOptions[_selectedAuthTypeIndex] == _authTypeOptions[5]) {
       _selectedAuthTypeIndex = 5;
     }
+
+    final tabContentBorder = Border(
+      top: BorderSide(width: 0, color: backgroundColor),
+      left: BorderSide(width: 0),
+      right: BorderSide(width: 0),
+      bottom: BorderSide(width: 0, color: backgroundColor),
+    );
 
     return Dialog(
       backgroundColor: lightBackgroundColor,
@@ -306,6 +347,56 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                             ),
                             const SizedBox(width: 20),
                           ],
+                          // -----------------------------------------------------------
+                          // Script Type Dropdown
+                          // -----------------------------------------------------------
+                          if (_tabController.index == 3) ...[
+                            const SizedBox(width: 12),
+                            Container(
+                              width: 130,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFF474747), width: 0),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: DropdownButton2<String>(
+                                key: const Key('flow_editor_script_type_dropdown'),
+                                focusNode: _focusManager.authTypeFocusNode,
+                                value: _scriptTypeIndex == 0 ? 'Pre-Request' : 'Post-Response',
+                                underline: Container(),
+                                dropdownStyleData: DropdownStyleData(
+                                  decoration: dropdownDecoration,
+                                  width: 150,
+                                  openInterval: Interval(0.0, 0.0),
+                                ),
+                                buttonStyleData: ButtonStyleData(
+                                  padding: const EdgeInsets.only(left: 4, top: 2, right: 4),
+                                ),
+                                menuItemStyleData: menuItemStyleData,
+                                iconStyleData: iconStyleData,
+                                style: textFieldStyle,
+                                isExpanded: true,
+                                items:
+                                    ['Pre-Request', 'Post-Response'].map((String format) {
+                                      return DropdownMenuItem<String>(
+                                        value: format,
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 8),
+                                          child: Text(format),
+                                        ),
+                                      );
+                                    }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _scriptTypeIndex = newValue == 'Pre-Request' ? 0 : 1;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                          ],
                         ],
                       ),
                     ),
@@ -371,6 +462,26 @@ class _NodeSettingsModalState extends State<NodeSettingsModal> with TickerProvid
                                   FormTableColumn.delete,
                                 ],
                               ),
+                            ),
+                            // -----------------------------------------------------------
+                            // Script Tab
+                            // -----------------------------------------------------------
+                            IndexedStack(
+                              index: _scriptTypeIndex,
+                              children: [
+                                // Pre-Request Script
+                                MultiLineCodeEditor(
+                                  focusNode: _focusManager.preRequestFocusNode,
+                                  border: tabContentBorder,
+                                  controller: _preRequestController,
+                                ),
+                                // Post Response Scrip
+                                MultiLineCodeEditor(
+                                  focusNode: _focusManager.postResponseFocusNode,
+                                  border: tabContentBorder,
+                                  controller: _postResponseController,
+                                ),
+                              ],
                             ),
                           ],
                         ),
