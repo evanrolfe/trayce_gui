@@ -26,7 +26,8 @@ const jsonResponse = '{"message":"Hello, World!","status":200}';
 
 class MockEventBus extends Mock implements EventBus {}
 
-const collection1Path = 'test/support/collection-scripts';
+const collectionScriptsPath = 'test/support/collection-scripts';
+const collection1Path = 'test/support/collection1';
 
 late HttpTestServer mockServer;
 
@@ -64,7 +65,7 @@ void main() {
     await mockServer.close();
   });
 
-  test('sending a request with a pre-request that calls bru.sendRequest()', () async {
+  test('sending a request with a pre-request script, post-response & folder + collection scripts', () async {
     mockServer.newHandler('GET', '/test_endpoint');
 
     // Open the collection and load the request
@@ -75,6 +76,66 @@ void main() {
       requestRepo: requestRepo,
     );
     explorerService.openCollection(collection1Path);
+
+    final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
+
+    final collection = explorerService.getOpenCollections()[0];
+    collection.setCurrentEnvironment('dev');
+
+    final node = event.nodes[0].children[1].children[2];
+    expect(node.name, 'three.bru');
+    expect(node, isA<RequestNode>());
+
+    // Set the URL and script on the request
+    final url = '${mockServer.url().toString()}/test_endpoint';
+    final jsScriptPre = '''console.log('Hello, from the request (pre)');''';
+    final jsScriptPost = '''console.log('Hello, from the request (post)');''';
+    final request = (node as RequestNode).request;
+    request.url = url;
+    request.script = Script(req: jsScriptPre, res: jsScriptPost);
+
+    // Send the request with the node hierarchy
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: event.nodes[0] as CollectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
+    final response = result.response;
+
+    // Verify the response
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    mockServer.reset();
+
+    print(result.output);
+    expect(result.output.length, 6);
+    expect(result.output[0], 'Hi, from the collection! (pre)');
+    expect(result.output[1], 'Hi, from the folder! (pre)');
+    expect(result.output[2], 'Hello, from the request (pre)');
+    expect(result.output[3], 'Hello, from the request (post)');
+    expect(result.output[4], 'Hi, from the folder! (post)');
+    expect(result.output[5], 'Hi, from the collection! (post)');
+  });
+
+  test('sending a request with a pre-request that calls bru.sendRequest()', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    // Open the collection and load the request
+    final explorerService = ExplorerService(
+      eventBus: mockEventBus,
+      collectionRepo: collectionRepo,
+      folderRepo: folderRepo,
+      requestRepo: requestRepo,
+    );
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -141,7 +202,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -199,7 +260,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -257,7 +318,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -318,7 +379,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -375,7 +436,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -432,7 +493,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -491,7 +552,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -550,7 +611,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -608,7 +669,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -685,7 +746,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -768,7 +829,7 @@ void main() {
         folderRepo: folderRepo,
         requestRepo: requestRepo,
       );
-      explorerService.openCollection(collection1Path);
+      explorerService.openCollection(collectionScriptsPath);
 
       final captured = verify(() => mockEventBus.fire(captureAny())).captured;
       final event = captured.whereType<EventDisplayExplorerItems>().first;
@@ -833,7 +894,7 @@ void main() {
       folderRepo: folderRepo,
       requestRepo: requestRepo,
     );
-    explorerService.openCollection(collection1Path);
+    explorerService.openCollection(collectionScriptsPath);
 
     final captured = verify(() => mockEventBus.fire(captureAny())).captured;
     final event = captured.whereType<EventDisplayExplorerItems>().first;

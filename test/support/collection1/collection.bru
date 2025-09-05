@@ -1,3 +1,14 @@
+meta {
+  type: collection
+}
+
+headers {
+  A: set from collection
+  B: set from collection
+  C: set from collection
+  D: set from collection
+}
+
 auth {
   mode: basic
 }
@@ -13,9 +24,10 @@ vars:pre-request {
   C_var: set from collection
 }
 
-headers {
-    A: set from collection
-    B: set from collection
-    C: set from collection
-    D: set from collection
+script:pre-request {
+    console.log('Hi, from the collection! (pre)')
+}
+
+script:post-response {
+    console.log('Hi, from the collection! (post)')
 }

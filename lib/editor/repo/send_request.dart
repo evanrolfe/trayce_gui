@@ -8,6 +8,7 @@ import 'package:trayce/editor/models/body.dart';
 import 'package:trayce/editor/models/explorer_node.dart';
 import 'package:trayce/editor/models/header.dart';
 import 'package:trayce/editor/models/request.dart';
+import 'package:trayce/editor/models/script.dart';
 import 'package:trayce/editor/models/send_result.dart';
 import 'package:trayce/editor/repo/environment_repo.dart';
 import 'package:trayce/editor/repo/explorer_service.dart';
@@ -60,12 +61,63 @@ class SendRequest {
   });
 
   Future<SendResult> send() async {
-    final finalReq = getFinalRequest(node);
+    final finalReq = getFinalRequest();
+    final nodeHierarchy = _getNodeHierarchy();
 
-    final outputPre = await _executePreRequestScript(finalReq);
+    // Execute pre-request scripts from collection and folders:
+    List<String> outputPre = [];
+    // Loop through nodeHierarchy in reverse order (collection -> folder -> request)
+    for (int i = nodeHierarchy.length - 1; i >= 0; i--) {
+      final node = nodeHierarchy[i];
+
+      List<String> output = [];
+      if (node is CollectionNode && node.collection.script != null && node.collection.script!.req != null) {
+        output = await _executePreRequestScript(finalReq, node.collection.script!);
+      } else if (node is FolderNode && node.folder.script != null && node.folder.script!.req != null) {
+        output = await _executePreRequestScript(finalReq, node.folder.script!);
+      }
+      outputPre.addAll(output);
+    }
+
+    // Execute pre-request script on request:
+    if (finalReq.script != null) {
+      final output = await _executePreRequestScript(finalReq, finalReq.script!);
+      outputPre.addAll(output);
+    }
+
     final result = await _sendRequest(finalReq);
-    final resultPost = await _executePostResponseScript(finalReq, result.response, result.responseTime ?? 0);
+    final resultPost = await _executePostResponseScript(
+      finalReq,
+      finalReq.script,
+      result.response,
+      result.responseTime ?? 0,
+    );
     final resultPostVars = await _executePostResponseVarsScript(finalReq, result.response, result.responseTime ?? 0);
+
+    // Loop through nodeHierarchy in order (request -> folder -> collection)
+    for (int i = 0; i < nodeHierarchy.length; i++) {
+      final node = nodeHierarchy[i];
+
+      List<String> output = [];
+      if (node is CollectionNode && node.collection.script != null && node.collection.script!.res != null) {
+        final resultPostCollection = await _executePostResponseScript(
+          finalReq,
+          node.collection.script!,
+          result.response,
+          result.responseTime ?? 0,
+        );
+        output = resultPostCollection.output;
+      } else if (node is FolderNode) {
+        final resultPostCollection = await _executePostResponseScript(
+          finalReq,
+          node.folder.script!,
+          result.response,
+          result.responseTime ?? 0,
+        );
+        output = resultPostCollection.output;
+      }
+      resultPost.output.addAll(output);
+    }
 
     return SendResult(
       response: resultPost.response,
@@ -93,20 +145,15 @@ class SendRequest {
       final node = entry.value;
       if (node is! RequestNode) continue;
 
-      final httpRequest = await getFinalRequest(node).toHttpRequest();
+      final httpRequest = await getFinalRequest().toHttpRequest();
       requestMap[key] = _httpRequestToAxios(httpRequest);
     }
 
     return requestMap;
   }
 
-  Map<String, List<VarForJson>> _getVarsMap(ExplorerNode? reqNode) {
-    List<ExplorerNode> nodeHierarchy;
-    if (reqNode == null) {
-      nodeHierarchy = [collectionNode];
-    } else {
-      nodeHierarchy = explorerService.getNodeHierarchy(reqNode);
-    }
+  Map<String, List<VarForJson>> _getVarsMap() {
+    final nodeHierarchy = _getNodeHierarchy();
 
     final varsMap = <String, List<VarForJson>>{
       'globalEnvVars': [],
@@ -169,14 +216,8 @@ class SendRequest {
     return varsMap;
   }
 
-  Request getFinalRequest(ExplorerNode? reqNode) {
-    List<ExplorerNode> nodeHierarchy;
-    if (reqNode == null) {
-      nodeHierarchy = [collectionNode];
-    } else {
-      nodeHierarchy = explorerService.getNodeHierarchy(reqNode);
-    }
-
+  Request getFinalRequest() {
+    final nodeHierarchy = _getNodeHierarchy();
     final finalReq = Request.blank();
     finalReq.copyValuesFrom(request);
     finalReq.interpolatePathParams();
@@ -270,9 +311,14 @@ class SendRequest {
     return finalReq;
   }
 
-  Future<List<String>> _executePreRequestScript(Request request) async {
-    final script = request.script;
-    if (script == null || script.req == null || script.req!.isEmpty) return [];
+  List<ExplorerNode> _getNodeHierarchy() {
+    if (node == null) return [collectionNode];
+
+    return explorerService.getNodeHierarchy(node!);
+  }
+
+  Future<List<String>> _executePreRequestScript(Request request, Script script) async {
+    if (script.req == null || script.req!.isEmpty) return [];
 
     final preReqScript = script.req!;
 
@@ -289,7 +335,7 @@ class SendRequest {
         'requestMap': requestMap,
         'collectionName': collectionNode.collection.dir.path,
         'collectionPath': collectionNode.collection.absolutePath(),
-        'vars': _getVarsMap(node),
+        'vars': _getVarsMap(),
       };
 
       // Run the CLI command
@@ -393,8 +439,12 @@ class SendRequest {
     }
   }
 
-  Future<SendResult> _executePostResponseScript(Request request, http.Response response, int responseTime) async {
-    final script = request.script;
+  Future<SendResult> _executePostResponseScript(
+    Request request,
+    Script? script,
+    http.Response response,
+    int responseTime,
+  ) async {
     if (script == null || script.res == null || script.res!.isEmpty) {
       return SendResult(response: response, output: [], responseTime: responseTime);
     }
@@ -416,7 +466,7 @@ class SendRequest {
         'requestMap': requestMap,
         'collectionName': collectionNode.collection.dir.path,
         'collectionPath': collectionNode.collection.absolutePath(),
-        'vars': _getVarsMap(node),
+        'vars': _getVarsMap(),
       };
       // print("npm run script --silent -- ${scriptFile.path} '${jsonEncode(cliArgs)}'");
       // Run the CLI command
@@ -468,7 +518,7 @@ class SendRequest {
         'requestMap': requestMap,
         'collectionName': collectionNode.collection.dir.path,
         'collectionPath': collectionNode.collection.absolutePath(),
-        'vars': _getVarsMap(node),
+        'vars': _getVarsMap(),
       };
 
       // print("npm run script-vars --silent -- '${jsonEncode(cliArgs)}'");
