@@ -183,4 +183,20 @@ class Folder {
       authType: AuthType.none,
     );
   }
+
+  void setPreRequest(String preRequest) {
+    if (script == null) {
+      script = Script(req: preRequest);
+    } else {
+      script!.req = preRequest;
+    }
+  }
+
+  void setPostResponse(String postResponse) {
+    if (script == null) {
+      script = Script(res: postResponse);
+    } else {
+      script!.res = postResponse;
+    }
+  }
 }

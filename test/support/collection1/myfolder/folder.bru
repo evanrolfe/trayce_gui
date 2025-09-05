@@ -20,3 +20,11 @@ vars:pre-request {
   A_var: set from folder
   B_var: set from folder
 }
+
+script:pre-request {
+    console.log('Hi, from the folder! (pre)')
+}
+
+script:post-response {
+    console.log('Hi, from the folder! (post)')
+}

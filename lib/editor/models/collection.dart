@@ -179,6 +179,22 @@ class Collection {
     return bru;
   }
 
+  void setPreRequest(String preRequest) {
+    if (script == null) {
+      script = Script(req: preRequest);
+    } else {
+      script!.req = preRequest;
+    }
+  }
+
+  void setPostResponse(String postResponse) {
+    if (script == null) {
+      script = Script(res: postResponse);
+    } else {
+      script!.res = postResponse;
+    }
+  }
+
   static String getBrunoJson(String name) {
     return '''{
   "version": "1",

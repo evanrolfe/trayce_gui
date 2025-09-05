@@ -75,17 +75,18 @@ void main() {
       expect(hierarchy[1].name, 'myfolder');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq = SendRequest(
-        request: (reqThree as RequestNode).request,
-        node: reqThree,
-        collectionNode: event.nodes[0] as CollectionNode,
-        explorerService: explorerService,
-        runtimeVarsRepo: runtimeVarsRepo,
-        environmentRepo: environmentRepo,
-        globalEnvironmentRepo: globalEnvRepo,
-        config: config,
-        httpClient: HttpClient(),
-      ).getFinalRequest(reqThree);
+      final finalReq =
+          SendRequest(
+            request: (reqThree as RequestNode).request,
+            node: reqThree,
+            collectionNode: event.nodes[0] as CollectionNode,
+            explorerService: explorerService,
+            runtimeVarsRepo: runtimeVarsRepo,
+            environmentRepo: environmentRepo,
+            globalEnvironmentRepo: globalEnvRepo,
+            config: config,
+            httpClient: HttpClient(),
+          ).getFinalRequest();
 
       // Verify the URL
       expect(finalReq.url, 'www.synack.com/three/users/show/123');
@@ -161,17 +162,18 @@ void main() {
       expect(hierarchy[1].name, 'myfolder');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq = SendRequest(
-        request: (reqFour as RequestNode).request,
-        node: reqFour,
-        collectionNode: event.nodes[0] as CollectionNode,
-        explorerService: explorerService,
-        runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
-        environmentRepo: environmentRepo,
-        globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
-        config: config,
-        httpClient: HttpClient(),
-      ).getFinalRequest(reqFour);
+      final finalReq =
+          SendRequest(
+            request: (reqFour as RequestNode).request,
+            node: reqFour,
+            collectionNode: event.nodes[0] as CollectionNode,
+            explorerService: explorerService,
+            runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+            environmentRepo: environmentRepo,
+            globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+            config: config,
+            httpClient: HttpClient(),
+          ).getFinalRequest();
 
       // Verify auth
       expect(finalReq.authType, AuthType.basic);
@@ -204,17 +206,18 @@ void main() {
       expect(hierarchy[1].name, 'hello');
       expect(hierarchy[2].name, 'collection1');
 
-      final finalReq = SendRequest(
-        request: (reqFour as RequestNode).request,
-        node: reqFour,
-        collectionNode: event.nodes[0] as CollectionNode,
-        explorerService: explorerService,
-        runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
-        environmentRepo: environmentRepo,
-        globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
-        config: config,
-        httpClient: HttpClient(),
-      ).getFinalRequest(reqFour);
+      final finalReq =
+          SendRequest(
+            request: (reqFour as RequestNode).request,
+            node: reqFour,
+            collectionNode: event.nodes[0] as CollectionNode,
+            explorerService: explorerService,
+            runtimeVarsRepo: RuntimeVarsRepo(eventBus: mockEventBus),
+            environmentRepo: environmentRepo,
+            globalEnvironmentRepo: GlobalEnvironmentRepo(mockAppStorage),
+            config: config,
+            httpClient: HttpClient(),
+          ).getFinalRequest();
 
       // Verify auth
       expect(finalReq.authType, AuthType.basic);

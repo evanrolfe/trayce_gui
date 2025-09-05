@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -171,4 +172,15 @@ Future<void> pressEnter(WidgetTester tester) async {
   await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
   await tester.sendKeyUpEvent(LogicalKeyboardKey.enter);
   await tester.pumpAndSettle();
+}
+
+String normalizeJson(String jsonString) {
+  try {
+    // Parse the JSON string
+    final dynamic parsed = jsonDecode(jsonString);
+    // Serialize it back with no indentation or whitespace
+    return const JsonEncoder().convert(parsed);
+  } catch (e) {
+    throw Exception('Failed to normalize JSON: $e');
+  }
 }
