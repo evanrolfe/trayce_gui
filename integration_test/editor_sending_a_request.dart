@@ -126,7 +126,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.method, 'POST');
   expect(sentRequest!.headers['X-Auth-Token'], '1234abcd');
   expect(sentRequest!.headers['Content-Type'], 'application/json; charset=utf-8');
-  expect(sentRequestBody, '{"hello": "world"}');
+  expect(normalizeJson(sentRequestBody!), '{"hello":"world"}');
 
   final responseEditor = tester.widget<MultiLineCodeEditor>(find.byType(MultiLineCodeEditor).last);
   expect(responseEditor.controller.text, expectedFormattedJson);
@@ -351,7 +351,7 @@ Future<void> test(WidgetTester tester, Database db) async {
   expect(sentRequest!.headers['h'], "added-on-env-secret!");
   expect(sentRequest!.headers['i'], "password1");
   expect(sentRequest!.headers['x-auth-token'], "abcd1234");
-  expect(sentRequestBody, '{"hello": "world"}');
+  expect(normalizeJson(sentRequestBody!), '{"hello":"world"}');
 
   // ===========================================================================
   // Close the request
