@@ -15,7 +15,7 @@ class RuntimeVarsRepo {
     _eventBus.fire(EventRuntimeVarsChanged());
   }
 
-  void setVar(String name, String value) {
+  void setVar(String name, dynamic value) {
     final varr = getVar(name);
     if (varr != null) {
       varr.value = value;

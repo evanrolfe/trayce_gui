@@ -1,6 +1,8 @@
+import 'dart:convert';
+
 class Variable {
   String name;
-  String? value;
+  dynamic value;
   bool enabled;
   bool secret;
   bool local;
@@ -16,6 +18,7 @@ class Variable {
   }
 
   String toJson() {
-    return '{"name": "$name", "value": ${value != null ? '"$value"' : 'null'}, "enabled": $enabled, "secret": $secret, "local": $local}';
+    final valueJson = {'name': name, 'value': value, 'enabled': enabled, 'secret': secret, 'local': local};
+    return jsonEncode(valueJson);
   }
 }

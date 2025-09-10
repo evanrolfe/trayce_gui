@@ -538,6 +538,93 @@ void main() {
     expect(runtimeVarsRepo.getVar('test_var2')?.value, 'test_value2');
   });
 
+  test('sending a request with a pre-request script that calls bru.setVar() with a non-string value', () async {
+    mockServer.newHandler('GET', '/test_endpoint');
+
+    // Open the collection and load the request
+    final runtimeVarsRepo = RuntimeVarsRepo(
+      vars: [Variable(name: 'test_var', value: 'test_value', enabled: true)],
+      eventBus: mockEventBus,
+    );
+    final explorerService = ExplorerService(
+      eventBus: mockEventBus,
+      collectionRepo: collectionRepo,
+      folderRepo: folderRepo,
+      requestRepo: requestRepo,
+    );
+    explorerService.openCollection(collectionScriptsPath);
+
+    final captured = verify(() => mockEventBus.fire(captureAny())).captured;
+    final event = captured.whereType<EventDisplayExplorerItems>().first;
+
+    final collection = explorerService.getOpenCollections()[0];
+    collection.setCurrentEnvironment('dev');
+
+    final node = event.nodes[0].children[3];
+    expect(node.name, 'my-request.bru');
+    expect(node, isA<RequestNode>());
+    // Set the URL and script on the request
+    final url = '${mockServer.url().toString()}/test_endpoint';
+
+    final jsScript = '''
+      // String
+      bru.setVar('test_var2', 123);
+      console.log(bru.getVar('test_var2'));
+
+      // Boolean
+      bru.setVar('test_var3', true);
+      console.log(bru.getVar('test_var3'));
+
+      // Object
+      bru.setVar('test_var4', {'a': 123});
+      console.log(bru.getVar('test_var4').a);
+
+      // Array
+      bru.setVar('test_var5', ['a', 'b', 'c']);
+      console.log(bru.getVar('test_var5')[2]);
+
+      // Date
+      bru.setVar("test_var6", new Date());
+      console.log(bru.getVar('test_var6'));
+    ''';
+    final request = (node as RequestNode).request;
+    request.url = url;
+    request.script = Script(req: jsScript);
+
+    // Send the request with the node hierarchy
+    final result =
+        await SendRequest(
+          request: request,
+          node: node,
+          collectionNode: event.nodes[0] as CollectionNode,
+          explorerService: explorerService,
+          runtimeVarsRepo: runtimeVarsRepo,
+          environmentRepo: environmentRepo,
+          globalEnvironmentRepo: globalEnvironmentRepo,
+          config: config,
+          httpClient: HttpClient(),
+        ).send();
+    final response = result.response;
+
+    // Verify the response
+    expect(response.statusCode, 200);
+    expect(response.body, jsonResponse);
+    mockServer.reset();
+
+    expect(result.output.length, 5);
+    expect(result.output[0], '123');
+    expect(result.output[1], 'true');
+    expect(result.output[2], '123');
+    expect(result.output[3], 'c');
+    expect(result.output[4], matches(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$'));
+
+    expect(runtimeVarsRepo.getVar('test_var2')?.value, 123);
+    expect(runtimeVarsRepo.getVar('test_var3')?.value, true);
+    expect(runtimeVarsRepo.getVar('test_var4')?.value, {'a': 123});
+    expect(runtimeVarsRepo.getVar('test_var5')?.value, ['a', 'b', 'c']);
+    expect(runtimeVarsRepo.getVar('test_var6')?.value, isA<String>());
+  });
+
   test('sending a request with a post-response script that calls bru.setVar()', () async {
     mockServer.newHandler('GET', '/test_endpoint');
 
