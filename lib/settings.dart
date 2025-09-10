@@ -23,6 +23,7 @@ class _SettingsModalState extends State<SettingsModal> {
   late final TextEditingController _npmCommandController;
   late final TextEditingController _agentPortController;
   late final TextEditingController _codeCommandController;
+  late final TextEditingController _appDataPathController;
   late final ConfigRepo _configRepo;
 
   // Tab management
@@ -40,6 +41,7 @@ class _SettingsModalState extends State<SettingsModal> {
     _npmCommandController = TextEditingController();
     _codeCommandController = TextEditingController();
     _agentPortController = TextEditingController();
+    _appDataPathController = TextEditingController();
     _loadSettings();
   }
 
@@ -48,6 +50,7 @@ class _SettingsModalState extends State<SettingsModal> {
     _npmCommandController.text = config.npmCommand;
     _codeCommandController.text = config.codeCommand;
     _agentPortController.text = config.agentPort.toString();
+    _appDataPathController.text = config.appSupportDir;
   }
 
   @override
@@ -225,6 +228,49 @@ class _SettingsModalState extends State<SettingsModal> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Text(
+                              'App data path:',
+                              style: TextStyle(color: Color(0xFF666666), fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: 'The path where Trayce will store its app data',
+                              child: const Icon(Icons.help_outline, color: Color(0xFF666666), size: 16),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 300,
+                    child: SizedBox(
+                      height: 30,
+                      child: TextField(
+                        readOnly: true,
+                        key: const Key('editor_app_data_path_input'),
+                        controller: _appDataPathController,
+                        style: textFieldStyle,
+                        decoration: textFieldDecor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
